@@ -1,135 +1,80 @@
-# Turborepo starter
+# Dự án Multi-Tenant Monorepo (Turbo)
 
-This Turborepo starter is maintained by the Turborepo core team.
+Dự án này sử dụng cấu trúc Monorepo với bộ công cụ Turbo, React, Vite, Ant Design và Tailwind CSS, tập trung vào khả năng tùy biến giao diện linh hoạt cho nhiều Tenant khác nhau.
 
-## Using this example
+## 📁 Cấu trúc thư mục
 
-Run the following command:
+### 📱 Applications (`/apps`)
+- **`web`**: Ứng dụng quản trị/người dùng trên trình duyệt (Cổng 3000).
+- **`mobile`**: Ứng dụng tối ưu cho thiết bị di động (Cổng 3001).
 
-```sh
-npx create-turbo@latest
+### 📦 Shared Packages (`/packages`)
+Để dự án gọn gàng và dễ quản lý, hệ thống cấu hình giao diện đã được chia nhỏ:
+- **`@repo/antd-config`**: Chứa Token của Ant Design (Màu sắc, Font, Border Radius mặc định).
+- **`@repo/tailwind-config`**: Chứa cấu hình Tailwind dùng chung, kết nối các Class Tailwind với biến CSS.
+- **`@repo/tenant-config`**: Chứa logic xử lý Tenant, Mock data của các Tenant và hàm cập nhật CSS Variables.
+- **`@repo/theme-provider`**: Chứa React Context quản lý Dark/Light mode và các Component điều chuyển Theme.
+
+---
+
+## 🛠 Hướng dẫn tùy chỉnh Giao diện
+
+### 1. Thêm hoặc Sửa Tenant mới
+Để thêm một Tenant mới với bộ nhận diện thương hiệu riêng, bạn vào file:
+`packages/tenant-config/src/index.ts`
+
+Tìm đến biến `tenantExamples` và thêm cấu hình mới:
+```typescript
+{
+    my_new_tenant: {
+        name: 'Tên Công Ty Mới',
+        config: {
+            colorPrimary: '#mã_màu_hex',    // Màu chủ đạo
+            borderRadius: 10,               // Độ bo góc
+            colorSuccess: '#mã_màu_thành_công',
+            // ... các token khác của Ant Design
+        },
+    }
+}
 ```
 
-## What's inside?
+### 2. Thêm màu mới vào Tailwind
+Nếu bạn muốn thêm một thuộc tính màu mới có thể thay đổi theo Tenant qua Tailwind, hãy làm theo 2 bước:
 
-This Turborepo includes the following packages/apps:
-
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
+**Bước A: Định nghĩa biến CSS**
+Trong file `packages/tenant-config/src/index.ts`, cập nhật hàm `updateTenantCSSVariables`:
+```typescript
+if (config.myNewColor) root.style.setProperty('--tenant-custom-color', config.myNewColor);
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
-
+**Bước B: Khai báo trong Tailwind**
+Tại file `apps/web/tailwind.config.cjs` (hoặc mobile), thêm vào mục `colors`:
+```javascript
+colors: {
+    'custom-color': 'var(--tenant-custom-color)',
+}
 ```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
+Sau đó bạn có thể dùng class: `text-custom-color` hoặc `bg-custom-color`.
 
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
+### 3. Sửa cấu hình Ant Design mặc định
+Nếu muốn thay đổi style mặc định (Light/Dark mode) cho toàn bộ hệ thống, hãy chỉnh sửa tại:
+`packages/antd-config/src/index.ts`
 
-### Develop
+---
 
-To develop all apps and packages, run the following command:
+## 🚀 Cách chạy dự án
 
-```
-cd my-turborepo
+1. **Cài đặt thư viện**:
+   ```bash
+   pnpm install
+   ```
 
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
+2. **Chạy môi trường phát triển**:
+   ```bash
+   pnpm dev
+   ```
 
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
-```
+3. **Lưu ý**: Khi bạn thực hiện các thay đổi lớn về cấu trúc gói (packages), hãy khởi động lại lệnh `pnpm dev` để đảm bảo hệ thống nhận diện đúng các liên kết mới.
 
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
-
-```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
-
-### Remote Caching
-
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+---
+*Dự án được thiết kế để tối ưu hóa khả năng mở rộng (Scalability) và tái sử dụng mã nguồn (Code Reusability).*
