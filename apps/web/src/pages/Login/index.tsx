@@ -3,6 +3,7 @@ import { Radio } from 'antd';
 import { useLanguage } from '@repo/i18n';
 import { LoginStyle1 } from './LoginStyle1';
 import { LoginStyle2 } from './LoginStyle2';
+import { ThemeSwitcher } from '@repo/theme-provider';
 
 export const Login = () => {
     const [style, setStyle] = useState<'enterprise' | 'minimal'>('enterprise');
@@ -40,6 +41,9 @@ export const Login = () => {
                         giao diện 2
                     </Radio.Button>
                 </Radio.Group>
+                <div className="ml-auto">
+                    <ThemeSwitcher />
+                </div>
             </div>
 
             {style === 'enterprise' ? (

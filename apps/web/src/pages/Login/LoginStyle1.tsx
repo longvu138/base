@@ -18,18 +18,17 @@ export const LoginStyle1 = () => {
     });
 
     const onFinish = (values: any) => {
-        login.setCredentials(values);
-        login.handleLogin();
+        login.handleLogin(values);
     };
 
     return (
         <div className="min-h-screen flex w-full">
             {/* Right Side: Login Form */}
-            <div className="flex-1 flex items-center justify-center bg-white p-8">
+            <div className="flex-1 flex items-center justify-center bg-filter dark:bg-filter-dark p-8">
                 <div className="w-full max-w-[400px]">
                     <div className="mb-10">
-                        <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('auth.login.title')}</h1>
-                        <p className="text-gray-500">{t('auth.login.subtitle')}</p>
+                        <h1 className="text-3xl font-bold text-primary mb-2">{t('auth.login.title')}</h1>
+                        <p className="text-gray-500 dark:text-gray-400">{t('auth.login.subtitle')}</p>
                     </div>
 
                     <Form
@@ -42,7 +41,7 @@ export const LoginStyle1 = () => {
                         requiredMark={false}
                     >
                         <Form.Item
-                            label={<span className="font-medium text-gray-700">{t('auth.login.username')}</span>}
+                            label={<span className="font-medium text-gray-700 dark:text-gray-300">{t('auth.login.username')}</span>}
                             name="username"
                             rules={[
                                 { required: true, message: t('auth.login.usernameRequired') },
@@ -58,7 +57,7 @@ export const LoginStyle1 = () => {
                         <Form.Item
                             label={
                                 <div className="flex justify-between w-full">
-                                    <span className="font-medium text-gray-700">{t('auth.login.password')}</span>
+                                    <span className="font-medium text-gray-700 dark:text-gray-300">{t('auth.login.password')}</span>
                                     {/* <a href="#" className="text-sm text-blue-600 hover:text-blue-700 font-medium">Quên mật khẩu?</a> */}
                                 </div>
                             }
@@ -76,7 +75,7 @@ export const LoginStyle1 = () => {
                                 type="primary"
                                 htmlType="submit"
                                 loading={login.isLoading}
-                                className="w-full h-11 rounded-lg font-semibold text-base bg-gray-900 hover:bg-gray-800 border-none shadow-none flex items-center justify-center gap-2 group"
+                                className="w-full h-11 rounded-lg font-semibold text-base bg-primary hover:opacity-90 border-none shadow-none flex items-center justify-center gap-2 group"
                             >
                                 {t('auth.login.loginButton')}
                                 <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
@@ -84,7 +83,7 @@ export const LoginStyle1 = () => {
                         </Form.Item>
 
                         <div className="text-center mt-6">
-                            <span className="text-gray-500 text-sm">Chưa có tài khoản? </span>
+                            <span className="text-gray-500 dark:text-gray-400 text-sm">Chưa có tài khoản? </span>
                             <a href="#" className="font-semibold text-blue-600 hover:text-blue-700 text-sm">
                                 {t('auth.login.signUp')}
                             </a>
