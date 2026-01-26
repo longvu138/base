@@ -21,7 +21,7 @@ export interface UseLoginReturn {
     updateField: (field: keyof LoginCredentials, value: string) => void;
 
     // Hành động đăng nhập
-    handleLogin: () => void;
+    handleLogin: (data?: LoginCredentials) => void;
 
     // Trạng thái
     isLoading: boolean;
@@ -74,16 +74,19 @@ export const useLogin = (options: UseLoginOptions = {}): UseLoginReturn => {
     const isValid = credentials.username.trim() !== '' && credentials.password.trim() !== '';
 
     // Handler đăng nhập chính
-    const handleLogin = () => {
-        if (!isValid) {
+    const handleLogin = (data?: LoginCredentials) => {
+        const loginData = data || credentials;
+        const currentValid = loginData.username.trim() !== '' && loginData.password.trim() !== '';
+
+        if (!currentValid) {
             showMessage?.('error', 'Vui lòng nhập đầy đủ thông tin đăng nhập');
             return;
         }
 
         login(
             {
-                username: credentials.username,
-                password: credentials.password,
+                username: loginData.username,
+                password: loginData.password,
                 grant_type: 'password',
                 scope: 'all',
                 client_id: clientId
