@@ -1,6 +1,5 @@
 import { ConfigProvider, theme } from 'antd';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { BrowserRouter } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { webAntdTheme, webDarkAntdTheme } from '@repo/antd-config';
@@ -14,7 +13,6 @@ import {
   type SimpleTenantConfig,
 } from '@repo/tenant-config';
 import AppRoutes from './routes';
-import './App.css';
 
 // Create a client for React Query
 const queryClient = new QueryClient({
@@ -76,14 +74,15 @@ function AppContent() {
     });
   }, [selectedTenantId]);
 
-  // 5. Effect cập nhật CSS variables cho Tailwind
-  useEffect(() => {
-    updateTenantCSSVariables(tenantConfig || undefined);
-  }, [tenantConfig]);
+  // 5. CẬP NHẬT ĐỒNG BỘ: Đưa ra ngoài useEffect để update biến CSS ngay khi render
+  // Điều này đảm bảo màu nền body và màu antd đổi cùng 1 frame hình
+  if (typeof document !== 'undefined') {
+    updateTenantCSSVariables(tenantConfig || undefined, isDark);
+  }
 
   // Apply tenant config vào base theme
   const baseTheme = isDark ? webDarkAntdTheme : webAntdTheme;
-  const finalTheme = applyTenantConfig(baseTheme, tenantConfig || undefined);
+  const finalTheme = applyTenantConfig(baseTheme, tenantConfig || undefined, isDark);
 
   return (
     <ConfigProvider
@@ -105,7 +104,6 @@ function App() {
       <ThemeProvider>
         <AppContent />
       </ThemeProvider>
-      <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   );
 }

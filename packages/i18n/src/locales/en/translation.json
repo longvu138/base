@@ -1,0 +1,95 @@
+{
+  "common": {
+    "appName": "Management App",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "import": "Import",
+    "no_data": "No data available"
+  },
+  "auth": {
+    "login": {
+      "title": "Welcome Back",
+      "subtitle": "Please login to your account",
+      "subtitleModern": "Enter your credentials to continue",
+      "username": "Username",
+      "password": "Password",
+      "usernamePlaceholder": "Enter your username",
+      "passwordPlaceholder": "Enter your password",
+      "rememberMe": "Remember me",
+      "forgotPassword": "Forgot password?",
+      "loginButton": "Login",
+      "loggingIn": "Signing in...",
+      "noAccount": "Don't have an account?",
+      "signUp": "Sign up now",
+      "loginSuccess": "Login successful",
+      "loginError": "Login failed",
+      "invalidCredentials": "Please enter valid credentials",
+      "errorMessage": "Unknown error"
+    },
+    "profile": "Profile",
+    "logout": "Logout"
+  },
+  "ui": {
+    "switchStyle": "Switch UI Style",
+    "style1": "Style 1",
+    "style1Desc": "Classic & Professional",
+    "style2": "Style 2",
+    "style2Desc": "Modern & Glassmorphism",
+    "sameHook": "Same Hook",
+    "differentUI": "Different UI",
+    "usingSharedHook": "Using shared useLogin hook",
+    "bothUse": "Both use",
+    "professionalStyle": "Professional Style",
+    "modernStyle": "Modern Style",
+    "professionalDesc": "Ant Design components with traditional layout",
+    "modernDesc": "Custom HTML/CSS with glassmorphism effects",
+    "valid": "Valid",
+    "ready": "Ready",
+    "loading": "Loading"
+  },
+  "language": {
+    "vietnamese": "Tiếng Việt",
+    "english": "English",
+    "changeLanguage": "Change Language"
+  },
+  "orders": {
+    "title": "Orders List",
+    "search_placeholder": "Enter order code, shop name...",
+    "filters": {
+      "status": "Order Status",
+      "note": "Note",
+      "created_at": "Created At",
+      "financial_payment": "Requires Financial Payment",
+      "source": "Source Site",
+      "services": "Services",
+      "stuck_status": "Stuck Status",
+      "time_range": "Time Range",
+      "start_date": "Start Date",
+      "end_date": "End Date"
+    },
+    "columns": {
+      "code": "Order Code",
+      "note": "Note",
+      "warehouse": "Receiving Warehouse",
+      "status": "Status",
+      "total": "Total Amount",
+      "created_at": "Created Date",
+      "details": "Details"
+    },
+    "buttons": {
+      "search": "Search",
+      "reset": "Reset",
+      "apply": "Apply",
+      "view_more": "View More"
+    }
+  }
+}
