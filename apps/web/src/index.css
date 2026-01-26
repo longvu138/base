@@ -9,6 +9,8 @@
   --tenant-error-color: #f5222d;
   --tenant-border-color: #d9d9d9;
   --tenant-radius-antd: 8px;
+  --tenant-bg-container: #fff;
+  --tenant-bg-layout: #f0f2f5;
 }
 
 * {
@@ -23,5 +25,8 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--tenant-bg-layout);
+  color: var(--tenant-text-color);
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 

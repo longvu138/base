@@ -12,14 +12,22 @@
   },
   "dependencies": {
     "@repo/antd-config": "workspace:*",
+    "@repo/api": "workspace:*",
+    "@repo/config": "workspace:*",
+    "@repo/hooks": "workspace:*",
+    "@repo/i18n": "workspace:*",
     "@repo/tailwind-config": "workspace:*",
     "@repo/tenant-config": "workspace:*",
     "@repo/theme-provider": "workspace:*",
+    "@repo/ui": "workspace:*",
     "@tanstack/react-query": "^5.62.11",
-    "@tanstack/react-query-devtools": "^5.62.11",
     "antd": "^5.22.6",
+    "i18next": "^25.8.0",
+    "i18next-browser-languagedetector": "^8.2.0",
+    "lucide-react": "^0.473.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-i18next": "^16.5.3",
     "react-router-dom": "^7.3.0"
   },
   "devDependencies": {

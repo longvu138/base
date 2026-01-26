@@ -16,6 +16,11 @@ export const baseAntdTheme: ThemeConfig = {
         fontSize: 14,
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
     },
+    components: {
+        Layout: {
+            colorBgHeader: '#fff',
+        }
+    }
 };
 
 /**
@@ -28,15 +33,43 @@ export const baseDarkAntdTheme: ThemeConfig = {
         colorWarning: '#faad14',
         colorError: '#ff4d4f',
         colorInfo: '#1890ff',
-        colorBgBase: '#141414',
-        colorBgContainer: '#1f1f1f',
-        colorBgElevated: '#262626',
-        colorBorder: '#434343',
-        colorText: 'rgba(255, 255, 255, 0.85)',
+        colorBgBase: '#0a0c10',
+        colorBgContainer: '#141414',
+        colorBgElevated: '#1f1f1f',
+        colorBorder: '#303030',
+        colorText: 'var(--tenant-primary-color)', // Change text to primary color as requested
+        colorTextHeading: 'var(--tenant-primary-color)', // Also headers
+        colorTextSecondary: 'rgba(255, 255, 255, 0.45)',
         borderRadius: 8,
         fontSize: 14,
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
     },
+    components: {
+        Table: {
+            headerBg: '#1a1a1a',
+        },
+        Input: {
+            colorBgContainer: '#141414',
+            colorBorder: '#303030',
+        },
+        Pagination: {
+            itemBg: '#141414',
+        },
+        DatePicker: {
+            colorBgContainer: '#141414',
+        },
+        Select: {
+            colorBgContainer: '#141414',
+        },
+        Checkbox: {
+            colorBgContainer: 'transparent',
+        },
+        // Button: {
+        //     defaultBg: '#141414',
+        //     defaultColor: 'rgba(255, 255, 255, 0.85)',
+        //     defaultBorderColor: '#303030',
+        // },
+    }
 };
 
 export const webAntdTheme: ThemeConfig = {

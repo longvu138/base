@@ -7,10 +7,14 @@ export const baseTailwindConfig: Partial<Config> = {
         extend: {
             colors: {
                 primary: "var(--tenant-primary-color)",
+                "primary-dark": "var(--tenant-primary-dark)",
                 success: "var(--tenant-success-color)",
                 warning: "var(--tenant-warning-color)",
                 error: "var(--tenant-error-color)",
-                border: 'var(--tenant-border-color, #d9d9d9)',
+                border: "var(--tenant-border-color)",
+                layout: "var(--tenant-bg-layout)",
+                "container-bg": "var(--tenant-bg-container)",
+                "text-color": "var(--tenant-text-color)",
             },
             borderRadius: {
                 'antd': 'var(--tenant-radius-antd, 8px)',
@@ -22,10 +26,4 @@ export const baseTailwindConfig: Partial<Config> = {
     },
 };
 
-export const webTailwindConfig: Partial<Config> = {
-    ...baseTailwindConfig,
-};
 
-export const mobileTailwindConfig: Partial<Config> = {
-    ...baseTailwindConfig,
-};

@@ -1,19 +1,24 @@
 /** @type {import('tailwindcss').Config} */
+const { baseTailwindConfig } = require("@repo/tailwind-config");
+
 module.exports = {
-  important: true,
+  ...baseTailwindConfig,
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx,html}",
+    "../../packages/ui/src/**/*.{js,ts,jsx,tsx}",
     "../../packages/theme-provider/src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
+    ...baseTailwindConfig.theme,
     extend: {
+      ...baseTailwindConfig.theme.extend,
       colors: {
-        primary: "var(--tenant-primary-color)",
-        success: "var(--tenant-success-color)",
-        warning: "var(--tenant-warning-color)",
-        error: "var(--tenant-error-color)",
-        border: "var(--tenant-border-color)",
+        ...baseTailwindConfig.theme.extend.colors,
+        filter: {
+          DEFAULT: "#ffffff",
+          dark: "#141414",
+        },
       },
     },
   },

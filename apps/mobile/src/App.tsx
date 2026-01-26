@@ -13,7 +13,6 @@ import {
   getTenantExample,
   type SimpleTenantConfig,
 } from '@repo/tenant-config';
-import './App.css';
 import AppRoutes from './routes';
 
 // Create a client for React Query
@@ -67,12 +66,13 @@ function AppContent() {
     });
   }, [selectedTenantId]);
 
-  useEffect(() => {
-    updateTenantCSSVariables(tenantConfig || undefined);
-  }, [tenantConfig]);
+  // Cập nhật đồng bộ biến CSS
+  if (typeof document !== 'undefined') {
+    updateTenantCSSVariables(tenantConfig || undefined, isDark);
+  }
 
   const baseTheme = isDark ? mobileDarkAntdTheme : mobileAntdTheme;
-  const finalTheme = applyTenantConfig(baseTheme, tenantConfig || undefined);
+  const finalTheme = applyTenantConfig(baseTheme, tenantConfig || undefined, isDark);
 
   return (
     <ConfigProvider

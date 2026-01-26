@@ -1,41 +1,60 @@
 import type { ThemeConfig } from 'antd';
 
-export interface SimpleTenantConfig {
+export interface SimpleTenantConfig extends ThemeConfig {
     colorPrimary?: string;
-    borderRadius?: number;
+    colorPrimaryDark?: string;
+    colorBgContainer?: string;
+    colorBgContainerDark?: string;
+    colorBgLayout?: string;
+    colorBgLayoutDark?: string;
     colorBorder?: string;
+    colorBorderDark?: string;
+    colorText?: string;
+    colorTextDark?: string;
     colorSuccess?: string;
     colorWarning?: string;
     colorError?: string;
-    [key: string]: string | number | undefined;
+    borderRadius?: number;
 }
 
 export const tenantExamples: Record<string, { name: string; config: SimpleTenantConfig }> = {
     default: {
-        name: 'Default (Blue)',
+        name: 'Màu 1',
         config: {
             colorPrimary: '#1890ff',
+            colorPrimaryDark: '#ffd666',
+            colorBgContainer: '#ffffff',
+            colorBgContainerDark: '#141414',
+            colorBgLayout: '#f5f8ff',
+            colorBgLayoutDark: '#0a0c10',
+            colorBorderDark: '#222222',
+            colorText: '#000000',
             borderRadius: 8,
         },
     },
     luxury: {
-        name: 'Luxury (Gold)',
+        name: 'Màu 2',
         config: {
-            colorPrimary: '#b8860b',
-            borderRadius: 4,
-            colorSuccess: '#52c41a',
+            colorPrimary: '#faad14',
+            colorPrimaryDark: '#ffd666',
+            colorBgLayout: '#fffef2',
+            borderRadius: 6,
         },
     },
     tech: {
-        name: 'High Tech (Purple)',
+        name: 'Màu 3',
         config: {
             colorPrimary: '#722ed1',
-            borderRadius: 12,
-            colorSuccess: '#3f6600',
+            colorPrimaryDark: '#9254de',
+            colorBgLayout: '#fbf5ff',
+            borderRadius: 16,
+            colorBgContainerDark: '#141414',
+            colorBgLayoutDark: '#0a0c10',
+            colorBorderDark: '#222222',
         },
     },
     green: {
-        name: 'Green Solutions',
+        name: 'Màu 4',
         config: {
             colorPrimary: '#237804',
             borderRadius: 20,
@@ -43,9 +62,56 @@ export const tenantExamples: Record<string, { name: string; config: SimpleTenant
     }
 };
 
+/**
+ * Lấy config đã resolved dựa trên theme (Dark/Light)
+ */
+function getResolvedConfig(config: SimpleTenantConfig, isDark: boolean): SimpleTenantConfig {
+    const {
+        colorBgContainerDark, colorBgLayoutDark, colorBorderDark,
+        colorTextDark, colorPrimaryDark,
+        ...baseConfig
+    } = config;
+
+    const resolved = { ...baseConfig };
+
+    if (isDark) {
+        if (colorBgContainerDark) resolved.colorBgContainer = colorBgContainerDark;
+        else delete resolved.colorBgContainer;
+
+        if (colorBgLayoutDark) resolved.colorBgLayout = colorBgLayoutDark;
+        else delete resolved.colorBgLayout;
+
+        if (colorBorderDark) resolved.colorBorder = colorBorderDark;
+        else delete resolved.colorBorder;
+
+        if (colorTextDark) resolved.colorText = colorTextDark;
+        else delete resolved.colorText;
+
+        if (colorPrimaryDark) resolved.colorPrimary = colorPrimaryDark;
+    }
+
+    return resolved;
+}
+
+const CSS_VAR_MAP: Record<string, string> = {
+    colorPrimary: '--tenant-primary-color',
+    colorPrimaryDark: '--tenant-primary-dark',
+    colorBgContainer: '--tenant-bg-container',
+    colorBgContainerDark: '--tenant-bg-container-dark',
+    colorBgLayout: '--tenant-bg-layout',
+    colorBgLayoutDark: '--tenant-bg-layout-dark',
+    colorBorder: '--tenant-border-color',
+    colorBorderDark: '--tenant-border-color-dark',
+    colorText: '--tenant-text-color',
+    colorTextDark: '--tenant-text-color-dark',
+    colorSuccess: '--tenant-success-color',
+    colorWarning: '--tenant-warning-color',
+    colorError: '--tenant-error-color',
+    borderRadius: '--tenant-radius-antd',
+};
+
 export function getTenantExample(key: string): SimpleTenantConfig {
-    const example = tenantExamples[key] || tenantExamples['default'];
-    return example!.config;
+    return tenantExamples[key]?.config || tenantExamples['default']!.config;
 }
 
 export function getTenantOptions() {
@@ -57,52 +123,98 @@ export function getTenantOptions() {
 
 export function applyTenantConfig(
     baseTheme: ThemeConfig,
-    tenantConfig?: SimpleTenantConfig
+    tenantConfig?: SimpleTenantConfig,
+    isDark?: boolean
 ): ThemeConfig {
     if (!tenantConfig) return baseTheme;
+    const resolved = getResolvedConfig(tenantConfig, !!isDark);
+
+    const mergedComponents = { ...baseTheme.components };
+    if (resolved.components) {
+        Object.entries(resolved.components).forEach(([key, value]) => {
+            mergedComponents[key as keyof typeof mergedComponents] = {
+                ...(mergedComponents[key as keyof typeof mergedComponents] as any),
+                ...(value as any),
+            };
+        });
+    }
+
     return {
         ...baseTheme,
-        token: {
-            ...baseTheme.token,
-            ...tenantConfig,
-        },
+        token: { ...baseTheme.token, ...resolved },
+        components: mergedComponents,
     };
 }
 
-export function updateTenantCSSVariables(config?: SimpleTenantConfig): void {
+export function updateTenantCSSVariables(config?: SimpleTenantConfig, isDark?: boolean): void {
     if (typeof document === 'undefined') return;
     const root = document.documentElement;
 
     if (!config) {
-        root.style.removeProperty('--tenant-primary-color');
-        root.style.removeProperty('--tenant-success-color');
-        root.style.removeProperty('--tenant-warning-color');
-        root.style.removeProperty('--tenant-error-color');
-        root.style.removeProperty('--tenant-border-color');
-        root.style.removeProperty('--tenant-radius-antd');
+        Object.values(CSS_VAR_MAP).forEach(v => root.style.removeProperty(v));
+        root.style.removeProperty('--tenant-primary-rgb');
         return;
     }
 
-    if (config.colorPrimary) root.style.setProperty('--tenant-primary-color', (config.colorPrimary as string).trim());
-    if (config.colorSuccess) root.style.setProperty('--tenant-success-color', (config.colorSuccess as string).trim());
-    if (config.colorWarning) root.style.setProperty('--tenant-warning-color', (config.colorWarning as string).trim());
-    if (config.colorError) root.style.setProperty('--tenant-error-color', (config.colorError as string).trim());
-    if (config.colorBorder) root.style.setProperty('--tenant-border-color', (config.colorBorder as string).trim());
+    const resolved = getResolvedConfig(config, !!isDark);
 
-    if (config.borderRadius !== undefined) {
-        root.style.setProperty('--tenant-radius-antd', `${config.borderRadius}px`);
+
+    const ACTIVE_VARS: Record<string, string> = {
+        colorPrimary: '--tenant-primary-color',
+        colorBgContainer: '--tenant-bg-container',
+        colorBgLayout: '--tenant-bg-layout',
+        colorBorder: '--tenant-border-color',
+        colorText: '--tenant-text-color',
+    };
+
+    Object.entries(ACTIVE_VARS).forEach(([key, cssVar]) => {
+        const value = (resolved as any)[key];
+        if (value) {
+            root.style.setProperty(cssVar, String(value).trim());
+        } else {
+            root.style.removeProperty(cssVar);
+        }
+    });
+
+
+    const DARK_VARS: Record<string, string> = {
+        colorPrimaryDark: '--tenant-primary-dark',
+        colorBgContainerDark: '--tenant-bg-container-dark',
+        colorBgLayoutDark: '--tenant-bg-layout-dark',
+        colorBorderDark: '--tenant-border-color-dark',
+        colorTextDark: '--tenant-text-color-dark',
+    };
+
+    Object.entries(DARK_VARS).forEach(([key, cssVar]) => {
+        const value = (config as any)[key];
+        if (value) root.style.setProperty(cssVar, String(value).trim());
+        else root.style.removeProperty(cssVar);
+    });
+
+
+    if (config.colorSuccess) root.style.setProperty('--tenant-success-color', String(config.colorSuccess).trim());
+    if (config.colorWarning) root.style.setProperty('--tenant-warning-color', String(config.colorWarning).trim());
+    if (config.colorError) root.style.setProperty('--tenant-error-color', String(config.colorError).trim());
+    if (config.borderRadius) root.style.setProperty('--tenant-radius-antd', `${config.borderRadius}px`);
+
+
+    if (resolved.colorPrimary) {
+        const hex = String(resolved.colorPrimary).trim().replace('#', '');
+        if (hex.length === 6) {
+            const r = parseInt(hex.substring(0, 2), 16);
+            const g = parseInt(hex.substring(2, 4), 16);
+            const b = parseInt(hex.substring(4, 6), 16);
+            root.style.setProperty('--tenant-primary-rgb', `${r} ${g} ${b}`);
+        }
     }
 }
 
 export function getTenantConfigFromStorage(): SimpleTenantConfig | null {
     if (typeof window === 'undefined') return null;
-    const stored = localStorage.getItem('tenant-config');
-    if (!stored) return null;
     try {
-        return JSON.parse(stored);
-    } catch {
-        return null;
-    }
+        const stored = localStorage.getItem('tenant-config');
+        return stored ? JSON.parse(stored) : null;
+    } catch { return null; }
 }
 
 export function saveTenantConfigToStorage(config: SimpleTenantConfig): void {

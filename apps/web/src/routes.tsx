@@ -1,15 +1,25 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
-import HomePage from './pages/HomePage';
-import AboutPage from './pages/AboutPage';
+import { Login } from './pages/Login';
+import { Dashboard } from './pages/Dashboard';
+import { Orders } from './pages/Orders';
+import { Shipments } from './pages/Shipments';
+
+import PrivateRoute from './components/PrivateRoute';
 
 function AppRoutes() {
     return (
         <Routes>
-            <Route path="/" element={<Layout />}>
-                <Route index element={<HomePage />} />
-                <Route path="about" element={<AboutPage />} />
-                <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="/login" element={<Login />} />
+
+            <Route element={<PrivateRoute />}>
+                <Route path="/" element={<Layout />}>
+                    <Route path="dashboard" element={<Dashboard />} />
+                    <Route path="orders" element={<Orders />} />
+                    <Route path="shipments" element={<Shipments />} />
+                    <Route index element={<Navigate to="/dashboard" replace />} />
+                    <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                </Route>
             </Route>
         </Routes>
     );

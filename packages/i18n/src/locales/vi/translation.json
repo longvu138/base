@@ -1,0 +1,123 @@
+{
+  "common": {
+    "appName": "Ứng dụng Quản lý",
+    "loading": "Đang tải...",
+    "error": "Lỗi",
+    "success": "Thành công",
+    "confirm": "Xác nhận",
+    "cancel": "Hủy",
+    "save": "Lưu",
+    "delete": "Xóa",
+    "edit": "Sửa",
+    "search": "Tìm kiếm",
+    "filter": "Lọc",
+    "export": "Xuất",
+    "import": "Nhập",
+    "no_data": "Không có dữ liệu"
+  },
+  "auth": {
+    "login": {
+      "title": "Chào mừng trở lại",
+      "subtitle": "Vui lòng đăng nhập vào tài khoản của bạn",
+      "subtitleModern": "Nhập thông tin để tiếp tục",
+      "username": "Tên đăng nhập",
+      "password": "Mật khẩu",
+      "usernamePlaceholder": "Nhập tên đăng nhập",
+      "passwordPlaceholder": "Nhập mật khẩu",
+      "rememberMe": "Ghi nhớ đăng nhập",
+      "forgotPassword": "Quên mật khẩu?",
+      "loginButton": "Đăng nhập",
+      "loggingIn": "Đang đăng nhập...",
+      "noAccount": "Bạn chưa có tài khoản?",
+      "signUp": "Đăng ký ngay",
+      "loginSuccess": "Đăng nhập thành công",
+      "loginError": "Đăng nhập thất bại",
+      "invalidCredentials": "Vui lòng nhập đầy đủ thông tin đăng nhập",
+      "errorMessage": "Lỗi không xác định",
+      "usernameRequired": "Vui lòng nhập tên đăng nhập",
+      "passwordRequired": "Vui lòng nhập mật khẩu"
+    },
+    "profile": "Hồ sơ",
+    "logout": "Đăng xuất"
+  },
+  "ui": {
+    "switchStyle": "Chuyển đổi Giao diện",
+    "style1": "Phong cách 1",
+    "style1Desc": "Chuyên nghiệp & Truyền thống",
+    "style2": "Phong cách 2",
+    "style2Desc": "Hiện đại & Glassmorphism",
+    "sameHook": "Cùng Hook",
+    "differentUI": "Giao diện khác",
+    "usingSharedHook": "Đang dùng hook useLogin chung",
+    "bothUse": "Cả hai đều dùng",
+    "professionalStyle": "Phong cách Chuyên nghiệp",
+    "modernStyle": "Phong cách Hiện đại",
+    "professionalDesc": "Components Ant Design với layout truyền thống",
+    "modernDesc": "HTML/CSS tùy chỉnh với hiệu ứng glassmorphism",
+    "valid": "Hợp lệ",
+    "ready": "Sẵn sàng",
+    "loading": "Đang tải"
+  },
+  "language": {
+    "vietnamese": "Tiếng Việt",
+    "english": "English",
+    "changeLanguage": "Đổi ngôn ngữ"
+  },
+  "orders": {
+    "title": "Danh sách Đơn hàng",
+    "search_placeholder": "Nhập mã đơn, tên shop...",
+    "filters": {
+      "status": "Trạng thái đơn",
+      "note": "Ghi chú",
+      "created_at": "Thời gian tạo",
+      "financial_payment": "Đơn cần thanh toán tài chính",
+      "source": "Site nguồn hàng",
+      "services": "Dịch vụ",
+      "stuck_status": "Đơn dừng ở trạng thái",
+      "time_range": "Mốc thời gian",
+      "start_date": "Bắt đầu",
+      "end_date": "Kết thúc"
+    },
+    "columns": {
+      "code": "Mã đơn hàng",
+      "note": "Ghi chú",
+      "warehouse": "Kho nhận",
+      "status": "Trạng thái",
+      "total": "Thành tiền",
+      "created_at": "Ngày tạo",
+      "details": "Chi tiết"
+    },
+    "buttons": {
+      "search": "Tìm kiếm",
+      "reset": "Làm mới",
+      "apply": "Áp dụng",
+      "view_more": "Xem thêm"
+    }
+  },
+  "shipments": {
+    "title": "Danh sách Đơn ký gửi",
+    "search_placeholder": "Nhập mã đơn...",
+    "filters": {
+      "status": "Trạng thái đơn",
+      "code": "Nhập mã đơn",
+      "original_invoice": "Mã hóa đơn gốc",
+      "waybill": "Mã vận đơn",
+      "shop_name": "Tên Shop",
+      "your_order_code": "Mã đơn hàng của bạn",
+      "your_customer_code": "Mã khách hàng của bạn",
+      "services": "Dịch vụ",
+      "stuck_at": "Đơn dừng ở trạng thái",
+      "period": "Khoảng",
+      "from": "Từ",
+      "to": "Đến",
+      "created_at": "Thời gian tạo"
+    },
+    "columns": {
+      "code": "Mã đơn",
+      "waybill": "Mã vận đơn",
+      "status": "Trạng thái",
+      "created_at": "Ngày tạo",
+      "shop": "Tên Shop"
+    }
+  }
+}
