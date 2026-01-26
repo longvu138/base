@@ -1,5 +1,5 @@
 
-import { Button, Pagination, Empty, Spin } from 'antd';
+import { Button, Empty, Spin } from 'antd';
 import { FileSpreadsheet } from 'lucide-react';
 import type { TableComponentProps } from './types';
 

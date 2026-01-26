@@ -1,4 +1,4 @@
-import { Layout as AntLayout, Menu, Typography, Drawer, Button, Select } from 'antd';
+import { Layout as AntLayout, Menu, Drawer, Button, Select } from 'antd';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { HomeOutlined, ShoppingCartOutlined, MenuOutlined, LogoutOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { useState, useEffect } from 'react';
@@ -8,7 +8,6 @@ import { useLogout } from '@repo/hooks';
 import { useLanguage, useTranslation } from '@repo/i18n';
 
 const { Header, Content } = AntLayout;
-const { Title } = Typography;
 
 function Layout() {
     const { t } = useTranslation();

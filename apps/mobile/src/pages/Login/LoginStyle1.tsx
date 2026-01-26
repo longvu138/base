@@ -1,5 +1,5 @@
 import { message } from 'antd';
-import { ArrowRight, Command } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { useLogin } from '@repo/hooks';
 import { useNavigate } from 'react-router-dom';
 import { appConfig } from '@repo/config';

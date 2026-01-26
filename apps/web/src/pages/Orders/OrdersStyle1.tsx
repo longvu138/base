@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Form, Input, DatePicker, Select, Table, Checkbox, Button, Card } from 'antd';
+import { Form, Input, DatePicker, Select, Table, Checkbox, Button } from 'antd';
 import { FilterPanel, TableComponent, Status, StatusFilter, Pagination } from '@repo/ui';
 import { useFilterWithURL, usePaginationWithURL, useListOrderQuery, useOrderStatusesQuery, useOrderStatisticQuery, useOrderServicesQuery, useMarketplacesQuery } from '@repo/hooks';
 import { useTranslation } from '@repo/i18n';
