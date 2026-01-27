@@ -4,9 +4,8 @@ import { defaultRequestInterceptors } from "../interceptor"
 import { accessTokenRequestInterceptors } from "./interceptor"
 import { appConfig } from '@repo/config'
 
-const api = appConfig.apiUrl || `https://poseidon.20p.gobizdev.com/api`
-const apiClientAuth = ApiClient.make(api)
-console.log("api", api);
+const apiClientAuth = ApiClient.make(appConfig.apiUrl)
+console.log("api apiClientAuth", appConfig.apiUrl);
 
 apiClientAuth.interceptors.request.use(defaultRequestInterceptors)
 apiClientAuth.interceptors.request.use(accessTokenRequestInterceptors)
