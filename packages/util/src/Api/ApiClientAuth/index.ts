@@ -5,6 +5,7 @@ import { accessTokenRequestInterceptors } from "./interceptor"
 import { appConfig } from '@repo/config'
 
 const apiClientAuth = ApiClient.make(appConfig.apiUrl)
+console.log("appConfig.apiUrl", appConfig.apiUrl);
 
 apiClientAuth.interceptors.request.use(defaultRequestInterceptors)
 apiClientAuth.interceptors.request.use(accessTokenRequestInterceptors)
