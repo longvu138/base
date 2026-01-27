@@ -18,18 +18,18 @@ export const usePaginationWithURL = (options: UsePaginationWithURLOptions = {}) 
 
     const [searchParams, setSearchParams] = useSearchParams();
 
-    // 1️⃣ READ DIRECTLY FROM URL (Single Source of Truth)
+
     const pageParam = searchParams.get('page');
     const pageSizeParam = searchParams.get('pageSize');
 
     const page = pageParam ? parseInt(pageParam) : defaultPage;
     const pageSize = pageSizeParam ? parseInt(pageSizeParam) : defaultPageSize;
 
-    // 2️⃣ INIT URL IF MISSING (chỉ chạy 1 lần check khi mount)
+
     useEffect(() => {
         if (!pageParam && !pageSizeParam) {
             setSearchParams(prev => {
-                // Chỉ set nếu params chưa có, giữ nguyên các params khác
+
                 if (prev.has('page') || prev.has('pageSize')) return prev;
 
                 const newParams = new URLSearchParams(prev);
@@ -41,7 +41,7 @@ export const usePaginationWithURL = (options: UsePaginationWithURLOptions = {}) 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // 3️⃣ SETTERS (Update URL directly)
+
     const setPage = (newPage: number) => {
         setSearchParams(prev => {
             const newParams = new URLSearchParams(prev);
@@ -54,7 +54,7 @@ export const usePaginationWithURL = (options: UsePaginationWithURLOptions = {}) 
         setSearchParams(prev => {
             const newParams = new URLSearchParams(prev);
             newParams.set('pageSize', String(newPageSize));
-            newParams.set('page', '1'); // Reset về page 1 khi đổi size
+            newParams.set('page', '1');
             return newParams;
         });
     };

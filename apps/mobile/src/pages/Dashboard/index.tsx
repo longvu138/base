@@ -35,7 +35,7 @@ export const Dashboard = () => {
 
     return (
         <div className="space-y-6 pb-24">
-            {/* Header / Wallet Section */}
+
             <Card className="bg-primary border-0 rounded-2xl overflow-hidden relative shadow-lg shadow-primary/20">
                 <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
                 <div className="absolute bottom-0 right-0 p-4 opacity-20">
@@ -58,7 +58,7 @@ export const Dashboard = () => {
                 </Space>
             </Card>
 
-            {/* Quick Stats Grid */}
+
             <div className="grid grid-cols-2 gap-4">
                 <Card className="border-0 shadow-sm rounded-xl py-2" bodyStyle={{ padding: '16px 20px' }}>
                     <Statistic
@@ -90,7 +90,7 @@ export const Dashboard = () => {
                 </Card>
             </div>
 
-            {/* Detailed Progress Section */}
+
             <Card className="border-0 shadow-sm rounded-2xl" title={<Title level={5} className="!m-0">{t('ui.order_overview', { defaultValue: 'Tổng quan đơn hàng' })}</Title>}>
                 <div className="space-y-6">
                     <div>
@@ -128,7 +128,7 @@ export const Dashboard = () => {
                 </div>
             </Card>
 
-            {/* Ready to ship Banner */}
+
             {DASHBOARD_DATA.stats.ready.count > 0 && (
                 <Card className="bg-orange-50 dark:bg-orange-900/20 border-orange-100 dark:border-orange-800/30 rounded-2xl">
                     <div className="flex gap-4">

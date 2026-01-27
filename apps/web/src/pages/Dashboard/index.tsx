@@ -4,20 +4,20 @@ import { LayoutDashboard, Columns } from 'lucide-react';
 import { AlternativeStyle } from './AlternativeStyle';
 import { LightStyle } from './LightStyle';
 
-// Mock Data (Centralized Source of Truth)
+
 const DASHBOARD_DATA = {
     user: {
         name: "DOAN DUYEN",
         balance: 100100000
     },
     stats: {
-        // Shared Stats
+
         purchased: { count: 30, value: 823850000 },
         delivered: { count: 41, value: 55500000 },
         shipping: { count: 12, items: 45 },
         ready: { count: 3, items: 3, debt: 35000000 },
 
-        // Detailed Stats
+
         initialize: 5,
         deposited: 1139,
         arrived: 69,
@@ -32,7 +32,7 @@ export const Dashboard = () => {
 
     return (
         <div className="relative min-h-screen bg-layout">
-            {/* Style Switcher (Floating) */}
+
             <div className="absolute top-4 right-4 z-10">
                 <Radio.Group
                     value={style}
@@ -53,7 +53,7 @@ export const Dashboard = () => {
                 </Radio.Group>
             </div>
 
-            {/* Render Selected Style */}
+
             {style === 'style1' ? (
                 <LightStyle data={DASHBOARD_DATA} />
             ) : (

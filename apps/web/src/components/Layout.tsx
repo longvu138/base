@@ -121,7 +121,6 @@ function Layout() {
 
                     <div className="w-px h-6 bg-gray-200 mx-2"></div>
 
-                    {/* User Profile & Logout */}
                     <Dropdown menu={userMenu} placement="bottomRight" arrow>
                         <div className="flex items-center gap-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 px-3 py-1.5 rounded-full transition-colors">
                             <Avatar size="small" icon={<UserOutlined />} className="bg-primary" />

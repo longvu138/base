@@ -16,7 +16,7 @@ export function TableComponent({
 }: TableComponentProps): any {
     return (
         <div className="rounded-lg shadow-sm overflow-hidden">
-            {/* Header with stats and actions */}
+
             <div className="mb-3">
                 <div className="flex items-center justify-between flex-wrap gap-4">
                     <div className="flex items-center gap-4">
@@ -29,10 +29,10 @@ export function TableComponent({
                     </div>
 
                     <div className="flex items-center gap-3">
-                        {/* Custom Actions */}
+
                         {extra}
 
-                        {/* Export (Legacy support, prefer extra) */}
+
                         {onExport && (
                             <Button
                                 icon={<FileSpreadsheet size={16} />}

@@ -128,7 +128,6 @@ function Layout() {
                 </div>
             </Content>
 
-            {/* Bottom Tab Bar for Quick Access */}
             <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 h-16 flex items-center justify-around z-40 pb-safe shadow-[0_-4px_10px_rgba(0,0,0,0.03)]">
                 <Link to="/dashboard" className={`flex flex-col items-center gap-1 ${location.pathname.includes('dashboard') ? 'text-primary' : 'text-gray-400'}`}>
                     <HomeOutlined className="text-xl" />

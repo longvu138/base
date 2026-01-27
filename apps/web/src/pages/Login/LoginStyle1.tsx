@@ -23,7 +23,7 @@ export const LoginStyle1 = () => {
 
     return (
         <div className="min-h-screen flex w-full">
-            {/* Right Side: Login Form */}
+
             <div className="flex-1 flex items-center justify-center bg-filter dark:bg-filter-dark p-8">
                 <div className="w-full max-w-[400px]">
                     <div className="mb-10">
@@ -45,7 +45,6 @@ export const LoginStyle1 = () => {
                             name="username"
                             rules={[
                                 { required: true, message: t('auth.login.usernameRequired') },
-                                // { type: 'email', message: t('auth.login.invalidEmail') }
                             ]}
                         >
                             <Input
@@ -55,12 +54,7 @@ export const LoginStyle1 = () => {
                         </Form.Item>
 
                         <Form.Item
-                            label={
-                                <div className="flex justify-between w-full">
-                                    <span className="font-medium text-gray-700 dark:text-gray-300">{t('auth.login.password')}</span>
-                                    {/* <a href="#" className="text-sm text-blue-600 hover:text-blue-700 font-medium">Quên mật khẩu?</a> */}
-                                </div>
-                            }
+                            label={<span className="font-medium text-gray-700 dark:text-gray-300">{t('auth.login.password')}</span>}
                             name="password"
                             rules={[{ required: true, message: t('auth.login.passwordRequired') }]}
                         >
@@ -89,8 +83,8 @@ export const LoginStyle1 = () => {
                             </a>
                         </div>
                     </Form>
-                </div>
-            </div>
-        </div>
+                </div >
+            </div >
+        </div >
     );
 };

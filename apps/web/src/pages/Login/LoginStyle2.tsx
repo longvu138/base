@@ -6,7 +6,6 @@ import { appConfig } from '@repo/config';
 
 export const LoginStyle2 = () => {
     const navigate = useNavigate();
-    // const { t } = useTranslation();
 
     const login = useLogin({
         clientId: appConfig.clientId,

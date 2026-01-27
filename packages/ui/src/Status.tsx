@@ -7,7 +7,6 @@ export interface StatusProps {
 }
 
 export function Status({ status, statuses = [] }: StatusProps): any {
-    // API statuses usually use .code and .name
     const statusConfig = statuses.find(s => s.code === status || s.value === status);
     const label = statusConfig?.name || statusConfig?.label || status;
 
