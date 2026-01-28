@@ -88,7 +88,7 @@ export const Shipments = () => {
     ];
 
     return (
-        <div className="p-6 min-h-screen bg-layout">
+        <div className="min-h-screen bg-layout">
             <Card className="border-0 shadow-sm mb-6" bodyStyle={{ padding: 24 }}>
                 <FilterPanel
                     form={form}

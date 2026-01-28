@@ -9,7 +9,7 @@ export const Orders = () => {
 
     return (
         <div className="min-h-screen bg-layout">
-            <div className="flex justify-end px-6 pt-6">
+            <div className="flex justify-end px-6">
                 <Radio.Group
                     value={style}
                     onChange={(e) => setStyle(e.target.value)}
@@ -28,7 +28,7 @@ export const Orders = () => {
                 </Radio.Group>
             </div>
 
-            <div className="p-6 pt-2">
+            <div className="pt-2">
                 {style === 'style1' ? <OrdersStyle1 /> : <OrdersStyle2 />}
             </div>
         </div>

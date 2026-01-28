@@ -67,17 +67,22 @@ function Layout() {
     ];
 
     return (
-        <AntLayout className="min-h-screen">
+        <AntLayout className="h-screen overflow-hidden">
             <Sider
                 collapsible
                 collapsed={collapsed}
                 onCollapse={setCollapsed}
-                theme="light"
-                className="!bg-white dark:!bg-gray-800 border-r border-gray-200 dark:border-gray-700"
+                theme="dark"
+                className="!bg-white dark:!bg-[#141414] border-r border-gray-200 dark:border-gray-800"
                 width={240}
+                trigger={
+                    <div className="bg-white dark:bg-[#141414] border-r border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-[#1f1f1f] transition-colors">
+                        {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+                    </div>
+                }
             >
                 <div
-                    className="h-16 flex items-center justify-center font-bold text-xl text-primary cursor-pointer border-b border-gray-200 dark:border-gray-700"
+                    className="h-16 flex items-center justify-center font-bold text-xl text-primary cursor-pointer border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800"
                     onClick={() => navigate('/')}
                 >
                     {collapsed ? 'WA' : 'Web App'}
@@ -86,9 +91,9 @@ function Layout() {
                     mode="inline"
                     selectedKeys={[location.pathname]}
                     items={menuItems}
-                    className="border-0 h-[calc(100vh-64px-56px)]"
+                    className="border-0 h-[calc(100vh-64px-56px)] dark:!bg-[#141414]"
                 />
-                <div className="absolute bottom-0 left-0 right-0 h-14 flex items-center justify-center border-t border-gray-200 dark:border-gray-700">
+                <div className="absolute bottom-0 left-0 right-0 h-14 flex items-center justify-center border-t border-gray-200 dark:border-gray-800 dark:bg-[#141414]">
                     <Button
                         type="text"
                         icon={<LogoutOutlined />}
@@ -101,14 +106,9 @@ function Layout() {
                 </div>
             </Sider>
 
-            <AntLayout>
+            <AntLayout className="h-screen flex flex-col">
                 <Header className="flex items-center justify-between px-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-                    <Button
-                        type="text"
-                        icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-                        onClick={() => setCollapsed(!collapsed)}
-                        className="text-lg"
-                    />
+                    <div></div>
 
                     <div className="flex items-center gap-4">
                         <Select
@@ -141,7 +141,7 @@ function Layout() {
                     </div>
                 </Header>
 
-                <Content className="bg-layout overflow-auto">
+                <Content className="bg-layout overflow-auto flex-1 min-h-0">
                     <div className="p-6">
                         <Outlet />
                     </div>

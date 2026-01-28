@@ -190,7 +190,7 @@ export const Transactions = () => {
     }, [transactionTypes]);
 
     return (
-        <div className="min-h-screen bg-layout p-6">
+        <div className="min-h-screen bg-layout">
             <Card className="mb-6 shadow-sm">
                 <FilterPanel
                     form={form}
