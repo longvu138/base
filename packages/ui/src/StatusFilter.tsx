@@ -32,7 +32,7 @@ export const StatusFilter: React.FC<StatusFilterProps> = ({
     return (
         <div className="flex items-start gap-3 py-2">
             {label && (
-                <span className="text-sm whitespace-nowrap text-primary pt-1.5 min-w-fit">
+                <span className="text-sm whitespace-nowrap text-primary min-w-fit">
                     {label}
                 </span>
             )}

@@ -67,7 +67,7 @@ function Layout() {
 
     return (
         <AntLayout className="min-h-screen">
-            <Header className="flex items-center justify-between px-4 bg-white border-b border-gray-100 h-14 sticky top-0 z-50">
+            <Header className="flex items-center justify-between px-4 bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 h-14 sticky top-0 z-50">
                 <div className="flex items-center gap-2">
                     <Select
                         value={currentLanguage.code}
@@ -109,9 +109,9 @@ function Layout() {
                 bodyStyle={{ padding: 0 }}
                 width={260}
             >
-                <div className="p-4 bg-gray-50 mb-2">
-                    <div className="font-bold">Admin User</div>
-                    <div className="text-xs text-gray-500">admin@tenantos.com</div>
+                <div className="p-4 bg-gray-50 dark:bg-gray-800 mb-2">
+                    <div className="font-bold dark:text-white">Admin User</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">admin@tenantos.com</div>
                 </div>
 
                 <Menu
@@ -128,7 +128,7 @@ function Layout() {
                 </div>
             </Content>
 
-            <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 h-16 flex items-center justify-around z-40 pb-safe shadow-[0_-4px_10px_rgba(0,0,0,0.03)]">
+            <div className="fixed bottom-0 left-0 w-full bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 h-16 flex items-center justify-around z-40 pb-safe shadow-[0_-4px_10px_rgba(0,0,0,0.03)] dark:shadow-[0_-4px_10px_rgba(0,0,0,0.2)]">
                 <Link to="/dashboard" className={`flex flex-col items-center gap-1 ${location.pathname.includes('dashboard') ? 'text-primary' : 'text-gray-400'}`}>
                     <HomeOutlined className="text-xl" />
                     <span className="text-[10px] font-bold uppercase tracking-tight">Dashboard</span>

@@ -1,6 +1,14 @@
-import { Layout as AntLayout, Menu, Typography, Select, Avatar, Dropdown } from 'antd';
+import { Layout as AntLayout, Menu, Select, Button } from 'antd';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { ShoppingCartOutlined, InfoCircleOutlined, UserOutlined, LogoutOutlined, AppstoreOutlined } from '@ant-design/icons';
+import {
+    HomeOutlined,
+    ShoppingCartOutlined,
+    LogoutOutlined,
+    WalletOutlined,
+    CarOutlined,
+    MenuFoldOutlined,
+    MenuUnfoldOutlined
+} from '@ant-design/icons';
 import { ThemeSwitcher } from '@repo/theme-provider';
 import { getTenantOptions, dispatchTenantChange } from '@repo/tenant-config';
 import { useState, useEffect } from 'react';
@@ -8,13 +16,13 @@ import { useLanguage } from '@repo/i18n';
 import { Languages } from 'lucide-react';
 import { useLogout } from '@repo/hooks';
 
-const { Header, Content } = AntLayout;
-const { Title } = Typography;
+const { Header, Sider, Content } = AntLayout;
 
 function Layout() {
     const location = useLocation();
     const navigate = useNavigate();
     const { currentLanguage, availableLanguages, changeLanguage } = useLanguage();
+    const [collapsed, setCollapsed] = useState(false);
 
     const { handleLogout } = useLogout({
         onSuccess: () => navigate('/login')
@@ -38,7 +46,7 @@ function Layout() {
     const menuItems = [
         {
             key: '/dashboard',
-            icon: <AppstoreOutlined />,
+            icon: <HomeOutlined />,
             label: <Link to="/dashboard">Dashboard</Link>,
         },
         {
@@ -48,93 +56,97 @@ function Layout() {
         },
         {
             key: '/shipments',
-            icon: <InfoCircleOutlined />,
+            icon: <CarOutlined />,
             label: <Link to="/shipments">Shipments</Link>,
+        },
+        {
+            key: '/transactions',
+            icon: <WalletOutlined />,
+            label: <Link to="/transactions">Transactions</Link>,
         },
     ];
 
-    const userMenu = {
-        items: [
-            {
-                key: 'profile',
-                icon: <UserOutlined />,
-                label: 'Hồ sơ cá nhân',
-            },
-            {
-                type: 'divider' as const,
-            },
-            {
-                key: 'logout',
-                icon: <LogoutOutlined />,
-                label: 'Đăng xuất',
-                danger: true,
-                onClick: handleLogout
-            },
-        ]
-    };
-
     return (
         <AntLayout className="min-h-screen">
-            <Header className="flex items-center justify-between px-8 shadow-sm">
-                <div className="flex items-center gap-8">
-                    <Title level={3} className="!mb-0 text-primary cursor-pointer select-none" onClick={() => navigate('/')}>
-                        Web App
-                    </Title>
-
-                    <Menu
-                        mode="horizontal"
-                        selectedKeys={[location.pathname]}
-                        items={menuItems}
-                        className="border-0 bg-transparent min-w-[300px]"
-                        style={{ lineHeight: '64px' }}
-                    />
+            <Sider
+                collapsible
+                collapsed={collapsed}
+                onCollapse={setCollapsed}
+                theme="light"
+                className="!bg-white dark:!bg-gray-800 border-r border-gray-200 dark:border-gray-700"
+                width={240}
+            >
+                <div
+                    className="h-16 flex items-center justify-center font-bold text-xl text-primary cursor-pointer border-b border-gray-200 dark:border-gray-700"
+                    onClick={() => navigate('/')}
+                >
+                    {collapsed ? 'WA' : 'Web App'}
                 </div>
+                <Menu
+                    mode="inline"
+                    selectedKeys={[location.pathname]}
+                    items={menuItems}
+                    className="border-0 h-[calc(100vh-64px-56px)]"
+                />
+                <div className="absolute bottom-0 left-0 right-0 h-14 flex items-center justify-center border-t border-gray-200 dark:border-gray-700">
+                    <Button
+                        type="text"
+                        icon={<LogoutOutlined />}
+                        onClick={handleLogout}
+                        danger
+                        className="w-full"
+                    >
+                        {!collapsed && 'Logout'}
+                    </Button>
+                </div>
+            </Sider>
 
-                <div className="flex items-center gap-4">
-                    <Select
-                        value={currentLanguage.code}
-                        onChange={changeLanguage}
-                        options={availableLanguages.map((lang) => ({
-                            value: lang.code,
-                            label: (
-                                <div className="flex items-center gap-2">
-                                    <span>{lang.flag}</span>
-                                    <span>{lang.code.toUpperCase()}</span>
-                                </div>
-                            ),
-                        }))}
-                        style={{ width: 100 }}
-                        bordered={false}
-                        suffixIcon={<Languages size={14} />}
+            <AntLayout>
+                <Header className="flex items-center justify-between px-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                    <Button
+                        type="text"
+                        icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+                        onClick={() => setCollapsed(!collapsed)}
+                        className="text-lg"
                     />
 
-                    <Select
-                        value={currentTenant}
-                        onChange={handleTenantUpdate}
-                        options={getTenantOptions()}
-                        style={{ width: 140 }}
-                        bordered={false}
-                        placeholder="Select Tenant"
-                    />
+                    <div className="flex items-center gap-4">
+                        <Select
+                            value={currentLanguage.code}
+                            onChange={changeLanguage}
+                            options={availableLanguages.map((lang) => ({
+                                value: lang.code,
+                                label: (
+                                    <div className="flex items-center gap-2">
+                                        <span>{lang.flag}</span>
+                                        <span>{lang.code.toUpperCase()}</span>
+                                    </div>
+                                ),
+                            }))}
+                            style={{ width: 100 }}
+                            bordered={false}
+                            suffixIcon={<Languages size={14} />}
+                        />
 
-                    <ThemeSwitcher />
+                        <Select
+                            value={currentTenant}
+                            onChange={handleTenantUpdate}
+                            options={getTenantOptions()}
+                            style={{ width: 140 }}
+                            bordered={false}
+                            placeholder="Select Tenant"
+                        />
 
-                    <div className="w-px h-6 bg-gray-200 mx-2"></div>
+                        <ThemeSwitcher />
+                    </div>
+                </Header>
 
-                    <Dropdown menu={userMenu} placement="bottomRight" arrow>
-                        <div className="flex items-center gap-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 px-3 py-1.5 rounded-full transition-colors">
-                            <Avatar size="small" icon={<UserOutlined />} className="bg-primary" />
-                            <span className="text-sm font-medium text-gray-700 dark:text-gray-200 hidden md:inline-block">Admin User</span>
-                        </div>
-                    </Dropdown>
-                </div>
-            </Header>
-            <Content className="bg-layout">
-                <div className="p-6">
-                    <Outlet />
-                </div>
-            </Content>
-
+                <Content className="bg-layout overflow-auto">
+                    <div className="p-6">
+                        <Outlet />
+                    </div>
+                </Content>
+            </AntLayout>
         </AntLayout>
     );
 }

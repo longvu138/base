@@ -4,6 +4,7 @@ import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { Orders } from './pages/Orders';
 import { Shipments } from './pages/Shipments';
+import { Transactions } from './pages/Transactions';
 
 import PrivateRoute from './components/PrivateRoute';
 
@@ -17,6 +18,7 @@ function AppRoutes() {
                     <Route path="dashboard" element={<Dashboard />} />
                     <Route path="orders" element={<Orders />} />
                     <Route path="shipments" element={<Shipments />} />
+                    <Route path="transactions" element={<Transactions />} />
                     <Route index element={<Navigate to="/dashboard" replace />} />
                     <Route path="*" element={<Navigate to="/dashboard" replace />} />
                 </Route>

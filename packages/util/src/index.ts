@@ -1,6 +1,7 @@
 export * from "./AuthClient"
-// export * from "./AuthServer"
 export * from "./Api"
+export { apiClientAuth } from "./Api/ApiClientAuth"
+export { apiClientNoAuth } from "./Api/ApiClientNoAuth"
 export * from "./Common"
 export * from "./Cookie"
 export * from "./LocalStore"

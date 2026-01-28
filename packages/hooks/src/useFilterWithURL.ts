@@ -71,7 +71,7 @@ export const useFilterWithURL = ({ form, onFilterChange }: UseFilterWithURLOptio
             }
 
 
-            const arrayFields = ['statuses', 'marketplaces', 'services', 'categories'];
+            const arrayFields = ['statuses', 'marketplaces', 'services', 'categories', 'externalTypes'];
             if (arrayFields.includes(key) || value.includes(',')) {
                 values[key] = value.split(',').filter(Boolean);
                 return;
