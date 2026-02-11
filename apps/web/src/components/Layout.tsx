@@ -29,7 +29,7 @@ function Layout() {
     });
 
     const [currentTenant, setCurrentTenant] = useState(() => {
-        return localStorage.getItem('selected-tenant') || 'default';
+        return localStorage.getItem('selected-tenant') || 'baogam';
     });
 
     useEffect(() => {

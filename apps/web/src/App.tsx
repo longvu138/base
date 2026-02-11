@@ -7,10 +7,7 @@ import { ThemeProvider, useTheme } from '@repo/theme-provider';
 import {
   applyTenantConfig,
   updateTenantCSSVariables,
-  getTenantConfigFromStorage,
-  saveTenantConfigToStorage,
-  getTenantExample,
-  type SimpleTenantConfig,
+  type FullTenantResponse,
 } from '@repo/tenant-config';
 import AppRoutes from './routes';
 
@@ -25,38 +22,35 @@ const queryClient = new QueryClient({
   },
 });
 
-// Mock API call - Replace with your actual API endpoint
-async function fetchTenantConfigFromAPI(tenantKey: string): Promise<SimpleTenantConfig> {
-  // TODO: Replace with your actual API call
-  // const response = await fetch(`/api/tenants/${tenantKey}/config`);
-  // return response.json();
-
-  // Fake delay for demo
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(getTenantExample(tenantKey));
-    }, 50);
-  });
+async function fetchTenantConfigFromAPI(tenantKey: string): Promise<FullTenantResponse> {
+  const response = await fetch(`http://localhost:3003/api/tenants/${tenantKey}/config`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch tenant config');
+  }
+  return response.json();
 }
 
 function AppContent() {
-  const { theme: themeMode } = useTheme();
+  const { theme: themeMode, setUiLib, tenantConfig: globalTenantConfig, setTenantConfig: setGlobalTenantConfig } = useTheme();
   const isDark = themeMode === 'dark';
 
-  // 1. Dùng useState để lưu tenant ID hiện tại (test/demo)
+  // 1. Dùng useState để lưu tenant ID hiện tại
   const [selectedTenantId, setSelectedTenantId] = useState(() => {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('selected-tenant') || 'default';
+      return localStorage.getItem('selected-tenant') || 'baogam';
     }
-    return 'default';
+    return 'baogam';
   });
 
-  // 2. Dùng useState để lưu config được inject từ API
-  const [tenantConfig, setTenantConfig] = useState<SimpleTenantConfig | null>(
-    () => getTenantConfigFromStorage() // Khởi tạo từ cache nếu có
-  );
+  // 2. Khởi tạo từ cache để tránh flash default theme
+  useEffect(() => {
+    const cached = localStorage.getItem('full-tenant-data');
+    if (cached && !globalTenantConfig) {
+      setGlobalTenantConfig(JSON.parse(cached));
+    }
+  }, [setGlobalTenantConfig, globalTenantConfig]);
 
-  // 3. Effect lắng nghe sự kiện thay đổi tenant (để update UI ngay lập tức)
+  // 3. Effect lắng nghe sự kiện thay đổi tenant
   useEffect(() => {
     const handleTenantChange = (e: any) => {
       setSelectedTenantId(e.detail);
@@ -68,19 +62,32 @@ function AppContent() {
 
   // 4. Effect call API lấy config khi tenant ID thay đổi
   useEffect(() => {
-    fetchTenantConfigFromAPI(selectedTenantId).then(config => {
-      setTenantConfig(config);
-      saveTenantConfigToStorage(config);
+    fetchTenantConfigFromAPI(selectedTenantId).then(data => {
+      console.log('API Response for', selectedTenantId, ':', data);
+      setGlobalTenantConfig(data);
+      localStorage.setItem('full-tenant-data', JSON.stringify(data));
+    }).catch(err => {
+      console.error('Failed to fetch tenant config:', err);
     });
-  }, [selectedTenantId]);
+  }, [selectedTenantId, setGlobalTenantConfig]);
 
-  // 5. CẬP NHẬT ĐỒNG BỘ: Đưa ra ngoài useEffect để update biến CSS ngay khi render
-  // Điều này đảm bảo màu nền body và màu antd đổi cùng 1 frame hình
-  if (typeof document !== 'undefined') {
-    updateTenantCSSVariables(tenantConfig || undefined, isDark);
+  const tenantConfig = globalTenantConfig?.tenantConfig?.themeConfig;
+
+  // Sync uiLib khi config thay đổi
+  useEffect(() => {
+    if (tenantConfig?.uiLib) {
+      console.log('Switching uiLib to:', tenantConfig.uiLib);
+      setUiLib(tenantConfig.uiLib);
+    }
+  }, [tenantConfig, setUiLib]);
+
+  // 4. CẬP NHẬT BIẾN CSS ĐỒNG BỘ
+  if (typeof document !== 'undefined' && tenantConfig) {
+    console.log('Updating CSS variables for:', selectedTenantId, 'Color:', tenantConfig.colorPrimary);
+    updateTenantCSSVariables(tenantConfig, isDark);
   }
 
-  // Apply tenant config vào base theme
+  // Apply tenant config vào AntD theme
   const baseTheme = isDark ? webDarkAntdTheme : webAntdTheme;
   const finalTheme = applyTenantConfig(baseTheme, tenantConfig || undefined, isDark);
 
