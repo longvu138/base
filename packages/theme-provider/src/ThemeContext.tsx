@@ -62,3 +62,48 @@ export function useTheme() {
     }
     return context;
 }
+
+/**
+ * Láy mã giao diện gốc (Ví dụ: 'gd1', 'gd3') từ cấu hình Tenant.
+ * Dùng cho các logic điều hướng hoặc tính năng đặc thù theo bộ giao diện.
+ */
+export function useVariantCode(): string {
+    const { tenantConfig } = useTheme();
+    return tenantConfig?.tenantConfig?.themeConfig?.variant || 'gd1';
+}
+
+/**
+ * Lấy tên Component của trang hiện tại theo quy ước (Convention).
+ * Ví dụ: 'login' -> 'LoginStyle1'
+ *
+ * @param pageKey - tên trang (ví dụ: 'login', 'orders', 'shipments')
+ * @returns Tên component tương ứng
+ */
+export function useVariant(pageKey: string): string {
+    const { tenantConfig } = useTheme();
+    const themeConfig = tenantConfig?.tenantConfig?.themeConfig;
+
+    // 1. Ưu tiên cấu hình đè (override) cụ thể
+    if (themeConfig?.variants?.[pageKey]) {
+        return themeConfig.variants[pageKey];
+    }
+
+    const globalVariant = useVariantCode();
+
+    // 2. Quy tắc suy luận cho Layout
+    if (pageKey === 'layout') {
+        const layoutMap: Record<string, string> = {
+            'gd3': 'SpecializedLayout',
+        };
+        return layoutMap[globalVariant] || 'VerticalLayout';
+    }
+
+    // 3. Đặc cách cho Global/Combined variants
+    if (globalVariant === 'gd3' && pageKey === 'orders') return 'OrdersCombined';
+
+    // 4. Mặc định theo Style: gd1 -> Style1, gd2 -> Style2, gd3 -> Style3
+    const styleNumber = globalVariant.replace(/\D/g, '') || '1';
+    const capitalizedKey = pageKey.charAt(0).toUpperCase() + pageKey.slice(1);
+
+    return `${capitalizedKey}Style${styleNumber}`;
+}

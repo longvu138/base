@@ -1,0 +1,75 @@
+
+/* Scoped CSS for OrdersStyle3 - Gobiz Logistics Aesthetic */
+.orders-style-3-wrapper {
+    --table-header-bg: #f8fafc;
+    --table-row-hover-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.08);
+}
+
+/* 1. Reset & Header Styling */
+.orders-style-3-wrapper .ant-table {
+    background: transparent !important;
+}
+
+.orders-style-3-wrapper .ant-table-thead > tr > th {
+    background: var(--table-header-bg) !important;
+    color: #64748b !important;
+    font-weight: 700 !important;
+    font-size: 11px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    border-bottom: 2px solid #f1f5f9 !important;
+    padding: 16px 24px !important;
+}
+
+/* 2. Row Styling */
+.orders-style-3-wrapper .ant-table-tbody > tr > td {
+    padding: 20px 24px !important;
+    border-bottom: 1px solid #f8fafc !important;
+    transition: all 0.2s ease !important;
+}
+
+/* 3. Hover Effects - The "Modern" Look */
+.orders-style-3-wrapper .ant-table-tbody > tr {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    cursor: pointer;
+}
+
+.orders-style-3-wrapper .ant-table-tbody > tr:hover > td {
+    background: white !important; /* Keep bg static */
+}
+
+/* Dark mode overrides if needed */
+:global(.dark) .orders-style-3-wrapper .ant-table-thead > tr > th {
+    background: #1e293b !important;
+    border-bottom-color: #334155 !important;
+    color: #94a3b8 !important;
+}
+
+:global(.dark) .orders-style-3-wrapper .ant-table-tbody > tr > td {
+    border-bottom-color: #1e293b !important;
+}
+
+:global(.dark) .orders-style-3-wrapper .ant-table-tbody > tr:hover > td {
+    background: #1e293b !important;
+}
+
+/* 4. Customizing Tabs in Style 3 */
+.orders-style-3-wrapper .custom-modern-tabs .ant-tabs-nav::before {
+    display: none;
+}
+
+.orders-style-3-wrapper .custom-modern-tabs .ant-tabs-tab {
+    border-radius: 12px !important;
+    margin: 0 4px !important;
+    border: none !important;
+    background: transparent !important;
+    transition: all 0.3s ease;
+}
+
+.orders-style-3-wrapper .custom-modern-tabs .ant-tabs-tab-active {
+    background: var(--primary-color, #1890ff) !important;
+}
+
+.orders-style-3-wrapper .custom-modern-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+    color: white !important;
+}

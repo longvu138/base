@@ -7,43 +7,51 @@ const port = 3003;
 app.use(cors());
 app.use(express.json());
 
-/**
- * Simplified Tenant Data: Each tenant has its own fixed theme and Dark/Light colors.
- */
 const tenants = {
   'baogam': {
-    id: "baogam00-769c-4f16-b934-7e4fd4036db1",
+    id: "baogam-id",
     name: "Báo Gấm",
     code: "baogam",
     tenantConfig: {
       themeConfig: {
         uiLib: 'antd',
-        variants: { orders: 'gd1' },
-        // Light Mode
+        variant: 'gd1', // Tự động hiểu: VerticalLayout, LoginStyle1, OrdersStyle1...
         colorPrimary: '#1890ff',
         colorBgLayout: '#f5f8ff',
-        // Dark Mode
-        colorPrimaryDark: '#ffd666',
-        colorBgLayoutDark: '#0a0c10',
         borderRadius: 8,
+        colorBgLayoutDark: '#0d1b2a',
       }
     }
   },
   'gobiz': {
-    id: "gobiz-1111-2222-3333-444444444444",
+    id: "gobiz-id",
     name: "Gobiz Logistics",
     code: "gobiz",
     tenantConfig: {
       themeConfig: {
-        uiLib: 'mui',
-        variants: { orders: 'gd2' },
-        // Light Mode
+        uiLib: 'antd',
+        variant: 'gd3', // Tự động hiểu: SpecializedLayout. 
+        // Riêng trang orders muốn dùng tên khác thì mới cần khai báo ở đây:
+        // variants: { orders: 'OrdersCombined' }, 
         colorPrimary: '#722ed1',
         colorBgLayout: '#f9f5ff',
-        // Dark Mode
-        colorPrimaryDark: '#9254de',
-        colorBgLayoutDark: '#121212',
+        borderRadius: 16,
+        colorBgLayoutDark: '#1a0f2e',
+      }
+    }
+  },
+  'thien_long': {
+    id: "thien-long-id",
+    name: "Thiên Long Express",
+    code: "thien_long",
+    tenantConfig: {
+      themeConfig: {
+        uiLib: 'antd',
+        variant: 'gd1',
+        colorPrimary: '#ff4d4f',
+        colorBgLayout: '#fff1f0',
         borderRadius: 4,
+        colorBgLayoutDark: '#2d0a0a',
       }
     }
   }
@@ -51,16 +59,10 @@ const tenants = {
 
 app.get('/api/tenants/:id/config', (req, res) => {
   const tenantId = req.params.id;
-  console.log(`Fetching config for: ${tenantId}`);
-  
-  // Return specific tenant or default to baogam
   const tenant = tenants[tenantId] || tenants['baogam'];
-  
-  setTimeout(() => {
-    res.json(tenant);
-  }, 200);
+  res.json(tenant);
 });
 
 app.listen(port, () => {
-  console.log(`Mock API Server (Final Structure) running at http://localhost:${port}`);
+  console.log(`Mock API Server running at http://localhost:${port}`);
 });

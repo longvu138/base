@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 :root {
+  /* Legacy tenant variables */
   --tenant-primary-color: #1890ff;
   --tenant-success-color: #52c41a;
   --tenant-warning-color: #faad14;
@@ -11,6 +12,55 @@
   --tenant-radius-antd: 8px;
   --tenant-bg-container: #fff;
   --tenant-bg-layout: #f0f2f5;
+  
+  /* shadcn/ui variables - Light mode defaults */
+  --background: 0 0% 100%;
+  --foreground: 0 0% 9%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 9%;
+  --primary: 221 83% 53%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 240 5% 96%;
+  --secondary-foreground: 0 0% 9%;
+  --muted: 240 5% 96%;
+  --muted-foreground: 240 4% 46%;
+  --accent: 240 5% 96%;
+  --accent-foreground: 0 0% 9%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 240 6% 90%;
+  --input: 240 6% 90%;
+  --ring: 221 83% 53%;
+  --radius: 0.5rem;
+}
+
+.dark {
+  /* shadcn/ui variables - Dark mode */
+  --background: 0 0% 6%;
+  --foreground: 0 0% 95%;
+  --card: 0 0% 10%;
+  --card-foreground: 0 0% 95%;
+  --popover: 0 0% 10%;
+  --popover-foreground: 0 0% 95%;
+  --primary: 221 83% 53%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 240 4% 16%;
+  --secondary-foreground: 0 0% 95%;
+  --muted: 240 4% 16%;
+  --muted-foreground: 240 5% 65%;
+  --accent: 240 4% 16%;
+  --accent-foreground: 0 0% 95%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 240 4% 16%;
+  --input: 240 4% 16%;
+  --ring: 221 83% 53%;
+  
+  /* Dark mode layout background */
+  --tenant-bg-layout: #0a0a0a;
+  --tenant-bg-container: #1f2937;
 }
 
 * {
@@ -28,5 +78,16 @@ body {
   background-color: var(--tenant-bg-layout);
   color: var(--tenant-text-color);
   transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Utility class for layout background */
+.bg-layout {
+  background-color: var(--tenant-bg-layout);
+  transition: background-color 0.2s ease;
+}
+
+/* Remove hardcoded overrides to allow dynamic API values */
+.bg-layout-dark {
+  background-color: var(--tenant-bg-layout);
 }
 

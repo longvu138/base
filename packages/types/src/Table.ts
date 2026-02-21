@@ -29,6 +29,6 @@ export interface TableComponentProps {
     loading?: boolean;
 
     // Empty state
-    emptyText?: string;
+    emptyText?: string | React.ReactNode;
     showEmpty?: boolean;
 }

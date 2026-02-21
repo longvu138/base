@@ -1,11 +1,7 @@
 import { Layout as AntLayout, Menu, Select, Button } from 'antd';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import {
-    HomeOutlined,
-    ShoppingCartOutlined,
     LogoutOutlined,
-    WalletOutlined,
-    CarOutlined,
     MenuFoldOutlined,
     MenuUnfoldOutlined
 } from '@ant-design/icons';
@@ -15,10 +11,11 @@ import { useState, useEffect } from 'react';
 import { useLanguage } from '@repo/i18n';
 import { Languages } from 'lucide-react';
 import { useLogout } from '@repo/hooks';
+import { useNavigation } from './Navigation';
 
 const { Header, Sider, Content } = AntLayout;
 
-function Layout() {
+export const VerticalLayout = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { currentLanguage, availableLanguages, changeLanguage } = useLanguage();
@@ -43,28 +40,12 @@ function Layout() {
         dispatchTenantChange(value);
     };
 
-    const menuItems = [
-        {
-            key: '/dashboard',
-            icon: <HomeOutlined />,
-            label: <Link to="/dashboard">Dashboard</Link>,
-        },
-        {
-            key: '/orders',
-            icon: <ShoppingCartOutlined />,
-            label: <Link to="/orders">Orders</Link>,
-        },
-        {
-            key: '/shipments',
-            icon: <CarOutlined />,
-            label: <Link to="/shipments">Shipments</Link>,
-        },
-        {
-            key: '/transactions',
-            icon: <WalletOutlined />,
-            label: <Link to="/transactions">Transactions</Link>,
-        },
-    ];
+    const menuItems = useNavigation();
+    const antMenuItems = menuItems.map(item => ({
+        key: item.path,
+        icon: item.icon,
+        label: <Link to={item.path}>{item.label}</Link>,
+    }));
 
     return (
         <AntLayout className="h-screen overflow-hidden">
@@ -90,7 +71,7 @@ function Layout() {
                 <Menu
                     mode="inline"
                     selectedKeys={[location.pathname]}
-                    items={menuItems}
+                    items={antMenuItems}
                     className="border-0 h-[calc(100vh-64px-56px)] dark:!bg-[#141414]"
                 />
                 <div className="absolute bottom-0 left-0 right-0 h-14 flex items-center justify-center border-t border-gray-200 dark:border-gray-800 dark:bg-[#141414]">
@@ -151,4 +132,4 @@ function Layout() {
     );
 }
 
-export default Layout;
+export default VerticalLayout;

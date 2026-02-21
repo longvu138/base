@@ -37,3 +37,15 @@ export const useShipmentStatisticQuery = () => {
         },
     });
 };
+
+export const useShipmentServicesQuery = () => {
+    return useQuery({
+        queryKey: ['shipments.services'],
+        queryFn: async () => {
+            const res = await ShipmentApi.getShipmentServices();
+            return res.data as Array<{ id: number; code: string; name: string; position: number }>;
+        },
+        staleTime: Infinity, // Dịch vụ ít thay đổi, cache vĩnh viễn trong session
+    });
+};
+

@@ -2,6 +2,7 @@ import type { ThemeConfig } from 'antd';
 
 export interface SimpleTenantConfig extends ThemeConfig {
     uiLib?: 'antd' | 'mui';
+    variant?: string;
     variants?: Record<string, string>;
     colorPrimary?: string;
     colorPrimaryDark?: string;
@@ -40,6 +41,12 @@ export const tenantExamples: Record<string, { name: string }> = {
     },
     gobiz: {
         name: 'Gobiz Logistics',
+    },
+    thien_long: {
+        name: 'Thiên Long Express',
+    },
+    tetetete: {
+        name: 'Tetetete',
     },
 };
 
@@ -182,18 +189,7 @@ export function updateTenantCSSVariables(config?: SimpleTenantConfig, isDark?: b
     }
 }
 
-export function getTenantConfigFromStorage(): SimpleTenantConfig | null {
-    if (typeof window === 'undefined') return null;
-    try {
-        const stored = localStorage.getItem('tenant-config');
-        return stored ? JSON.parse(stored) : null;
-    } catch { return null; }
-}
 
-export function saveTenantConfigToStorage(config: SimpleTenantConfig): void {
-    if (typeof window === 'undefined') return;
-    localStorage.setItem('tenant-config', JSON.stringify(config));
-}
 
 export function dispatchTenantChange(tenantKey: string): void {
     if (typeof window === 'undefined') return;
