@@ -1,2 +1,2 @@
-export { ThemeProvider, useTheme } from './ThemeContext';
-export { ThemeSwitcher } from './ThemeSwitcher';
+export * from './ThemeContext';
+export * from './ThemeSwitcher';

@@ -1,96 +1,126 @@
 import { ConfigProvider, theme } from 'antd';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { webAntdTheme, webDarkAntdTheme } from '@repo/antd-config';
 import { ThemeProvider, useTheme } from '@repo/theme-provider';
 import {
   applyTenantConfig,
   updateTenantCSSVariables,
-  getTenantConfigFromStorage,
-  saveTenantConfigToStorage,
-  getTenantExample,
+  type FullTenantResponse,
   type SimpleTenantConfig,
 } from '@repo/tenant-config';
 import AppRoutes from './routes';
 
-// Create a client for React Query
 const queryClient = new QueryClient({
   defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-      retry: 1,
-      staleTime: 5 * 60 * 1000, // 5 minutes
-    },
+    queries: { refetchOnWindowFocus: false, retry: 1, staleTime: 5 * 60 * 1000 },
   },
 });
 
-// Mock API call - Replace with your actual API endpoint
-async function fetchTenantConfigFromAPI(tenantKey: string): Promise<SimpleTenantConfig> {
-  // TODO: Replace with your actual API call
-  // const response = await fetch(`/api/tenants/${tenantKey}/config`);
-  // return response.json();
+/**
+ * Default config used when the tenant API is unavailable.
+ * Ensures the app always renders with a sensible baseline theme.
+ */
+const FALLBACK_TENANT_CONFIG: FullTenantResponse = {
+  id: 'fallback',
+  name: 'Default',
+  variantCode: 'gd1',
+  tenantConfig: {
+    themeConfig: {} as SimpleTenantConfig,
+  },
+};
 
-  // Fake delay for demo
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(getTenantExample(tenantKey));
-    }, 50);
-  });
+/**
+ * Fetches tenant config + available UI variant list from the backend.
+ * Returns merged result as a FullTenantResponse.
+ */
+async function fetchAppData(tenantKey: string): Promise<FullTenantResponse> {
+  const [tenantRes, variantsRes] = await Promise.all([
+    fetch(`http://localhost:3003/api/tenants/${tenantKey}/config`),
+    fetch(`http://localhost:3003/api/ui-variants`),
+  ]);
+
+  if (!tenantRes.ok || !variantsRes.ok) {
+    throw new Error(`Backend error: tenant=${tenantRes.status} variants=${variantsRes.status}`);
+  }
+
+  const [tenantData, variantsData] = await Promise.all([
+    tenantRes.json(),
+    variantsRes.json(),
+  ]);
+
+  return { ...tenantData, uiVariants: variantsData };
 }
 
 function AppContent() {
-  const { theme: themeMode } = useTheme();
+  const {
+    theme: themeMode,
+    setUiLib,
+    tenantConfig: globalTenantConfig,
+    setTenantConfig: setGlobalTenantConfig,
+  } = useTheme();
+
   const isDark = themeMode === 'dark';
 
-  // 1. Dùng useState để lưu tenant ID hiện tại (test/demo)
-  const [selectedTenantId, setSelectedTenantId] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('selected-tenant') || 'default';
-    }
-    return 'default';
-  });
-
-  // 2. Dùng useState để lưu config được inject từ API
-  const [tenantConfig, setTenantConfig] = useState<SimpleTenantConfig | null>(
-    () => getTenantConfigFromStorage() // Khởi tạo từ cache nếu có
+  const [selectedTenantId, setSelectedTenantId] = useState<string>(
+    () => (typeof window !== 'undefined' && localStorage.getItem('selected-tenant')) || 'baogam'
   );
 
-  // 3. Effect lắng nghe sự kiện thay đổi tenant (để update UI ngay lập tức)
+  // Listen for tenant changes dispatched by the tenant selector UI
   useEffect(() => {
-    const handleTenantChange = (e: any) => {
-      setSelectedTenantId(e.detail);
-    };
-
+    const handleTenantChange = (e: Event) => setSelectedTenantId((e as CustomEvent).detail);
     window.addEventListener('app:tenant-changed', handleTenantChange);
     return () => window.removeEventListener('app:tenant-changed', handleTenantChange);
   }, []);
 
-  // 4. Effect call API lấy config khi tenant ID thay đổi
+  // Fetch tenant config whenever the selected tenant changes
   useEffect(() => {
-    fetchTenantConfigFromAPI(selectedTenantId).then(config => {
-      setTenantConfig(config);
-      saveTenantConfigToStorage(config);
-    });
-  }, [selectedTenantId]);
+    fetchAppData(selectedTenantId)
+      .then(data => {
+        setGlobalTenantConfig(data);
+        localStorage.setItem('full-tenant-data', JSON.stringify(data));
 
-  // 5. CẬP NHẬT ĐỒNG BỘ: Đưa ra ngoài useEffect để update biến CSS ngay khi render
-  // Điều này đảm bảo màu nền body và màu antd đổi cùng 1 frame hình
-  if (typeof document !== 'undefined') {
-    updateTenantCSSVariables(tenantConfig || undefined, isDark);
-  }
+        const uiLib = data.tenantConfig?.themeConfig?.uiLib;
+        if (uiLib) setUiLib(uiLib);
+      })
+      .catch(err => {
+        // API failed — apply fallback so the app still renders correctly
+        console.warn('[Tenant] Failed to load config, using fallback:', err.message);
 
-  // Apply tenant config vào base theme
-  const baseTheme = isDark ? webDarkAntdTheme : webAntdTheme;
-  const finalTheme = applyTenantConfig(baseTheme, tenantConfig || undefined, isDark);
+        // Try to restore last known-good config from localStorage
+        const cached = localStorage.getItem('full-tenant-data');
+        if (cached) {
+          try {
+            setGlobalTenantConfig(JSON.parse(cached));
+            return;
+          } catch {
+            // cached data is corrupt — ignore and use hardcoded fallback
+          }
+        }
+
+        setGlobalTenantConfig(FALLBACK_TENANT_CONFIG);
+      });
+  }, [selectedTenantId, setGlobalTenantConfig, setUiLib]);
+
+  const themeConfig = globalTenantConfig?.tenantConfig?.themeConfig;
+
+  // Keep CSS variables in sync with current theme mode and tenant config
+  useEffect(() => {
+    updateTenantCSSVariables(themeConfig, isDark);
+  }, [themeConfig, isDark]);
+
+  // Merge tenant config into the Ant Design theme
+  const antdTheme = useMemo(() => {
+    const base = isDark ? webDarkAntdTheme : webAntdTheme;
+    return {
+      ...applyTenantConfig(base, themeConfig || undefined, isDark),
+      algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm,
+    };
+  }, [themeConfig, isDark]);
 
   return (
-    <ConfigProvider
-      theme={{
-        ...finalTheme,
-        algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm,
-      }}
-    >
+    <ConfigProvider theme={antdTheme}>
       <BrowserRouter>
         <AppRoutes />
       </BrowserRouter>

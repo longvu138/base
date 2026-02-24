@@ -10,4 +10,7 @@ export const ShipmentApi = {
     getShipmentStatistic: () => {
         return ApiClient.auth.get(`customer/shipments/statistics`);
     },
+    getShipmentServices: () => {
+        return ApiClient.auth.get(`categories/shipment_services?size=1000&sort=position:asc`);
+    },
 };

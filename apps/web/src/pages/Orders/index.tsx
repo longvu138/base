@@ -1,36 +1,20 @@
-import { useState } from 'react';
-import { Radio } from 'antd';
-import { LayoutList, Sidebar } from 'lucide-react';
-import { OrdersStyle1 } from './OrdersStyle1';
-import { OrdersStyle2 } from './OrdersStyle2';
+import { useVariant } from '@repo/theme-provider';
+import { DynamicVariant } from '../../components/Common/DynamicVariant';
+
+// Move glob OUTSIDE the component so it's created once (stable reference)
+// This prevents DynamicVariant from recreating React.lazy on every re-render
+const modules = import.meta.glob('./*.tsx');
 
 export const Orders = () => {
-    const [style, setStyle] = useState<'style1' | 'style2'>('style1');
+    // Lấy tên style từ cấu hình Tenant (Ví dụ: 'OrdersStyle1', 'OrdersCombined')
+    const variant = useVariant('orders');
 
     return (
-        <div className="min-h-screen bg-layout">
-            <div className="flex justify-end px-6">
-                <Radio.Group
-                    value={style}
-                    onChange={(e) => setStyle(e.target.value)}
-                    size="small"
-                >
-                    <Radio.Button value="style1">
-                        <div className="flex items-center gap-1">
-                            <LayoutList size={14} /> Giao diện 1
-                        </div>
-                    </Radio.Button>
-                    <Radio.Button value="style2">
-                        <div className="flex items-center gap-1">
-                            <Sidebar size={14} /> Giao diện 2
-                        </div>
-                    </Radio.Button>
-                </Radio.Group>
-            </div>
-
-            <div className="pt-2">
-                {style === 'style1' ? <OrdersStyle1 /> : <OrdersStyle2 />}
-            </div>
-        </div>
+        <DynamicVariant
+            variantName={variant}
+            modules={modules}
+            fallbackName="OrdersStyle1"
+            featureName="Orders"
+        />
     );
 };

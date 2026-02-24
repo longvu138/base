@@ -1,3 +1,4 @@
+// Export antd-based components
 export * from './FilterPanel';
 export * from './TableComponent';
 export * from './Status';

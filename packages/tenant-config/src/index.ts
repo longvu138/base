@@ -1,6 +1,29 @@
 import type { ThemeConfig } from 'antd';
 
+/**
+ * Cấu hình menu navigation được drive từ backend.
+ * Thay vì client hardcode 'gd3 thì ẩn /shipments', backend khai báo luôn.
+ */
+export interface MenuConfig {
+    /** Danh sách path cần ẩn khỏi menu (VD: ['/shipments']) */
+    hiddenKeys?: string[];
+    /** Override label của menu item (VD: { '/orders': 'Quản lý Tổng hợp' }) */
+    labelOverrides?: Record<string, string>;
+}
+
+/**
+ * Top-level tenant theme config sent from backend.
+ * Extends AntD ThemeConfig and adds:
+ * - *Dark variants: separate values applied when dark mode is active
+ * - variants: per-page component name overrides
+ * - uiLib: which UI library to use (antd | mui)
+ */
 export interface SimpleTenantConfig extends ThemeConfig {
+    uiLib?: 'antd' | 'mui';
+    /** Per-page component overrides. E.g. { orders: 'OrdersCombined', login: 'LoginStyle3' } */
+    variants?: Record<string, string>;
+    menu?: MenuConfig;
+    // Top-level color shorthands (mapped to AntD tokens + CSS variables)
     colorPrimary?: string;
     colorPrimaryDark?: string;
     colorBgContainer?: string;
@@ -17,49 +40,48 @@ export interface SimpleTenantConfig extends ThemeConfig {
     borderRadius?: number;
 }
 
-export const tenantExamples: Record<string, { name: string; config: SimpleTenantConfig }> = {
-    default: {
-        name: 'Màu 1',
-        config: {
-            colorPrimary: '#1890ff',
-            colorPrimaryDark: '#ffd666',
-            colorBgContainer: '#ffffff',
-            colorBgContainerDark: '#141414',
-            colorBgLayout: '#f5f8ff',
-            colorBgLayoutDark: '#0a0c10',
-            colorBorderDark: '#222222',
-            colorText: '#000000',
-            borderRadius: 8,
-        },
+
+export interface UIVariant {
+    code: string;
+    name: string;
+    config: {
+        layout: string;
+        menu: MenuConfig;
+        features?: Record<string, string>;
+        pages?: Record<string, string>;
+    };
+}
+
+export interface FullTenantResponse {
+    id: string;
+    name: string;
+    variantCode: string; // Mã giao diện tenant chọn (gd1, gd2...)
+    tenantConfig?: {
+        themeConfig: SimpleTenantConfig;
+        [key: string]: any;
+    };
+    uiVariants?: UIVariant[]; // Danh sách các bộ giao diện hệ thống có sẵn
+    [key: string]: any;
+}
+
+
+/**
+ * Tenant mock data for selection (Dropdown only).
+ * The actual values are fetched from the API.
+ */
+export const tenantExamples: Record<string, { name: string }> = {
+    baogam: {
+        name: 'Báo Gấm',
     },
-    luxury: {
-        name: 'Màu 2',
-        config: {
-            colorPrimary: '#faad14',
-            colorPrimaryDark: '#ffd666',
-            colorBgLayout: '#fffef2',
-            borderRadius: 6,
-        },
+    gobiz: {
+        name: 'Gobiz Logistics',
     },
-    tech: {
-        name: 'Màu 3',
-        config: {
-            colorPrimary: '#722ed1',
-            colorPrimaryDark: '#9254de',
-            colorBgLayout: '#fbf5ff',
-            borderRadius: 16,
-            colorBgContainerDark: '#141414',
-            colorBgLayoutDark: '#0a0c10',
-            colorBorderDark: '#222222',
-        },
+    thien_long: {
+        name: 'Thiên Long Express',
     },
-    green: {
-        name: 'Màu 4',
-        config: {
-            colorPrimary: '#237804',
-            borderRadius: 20,
-        },
-    }
+    tetetete: {
+        name: 'Tetetete',
+    },
 };
 
 /**
@@ -110,10 +132,6 @@ const CSS_VAR_MAP: Record<string, string> = {
     borderRadius: '--tenant-radius-antd',
 };
 
-export function getTenantExample(key: string): SimpleTenantConfig {
-    return tenantExamples[key]?.config || tenantExamples['default']!.config;
-}
-
 export function getTenantOptions() {
     return Object.entries(tenantExamples).map(([key, value]) => ({
         label: value.name,
@@ -158,7 +176,6 @@ export function updateTenantCSSVariables(config?: SimpleTenantConfig, isDark?: b
 
     const resolved = getResolvedConfig(config, !!isDark);
 
-
     const ACTIVE_VARS: Record<string, string> = {
         colorPrimary: '--tenant-primary-color',
         colorBgContainer: '--tenant-bg-container',
@@ -176,7 +193,6 @@ export function updateTenantCSSVariables(config?: SimpleTenantConfig, isDark?: b
         }
     });
 
-
     const DARK_VARS: Record<string, string> = {
         colorPrimaryDark: '--tenant-primary-dark',
         colorBgContainerDark: '--tenant-bg-container-dark',
@@ -191,12 +207,10 @@ export function updateTenantCSSVariables(config?: SimpleTenantConfig, isDark?: b
         else root.style.removeProperty(cssVar);
     });
 
-
     if (config.colorSuccess) root.style.setProperty('--tenant-success-color', String(config.colorSuccess).trim());
     if (config.colorWarning) root.style.setProperty('--tenant-warning-color', String(config.colorWarning).trim());
     if (config.colorError) root.style.setProperty('--tenant-error-color', String(config.colorError).trim());
     if (config.borderRadius) root.style.setProperty('--tenant-radius-antd', `${config.borderRadius}px`);
-
 
     if (resolved.colorPrimary) {
         const hex = String(resolved.colorPrimary).trim().replace('#', '');
@@ -209,18 +223,7 @@ export function updateTenantCSSVariables(config?: SimpleTenantConfig, isDark?: b
     }
 }
 
-export function getTenantConfigFromStorage(): SimpleTenantConfig | null {
-    if (typeof window === 'undefined') return null;
-    try {
-        const stored = localStorage.getItem('tenant-config');
-        return stored ? JSON.parse(stored) : null;
-    } catch { return null; }
-}
 
-export function saveTenantConfigToStorage(config: SimpleTenantConfig): void {
-    if (typeof window === 'undefined') return;
-    localStorage.setItem('tenant-config', JSON.stringify(config));
-}
 
 export function dispatchTenantChange(tenantKey: string): void {
     if (typeof window === 'undefined') return;
