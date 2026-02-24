@@ -50,12 +50,13 @@ const UI_VARIANTS = [
         shipmentStatusDisplay: 'tabs'
       },
       // Có thể định nghĩa thêm các trang đặc thù nếu cần
-      pages: {
+        pages: {
         orders: 'OrdersCombined',
         claims: 'ClaimsStyle3',
         transactions: 'TransactionsStyle3',
         deliveryRequests: 'DeliveryRequestsStyle3',
-        shipments: 'ShipmentsStyle3'
+        shipments: 'ShipmentsStyle3',
+        withdrawalSlips: 'WithdrawalSlipStyle3'
       }
     }
   }

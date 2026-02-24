@@ -6,6 +6,7 @@ import {
     CarOutlined,
     InboxOutlined,
     FileProtectOutlined,
+    CreditCardOutlined,
 } from '@ant-design/icons';
 import { useTheme, useActiveVariantConfig } from '@repo/theme-provider';
 
@@ -56,6 +57,12 @@ const ALL_MENU_ITEMS: MenuItem[] = [
         icon: React.createElement(FileProtectOutlined),
         label: 'Khiếu nại',
         path: '/claims',
+    },
+    {
+        key: '/withdrawal-slips',
+        icon: React.createElement(CreditCardOutlined),
+        label: 'Rút tiền',
+        path: '/withdrawal-slips',
     },
 ];
 

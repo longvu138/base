@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Form, Input, Table, Tag, Empty } from 'antd';
+import { Form, Input, Table, Tag, Empty, Card } from 'antd';
 import { FilterPanel, TableComponent, StatusFilter, Pagination } from '@repo/ui';
 import { useFilterWithURL, usePaginationWithURL, useListClaimQuery, useClaimStatusesQuery, useSolutionsQuery } from '@repo/hooks';
 
@@ -103,7 +103,7 @@ export const ClaimsStyle1 = () => {
 
     return (
         <div className="min-h-screen bg-layout">
-            <div className="bg-white p-4 rounded-xl mb-4">
+            <Card className="mb-4 shadow-sm">
                 <FilterPanel
                     form={form}
                     onSearch={handleSearch}
@@ -141,7 +141,7 @@ export const ClaimsStyle1 = () => {
                         </>
                     }
                 />
-            </div>
+            </Card>
 
             <TableComponent
                 title="Quản lý Khiếu nại"

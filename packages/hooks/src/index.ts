@@ -6,6 +6,7 @@ export * from './useTransactionHooks';
 export * from './useClaimHooks';
 
 export * from './useDeliveryRequestHooks';
+export * from './useWithdrawalSlipHooks';
 
 
 export * from './useLogin';
