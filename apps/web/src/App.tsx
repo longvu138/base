@@ -11,6 +11,7 @@ import {
   type SimpleTenantConfig,
 } from '@repo/tenant-config';
 import AppRoutes from './routes';
+import { appConfig } from '@repo/config';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -37,8 +38,8 @@ const FALLBACK_TENANT_CONFIG: FullTenantResponse = {
  */
 async function fetchAppData(tenantKey: string): Promise<FullTenantResponse> {
   const [tenantRes, variantsRes] = await Promise.all([
-    fetch(`http://localhost:3003/api/tenants/${tenantKey}/config`),
-    fetch(`http://localhost:3003/api/ui-variants`),
+    fetch(`${appConfig.be}/api/tenants/${tenantKey}/config`),
+    fetch(`${appConfig.be}/api/ui-variants`),
   ]);
 
   if (!tenantRes.ok || !variantsRes.ok) {
