@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { Form, Input, DatePicker, Checkbox, Select, Table, Card, Tabs, Empty, Skeleton } from 'antd';
 import { FilterPanel, TableComponent, StatusFilter, Status, Pagination } from '@repo/ui';
-import { useVariant, useVariantCode } from '@repo/theme-provider';
+import { useTheme } from '@repo/theme-provider';
 import { useFilterWithURL, usePaginationWithURL, useListShipmentQuery, useShipmentStatusesQuery, useShipmentStatisticQuery, useShipmentServicesQuery } from '@repo/hooks';
 import { useTranslation } from '@repo/i18n';
 
@@ -12,7 +12,7 @@ const { RangePicker } = DatePicker;
 export const Shipments: React.FC<{ isTabView?: boolean }> = ({ isTabView }) => {
     const { t } = useTranslation();
     const [form] = Form.useForm();
-    const variant = useVariant('layout');
+
 
     const { page, pageSize, setPage, setPageSize } = usePaginationWithURL();
     const { applyFilters, clearFilters, filters } = useFilterWithURL({ form });
@@ -98,33 +98,38 @@ export const Shipments: React.FC<{ isTabView?: boolean }> = ({ isTabView }) => {
                     resetText={t('orders.buttons.reset')}
                     primaryContent={
                         <>
-                            {useVariantCode() === 'gd3' ? (
-                                <div className="mb-6 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
-                                    <Tabs
-                                        activeKey={filters.statuses ? (Array.isArray(filters.statuses) ? filters.statuses[0] : filters.statuses) : 'ALL'}
-                                        onChange={(key) => {
-                                            const newStatuses = key === 'ALL' ? undefined : [key];
-                                            applyFilters({ ...form.getFieldsValue(), statuses: newStatuses });
-                                        }}
-                                        items={[
-                                            {
-                                                key: 'ALL',
-                                                label: <span className="px-2">Tất cả</span>
-                                            },
-                                            ...statusOptions.map((opt: any) => ({
-                                                key: opt.value,
-                                                label: <span className="px-2">{opt.label}</span>
-                                            }))
-                                        ]}
-                                        className="custom-status-tabs"
-                                        size="large"
-                                    />
-                                </div>
-                            ) : (
-                                <Form.Item name="statuses" noStyle>
-                                    <StatusFilter options={statusOptions} label={t('shipments.filters.status') + ':'} />
-                                </Form.Item>
-                            )}
+                            {(() => {
+                                const { tenantConfig } = useTheme();
+                                // Backend config drive: nếu variants.shipmentStatusDisplay = 'tabs' thì dùng Tabs, còn lại dùng StatusFilter
+                                const useTabsForStatus = tenantConfig?.tenantConfig?.themeConfig?.variants?.['shipmentStatusDisplay'] === 'tabs';
+                                return useTabsForStatus ? (
+                                    <div className="mb-6 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+                                        <Tabs
+                                            activeKey={filters.statuses ? (Array.isArray(filters.statuses) ? filters.statuses[0] : filters.statuses) : 'ALL'}
+                                            onChange={(key) => {
+                                                const newStatuses = key === 'ALL' ? undefined : [key];
+                                                applyFilters({ ...form.getFieldsValue(), statuses: newStatuses });
+                                            }}
+                                            items={[
+                                                {
+                                                    key: 'ALL',
+                                                    label: <span className="px-2">Tất cả</span>
+                                                },
+                                                ...statusOptions.map((opt: any) => ({
+                                                    key: opt.value,
+                                                    label: <span className="px-2">{opt.label}</span>
+                                                }))
+                                            ]}
+                                            className="custom-status-tabs"
+                                            size="large"
+                                        />
+                                    </div>
+                                ) : (
+                                    <Form.Item name="statuses" noStyle>
+                                        <StatusFilter options={statusOptions} label={t('shipments.filters.status') + ':'} />
+                                    </Form.Item>
+                                );
+                            })()}
 
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4 mt-6 border-t border-border">
                                 <Form.Item name="code" label={t('shipments.filters.code')}>

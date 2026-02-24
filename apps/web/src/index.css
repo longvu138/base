@@ -3,14 +3,16 @@
 @tailwind utilities;
 
 :root {
-  /* Legacy tenant variables */
+  /* Tenant CSS variables — defaults (overridden at runtime by API config) */
   --tenant-primary-color: #1890ff;
+  --tenant-primary-rgb: 24 144 255;
   --tenant-success-color: #52c41a;
   --tenant-warning-color: #faad14;
   --tenant-error-color: #f5222d;
   --tenant-border-color: #d9d9d9;
+  --tenant-text-color: #1e293b;
   --tenant-radius-antd: 8px;
-  --tenant-bg-container: #fff;
+  --tenant-bg-container: #ffffff;
   --tenant-bg-layout: #f0f2f5;
   
   /* shadcn/ui variables - Light mode defaults */
@@ -37,7 +39,7 @@
 }
 
 .dark {
-  /* shadcn/ui variables - Dark mode */
+  /* shadcn/ui Dark mode variables */
   --background: 0 0% 6%;
   --foreground: 0 0% 95%;
   --card: 0 0% 10%;
@@ -57,10 +59,14 @@
   --border: 240 4% 16%;
   --input: 240 4% 16%;
   --ring: 221 83% 53%;
-  
-  /* Dark mode layout background */
-  --tenant-bg-layout: #0a0a0a;
-  --tenant-bg-container: #1f2937;
+
+  /* Tenant dark mode fallbacks (overridden at runtime by API config) */
+  --tenant-primary-color: #818cf8;
+  --tenant-primary-rgb: 129 140 248;
+  --tenant-text-color: #e2e8f0;
+  --tenant-border-color: #334155;
+  --tenant-bg-layout: #0f172a;
+  --tenant-bg-container: #1e293b;
 }
 
 * {
@@ -84,10 +90,5 @@ body {
 .bg-layout {
   background-color: var(--tenant-bg-layout);
   transition: background-color 0.2s ease;
-}
-
-/* Remove hardcoded overrides to allow dynamic API values */
-.bg-layout-dark {
-  background-color: var(--tenant-bg-layout);
 }
 

@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import { FullTenantResponse } from '@repo/tenant-config';
+import type { FullTenantResponse } from '@repo/tenant-config';
 
 export type ThemeMode = 'light' | 'dark';
 
@@ -31,17 +31,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('theme-mode', theme);
     }, [theme]);
 
-    const toggleTheme = () => {
-        setTheme(theme === 'light' ? 'dark' : 'light');
-    };
+    const toggleTheme = () => setTheme(theme === 'light' ? 'dark' : 'light');
 
-    // Apply theme class on mount and theme change
     useEffect(() => {
-        if (theme === 'dark') {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
+        document.documentElement.classList.toggle('dark', theme === 'dark');
     }, [theme]);
 
     return (
@@ -64,45 +57,44 @@ export function useTheme() {
 }
 
 /**
- * Láy mã giao diện gốc (Ví dụ: 'gd1', 'gd3') từ cấu hình Tenant.
- * Dùng cho các logic điều hướng hoặc tính năng đặc thù theo bộ giao diện.
+ * Helper: Tìm cấu hình bộ giao diện (UI Variant) mẫu tương ứng với Tenant hiện tại.
  */
-export function useVariantCode(): string {
+export function useActiveVariantConfig() {
     const { tenantConfig } = useTheme();
-    return tenantConfig?.tenantConfig?.themeConfig?.variant || 'gd1';
+    const variantCode = tenantConfig?.variantCode || 'gd1';
+    return tenantConfig?.uiVariants?.find(v => v.code === variantCode);
 }
 
 /**
- * Lấy tên Component của trang hiện tại theo quy ước (Convention).
- * Ví dụ: 'login' -> 'LoginStyle1'
- *
- * @param pageKey - tên trang (ví dụ: 'login', 'orders', 'shipments')
- * @returns Tên component tương ứng
+ * Hook: Quyết định component nào sẽ được render cho một pageKey nhất định.
+ * Luồng ưu tiên: 
+ * 1. Cấu hình đè riêng của Tenant (Direct Override)
+ * 2. Cấu hình trong bộ giao diện mẫu từ Backend (System Mapping)
+ * 3. Quy ước đặt tên mặc định (Naming Convention)
  */
 export function useVariant(pageKey: string): string {
     const { tenantConfig } = useTheme();
     const themeConfig = tenantConfig?.tenantConfig?.themeConfig;
+    const activeMapping = useActiveVariantConfig();
 
-    // 1. Ưu tiên cấu hình đè (override) cụ thể
+    // 1. Direct Override từ Tenant
     if (themeConfig?.variants?.[pageKey]) {
         return themeConfig.variants[pageKey];
     }
 
-    const globalVariant = useVariantCode();
-
-    // 2. Quy tắc suy luận cho Layout
-    if (pageKey === 'layout') {
-        const layoutMap: Record<string, string> = {
-            'gd3': 'SpecializedLayout',
-        };
-        return layoutMap[globalVariant] || 'VerticalLayout';
+    // 2. Tra cứu từ Mẫu Hệ thống
+    if (activeMapping?.config?.pages?.[pageKey]) {
+        return activeMapping.config.pages[pageKey];
     }
 
-    // 3. Đặc cách cho Global/Combined variants
-    if (globalVariant === 'gd3' && pageKey === 'orders') return 'OrdersCombined';
+    // Trường hợp đặc biệt cho Layout
+    if (pageKey === 'layout' && activeMapping?.config?.layout) {
+        return activeMapping.config.layout;
+    }
 
-    // 4. Mặc định theo Style: gd1 -> Style1, gd2 -> Style2, gd3 -> Style3
-    const styleNumber = globalVariant.replace(/\D/g, '') || '1';
+    // 3. Naming Convention (Ví dụ: 'orders' + 'gd3' -> 'OrdersStyle3')
+    const variantCode = tenantConfig?.variantCode || 'gd1';
+    const styleNumber = variantCode.replace(/\D/g, '') || '1';
     const capitalizedKey = pageKey.charAt(0).toUpperCase() + pageKey.slice(1);
 
     return `${capitalizedKey}Style${styleNumber}`;

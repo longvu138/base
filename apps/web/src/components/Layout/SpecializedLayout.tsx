@@ -8,7 +8,7 @@ import {
     UserOutlined,
     BellOutlined
 } from '@ant-design/icons';
-import { ThemeSwitcher, useVariant } from '@repo/theme-provider';
+import { ThemeSwitcher } from '@repo/theme-provider';
 import { getTenantOptions, dispatchTenantChange } from '@repo/tenant-config';
 import { useLanguage } from '@repo/i18n';
 import { Languages } from 'lucide-react';
@@ -35,8 +35,7 @@ const SpecializedLayout: React.FC = () => {
         return () => window.removeEventListener('app:tenant-changed', handleSync);
     }, []);
 
-    const variant = useVariant('layout');
-    const menuItems = useNavigation(variant);
+    const menuItems = useNavigation();
     const antMenuItems = menuItems.map(item => ({
         key: item.path,
         icon: item.icon,
@@ -77,7 +76,7 @@ const SpecializedLayout: React.FC = () => {
             </Sider>
 
             <AntLayout className="bg-transparent overflow-hidden">
-                <Header className="mx-6 mt-4 mb-2 flex items-center justify-between px-6 bg-white dark:bg-[#141414] rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm transition-all h-16">
+                <Header className=" mt-4 mb-2 flex items-center justify-between bg-white dark:bg-[#141414] rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm transition-all h-16">
                     <Button
                         type="text"
                         icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
@@ -127,7 +126,7 @@ const SpecializedLayout: React.FC = () => {
                     </div>
                 </Header>
 
-                <Content className="overflow-auto px-6 pb-6">
+                <Content className="overflow-auto pr-6">
                     <Outlet />
                 </Content>
             </AntLayout>

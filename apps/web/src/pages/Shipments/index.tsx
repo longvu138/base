@@ -1,17 +1,23 @@
 import React from 'react';
-import { useVariant, useVariantCode } from '@repo/theme-provider';
-import { Shipments as BaseShipments } from './Shipments';
-import { OrdersCombined } from '../Orders/OrdersCombined';
+import { useVariant } from '@repo/theme-provider';
+import { DynamicVariant } from '../../components/Common/DynamicVariant';
 
-const ShipmentsPage: React.FC<{ isTabView?: boolean }> = ({ isTabView }) => {
-    const variantCode = useVariantCode();
+// Move glob OUTSIDE the component so it's created once (stable reference)
+// This prevents DynamicVariant from recreating React.lazy on every re-render
+const modules = import.meta.glob('./*.tsx');
 
-    // Nếu là Gobiz thì hiển thị trang gộp với tab Shipments
-    if (variantCode === 'gd3' && !isTabView) {
-        return <OrdersCombined defaultTab="shipments" />;
-    }
+const ShipmentsPage: React.FC<any> = (props) => {
+    const variant = useVariant('shipments');
 
-    return <BaseShipments isTabView={isTabView} />;
+    return (
+        <DynamicVariant
+            variantName={variant}
+            modules={modules}
+            fallbackName="Shipments"
+            featureName="Shipments"
+            componentProps={props}
+        />
+    );
 };
 
 export const Shipments = ShipmentsPage;

@@ -1,15 +1,13 @@
 import { useMemo } from 'react';
-import { Form, Input, DatePicker, Table, Tag, Empty } from 'antd';
+import { Form, Input, Table, Tag, Empty } from 'antd';
 import { FilterPanel, TableComponent, StatusFilter, Pagination } from '@repo/ui';
-import { useFilterWithURL, usePaginationWithURL, useListDeliveryRequestQuery, useDeliveryRequestStatusesQuery } from '@repo/hooks';
-
-const { RangePicker } = DatePicker;
+import { useFilterWithURL, usePaginationWithURL, useListClaimQuery, useClaimStatusesQuery, useSolutionsQuery } from '@repo/hooks';
 
 /**
- * DeliveryRequestsStyle1 — Giao diện cho Baogam (gd1)
- * Dùng FilterPanel + TableComponent chuẩn, sạch sẽ theo phong cách quản lý truyền thống.
+ * ClaimsStyle1 — Giao diện cho Baogam (gd1)
+ * Phong cách quản lý truyền thống với bộ lọc rõ ràng.
  */
-export const DeliveryRequestsStyle1 = () => {
+export const ClaimsStyle1 = () => {
     const [form] = Form.useForm();
 
     const { page, pageSize, setPage, setPageSize } = usePaginationWithURL({
@@ -26,7 +24,8 @@ export const DeliveryRequestsStyle1 = () => {
             sort: 'createdAt:desc',
             ...filters,
         };
-        ['statuses'].forEach(key => {
+        // Convert arrays to comma strings for API if needed
+        ['publicStates', 'ticketTypes', 'solutionCodes'].forEach(key => {
             if (Array.isArray(params[key])) {
                 params[key] = params[key].join(',');
             }
@@ -34,13 +33,19 @@ export const DeliveryRequestsStyle1 = () => {
         return params;
     }, [page, pageSize, filters]);
 
-    const { data: listData, isLoading } = useListDeliveryRequestQuery(apiParams);
-    const { data: statusData } = useDeliveryRequestStatusesQuery();
+    const { data: listData, isLoading } = useListClaimQuery(apiParams);
+    const { data: statusData } = useClaimStatusesQuery();
+    const { data: solutionData } = useSolutionsQuery();
 
     const statusOptions = useMemo(() => {
         if (!statusData) return [];
         return statusData.map((s) => ({ label: s.name, value: s.code }));
     }, [statusData]);
+
+    const solutionOptions = useMemo(() => {
+        if (!solutionData) return [];
+        return solutionData.map((s) => ({ label: s.name, value: s.code }));
+    }, [solutionData]);
 
     const getStatusColor = (code: string) => {
         const found = statusData?.find(s => s.code === code);
@@ -49,36 +54,42 @@ export const DeliveryRequestsStyle1 = () => {
 
     const columns = [
         {
-            title: 'Mã yêu cầu',
+            title: 'Mã khiếu nại',
             dataIndex: 'code',
             key: 'code',
             render: (text: string) => <span className="font-bold text-primary">{text}</span>,
         },
         {
-            title: 'Người nhận',
-            dataIndex: 'receiverName',
-            key: 'receiverName',
+            title: 'Mã đơn',
+            dataIndex: 'relatedOrder',
+            key: 'relatedOrder',
+            render: (text: string) => text || '—',
         },
         {
-            title: 'SĐT người nhận',
-            dataIndex: 'receiverPhone',
-            key: 'receiverPhone',
-        },
-        {
-            title: 'Địa chỉ',
-            dataIndex: 'receiverAddress',
-            key: 'receiverAddress',
-            render: (text: string) => <span className="text-gray-600 text-sm">{text || '—'}</span>,
+            title: 'Loại',
+            dataIndex: 'ticketType',
+            key: 'ticketType',
+            render: (text: string) => (
+                <Tag color={text === 'order' ? 'blue' : 'cyan'}>
+                    {text === 'order' ? 'Đơn hàng' : 'Vận chuyển'}
+                </Tag>
+            ),
         },
         {
             title: 'Trạng thái',
-            dataIndex: 'status',
-            key: 'status',
+            dataIndex: 'publicState',
+            key: 'publicState',
             render: (status: string) => (
                 <Tag color={getStatusColor(status)}>
                     {statusData?.find(s => s.code === status)?.name || status}
                 </Tag>
             ),
+        },
+        {
+            title: 'Phương án xử lý',
+            dataIndex: 'solutionCode',
+            key: 'solutionCode',
+            render: (code: string) => solutionData?.find(s => s.code === code)?.name || code || '—',
         },
         {
             title: 'Ngày tạo',
@@ -92,7 +103,7 @@ export const DeliveryRequestsStyle1 = () => {
 
     return (
         <div className="min-h-screen bg-layout">
-            <div className="mb-6">
+            <div className="bg-white p-4 rounded-xl mb-4">
                 <FilterPanel
                     form={form}
                     onSearch={handleSearch}
@@ -101,18 +112,30 @@ export const DeliveryRequestsStyle1 = () => {
                     resetText="Đặt lại"
                     primaryContent={
                         <>
-                            <Form.Item name="statuses" noStyle>
+                            <Form.Item name="publicStates" noStyle>
                                 <StatusFilter options={statusOptions} label="Trạng thái:" />
                             </Form.Item>
+                            <Form.Item name="solutionCodes" noStyle>
+                                <StatusFilter options={solutionOptions} label="Phương án:" />
+                            </Form.Item>
+                            <Form.Item name="ticketTypes" noStyle>
+                                <StatusFilter
+                                    options={[
+                                        { label: 'Đơn hàng', value: 'order' },
+                                        { label: 'Vận chuyển', value: 'shipment' }
+                                    ]}
+                                    label="Loại đơn:"
+                                />
+                            </Form.Item>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 mt-6 border-t border-border">
-                                <Form.Item name="code" label="Mã yêu cầu">
-                                    <Input placeholder="Nhập mã yêu cầu" className="h-10" />
+                                <Form.Item name="code" label="Mã khiếu nại">
+                                    <Input placeholder="Nhập mã khiếu nại" className="h-10" />
                                 </Form.Item>
-                                <Form.Item name="receiverName" label="Người nhận">
-                                    <Input placeholder="Tên người nhận" className="h-10" />
+                                <Form.Item name="relatedOrder" label="Mã đơn hàng">
+                                    <Input placeholder="Nhập mã đơn hàng" className="h-10" />
                                 </Form.Item>
-                                <Form.Item name="dateRange" label="Ngày tạo">
-                                    <RangePicker className="w-full h-10" />
+                                <Form.Item name="relatedProduct" label="Mã sản phẩm">
+                                    <Input placeholder="Nhập mã sản phẩm" className="h-10" />
                                 </Form.Item>
                             </div>
                         </>
@@ -121,11 +144,10 @@ export const DeliveryRequestsStyle1 = () => {
             </div>
 
             <TableComponent
-                title="Yêu cầu giao hàng"
+                title="Quản lý Khiếu nại"
                 totalCount={listData?.total}
                 loading={isLoading}
                 showEmpty={!isLoading && listData?.data?.length === 0}
-                emptyText={<Empty description="Không tìm thấy yêu cầu giao nào" />}
             >
                 <Table
                     columns={columns}
@@ -136,7 +158,7 @@ export const DeliveryRequestsStyle1 = () => {
                     locale={{
                         emptyText: (
                             <div className="py-12">
-                                <Empty description="Không tìm thấy yêu cầu giao nào" />
+                                <Empty description="Không tìm thấy khiếu nại nào" />
                             </div>
                         ),
                     }}

@@ -1,7 +1,7 @@
 import type { ThemeConfig } from 'antd';
 
 /**
- * Base Ant Design theme configuration (Light Mode)
+ * Base Ant Design theme — Light Mode
  */
 export const baseAntdTheme: ThemeConfig = {
     token: {
@@ -24,7 +24,7 @@ export const baseAntdTheme: ThemeConfig = {
 };
 
 /**
- * Base Dark Mode theme configuration
+ * Base Ant Design theme — Dark Mode
  */
 export const baseDarkAntdTheme: ThemeConfig = {
     token: {
@@ -37,8 +37,8 @@ export const baseDarkAntdTheme: ThemeConfig = {
         colorBgContainer: '#141414',
         colorBgElevated: '#1f1f1f',
         colorBorder: '#303030',
-        colorText: 'var(--tenant-primary-color)', // Change text to primary color as requested
-        colorTextHeading: 'var(--tenant-primary-color)', // Also headers
+        colorText: 'rgba(255, 255, 255, 0.85)',
+        colorTextHeading: 'rgba(255, 255, 255, 0.95)',
         colorTextSecondary: 'rgba(255, 255, 255, 0.45)',
         borderRadius: 8,
         fontSize: 14,

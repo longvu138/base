@@ -1,15 +1,15 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Radio } from 'antd';
 import { useVariant, ThemeSwitcher } from '@repo/theme-provider';
 import { getTenantOptions, dispatchTenantChange } from '@repo/tenant-config';
 import { DynamicVariant } from '../../components/Common/DynamicVariant';
 
+// Stable reference — must be outside component to prevent useMemo invalidation
+const modules = import.meta.glob('./*.tsx');
+
 export const Login = () => {
     // Lấy tên style từ cấu hình Tenant (Ví dụ: 'LoginStyle1', 'LoginStyle2')
     const variant = useVariant('login');
-
-    // Quét tất cả file .tsx trong thư mục này để load động
-    const modules = import.meta.glob('./*.tsx');
 
     const [currentTenant, setCurrentTenant] = useState(() =>
         localStorage.getItem('selected-tenant') || 'baogam'

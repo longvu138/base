@@ -7,15 +7,71 @@ const port = 3003;
 app.use(cors());
 app.use(express.json());
 
+/**
+ * === DANH SÁCH CẤU HÌNH GIAO DIỆN MẪU (UI VARIANTS) ===
+ * Chứa các "quy tắc" chung cho từng bộ giao diện.
+ * Cấu trúc này giúp bạn thay đổi giao diện hàng loạt mà không cần sửa từng Tenant.
+ */
+const UI_VARIANTS = [
+  {
+    code: 'gd1',
+    name: 'Giao diện Phổ thông',
+    config: {
+      layout: 'VerticalLayout',
+      menu: {
+        hiddenKeys: [],
+        labelOverrides: {}
+      }
+    }
+  },
+  {
+    code: 'gd2',
+    name: 'Giao diện Hiện đại',
+    config: {
+      layout: 'VerticalLayout',
+      menu: {
+        hiddenKeys: [],
+        labelOverrides: {}
+      }
+    }
+  },
+  {
+    code: 'gd3',
+    name: 'Giao diện Premium (Gobiz Theme)',
+    config: {
+      layout: 'SpecializedLayout',
+      menu: {
+        hiddenKeys: ['/shipments'],
+        labelOverrides: {
+          '/orders': 'Quản lý Tổng hợp'
+        }
+      },
+      features: {
+        shipmentStatusDisplay: 'tabs'
+      },
+      // Có thể định nghĩa thêm các trang đặc thù nếu cần
+      pages: {
+        orders: 'OrdersCombined',
+        claims: 'ClaimsStyle3',
+        transactions: 'TransactionsStyle3',
+        deliveryRequests: 'DeliveryRequestsStyle3',
+        shipments: 'ShipmentsStyle3'
+      }
+    }
+  }
+];
+
+/**
+ * === CẤU HÌNH TENANTS ===
+ * Khôi phục đầy đủ màu sắc và cấu hình lồng ghép đúng như ban đầu.
+ */
 const tenants = {
   'baogam': {
-    id: "baogam-id",
     name: "Báo Gấm",
-    code: "baogam",
+    variantCode: "gd1",
     tenantConfig: {
       themeConfig: {
         uiLib: 'antd',
-        variant: 'gd1', // Tự động hiểu: VerticalLayout, LoginStyle1, OrdersStyle1...
         colorPrimary: '#1890ff',
         colorBgLayout: '#f5f8ff',
         borderRadius: 8,
@@ -24,15 +80,11 @@ const tenants = {
     }
   },
   'gobiz': {
-    id: "gobiz-id",
     name: "Gobiz Logistics",
-    code: "gobiz",
+    variantCode: "gd3",
     tenantConfig: {
       themeConfig: {
         uiLib: 'antd',
-        variant: 'gd3', // Tự động hiểu: SpecializedLayout. 
-        // Riêng trang orders muốn dùng tên khác thì mới cần khai báo ở đây:
-        // variants: { orders: 'OrdersCombined' }, 
         colorPrimary: '#722ed1',
         colorBgLayout: '#f9f5ff',
         borderRadius: 16,
@@ -41,17 +93,19 @@ const tenants = {
     }
   },
   'thien_long': {
-    id: "thien-long-id",
     name: "Thiên Long Express",
-    code: "thien_long",
+    variantCode: "gd1",
     tenantConfig: {
       themeConfig: {
         uiLib: 'antd',
-        variant: 'gd1',
         colorPrimary: '#ff4d4f',
         colorBgLayout: '#fff1f0',
         borderRadius: 4,
         colorBgLayoutDark: '#2d0a0a',
+        // Override đặc thù cho Thiên Long
+        variants: {
+          shipmentStatusDisplay: 'tabs' 
+        }
       }
     }
   }
@@ -60,9 +114,16 @@ const tenants = {
 app.get('/api/tenants/:id/config', (req, res) => {
   const tenantId = req.params.id;
   const tenant = tenants[tenantId] || tenants['baogam'];
-  res.json(tenant);
+  res.json({
+      id: tenantId,
+      ...tenant
+  });
+});
+
+app.get('/api/ui-variants', (req, res) => {
+  res.json(UI_VARIANTS);
 });
 
 app.listen(port, () => {
-  console.log(`Mock API Server running at http://localhost:${port}`);
+  console.log(`UI Server mapping running at http://localhost:${port}`);
 });

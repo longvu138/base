@@ -5,8 +5,9 @@ import {
     WalletOutlined,
     CarOutlined,
     InboxOutlined,
+    FileProtectOutlined,
 } from '@ant-design/icons';
-import { useVariantCode } from '@repo/theme-provider';
+import { useTheme, useActiveVariantConfig } from '@repo/theme-provider';
 
 export interface MenuItem {
     key: string;
@@ -15,56 +16,81 @@ export interface MenuItem {
     path: string;
 }
 
-const BASE_MENU: MenuItem[] = [
+/**
+ * Danh sách menu đầy đủ (tất cả tenant đều có).
+ * Backend dùng menu.hiddenKeys để ẩn bớt, menu.labelOverrides để đổi tên.
+ */
+const ALL_MENU_ITEMS: MenuItem[] = [
     {
         key: '/dashboard',
         icon: React.createElement(HomeOutlined),
         label: 'Dashboard',
-        path: '/dashboard'
+        path: '/dashboard',
     },
     {
         key: '/orders',
         icon: React.createElement(ShoppingCartOutlined),
         label: 'Đơn hàng',
-        path: '/orders'
+        path: '/orders',
     },
     {
         key: '/shipments',
         icon: React.createElement(CarOutlined),
         label: 'Vận chuyển',
-        path: '/shipments'
+        path: '/shipments',
     },
     {
         key: '/delivery-requests',
         icon: React.createElement(InboxOutlined),
         label: 'Yêu cầu giao',
-        path: '/delivery-requests'
+        path: '/delivery-requests',
     },
     {
         key: '/transactions',
         icon: React.createElement(WalletOutlined),
         label: 'Giao dịch',
-        path: '/transactions'
+        path: '/transactions',
+    },
+    {
+        key: '/claims',
+        icon: React.createElement(FileProtectOutlined),
+        label: 'Khiếu nại',
+        path: '/claims',
     },
 ];
 
 /**
- * Hook để lấy danh sách menu tùy biến theo Variant (không phải theo TenantCode)
- * Giúp code sạch và có thể scale cho hàng trăm tenant dùng chung 1 variant.
+ * Hook lấy danh sách menu — hoàn toàn data-driven từ config backend.
+ *
+ * Backend config mẫu (trong tenant-server):
+ * ```json
+ * "menu": {
+ *   "hiddenKeys": ["/shipments"],
+ *   "labelOverrides": { "/orders": "Quản lý Tổng hợp" }
+ * }
+ * ```
+ *
+ * Client không cần biết tenant nào dùng variant gì — chỉ đọc config.
  */
 export const useNavigation = (): MenuItem[] => {
-    const variantCode = useVariantCode();
-    // Nếu variant là 'gd3' (Center Hub), chúng ta ẩn Shipments vì đã gộp vào Orders
-    if (variantCode === 'gd3') {
-        return BASE_MENU
-            .filter(item => item.key !== '/shipments')
-            .map(item => {
-                // Tùy biến label cho phù hợp với Hub trung tâm
-                if (item.key === '/orders') return { ...item, label: 'Quản lý Tổng hợp' };
-                return item;
-            });
-    }
+    const { tenantConfig } = useTheme();
+    const themeConfig = tenantConfig?.tenantConfig?.themeConfig;
+    const activeVariant = useActiveVariantConfig();
 
-    // Mặc định trả về menu chuẩn
-    return BASE_MENU;
+    // 1. Lấy menu config: Ưu tiên tenant override -> rồi đến mẫu hệ thống (activeVariant)
+    const tenantMenuConfig = themeConfig?.menu;
+    const globalMenuConfig = activeVariant?.config?.menu;
+
+    const activeMenuConfig = tenantMenuConfig || globalMenuConfig;
+
+    // 2. Lọc bỏ các item nằm trong hiddenKeys
+    const hiddenKeys = activeMenuConfig?.hiddenKeys ?? [];
+    const filtered = ALL_MENU_ITEMS.filter(item => !hiddenKeys.includes(item.key));
+
+    // 3. Đổi tên label theo labelOverrides
+    const labelOverrides = activeMenuConfig?.labelOverrides ?? {};
+    return filtered.map(item => ({
+        ...item,
+        label: labelOverrides[item.key] ?? item.label,
+    }));
 };

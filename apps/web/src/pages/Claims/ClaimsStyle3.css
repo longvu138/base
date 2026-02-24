@@ -1,7 +1,7 @@
-/* Scoped CSS for DeliveryRequestsStyle3 - Gobiz Aesthetic */
+/* Scoped CSS for ClaimsStyle3 - Gobiz Aesthetic */
 
 /* ============ LIGHT MODE ============ */
-.delivery-requests-style-3-wrapper .ant-table-thead > tr > th {
+.claims-style-3-wrapper .ant-table-thead > tr > th {
     background: #f8fafc !important;
     color: #64748b !important;
     font-weight: 700 !important;
@@ -12,47 +12,55 @@
     padding: 16px 20px !important;
 }
 
-.delivery-requests-style-3-wrapper .ant-table-tbody > tr > td {
+.claims-style-3-wrapper .ant-table-tbody > tr > td {
     padding: 18px 20px !important;
     border-bottom: 1px solid #f8fafc !important;
     transition: background 0.15s ease;
 }
 
-.delivery-requests-style-3-wrapper .ant-table-tbody > tr {
+.claims-style-3-wrapper .ant-table-tbody > tr {
     cursor: pointer;
 }
 
-.delivery-requests-style-3-wrapper .ant-table-tbody > tr:hover > td {
+.claims-style-3-wrapper .ant-table-tbody > tr:hover > td {
     background: #f0f4ff !important;
 }
 
 /* ============ DARK MODE ============ */
 /* The 'dark' class is toggled on <html> element (document.documentElement) */
-.dark .delivery-requests-style-3-wrapper .ant-table {
+.dark .claims-style-3-wrapper .ant-table {
     background: transparent !important;
 }
 
-.dark .delivery-requests-style-3-wrapper .ant-table-thead > tr > th {
+.dark .claims-style-3-wrapper .ant-table-thead > tr > th {
     background: #1e293b !important;
     border-bottom: 2px solid #334155 !important;
     color: #94a3b8 !important;
 }
 
-.dark .delivery-requests-style-3-wrapper .ant-table-tbody > tr > td {
+.dark .claims-style-3-wrapper .ant-table-tbody > tr > td {
     background: #0f172a !important;
     border-bottom: 1px solid #1e293b !important;
     color: #e2e8f0 !important;
 }
 
-.dark .delivery-requests-style-3-wrapper .ant-table-tbody > tr:hover > td {
+.dark .claims-style-3-wrapper .ant-table-tbody > tr:hover > td {
     background: #1e293b !important;
 }
 
 /* ============ COMMON ============ */
-.delivery-requests-style-3-wrapper .ant-tabs-nav::before {
+.claims-style-3-wrapper .ant-tabs-nav::before {
     display: none;
 }
 
 .advanced-filters-container {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }

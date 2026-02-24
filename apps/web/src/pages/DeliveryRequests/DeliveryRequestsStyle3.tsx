@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
-import { Input as AntInput, Button as AntButton, Tag, Skeleton as AntSkeleton, Tabs, Empty, Table, List } from 'antd';
+import { Form, Input as AntInput, Button as AntButton, Tag, Skeleton as AntSkeleton, Tabs, Empty, Table, List } from 'antd';
 import { Pagination } from '@repo/ui';
 import { useFilterWithURL, usePaginationWithURL, useListDeliveryRequestQuery, useDeliveryRequestStatusesQuery } from '@repo/hooks';
-import { SearchOutlined, RedoOutlined, ArrowRightOutlined, InboxOutlined } from '@ant-design/icons';
+import { SearchOutlined, RedoOutlined, ArrowRightOutlined, InboxOutlined, FilterOutlined } from '@ant-design/icons';
 import './DeliveryRequestsStyle3.css';
 
 /**
@@ -10,14 +10,15 @@ import './DeliveryRequestsStyle3.css';
  * Premium table view với status tabs, aligned với phong cách Gobiz Logistics.
  */
 export const DeliveryRequestsStyle3 = () => {
-    const [searchText, setSearchText] = useState('');
+    const [form] = Form.useForm();
+    const [showFilters, setShowFilters] = useState(false);
 
     const { page, pageSize, setPage, setPageSize } = usePaginationWithURL({
         defaultPage: 1,
         defaultPageSize: 25,
     });
 
-    const { applyFilters, clearFilters, filters } = useFilterWithURL({});
+    const { applyFilters, clearFilters, filters } = useFilterWithURL({ form });
 
     const apiParams = useMemo(() => {
         const params: Record<string, any> = {
@@ -26,14 +27,13 @@ export const DeliveryRequestsStyle3 = () => {
             sort: 'createdAt:desc',
             ...filters,
         };
-        if (searchText) params.query = searchText;
         ['statuses'].forEach(key => {
             if (Array.isArray(params[key])) {
                 params[key] = params[key].join(',');
             }
         });
         return params;
-    }, [page, pageSize, filters, searchText]);
+    }, [page, pageSize, filters]);
 
     const { data: listData, isLoading } = useListDeliveryRequestQuery(apiParams);
     const { data: statusData } = useDeliveryRequestStatusesQuery();
@@ -48,10 +48,6 @@ export const DeliveryRequestsStyle3 = () => {
                 {found?.name || status}
             </Tag>
         );
-    };
-
-    const handleSearch = () => {
-        applyFilters({ query: searchText });
     };
 
     const columns = [
@@ -107,7 +103,7 @@ export const DeliveryRequestsStyle3 = () => {
                     size="small"
                     shape="circle"
                     icon={<ArrowRightOutlined />}
-                    className="shadow-md hover:scale-110 transition-transform"
+                    className="shadow-sm"
                 />
             ),
         },
@@ -119,34 +115,62 @@ export const DeliveryRequestsStyle3 = () => {
 
     return (
         <div className="delivery-requests-style-3-wrapper p-6 space-y-6 max-w-[1600px] mx-auto">
-            {/* Header */}
+            {/* Header / Filter */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
                 <div className="space-y-1">
                     <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Yêu cầu giao hàng</h1>
                     <p className="text-gray-500 text-sm">Quản lý các yêu cầu giao hàng của khách hàng.</p>
                 </div>
                 <div className="flex flex-wrap gap-3">
-                    <AntInput
-                        placeholder="Tìm theo mã, tên người nhận..."
-                        prefix={<SearchOutlined className="text-gray-400" />}
-                        value={searchText}
-                        onChange={e => setSearchText(e.target.value)}
-                        onPressEnter={handleSearch}
-                        className="w-full md:w-80 h-11 rounded-2xl bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700"
-                    />
+                    <Form form={form} onFinish={applyFilters} className="flex gap-3">
+                        <Form.Item name="query" noStyle>
+                            <AntInput
+                                placeholder="Tìm theo mã, tên người nhận..."
+                                prefix={<SearchOutlined className="text-gray-400" />}
+                                className="w-full md:w-80 h-11 rounded-2xl bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700"
+                                onPressEnter={() => form.submit()}
+                            />
+                        </Form.Item>
+                        <AntButton
+                            type="primary"
+                            icon={<SearchOutlined />}
+                            onClick={() => form.submit()}
+                            className="h-11 px-8 rounded-2xl font-bold shadow-lg shadow-primary/20"
+                        >
+                            Tìm kiếm
+                        </AntButton>
+                    </Form>
                     <AntButton
-                        type="primary"
-                        icon={<SearchOutlined />}
-                        onClick={handleSearch}
-                        className="h-11 px-8 rounded-2xl font-bold shadow-lg shadow-primary/20"
+                        icon={<FilterOutlined />}
+                        onClick={() => setShowFilters(!showFilters)}
+                        className={`h-11 px-5 rounded-2xl font-bold transition-all ${showFilters ? 'bg-primary/10 text-primary border-primary/20' : 'bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700'}`}
                     >
-                        Tìm kiếm
+                        Bộ lọc {showFilters ? 'đóng' : 'mở'}
                     </AntButton>
                     <AntButton
                         icon={<RedoOutlined />}
-                        onClick={() => { setSearchText(''); clearFilters(); }}
+                        onClick={clearFilters}
                         className="h-11 w-11 flex items-center justify-center rounded-2xl border-gray-200 dark:border-gray-700 hover:text-primary"
                     />
+                </div>
+            </div>
+
+            {/* Advanced Filters Panel */}
+            <div className={`advanced-filters-container overflow-hidden transition-all duration-300 ease-in-out ${showFilters ? 'max-h-[1000px] opacity-100 mb-6' : 'max-h-0 opacity-0 overflow-hidden'}`}>
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
+                    <Form form={form} layout="vertical" onValuesChange={() => applyFilters(form.getFieldsValue())}>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <Form.Item name="receiverName" label="Tên người nhận" className="mb-0">
+                                <AntInput placeholder="Nhập tên người nhận" className="h-11 rounded-2xl bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700" />
+                            </Form.Item>
+                            <Form.Item name="receiverPhone" label="Số điện thoại" className="mb-0">
+                                <AntInput placeholder="Nhập số điện thoại" className="h-11 rounded-2xl bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700" />
+                            </Form.Item>
+                            <Form.Item name="code" label="Mã yêu cầu" className="mb-0">
+                                <AntInput placeholder="Nhập mã yêu cầu" className="h-11 rounded-2xl bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700" />
+                            </Form.Item>
+                        </div>
+                    </Form>
                 </div>
             </div>
 
@@ -156,7 +180,7 @@ export const DeliveryRequestsStyle3 = () => {
                     activeKey={activeStatus}
                     onChange={key => {
                         const newStatuses = key === 'ALL' ? undefined : [key];
-                        applyFilters({ statuses: newStatuses });
+                        applyFilters({ ...filters, statuses: newStatuses });
                     }}
                     items={[
                         { key: 'ALL', label: <span className="px-4 py-1">Tất cả</span> },

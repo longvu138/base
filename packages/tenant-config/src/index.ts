@@ -1,9 +1,29 @@
 import type { ThemeConfig } from 'antd';
 
+/**
+ * Cấu hình menu navigation được drive từ backend.
+ * Thay vì client hardcode 'gd3 thì ẩn /shipments', backend khai báo luôn.
+ */
+export interface MenuConfig {
+    /** Danh sách path cần ẩn khỏi menu (VD: ['/shipments']) */
+    hiddenKeys?: string[];
+    /** Override label của menu item (VD: { '/orders': 'Quản lý Tổng hợp' }) */
+    labelOverrides?: Record<string, string>;
+}
+
+/**
+ * Top-level tenant theme config sent from backend.
+ * Extends AntD ThemeConfig and adds:
+ * - *Dark variants: separate values applied when dark mode is active
+ * - variants: per-page component name overrides
+ * - uiLib: which UI library to use (antd | mui)
+ */
 export interface SimpleTenantConfig extends ThemeConfig {
     uiLib?: 'antd' | 'mui';
-    variant?: string;
+    /** Per-page component overrides. E.g. { orders: 'OrdersCombined', login: 'LoginStyle3' } */
     variants?: Record<string, string>;
+    menu?: MenuConfig;
+    // Top-level color shorthands (mapped to AntD tokens + CSS variables)
     colorPrimary?: string;
     colorPrimaryDark?: string;
     colorBgContainer?: string;
@@ -20,16 +40,30 @@ export interface SimpleTenantConfig extends ThemeConfig {
     borderRadius?: number;
 }
 
+
+export interface UIVariant {
+    code: string;
+    name: string;
+    config: {
+        layout: string;
+        menu: MenuConfig;
+        features?: Record<string, string>;
+        pages?: Record<string, string>;
+    };
+}
+
 export interface FullTenantResponse {
     id: string;
     name: string;
-    code: string;
-    tenantConfig: {
+    variantCode: string; // Mã giao diện tenant chọn (gd1, gd2...)
+    tenantConfig?: {
         themeConfig: SimpleTenantConfig;
         [key: string]: any;
     };
+    uiVariants?: UIVariant[]; // Danh sách các bộ giao diện hệ thống có sẵn
     [key: string]: any;
 }
+
 
 /**
  * Tenant mock data for selection (Dropdown only).

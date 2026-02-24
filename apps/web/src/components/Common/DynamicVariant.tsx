@@ -6,6 +6,7 @@ interface DynamicVariantProps {
     modules: Record<string, () => Promise<any>>;
     fallbackName: string;
     featureName: string; // Để log lỗi cho dễ debug
+    componentProps?: any;
 }
 
 /**
@@ -15,7 +16,8 @@ export const DynamicVariant: React.FC<DynamicVariantProps> = ({
     variantName,
     modules,
     fallbackName,
-    featureName
+    featureName,
+    componentProps
 }) => {
     const Component = useMemo(() => {
         // Tìm file tương ứng trong danh sách glob modules
@@ -43,7 +45,7 @@ export const DynamicVariant: React.FC<DynamicVariantProps> = ({
                 <Spin size="large" tip={`Đang tải giao diện ${featureName}...`} />
             </div>
         }>
-            <Component />
+            <Component {...componentProps} />
         </Suspense>
     );
 };
