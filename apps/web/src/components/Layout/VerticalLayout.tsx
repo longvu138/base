@@ -1,9 +1,14 @@
-import { Layout as AntLayout, Menu, Select, Button } from 'antd';
+import { Layout as AntLayout, Menu, Select, Button, Dropdown, Avatar, Space } from 'antd';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import {
     LogoutOutlined,
     MenuFoldOutlined,
-    MenuUnfoldOutlined
+    MenuUnfoldOutlined,
+    UserOutlined,
+    DownOutlined,
+    SolutionOutlined,
+    WalletOutlined,
+    LineChartOutlined
 } from '@ant-design/icons';
 import { ThemeSwitcher } from '@repo/theme-provider';
 import { getTenantOptions, dispatchTenantChange } from '@repo/tenant-config';
@@ -117,6 +122,51 @@ export const VerticalLayout = () => {
                             bordered={false}
                             placeholder="Select Tenant"
                         />
+
+                        <Dropdown
+                            menu={{
+                                items: [
+                                    {
+                                        key: 'profile',
+                                        icon: <SolutionOutlined />,
+                                        label: <Link to="/profile">Thông tin cá nhân</Link>,
+                                    },
+                                    {
+                                        key: 'topup',
+                                        icon: <WalletOutlined />,
+                                        label: 'Nạp tiền',
+                                    },
+                                    {
+                                        key: 'spending',
+                                        icon: <LineChartOutlined />,
+                                        label: 'Thống kê chi tiêu',
+                                    },
+                                    {
+                                        type: 'divider',
+                                    },
+                                    {
+                                        key: 'logout',
+                                        icon: <LogoutOutlined />,
+                                        label: 'Đăng xuất',
+                                        danger: true,
+                                        onClick: handleLogout,
+                                    },
+                                ],
+                            }}
+                            trigger={['click']}
+                        >
+                            <div className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 p-1 px-2 rounded-xl transition-all border border-transparent hover:border-gray-100 dark:hover:border-gray-700">
+                                <Avatar
+                                    src="https://api.dicebear.com/7.x/pixel-art/svg?seed=DinDin"
+                                    size="default"
+                                    className="border border-primary/20"
+                                />
+                                <div className='flex flex-col gap-0.5'>
+                                    <span className="text-xs font-bold text-gray-700 dark:text-gray-200">Din Din</span>
+                                    <span className="text-xs text-primary font-black">+58.353.003đ</span>
+                                </div>
+                            </div>
+                        </Dropdown>
 
                         <ThemeSwitcher />
                     </div>

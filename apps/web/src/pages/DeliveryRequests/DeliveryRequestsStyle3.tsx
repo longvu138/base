@@ -114,7 +114,7 @@ export const DeliveryRequestsStyle3 = () => {
         : 'ALL';
 
     return (
-        <div className="delivery-requests-style-3-wrapper p-6 space-y-6 max-w-[1600px] mx-auto">
+        <div className="delivery-requests-style-3-wrapper space-y-6 mx-auto">
             {/* Header / Filter */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
                 <div className="space-y-1">

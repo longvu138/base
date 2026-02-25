@@ -8,6 +8,7 @@ import { Transactions } from './pages/Transactions';
 import { DeliveryRequests } from './pages/DeliveryRequests';
 import Claims from './pages/Claims';
 import WithdrawalSlips from './pages/WithdrawalSlips';
+import Profile from './pages/Profile';
 
 
 import PrivateRoute from './components/PrivateRoute';
@@ -26,6 +27,7 @@ function AppRoutes() {
                     <Route path="delivery-requests" element={<DeliveryRequests />} />
                     <Route path="claims" element={<Claims />} />
                     <Route path="withdrawal-slips" element={<WithdrawalSlips />} />
+                    <Route path="profile" element={<Profile />} />
 
                     <Route index element={<Navigate to="/dashboard" replace />} />
                     <Route path="*" element={<Navigate to="/dashboard" replace />} />
