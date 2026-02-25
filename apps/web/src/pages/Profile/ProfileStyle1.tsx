@@ -14,20 +14,26 @@ import {
     InfoCircleOutlined
 } from '@ant-design/icons';
 
+import { useCustomerProfile } from '@repo/hooks';
+
 export const ProfileStyle1: React.FC = () => {
-    // Mock data based on the image
+    const { data: profile, isLoading } = useCustomerProfile();
+
+    if (isLoading) return <div className="p-20 text-center">Đang tải thông tin...</div>;
+
     const user = {
-        name: 'Din Din',
-        username: 'pockyjr',
-        id: 'B770',
-        vipLevel: 1,
-        points: 231.9234,
-        maxPoints: 500,
-        email: 'example@gobiz.vn',
-        dob: '25/02/2023',
-        gender: 'Nữ',
-        phone: '09012345678',
-        address: 'Số 3 Hàng ngang Hoàn Kiếm Hà nội',
+        name: profile?.fullname || 'Din Din',
+        username: profile?.username || 'pockyjr',
+        id: profile?.code || profile?.id || 'B770',
+        vipLevel: profile?.customerLevel?.name || 'VIP 0',
+        points: profile?.rewardPoint || 0,
+        maxPoints: profile?.customerLevel?.maxPoint || 500,
+        email: profile?.email || 'example@gobiz.vn',
+        dob: profile?.dob || '...',
+        gender: profile?.gender || '...',
+        phone: profile?.phone || '...',
+        address: profile?.contactAddress || '...',
+        avatar: profile?.avatar || "https://api.dicebear.com/7.x/pixel-art/svg?seed=DinDin"
     };
 
     const sidebarMenu = [
@@ -49,7 +55,7 @@ export const ProfileStyle1: React.FC = () => {
 
             <Row gutter={24}>
                 {/* Left Sidebar */}
-                <Col xs={24} md={6}>
+                <Col span={6}>
                     <Card
                         className="rounded-xl shadow-sm overflow-hidden mb-6"
                         bodyStyle={{ padding: 0 }}
@@ -59,12 +65,12 @@ export const ProfileStyle1: React.FC = () => {
                                 size={100}
                                 icon={<UserOutlined />}
                                 className="bg-gray-100 text-primary mb-4 p-4"
-                                src="https://api.dicebear.com/7.x/pixel-art/svg?seed=DinDin"
+                                src={user.avatar}
                             />
                             <h2 className="text-xl font-bold m-0">{user.name}</h2>
                             <p className="text-gray-500 text-sm mb-1">{user.username} | {user.id}</p>
                             <Tag color="gold" className="rounded-full px-3 py-0.5 border-0 font-bold">
-                                VIP {user.vipLevel} | {user.points.toLocaleString()} điểm
+                                {user.vipLevel} | {user.points.toLocaleString()} điểm
                             </Tag>
                         </div>
                         <List
@@ -85,9 +91,9 @@ export const ProfileStyle1: React.FC = () => {
                 </Col>
 
                 {/* Main Content */}
-                <Col xs={24} md={18}>
+                <Col span={18}>
                     {/* VIP Progress Card */}
-                    <Card
+                    {/* <Card
                         className="rounded-xl shadow-sm mb-6 border-0 overflow-hidden"
                         bodyStyle={{
                             background: 'linear-gradient(90deg, #1890ff 0%, #36cfc9 100%)',
@@ -114,18 +120,18 @@ export const ProfileStyle1: React.FC = () => {
                                 />
                             </div>
                         </div>
-                    </Card>
+                    </Card> */}
 
                     {/* Information Details Card */}
                     <Card className="rounded-xl shadow-sm mb-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12 py-4">
+                        <div className="grid grid-cols-2 gap-y-6 gap-x-12">
                             <InfoItem label="Tên đăng nhập" value={user.username} />
                             <InfoItem label="Email" value={user.email} editable />
                             <InfoItem label="Họ và tên" value={user.name} editable />
                             <InfoItem label="Giới tính" value={user.gender} editable />
                             <InfoItem label="Ngày sinh" value={user.dob} editable />
                             <InfoItem label="Số điện thoại" value={user.phone} editable />
-                            <InfoItem label="Địa chỉ liên hệ" value={user.address} editable className="col-span-1 md:col-span-2" />
+                            <InfoItem label="Địa chỉ liên hệ" value={user.address} editable className="col-span-2" />
                         </div>
 
                         <div className="flex flex-wrap gap-4 mt-10 pt-6 border-t border-gray-100">

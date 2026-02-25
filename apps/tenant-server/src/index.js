@@ -105,7 +105,7 @@ const tenants = {
         colorBgLayoutDark: '#2d0a0a',
         // Override đặc thù cho Thiên Long
         variants: {
-          shipmentStatusDisplay: 'tabs' 
+          // shipmentStatusDisplay: 'tabs' 
         }
       }
     }

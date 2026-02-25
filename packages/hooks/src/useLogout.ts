@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
 export interface UseLogoutOptions {
     onSuccess?: () => void;
@@ -6,22 +7,19 @@ export interface UseLogoutOptions {
 }
 
 /**
- * Hook đăng xuất - xử lý việc xóa trạng thái auth
- * 
- * @example
- * ```tsx
- * const { handleLogout, isLoading } = useLogout({
- *   onSuccess: () => navigate('/login')
- * });
- * ```
+ * Hook đăng xuất - xử lý việc xóa trạng thái auth và clear cache
  */
 export const useLogout = (options: UseLogoutOptions = {}) => {
     const { onSuccess } = options;
     const [isLoading, setIsLoading] = useState(false);
+    const queryClient = useQueryClient();
 
     const handleLogout = async () => {
         setIsLoading(true);
         try {
+            // Xóa cache của React Query
+            queryClient.clear();
+
             // Xóa token
             localStorage.removeItem('access_token');
 

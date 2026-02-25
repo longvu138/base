@@ -15,8 +15,12 @@ import { ThemeSwitcher } from '@repo/theme-provider';
 import { getTenantOptions, dispatchTenantChange } from '@repo/tenant-config';
 import { useLanguage } from '@repo/i18n';
 import { Languages } from 'lucide-react';
-import { useLogout } from '@repo/hooks';
+import { useLogout, useCustomerProfile, useCustomerBalance } from '@repo/hooks';
 import { useNavigation } from './Navigation';
+
+const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+};
 
 const { Header, Sider, Content } = AntLayout;
 
@@ -29,6 +33,8 @@ const SpecializedLayout: React.FC = () => {
     const navigate = useNavigate();
     const { currentLanguage, availableLanguages, changeLanguage } = useLanguage();
     const [collapsed, setCollapsed] = useState(false);
+    const { data: profile } = useCustomerProfile();
+    const { data: balanceData } = useCustomerBalance();
     const { handleLogout } = useLogout({ onSuccess: () => navigate('/login') });
 
     const [currentTenant, setCurrentTenant] = useState(() => localStorage.getItem('selected-tenant') || 'baogam');
@@ -88,7 +94,7 @@ const SpecializedLayout: React.FC = () => {
                     />
 
                     <div className="flex items-center gap-6">
-                        <Space className="hidden md:flex">
+                        <Space className="flex">
                             <Select
                                 value={currentLanguage.code}
                                 onChange={changeLanguage}
@@ -154,16 +160,32 @@ const SpecializedLayout: React.FC = () => {
                             }}
                             trigger={['click']}
                         >
-                            <div className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 p-1 px-2 rounded-xl transition-all border border-transparent hover:border-gray-100 dark:hover:border-gray-700">
-                                <Avatar
-                                    src="https://api.dicebear.com/7.x/pixel-art/svg?seed=DinDin"
-                                    size="default"
-                                    className="border border-primary/20"
-                                />
-                                <div className='flex flex-col gap-0.5'>
-                                    <span className="text-xs font-bold text-gray-700 dark:text-gray-200">Din Din</span>
-                                    <span className="text-xs text-primary font-black">+58.353.003đ</span>
-                                </div>
+                            <div className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 p-1 px-2 rounded-xl transition-all border border-transparent hover:border-gray-100 dark:hover:border-gray-700 min-w-[140px]">
+                                {(!profile && !balanceData) ? (
+                                    <div className="flex items-center gap-2 animate-pulse">
+                                        <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700" />
+                                        <div className="flex flex-col gap-1">
+                                            <div className="w-16 h-2 bg-gray-200 dark:bg-gray-700 rounded" />
+                                            <div className="w-20 h-2 bg-gray-100 dark:bg-gray-800 rounded" />
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <Avatar
+                                            src={profile?.avatar || "https://api.dicebear.com/7.x/pixel-art/svg?seed=DinDin"}
+                                            size="default"
+                                            className="border border-primary/20"
+                                        />
+                                        <div className='flex flex-col gap-0.5'>
+                                            <span className="text-xs font-bold text-gray-700 dark:text-gray-200">
+                                                {profile?.fullname || profile?.username || 'Din Din'}
+                                            </span>
+                                            <span className="text-xs text-primary font-black">
+                                                +{formatCurrency(balanceData?.balance || profile?.balance || 0)}
+                                            </span>
+                                        </div>
+                                    </>
+                                )}
                             </div>
                         </Dropdown>
                     </div>
