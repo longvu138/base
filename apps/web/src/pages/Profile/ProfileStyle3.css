@@ -1,0 +1,139 @@
+/* ============ ProfileStyle3 — Gobiz Premium Aesthetic ============ */
+
+.ps3-container {
+    animation: ps3-fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes ps3-fade-up {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Hero Section - Light & Minimalist */
+.ps3-hero-card {
+    position: relative;
+    border-radius: 24px;
+    overflow: hidden;
+    background: #ffffff;
+    border: 1px solid #f1f5f9;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.dark .ps3-hero-card {
+    background: #141414;
+    border-color: #262626;
+}
+
+.ps3-hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23722ed1' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2v-4h4v-2h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2v-4h4v-2H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* Stats Badges */
+.ps3-stat-item {
+    background: #f8fafc;
+    border: 1px solid #f1f5f9;
+    border-radius: 16px;
+    padding: 18px;
+    transition: all 0.3s ease;
+}
+
+.dark .ps3-stat-item {
+    background: #1f1f1f;
+    border-color: #303030;
+}
+
+.ps3-stat-item:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+}
+
+/* Main Cards */
+.ps3-card {
+    background: #ffffff;
+    border-radius: 20px;
+    border: 1px solid #f1f5f9;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01);
+    transition: box-shadow 0.3s ease;
+}
+
+.dark .ps3-card {
+    background: #141414;
+    border-color: #262626;
+}
+
+.ps3-card:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+}
+
+/* Info List */
+.ps3-info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.ps3-info-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    margin-bottom: 4px;
+}
+
+.ps3-info-value {
+    font-size: 15px;
+    font-weight: 500;
+    color: #1e293b;
+}
+
+.dark .ps3-info-value {
+    color: #e2e8f0;
+}
+
+.ps3-info-item {
+    min-height: 72px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/* Progress Bar */
+.ps3-progress-container {
+    height: 8px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.ps3-progress-bar {
+    height: 100%;
+    background: #ffffff;
+    border-radius: 4px;
+    transition: width 1s ease-in-out;
+}
+
+/* Buttons */
+.ps3-btn-primary {
+    background: var(--color-primary, #722ed1) !important;
+    border: none !important;
+    height: 40px !important;
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+}
+
+.ps3-btn-outline {
+    border: 1.5px solid #e2e8f0 !important;
+    background: transparent !important;
+    height: 40px !important;
+    border-radius: 10px !important;
+    color: #64748b !important;
+    font-weight: 600 !important;
+}
+
+.dark .ps3-btn-outline {
+    border-color: #334155 !important;
+    color: #94a3b8 !important;
+}

@@ -1,17 +1,22 @@
-import { Layout as AntLayout, Menu, Select, Button } from 'antd';
+import { Layout as AntLayout, Menu, Select, Button, Dropdown, Avatar } from 'antd';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import {
     LogoutOutlined,
     MenuFoldOutlined,
-    MenuUnfoldOutlined
+    MenuUnfoldOutlined,
+    SolutionOutlined,
+    WalletOutlined,
+    LineChartOutlined
 } from '@ant-design/icons';
 import { ThemeSwitcher } from '@repo/theme-provider';
 import { getTenantOptions, dispatchTenantChange } from '@repo/tenant-config';
 import { useState, useEffect } from 'react';
 import { useLanguage } from '@repo/i18n';
 import { Languages } from 'lucide-react';
-import { useLogout } from '@repo/hooks';
+import { useLogout, useCustomerProfile, useCustomerBalance } from '@repo/hooks';
+import { formatCurrency } from '@repo/util';
 import { useNavigation } from './Navigation';
+
 
 const { Header, Sider, Content } = AntLayout;
 
@@ -20,6 +25,8 @@ export const VerticalLayout = () => {
     const navigate = useNavigate();
     const { currentLanguage, availableLanguages, changeLanguage } = useLanguage();
     const [collapsed, setCollapsed] = useState(false);
+    const { data: profile } = useCustomerProfile();
+    const { data: balanceData } = useCustomerBalance();
 
     const { handleLogout } = useLogout({
         onSuccess: () => navigate('/login')
@@ -117,6 +124,67 @@ export const VerticalLayout = () => {
                             bordered={false}
                             placeholder="Select Tenant"
                         />
+
+                        <Dropdown
+                            menu={{
+                                items: [
+                                    {
+                                        key: 'profile',
+                                        icon: <SolutionOutlined />,
+                                        label: <Link to="/profile">Thông tin cá nhân</Link>,
+                                    },
+                                    {
+                                        key: 'topup',
+                                        icon: <WalletOutlined />,
+                                        label: 'Nạp tiền',
+                                    },
+                                    {
+                                        key: 'spending',
+                                        icon: <LineChartOutlined />,
+                                        label: 'Thống kê chi tiêu',
+                                    },
+                                    {
+                                        type: 'divider',
+                                    },
+                                    {
+                                        key: 'logout',
+                                        icon: <LogoutOutlined />,
+                                        label: 'Đăng xuất',
+                                        danger: true,
+                                        onClick: handleLogout,
+                                    },
+                                ],
+                            }}
+                            trigger={['click']}
+                        >
+                            <div className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 p-1 px-2 rounded-xl transition-all border border-transparent hover:border-gray-100 dark:hover:border-gray-700 min-w-[140px]">
+                                {(!profile && !balanceData) ? (
+                                    <div className="flex items-center gap-2 animate-pulse">
+                                        <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700" />
+                                        <div className="flex flex-col gap-1">
+                                            <div className="w-16 h-2 bg-gray-200 dark:bg-gray-700 rounded" />
+                                            <div className="w-20 h-2 bg-gray-100 dark:bg-gray-800 rounded" />
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <Avatar
+                                            src={profile?.avatar || "https://api.dicebear.com/7.x/pixel-art/svg?seed=DinDin"}
+                                            size="default"
+                                            className="border border-primary/20"
+                                        />
+                                        <div className='flex flex-col gap-0.5'>
+                                            <span className="text-xs font-bold text-gray-700 dark:text-gray-200">
+                                                {profile?.fullname || profile?.username || 'Din Din'}
+                                            </span>
+                                            <span className="text-xs text-primary font-black">
+                                                +{formatCurrency(balanceData?.balance || profile?.balance || 0)}
+                                            </span>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        </Dropdown>
 
                         <ThemeSwitcher />
                     </div>

@@ -50,12 +50,14 @@ const UI_VARIANTS = [
         shipmentStatusDisplay: 'tabs'
       },
       // Có thể định nghĩa thêm các trang đặc thù nếu cần
-      pages: {
+        pages: {
         orders: 'OrdersCombined',
         claims: 'ClaimsStyle3',
         transactions: 'TransactionsStyle3',
         deliveryRequests: 'DeliveryRequestsStyle3',
-        shipments: 'ShipmentsStyle3'
+        shipments: 'ShipmentsStyle3',
+        withdrawalSlips: 'WithdrawalSlipStyle3',
+        profile: 'ProfileStyle3'
       }
     }
   }
@@ -104,7 +106,7 @@ const tenants = {
         colorBgLayoutDark: '#2d0a0a',
         // Override đặc thù cho Thiên Long
         variants: {
-          shipmentStatusDisplay: 'tabs' 
+          // shipmentStatusDisplay: 'tabs' 
         }
       }
     }

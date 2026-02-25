@@ -27,3 +27,11 @@ export const formatNumberByLocale = (value: number, currency?: string) => {
   const tempLocale = currenciesLocaleMapping[tempCurrency as string] ?? "vi-VN"
   return new Intl.NumberFormat(tempLocale).format(value)
 }
+
+/**
+ * Format số tiền sang định dạng VND: 1.234.567 ₫
+ */
+export const formatCurrency = (amount: number, currency = "VND") => {
+  const locale = currenciesLocaleMapping[currency] ?? "vi-VN"
+  return new Intl.NumberFormat(locale, { style: "currency", currency }).format(amount)
+}

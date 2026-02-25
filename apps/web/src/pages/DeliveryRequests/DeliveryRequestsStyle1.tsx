@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Form, Input, DatePicker, Table, Tag, Empty } from 'antd';
+import { Form, Input, DatePicker, Table, Tag, Empty, Card } from 'antd';
 import { FilterPanel, TableComponent, StatusFilter, Pagination } from '@repo/ui';
 import { useFilterWithURL, usePaginationWithURL, useListDeliveryRequestQuery, useDeliveryRequestStatusesQuery } from '@repo/hooks';
 
@@ -92,7 +92,7 @@ export const DeliveryRequestsStyle1 = () => {
 
     return (
         <div className="min-h-screen bg-layout">
-            <div className="mb-6">
+            <Card className="mb-6 shadow-sm">
                 <FilterPanel
                     form={form}
                     onSearch={handleSearch}
@@ -118,7 +118,7 @@ export const DeliveryRequestsStyle1 = () => {
                         </>
                     }
                 />
-            </div>
+            </Card>
 
             <TableComponent
                 title="Yêu cầu giao hàng"

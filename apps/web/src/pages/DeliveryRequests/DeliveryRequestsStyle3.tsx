@@ -114,12 +114,11 @@ export const DeliveryRequestsStyle3 = () => {
         : 'ALL';
 
     return (
-        <div className="delivery-requests-style-3-wrapper p-6 space-y-6 max-w-[1600px] mx-auto">
+        <div className="delivery-requests-style-3-wrapper space-y-6 mx-auto">
             {/* Header / Filter */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
                 <div className="space-y-1">
                     <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Yêu cầu giao hàng</h1>
-                    <p className="text-gray-500 text-sm">Quản lý các yêu cầu giao hàng của khách hàng.</p>
                 </div>
                 <div className="flex flex-wrap gap-3">
                     <Form form={form} onFinish={applyFilters} className="flex gap-3">
@@ -145,13 +144,15 @@ export const DeliveryRequestsStyle3 = () => {
                         onClick={() => setShowFilters(!showFilters)}
                         className={`h-11 px-5 rounded-2xl font-bold transition-all ${showFilters ? 'bg-primary/10 text-primary border-primary/20' : 'bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700'}`}
                     >
-                        Bộ lọc {showFilters ? 'đóng' : 'mở'}
+                        Bộ lọc
                     </AntButton>
                     <AntButton
                         icon={<RedoOutlined />}
                         onClick={clearFilters}
-                        className="h-11 w-11 flex items-center justify-center rounded-2xl border-gray-200 dark:border-gray-700 hover:text-primary"
-                    />
+                        className="h-11 px-5 rounded-2xl font-bold border-gray-200 dark:border-gray-700 hover:text-primary transition-all bg-gray-50 dark:bg-gray-900"
+                    >
+                        Làm mới
+                    </AntButton>
                 </div>
             </div>
 

@@ -147,13 +147,15 @@ export const ClaimsStyle3 = () => {
                             onClick={() => setShowFilters(!showFilters)}
                             className={`h-11 px-5 rounded-2xl font-bold transition-all ${showFilters ? 'bg-primary/10 text-primary border-primary/20' : 'bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700'}`}
                         >
-                            Bộ lọc {showFilters ? 'đóng' : 'mở'}
+                            Bộ lọc
                         </AntButton>
                         <AntButton
                             icon={<RedoOutlined />}
                             onClick={clearFilters}
-                            className="h-11 w-11 flex items-center justify-center rounded-2xl border-gray-200 dark:border-gray-700 hover:text-primary"
-                        />
+                            className="h-11 px-5 rounded-2xl font-bold border-gray-200 dark:border-gray-700 hover:text-primary transition-all bg-gray-50 dark:bg-gray-900"
+                        >
+                            Làm mới
+                        </AntButton>
                     </div>
                 </div>
 
