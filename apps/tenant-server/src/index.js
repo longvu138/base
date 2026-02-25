@@ -56,7 +56,8 @@ const UI_VARIANTS = [
         transactions: 'TransactionsStyle3',
         deliveryRequests: 'DeliveryRequestsStyle3',
         shipments: 'ShipmentsStyle3',
-        withdrawalSlips: 'WithdrawalSlipStyle3'
+        withdrawalSlips: 'WithdrawalSlipStyle3',
+        profile: 'ProfileStyle3'
       }
     }
   }

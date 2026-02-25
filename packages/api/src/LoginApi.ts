@@ -7,7 +7,4 @@ export const LoginApi = {
             payload
         );
     },
-    getProfile: () => {
-        return ApiClient.auth.get("/customer/profile");
-    },
 };

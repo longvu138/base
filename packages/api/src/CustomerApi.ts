@@ -7,4 +7,7 @@ export const CustomerApi = {
     getBalance: () => {
         return ApiClient.auth.get("customer/profile/balance");
     },
+    updateProfile: (payload: any) => {
+        return ApiClient.auth.patch("customer/profile", payload);
+    },
 };

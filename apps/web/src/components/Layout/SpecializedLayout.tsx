@@ -6,7 +6,6 @@ import {
     MenuFoldOutlined,
     MenuUnfoldOutlined,
     BellOutlined,
-    DownOutlined,
     SolutionOutlined,
     WalletOutlined,
     LineChartOutlined
@@ -16,11 +15,9 @@ import { getTenantOptions, dispatchTenantChange } from '@repo/tenant-config';
 import { useLanguage } from '@repo/i18n';
 import { Languages } from 'lucide-react';
 import { useLogout, useCustomerProfile, useCustomerBalance } from '@repo/hooks';
+import { formatCurrency } from '@repo/util';
 import { useNavigation } from './Navigation';
 
-const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
-};
 
 const { Header, Sider, Content } = AntLayout;
 

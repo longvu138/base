@@ -1,11 +1,9 @@
-import { Layout as AntLayout, Menu, Select, Button, Dropdown, Avatar, Space } from 'antd';
+import { Layout as AntLayout, Menu, Select, Button, Dropdown, Avatar } from 'antd';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import {
     LogoutOutlined,
     MenuFoldOutlined,
     MenuUnfoldOutlined,
-    UserOutlined,
-    DownOutlined,
     SolutionOutlined,
     WalletOutlined,
     LineChartOutlined
@@ -16,11 +14,9 @@ import { useState, useEffect } from 'react';
 import { useLanguage } from '@repo/i18n';
 import { Languages } from 'lucide-react';
 import { useLogout, useCustomerProfile, useCustomerBalance } from '@repo/hooks';
+import { formatCurrency } from '@repo/util';
 import { useNavigation } from './Navigation';
 
-const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
-};
 
 const { Header, Sider, Content } = AntLayout;
 
