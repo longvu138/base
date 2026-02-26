@@ -61,6 +61,7 @@ function AppContent() {
     tenantConfig: globalTenantConfig,
     setTenantConfig: setGlobalTenantConfig,
   } = useTheme();
+  console.log("appConfig.be", appConfig.be);
 
   const isDark = themeMode === 'dark';
 
