@@ -21,7 +21,8 @@
         "APP_X_TENANT",
         "APP_KUN_LUN",
         "APP_REDIRECT_URL",
-        "APP_PLATFORM"
+        "APP_PLATFORM",
+        "APP_BE"
       ]
     },
     "lint": {
