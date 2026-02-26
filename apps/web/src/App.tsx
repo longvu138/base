@@ -38,8 +38,8 @@ const FALLBACK_TENANT_CONFIG: FullTenantResponse = {
  */
 async function fetchAppData(tenantKey: string): Promise<FullTenantResponse> {
   const [tenantRes, variantsRes] = await Promise.all([
-    fetch(`${appConfig.be}/api/tenants/${tenantKey}/config`),
-    fetch(`${appConfig.be}/api/ui-variants`),
+    fetch(`${appConfig.be}api/tenants/${tenantKey}/config`),
+    fetch(`${appConfig.be}api/ui-variants`),
   ]);
 
   if (!tenantRes.ok || !variantsRes.ok) {
