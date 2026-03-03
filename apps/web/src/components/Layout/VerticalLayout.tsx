@@ -57,17 +57,11 @@ export const VerticalLayout = () => {
     return (
         <AntLayout className="h-screen overflow-hidden">
             <Sider
-                collapsible
                 collapsed={collapsed}
-                onCollapse={setCollapsed}
                 theme="dark"
-                className="!bg-white dark:!bg-[#141414] border-r border-gray-200 dark:border-gray-800"
+                className="!bg-white dark:!bg-[#141414] border-r border-gray-100 dark:border-gray-800"
                 width={240}
-                trigger={
-                    <div className="bg-white dark:bg-[#141414] border-r border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-[#1f1f1f] transition-colors">
-                        {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-                    </div>
-                }
+                trigger={null}
             >
                 <div
                     className="h-16 flex items-center justify-center font-bold text-xl text-primary cursor-pointer border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800"
@@ -79,24 +73,21 @@ export const VerticalLayout = () => {
                     mode="inline"
                     selectedKeys={[location.pathname]}
                     items={antMenuItems}
-                    className="border-0 h-[calc(100vh-64px-56px)] dark:!bg-[#141414]"
+                    className="border-0 h-[calc(100vh-64px)] overflow-y-auto dark:!bg-[#141414]"
                 />
-                <div className="absolute bottom-0 left-0 right-0 h-14 flex items-center justify-center border-t border-gray-200 dark:border-gray-800 dark:bg-[#141414]">
-                    <Button
-                        type="text"
-                        icon={<LogoutOutlined />}
-                        onClick={handleLogout}
-                        danger
-                        className="w-full"
-                    >
-                        {!collapsed && 'Logout'}
-                    </Button>
-                </div>
             </Sider>
 
             <AntLayout className="h-screen flex flex-col">
-                <Header className="flex items-center justify-between px-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-                    <div></div>
+                <Header className="flex items-center justify-between px-4 bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 shadow-sm">
+                    {/* Left: toggle button + breadcrumb */}
+                    <div className="flex items-center gap-3">
+                        <Button
+                            type="text"
+                            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+                            onClick={() => setCollapsed(!collapsed)}
+                            className="w-10 h-10 flex items-center justify-center rounded-xl text-gray-500 hover:text-primary hover:bg-primary/10 transition-all"
+                        />
+                    </div>
 
                     <div className="flex items-center gap-4">
                         <Select

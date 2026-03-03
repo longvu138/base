@@ -89,7 +89,7 @@ const tenants = {
         uiLib: 'antd',
         colorPrimary: '#722ed1',
         colorBgLayout: '#f9f5ff',
-        borderRadius: 16,
+        borderRadius: 12,
         colorBgLayoutDark: '#1a0f2e',
       }
     }

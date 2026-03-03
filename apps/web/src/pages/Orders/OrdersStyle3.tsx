@@ -1,14 +1,19 @@
 import { useMemo, useState } from 'react';
-import { Form, Input as AntInput, Button as AntButton, Tag, Skeleton as AntSkeleton, Tabs, Empty, Table, List } from 'antd';
+import { Form, Input as AntInput, Button as AntButton, Tag, Skeleton as AntSkeleton, Tabs, Empty, Table, List, DatePicker, Checkbox, Select } from 'antd';
 import { Pagination } from '@repo/ui';
-import { useFilterWithURL, usePaginationWithURL, useListOrderQuery, useOrderStatusesQuery, useOrderStatisticQuery } from '@repo/hooks';
+import { useFilterWithURL, usePaginationWithURL, useListOrderQuery, useOrderStatusesQuery, useOrderStatisticQuery, useOrderServicesQuery, useMarketplacesQuery } from '@repo/hooks';
 import { useTranslation } from '@repo/i18n';
 import { SearchOutlined, RedoOutlined, ArrowRightOutlined, BoxPlotOutlined, FilterOutlined } from '@ant-design/icons';
 import './OrdersStyle3.css';
 
+const { RangePicker } = DatePicker;
+
 /**
- * Giao diện 3 — Card Grid (Ant Design)
- * Dành cho Gobiz Logistics (gd3) - Hiển thị dạng thẻ sạch sẽ, bo góc lớn
+ * Giao diện 3 — Gobiz Logistics (gd3)
+ * Bộ lọc đầy đủ ngang bằng giao diện 1:
+ * code, note, dateRange, receivingWarehouse, shopName, financialPayment,
+ * marketplaces, services, stuckStatus/stuckRange/stuckFrom/stuckTo,
+ * timeType/timeStart/timeEnd
  */
 export const OrdersStyle3: React.FC<{ isTabView?: boolean }> = ({ isTabView }) => {
     const { t } = useTranslation();
@@ -25,22 +30,29 @@ export const OrdersStyle3: React.FC<{ isTabView?: boolean }> = ({ isTabView }) =
 
     const apiParams = useMemo(() => {
         const params: Record<string, any> = {
-            page: page - 1, // 0-indexed pagination for all tenants
+            page: page - 1,
             pageSize,
             ...filters
         };
         if (searchText) params.query = searchText;
-        ['statuses'].forEach(key => {
+        ['statuses', 'marketplaces', 'services'].forEach(key => {
             if (Array.isArray(params[key])) {
                 params[key] = params[key].join(',');
             }
         });
+        if (params.dateRange) {
+            params.createdAtFrom = params.dateRange[0]?.toISOString?.() ?? params.dateRange[0];
+            params.createdAtTo = params.dateRange[1]?.toISOString?.() ?? params.dateRange[1];
+            delete params.dateRange;
+        }
         return params;
     }, [page, pageSize, filters, searchText]);
 
     const { data: orderData, isLoading } = useListOrderQuery(apiParams);
     const { data: statusData } = useOrderStatusesQuery();
     const { data: statisticData } = useOrderStatisticQuery();
+    const { data: servicesData } = useOrderServicesQuery();
+    const { data: marketplacesData } = useMarketplacesQuery();
 
     const statusOptions = useMemo(() => {
         if (!statusData) return [];
@@ -66,9 +78,10 @@ export const OrdersStyle3: React.FC<{ isTabView?: boolean }> = ({ isTabView }) =
         );
     };
 
-    const handleSearch = () => {
-        applyFilters({ ...form.getFieldsValue(), query: searchText });
-    };
+    const handleSearch = () => applyFilters({ ...form.getFieldsValue(), query: searchText });
+    const handleReset = () => { setSearchText(''); clearFilters(); };
+
+    const inputCls = 'h-11 rounded-2xl bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700';
 
     const columns = [
         {
@@ -122,9 +135,7 @@ export const OrdersStyle3: React.FC<{ isTabView?: boolean }> = ({ isTabView }) =
             align: 'right' as const,
             render: (total: number) => (
                 <div className="flex flex-col items-end">
-                    <span className="text-base font-black text-primary leading-none">
-                        {total?.toLocaleString()}
-                    </span>
+                    <span className="text-base font-black text-primary leading-none">{total?.toLocaleString()}</span>
                     <span className="text-[9px] text-gray-400 uppercase tracking-widest font-black mt-1">VNĐ</span>
                 </div>
             )
@@ -134,112 +145,153 @@ export const OrdersStyle3: React.FC<{ isTabView?: boolean }> = ({ isTabView }) =
             key: 'action',
             width: 80,
             render: () => (
-                <AntButton
-                    type="primary"
-                    size="small"
-                    shape="circle"
-                    icon={<ArrowRightOutlined />}
-                    className="shadow-sm"
-                />
+                <AntButton type="primary" size="small" shape="circle" icon={<ArrowRightOutlined />} className="shadow-sm" />
             )
         }
     ];
 
+    const searchBar = (compact: boolean) => (
+        <div className={`flex flex-wrap gap-3 ${compact ? '' : ''}`}>
+            <AntInput
+                placeholder={t('orders.search_placeholder')}
+                prefix={<SearchOutlined className="text-gray-400" />}
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                onPressEnter={handleSearch}
+                className={`w-full md:w-80 ${compact ? 'h-10 rounded-xl' : 'h-11 rounded-2xl'} bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700`}
+            />
+            <AntButton type="primary" icon={<SearchOutlined />} onClick={handleSearch}
+                className={`${compact ? 'h-10 px-6 rounded-xl font-medium' : 'h-11 px-8 rounded-2xl font-bold shadow-lg shadow-primary/20'}`}>
+                {t('common.search')}
+            </AntButton>
+            <AntButton icon={<FilterOutlined />} onClick={() => setShowFilters(!showFilters)}
+                className={`${compact ? 'h-10 px-4 rounded-xl font-medium' : 'h-11 px-5 rounded-2xl font-bold'} transition-all ${showFilters ? 'bg-primary/10 text-primary border-primary/20' : 'bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700'}`}>
+                Bộ lọc
+            </AntButton>
+            <AntButton icon={<RedoOutlined />} onClick={handleReset}
+                className={`${compact ? 'h-10 px-4 rounded-xl font-medium' : 'h-11 px-5 rounded-2xl font-bold'} border-gray-200 dark:border-gray-700 hover:text-primary transition-all bg-gray-50 dark:bg-gray-900`}>
+                Làm mới
+            </AntButton>
+        </div>
+    );
+
     return (
         <div className={`orders-style-3-wrapper ${isTabView ? '' : 'p-6'} space-y-6 max-w-[1600px] mx-auto`}>
-            {/* Header section with search */}
+            {/* Header full page */}
             {!isTabView && (
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
                     <div className="space-y-1">
                         <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Quản lý đơn hàng</h1>
                         <p className="text-gray-500 text-sm">Quản lý và vận hành thông minh cùng Gobiz Logistics.</p>
                     </div>
-
-                    <div className="flex flex-wrap gap-3">
-                        <AntInput
-                            placeholder={t('orders.search_placeholder')}
-                            prefix={<SearchOutlined className="text-gray-400" />}
-                            value={searchText}
-                            onChange={(e) => setSearchText(e.target.value)}
-                            onPressEnter={handleSearch}
-                            className="w-full md:w-80 h-11 rounded-2xl bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700"
-                        />
-                        <AntButton
-                            type="primary"
-                            icon={<SearchOutlined />}
-                            onClick={handleSearch}
-                            className="h-11 px-8 rounded-2xl font-bold shadow-lg shadow-primary/20"
-                        >
-                            {t('common.search')}
-                        </AntButton>
-                        <AntButton
-                            icon={<FilterOutlined />}
-                            onClick={() => setShowFilters(!showFilters)}
-                            className={`h-11 px-5 rounded-2xl font-bold transition-all ${showFilters ? 'bg-primary/10 text-primary border-primary/20' : 'bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700'}`}
-                        >
-                            Bộ lọc
-                        </AntButton>
-                        <AntButton
-                            icon={<RedoOutlined />}
-                            onClick={() => { setSearchText(''); clearFilters(); }}
-                            className="h-11 px-5 rounded-2xl font-bold border-gray-200 dark:border-gray-700 hover:text-primary transition-all bg-gray-50 dark:bg-gray-900"
-                        >
-                            Làm mới
-                        </AntButton>
-                    </div>
+                    {searchBar(false)}
                 </div>
             )}
 
+            {/* Tab view compact */}
             {isTabView && (
-                <div className="flex justify-end mb-4 gap-3">
-                    <div className="flex flex-wrap gap-3">
-                        <AntInput
-                            placeholder={t('orders.search_placeholder')}
-                            prefix={<SearchOutlined className="text-gray-400" />}
-                            value={searchText}
-                            onChange={(e) => setSearchText(e.target.value)}
-                            onPressEnter={handleSearch}
-                            className="w-full md:w-80 h-10 rounded-xl bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700"
-                        />
-                        <AntButton
-                            type="primary"
-                            icon={<SearchOutlined />}
-                            onClick={handleSearch}
-                            className="h-10 px-6 rounded-xl font-medium"
-                        >
-                            {t('common.search')}
-                        </AntButton>
-                        <AntButton
-                            icon={<FilterOutlined />}
-                            onClick={() => setShowFilters(!showFilters)}
-                            className={`h-10 px-4 rounded-xl font-medium transition-all ${showFilters ? 'bg-primary/10 text-primary border-primary/20' : 'bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700'}`}
-                        >
-                            Bộ lọc
-                        </AntButton>
-                        <AntButton
-                            icon={<RedoOutlined />}
-                            onClick={() => { setSearchText(''); clearFilters(); }}
-                            className="h-10 px-4 rounded-xl font-medium border-gray-200 dark:border-gray-700 hover:text-primary transition-all bg-gray-50 dark:bg-gray-900"
-                        >
-                            Làm mới
-                        </AntButton>
-                    </div>
+                <div className="flex justify-end mb-4">
+                    {searchBar(true)}
                 </div>
             )}
 
-            {/* Advanced Filters Panel */}
-            <div className={`advanced-filters-container overflow-hidden transition-all duration-300 ease-in-out ${showFilters ? 'max-h-[1000px] opacity-100 mb-6' : 'max-h-0 opacity-0 overflow-hidden'}`}>
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
-                    <Form form={form} layout="vertical">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Advanced Filters Panel — đầy đủ như giao diện 1 */}
+            <div className={`advanced-filters-container overflow-hidden transition-all duration-300 ease-in-out ${showFilters ? 'max-h-[1400px] opacity-100 mb-6' : 'max-h-0 opacity-0 overflow-hidden'}`}>
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 space-y-6">
+                    <Form form={form} layout="vertical" onValuesChange={() => applyFilters(form.getFieldsValue())}>
+                        {/* Hàng 1: text fields cơ bản */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                             <Form.Item name="code" label="Mã đơn hàng" className="mb-0">
-                                <AntInput placeholder="Nhập mã đơn hàng" className="h-11 rounded-2xl bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700" />
+                                <AntInput placeholder="Nhập mã đơn hàng" className={inputCls} allowClear />
+                            </Form.Item>
+                            <Form.Item name="note" label="Ghi chú" className="mb-0">
+                                <AntInput placeholder="Tìm theo ghi chú" className={inputCls} allowClear />
+                            </Form.Item>
+                            <Form.Item name="dateRange" label="Ngày tạo" className="mb-0 md:col-span-2">
+                                <RangePicker className="w-full h-11 rounded-2xl" showTime format="DD/MM/YYYY HH:mm" placeholder={['Từ ngày', 'Đến ngày']} />
+                            </Form.Item>
+                        </div>
+
+                        {/* Hàng 2: kho + shop + thanh toán */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+                            <Form.Item name="receivingWarehouse" label="Kho nhận" className="mb-0">
+                                <AntInput placeholder="Nhập kho nhận" className={inputCls} allowClear />
                             </Form.Item>
                             <Form.Item name="shopName" label="Tên Shop" className="mb-0">
-                                <AntInput placeholder="Nhập tên shop" className="h-11 rounded-2xl bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700" />
+                                <AntInput placeholder="Nhập tên shop" className={inputCls} allowClear />
                             </Form.Item>
-                            <Form.Item name="receivingWarehouse" label="Kho nhận" className="mb-0">
-                                <AntInput placeholder="Chọn kho nhận" className="h-11 rounded-2xl bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700" />
+                            <div className="flex items-end pb-1">
+                                <Form.Item name="financialPayment" valuePropName="checked" className="mb-0">
+                                    <Checkbox className="font-medium text-gray-700 dark:text-gray-200">Thanh toán tài chính</Checkbox>
+                                </Form.Item>
+                            </div>
+                        </div>
+
+                        {/* Hàng 3: Nguồn đơn */}
+                        {(marketplacesData?.length ?? 0) > 0 && (
+                            <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
+                                <div className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-3">Nguồn đơn hàng</div>
+                                <Form.Item name="marketplaces" className="mb-0">
+                                    <Checkbox.Group className="flex flex-wrap gap-x-6 gap-y-3">
+                                        {marketplacesData!.map((item: any) => (
+                                            <Checkbox key={item.code} value={item.code} className="text-sm">{item.name}</Checkbox>
+                                        ))}
+                                    </Checkbox.Group>
+                                </Form.Item>
+                            </div>
+                        )}
+
+                        {/* Hàng 4: Dịch vụ */}
+                        {(servicesData?.length ?? 0) > 0 && (
+                            <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
+                                <div className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-3">Dịch vụ</div>
+                                <Form.Item name="services" className="mb-0">
+                                    <Checkbox.Group className="flex flex-wrap gap-x-6 gap-y-3">
+                                        {servicesData!.map((item: any) => (
+                                            <Checkbox key={item.code} value={item.code} className="text-sm">{item.name}</Checkbox>
+                                        ))}
+                                    </Checkbox.Group>
+                                </Form.Item>
+                            </div>
+                        )}
+
+                        {/* Hàng 5: Kẹt trạng thái */}
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+                            <Form.Item name="stuckStatus" label="Kẹt ở trạng thái" className="mb-0">
+                                <Select placeholder="Chọn trạng thái" allowClear className="h-11"
+                                    options={statusData?.map((s: any) => ({ label: s.name, value: s.code }))} />
+                            </Form.Item>
+                            <Form.Item name="stuckRange" label="Khoảng thời gian" className="mb-0">
+                                <Select placeholder="Khoảng" allowClear className="h-11"
+                                    options={[
+                                        { label: 'Bất kỳ', value: 'any' },
+                                        { label: '1 ngày', value: '1d' },
+                                        { label: '3 ngày', value: '3d' },
+                                        { label: '7 ngày', value: '7d' },
+                                    ]} />
+                            </Form.Item>
+                            <Form.Item name="stuckFrom" label="Từ (ngày)" className="mb-0">
+                                <AntInput placeholder="VD: 1" className={inputCls} type="number" />
+                            </Form.Item>
+                            <Form.Item name="stuckTo" label="Đến (ngày)" className="mb-0">
+                                <AntInput placeholder="VD: 7" className={inputCls} type="number" />
+                            </Form.Item>
+                        </div>
+
+                        {/* Hàng 6: Loại thời gian */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+                            <Form.Item name="timeType" label="Loại thời gian" className="mb-0">
+                                <Select placeholder="Chọn loại" allowClear className="h-11"
+                                    options={[
+                                        { label: 'Ngày tạo', value: 'created' },
+                                        { label: 'Ngày cập nhật', value: 'updated' },
+                                    ]} />
+                            </Form.Item>
+                            <Form.Item name="timeStart" label="Từ ngày" className="mb-0">
+                                <DatePicker className="w-full h-11 rounded-2xl" placeholder="Từ ngày" />
+                            </Form.Item>
+                            <Form.Item name="timeEnd" label="Đến ngày" className="mb-0">
+                                <DatePicker className="w-full h-11 rounded-2xl" placeholder="Đến ngày" />
                             </Form.Item>
                         </div>
                     </Form>
@@ -255,20 +307,16 @@ export const OrdersStyle3: React.FC<{ isTabView?: boolean }> = ({ isTabView }) =
                         applyFilters({ ...form.getFieldsValue(), statuses: newStatuses });
                     }}
                     items={[
-                        {
-                            key: 'ALL',
-                            label: <span className="px-4 py-1">Tất cả</span>
-                        },
+                        { key: 'ALL', label: <span className="px-4 py-1">Tất cả</span> },
                         ...statusOptions.map((opt: any) => ({
                             key: opt.value,
                             label: <span className="px-4 py-1">{opt.label}</span>
                         }))
                     ]}
-                // className="custom-modern-tabs"
                 />
             </div>
 
-            {/* Table View */}
+            {/* Table */}
             <div className="bg-white dark:bg-gray-800 rounded-3xl overflow-hidden border border-gray-100 dark:border-gray-700 shadow-sm">
                 {isLoading ? (
                     <List
@@ -303,10 +351,7 @@ export const OrdersStyle3: React.FC<{ isTabView?: boolean }> = ({ isTabView }) =
                     current={page}
                     pageSize={pageSize}
                     total={orderData?.total || 0}
-                    onChange={(p, s) => {
-                        setPage(p);
-                        if (s !== pageSize) setPageSize(s);
-                    }}
+                    onChange={(p, s) => { setPage(p); if (s !== pageSize) setPageSize(s); }}
                 />
             </div>
         </div>
