@@ -9,7 +9,7 @@ import './DeliveryRequestsStyle3.css';
  * DeliveryRequestsStyle3 — Giao diện cho Gobiz (gd3)
  * Premium table view với status tabs, aligned với phong cách Gobiz Logistics.
  */
-export const DeliveryRequestsStyle3 = () => {
+export const DeliveryRequestsStyle3: React.FC<{ isTabView?: boolean }> = ({ isTabView }) => {
     const [form] = Form.useForm();
     const [showFilters, setShowFilters] = useState(false);
 
@@ -114,47 +114,50 @@ export const DeliveryRequestsStyle3 = () => {
         : 'ALL';
 
     return (
-        <div className="delivery-requests-style-3-wrapper space-y-6 mx-auto">
-            {/* Header / Filter */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
-                <div className="space-y-1">
-                    <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Yêu cầu giao hàng</h1>
+        <div className={`delivery-requests-style-3-wrapper ${isTabView ? '' : 'p-6'} space-y-6 mx-auto`}>
+            {/* Header — chỉ hiện khi không phải tab view */}
+            {!isTabView && (
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
+                    <div className="space-y-1">
+                        <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Yêu cầu giao hàng</h1>
+                    </div>
+                    <div className="flex flex-wrap gap-3">
+                        <Form form={form} onFinish={applyFilters} className="flex gap-3">
+                            <Form.Item name="query" noStyle>
+                                <AntInput
+                                    placeholder="Tìm theo mã, tên người nhận..."
+                                    prefix={<SearchOutlined className="text-gray-400" />}
+                                    className="w-full md:w-80 h-11 rounded-2xl bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700"
+                                    onPressEnter={() => form.submit()}
+                                />
+                            </Form.Item>
+                            <AntButton type="primary" icon={<SearchOutlined />} onClick={() => form.submit()} className="h-11 px-8 rounded-2xl font-bold shadow-lg shadow-primary/20">
+                                Tìm kiếm
+                            </AntButton>
+                        </Form>
+                        <AntButton icon={<FilterOutlined />} onClick={() => setShowFilters(!showFilters)} className={`h-11 px-5 rounded-2xl font-bold transition-all ${showFilters ? 'bg-primary/10 text-primary border-primary/20' : 'bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700'}`}>
+                            Bộ lọc
+                        </AntButton>
+                        <AntButton icon={<RedoOutlined />} onClick={clearFilters} className="h-11 px-5 rounded-2xl font-bold border-gray-200 dark:border-gray-700 hover:text-primary transition-all bg-gray-50 dark:bg-gray-900">
+                            Làm mới
+                        </AntButton>
+                    </div>
                 </div>
-                <div className="flex flex-wrap gap-3">
+            )}
+
+            {/* Tab view: search bar nhỏ gọn */}
+            {isTabView && (
+                <div className="flex justify-end gap-3">
                     <Form form={form} onFinish={applyFilters} className="flex gap-3">
                         <Form.Item name="query" noStyle>
-                            <AntInput
-                                placeholder="Tìm theo mã, tên người nhận..."
-                                prefix={<SearchOutlined className="text-gray-400" />}
-                                className="w-full md:w-80 h-11 rounded-2xl bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700"
-                                onPressEnter={() => form.submit()}
-                            />
+                            <AntInput placeholder="Tìm theo mã, tên người nhận..." prefix={<SearchOutlined className="text-gray-400" />} className="w-full md:w-72 h-10 rounded-xl bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700" onPressEnter={() => form.submit()} />
                         </Form.Item>
-                        <AntButton
-                            type="primary"
-                            icon={<SearchOutlined />}
-                            onClick={() => form.submit()}
-                            className="h-11 px-8 rounded-2xl font-bold shadow-lg shadow-primary/20"
-                        >
-                            Tìm kiếm
-                        </AntButton>
+                        <AntButton type="primary" icon={<SearchOutlined />} onClick={() => form.submit()} className="h-10 px-6 rounded-xl font-medium">Tìm kiếm</AntButton>
                     </Form>
-                    <AntButton
-                        icon={<FilterOutlined />}
-                        onClick={() => setShowFilters(!showFilters)}
-                        className={`h-11 px-5 rounded-2xl font-bold transition-all ${showFilters ? 'bg-primary/10 text-primary border-primary/20' : 'bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700'}`}
-                    >
-                        Bộ lọc
-                    </AntButton>
-                    <AntButton
-                        icon={<RedoOutlined />}
-                        onClick={clearFilters}
-                        className="h-11 px-5 rounded-2xl font-bold border-gray-200 dark:border-gray-700 hover:text-primary transition-all bg-gray-50 dark:bg-gray-900"
-                    >
-                        Làm mới
-                    </AntButton>
+                    <AntButton icon={<FilterOutlined />} onClick={() => setShowFilters(!showFilters)} className={`h-10 px-4 rounded-xl font-medium transition-all ${showFilters ? 'bg-primary/10 text-primary border-primary/20' : 'bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700'}`}>Bộ lọc</AntButton>
+                    <AntButton icon={<RedoOutlined />} onClick={clearFilters} className="h-10 px-4 rounded-xl font-medium border-gray-200 dark:border-gray-700 hover:text-primary transition-all bg-gray-50 dark:bg-gray-900">Làm mới</AntButton>
                 </div>
-            </div>
+            )}
 
             {/* Advanced Filters Panel */}
             <div className={`advanced-filters-container overflow-hidden transition-all duration-300 ease-in-out ${showFilters ? 'max-h-[1000px] opacity-100 mb-6' : 'max-h-0 opacity-0 overflow-hidden'}`}>

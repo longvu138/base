@@ -1,0 +1,137 @@
+/* Scoped CSS for PackageStyle3 - Gobiz Aesthetic (đồng bộ với ClaimsStyle3) */
+
+/* ============ LIGHT MODE ============ */
+.package-style-3-wrapper .ant-table-thead > tr > th {
+    background: #ffffff !important;
+    color: #64748b !important;
+    font-weight: 700 !important;
+    font-size: 11px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    border-bottom: 2px solid #f1f5f9 !important;
+    padding: 16px 20px !important;
+}
+
+.package-style-3-wrapper .ant-table-tbody > tr > td {
+    padding: 10px 10px !important;
+    border-bottom: 1px solid #f8fafc !important;
+    transition: background 0.15s ease;
+}
+
+.package-style-3-wrapper .ant-table-tbody > tr {
+    cursor: pointer;
+}
+
+.package-style-3-wrapper .ant-table-tbody > tr:hover > td {
+    background: #f0f4ff !important;
+}
+
+/* ============ DARK MODE ============ */
+.dark .package-style-3-wrapper .ant-table {
+    background: transparent !important;
+}
+
+.dark .package-style-3-wrapper .ant-table-thead > tr > th {
+    background: #1e293b !important;
+    border-bottom: 2px solid #334155 !important;
+    color: #94a3b8 !important;
+}
+
+.dark .package-style-3-wrapper .ant-table-tbody > tr > td {
+    background: #0f172a !important;
+    border-bottom: 1px solid #1e293b !important;
+    color: #e2e8f0 !important;
+}
+
+.dark .package-style-3-wrapper .ant-table-tbody > tr:hover > td {
+    background: #1e293b !important;
+}
+
+/* Expanded row milestone */
+.package-style-3-wrapper .ant-table-expanded-row > td {
+    padding: 0 !important;
+}
+
+.dark .package-style-3-wrapper .ant-table-expanded-row > td {
+    background: #060d1a !important;
+}
+
+/* Parcel milestone timeline */
+.parcel-milestone-wrapper {
+    user-select: none;
+}
+
+.parcel-milestone-wrapper::-webkit-scrollbar {
+    height: 4px;
+}
+
+.parcel-milestone-wrapper::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.parcel-milestone-wrapper::-webkit-scrollbar-thumb {
+    background: #e2e8f0;
+    border-radius: 4px;
+}
+
+.dark .parcel-milestone-wrapper::-webkit-scrollbar-thumb {
+    background: #334155;
+}
+
+/* Connector lines dark mode */
+.dark .parcel-milestone-wrapper [style*="background: #e5e7eb"] {
+    background: #1e293b !important;
+}
+
+
+/* ============ COMMON ============ */
+.package-style-3-wrapper .ant-tabs-nav::before {
+    display: none;
+}
+
+/* Main switcher tabs */
+.package-style-3-wrapper .main-switcher-tabs .ant-tabs-nav::before {
+    display: block !important;
+    border-bottom: 2px solid #f1f5f9 !important;
+}
+
+.package-style-3-wrapper .main-switcher-tabs .ant-tabs-tab {
+    font-weight: 700;
+    font-size: 14px;
+    padding: 16px 8px;
+}
+
+.advanced-filters-container {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* Main package/delivery switcher tabs */
+.package-style-3-wrapper .package-main-tabs > .ant-tabs-nav {
+    margin-bottom: 24px !important;
+}
+
+.package-style-3-wrapper .package-main-tabs > .ant-tabs-nav::before {
+    border-bottom: 2px solid #f1f5f9 !important;
+}
+
+.dark .package-style-3-wrapper .package-main-tabs > .ant-tabs-nav::before {
+    border-bottom: 2px solid #1e293b !important;
+}
+
+.package-style-3-wrapper .package-main-tabs .ant-tabs-tab {
+    font-size: 15px;
+    padding: 12px 4px;
+}
+
+.package-style-3-wrapper .package-main-tabs .ant-tabs-ink-bar {
+    height: 3px;
+    border-radius: 3px 3px 0 0;
+}

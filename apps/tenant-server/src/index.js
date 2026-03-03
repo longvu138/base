@@ -110,6 +110,23 @@ const tenants = {
         }
       }
     }
+  },
+  'tetetete': {
+    name: "Te te nè Express",
+    variantCode: "gd1",
+    tenantConfig: {
+      themeConfig: {
+        uiLib: 'antd',
+        colorPrimary: '#ff4d4f',
+        colorBgLayout: '#fff1f0',
+        borderRadius: 4,
+        colorBgLayoutDark: '#000000',
+        // Override đặc thù cho Thiên Long
+        variants: {
+          // shipmentStatusDisplay: 'tabs' 
+        }
+      }
+    }
   }
 };
 

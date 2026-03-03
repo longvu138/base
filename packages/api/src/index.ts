@@ -6,5 +6,8 @@ export * from './DeliveryRequestApi';
 export * from './ClaimApi';
 export * from './WithdrawalSlipApi';
 export * from './CustomerApi';
+export * from './PackageApi';
+export * from './DeliveryNoteApi';
+export * from './WaybillApi';
 
 
