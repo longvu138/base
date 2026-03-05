@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Form, Input, DatePicker, Select, Table, Checkbox, Button } from 'antd';
 import { FilterPanel, TableComponent, Status, StatusFilter, Pagination } from '@repo/ui';
 import { useFilterWithURL, usePaginationWithURL, useListOrderQuery, useOrderStatusesQuery, useOrderStatisticQuery, useOrderServicesQuery, useMarketplacesQuery } from '@repo/hooks';
@@ -100,6 +101,8 @@ export const OrdersStyle1 = () => {
             key: 'createdAt',
         }
     ];
+
+    const navigate = useNavigate();
 
     return (
         <div className="space-y-10">
@@ -227,6 +230,10 @@ export const OrdersStyle1 = () => {
                     dataSource={orderData?.data || []}
                     rowKey="id"
                     pagination={false}
+                    onRow={(record: any) => ({
+                        onClick: () => navigate(`/orders/${record.code}`),
+                        className: 'cursor-pointer hover:bg-blue-50',
+                    })}
                 />
             </TableComponent>
 

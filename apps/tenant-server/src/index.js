@@ -21,6 +21,9 @@ const UI_VARIANTS = [
       menu: {
         hiddenKeys: [],
         labelOverrides: {}
+      },
+      pages: {
+        orderDetail: 'OrderDetailStyle1',
       }
     }
   },
@@ -32,6 +35,9 @@ const UI_VARIANTS = [
       menu: {
         hiddenKeys: [],
         labelOverrides: {}
+      },
+      pages: {
+        orderDetail: 'OrderDetailStyle1',
       }
     }
   },
@@ -49,9 +55,9 @@ const UI_VARIANTS = [
       features: {
         shipmentStatusDisplay: 'tabs'
       },
-      // Có thể định nghĩa thêm các trang đặc thù nếu cần
-        pages: {
+      pages: {
         orders: 'OrdersCombined',
+        orderDetail: 'OrderDetailStyle3',
         claims: 'ClaimsStyle3',
         transactions: 'TransactionsStyle3',
         deliveryRequests: 'DeliveryRequestsStyle3',

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Form, Input as AntInput, Button as AntButton, Tag, Skeleton as AntSkeleton, Tabs, Empty, Table, List, DatePicker, Checkbox, Select } from 'antd';
 import { Pagination } from '@repo/ui';
 import { useFilterWithURL, usePaginationWithURL, useListOrderQuery, useOrderStatusesQuery, useOrderStatisticQuery, useOrderServicesQuery, useMarketplacesQuery } from '@repo/hooks';
@@ -80,6 +81,7 @@ export const OrdersStyle3: React.FC<{ isTabView?: boolean }> = ({ isTabView }) =
 
     const handleSearch = () => applyFilters({ ...form.getFieldsValue(), query: searchText });
     const handleReset = () => { setSearchText(''); clearFilters(); };
+    const navigate = useNavigate();
 
     const inputCls = 'h-11 rounded-2xl bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700';
 
@@ -334,6 +336,10 @@ export const OrdersStyle3: React.FC<{ isTabView?: boolean }> = ({ isTabView }) =
                         rowKey="id"
                         pagination={false}
                         className="custom-modern-table"
+                        onRow={(record: any) => ({
+                            onClick: () => navigate(`/orders/${record.code}`),
+                            style: { cursor: 'pointer' },
+                        })}
                         locale={{
                             emptyText: (
                                 <div className="py-20">

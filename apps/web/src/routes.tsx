@@ -3,6 +3,7 @@ import Layout from './components/Layout/index';
 import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { Orders } from './pages/Orders';
+import { OrderDetail } from './pages/OrderDetail';
 import { Shipments } from './pages/Shipments';
 import { Transactions } from './pages/Transactions';
 import { DeliveryRequests } from './pages/DeliveryRequests';
@@ -12,6 +13,7 @@ import Claims from './pages/Claims';
 import WithdrawalSlips from './pages/WithdrawalSlips';
 import { Packages } from './pages/Packages';
 import Profile from './pages/Profile';
+import { Vouchers } from './pages/Vouchers';
 
 
 import PrivateRoute from './components/PrivateRoute';
@@ -25,6 +27,7 @@ function AppRoutes() {
                 <Route path="/" element={<Layout />}>
                     <Route path="dashboard" element={<Dashboard />} />
                     <Route path="orders" element={<Orders />} />
+                    <Route path="orders/:code" element={<OrderDetail />} />
                     <Route path="shipments" element={<Shipments />} />
                     <Route path="transactions" element={<Transactions />} />
                     <Route path="delivery-requests" element={<DeliveryRequests />} />
@@ -34,6 +37,7 @@ function AppRoutes() {
                     <Route path="withdrawal-slips" element={<WithdrawalSlips />} />
                     <Route path="packages" element={<Packages />} />
                     <Route path="profile" element={<Profile />} />
+                    <Route path="vouchers" element={<Vouchers />} />
 
                     <Route index element={<Navigate to="/dashboard" replace />} />
                     <Route path="*" element={<Navigate to="/dashboard" replace />} />

@@ -1,0 +1,40 @@
+.vouchers-style-3-wrapper .ant-table-thead > tr > th {
+    background: #fafafa !important;
+    font-weight: 700 !important;
+    font-size: 11px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.06em !important;
+    color: #94a3b8 !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    padding: 14px 16px !important;
+}
+
+.vouchers-style-3-wrapper .ant-table-tbody > tr > td {
+    border-bottom: 1px solid #f8fafc !important;
+    padding: 16px !important;
+    vertical-align: middle !important;
+}
+
+.vouchers-style-3-wrapper .ant-table-tbody > tr:hover > td {
+    background: #f8faff !important;
+}
+
+.vouchers-style-3-wrapper .ant-table-wrapper,
+.vouchers-style-3-wrapper .ant-table {
+    background: transparent !important;
+}
+
+.dark .vouchers-style-3-wrapper .ant-table-thead > tr > th {
+    background: #1e293b !important;
+    color: #64748b !important;
+    border-bottom-color: #334155 !important;
+}
+
+.dark .vouchers-style-3-wrapper .ant-table-tbody > tr > td {
+    border-bottom-color: #1e293b !important;
+    color: #e2e8f0 !important;
+}
+
+.dark .vouchers-style-3-wrapper .ant-table-tbody > tr:hover > td {
+    background: #1e293b !important;
+}

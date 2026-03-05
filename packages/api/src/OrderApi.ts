@@ -16,7 +16,7 @@ export const OrderApi = {
         );
     },
     getOrderDetail: (code: string) => {
-        return ApiClient.auth.get(`customer/vmt-orders/${code}`);
+        return ApiClient.auth.get(`customer/orders/${code}`);
     },
     getOrderStatistic: () => {
         return ApiClient.auth.get(`customer/orders/statistics`);
@@ -26,5 +26,11 @@ export const OrderApi = {
     },
     getMarketplaces: () => {
         return ApiClient.auth.get(`categories/marketplaces?size=1000`);
+    },
+    getOrderComments: (code: string) => {
+        return ApiClient.auth.get(`customer/orders/${code}/comments`);
+    },
+    createOrderComment: (code: string, data: { content: string }) => {
+        return ApiClient.auth.post(`customer/orders/${code}/comments`, data);
     },
 };

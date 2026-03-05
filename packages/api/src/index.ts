@@ -9,5 +9,5 @@ export * from './CustomerApi';
 export * from './PackageApi';
 export * from './DeliveryNoteApi';
 export * from './WaybillApi';
-
-
+export * from './VoucherApi';
+export * from './ChatApi';

@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { OrderApi } from '@repo/api';
 
 export const useListOrderQuery = (params: any) => {
@@ -64,6 +64,39 @@ export const useMarketplacesQuery = () => {
         queryFn: async () => {
             const res = await OrderApi.getMarketplaces();
             return res.data;
+        },
+    });
+};
+
+export const useOrderDetailQuery = (code: string) => {
+    return useQuery({
+        queryKey: ['orders.detail', code],
+        queryFn: async () => {
+            const res = await OrderApi.getOrderDetail(code);
+            return res.data;
+        },
+        enabled: !!code,
+    });
+};
+
+export const useOrderCommentsQuery = (code: string) => {
+    return useQuery({
+        queryKey: ['orders.comments', code],
+        queryFn: async () => {
+            const res = await OrderApi.getOrderComments(code);
+            return res.data ?? [];
+        },
+        enabled: !!code,
+        refetchInterval: 15000, // auto-refresh mỗi 15s
+    });
+};
+
+export const useCreateOrderCommentMutation = (code: string) => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (content: string) => OrderApi.createOrderComment(code, { content }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['orders.comments', code] });
         },
     });
 };

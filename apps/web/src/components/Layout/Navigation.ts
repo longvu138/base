@@ -10,6 +10,7 @@ import {
     DeliveredProcedureOutlined,
     FileTextOutlined,
     TagsOutlined,
+    GiftOutlined,
 } from '@ant-design/icons';
 import { useTheme, useActiveVariantConfig } from '@repo/theme-provider';
 
@@ -22,7 +23,6 @@ export interface MenuItem {
 
 /**
  * Menu dùng chung cho tất cả variant (Style 1, 2, ...).
- * Giao diện 3 (Gobiz) sẽ gom Kiện hàng + Yêu cầu giao thành 1 mục.
  */
 const BASE_MENU_ITEMS: MenuItem[] = [
     {
@@ -85,12 +85,18 @@ const BASE_MENU_ITEMS: MenuItem[] = [
         label: 'Rút tiền',
         path: '/withdrawal-slips',
     },
+    {
+        key: '/vouchers',
+        icon: React.createElement(GiftOutlined),
+        label: 'Mã giảm giá',
+        path: '/vouchers',
+    },
 ];
 
 /**
- * Menu riêng cho Gobiz (gd3): gom Kiện hàng + Yêu cầu giao hàng thành
- * 1 mục duy nhất "Quản lý giao hàng" trỏ đến /packages (PackageStyle3).
- * Mục /delivery-requests được ẩn vì đã được tích hợp vào /packages.
+ * Menu riêng cho Gobiz (gd3):
+ * - Gom /packages + /delivery-requests + /delivery-notes → "Quản lý giao hàng"
+ * - Gom /transactions + /withdrawal-slips → "Giao dịch"
  */
 const GOBIZ_MENU_ITEMS: MenuItem[] = [
     {
@@ -111,7 +117,6 @@ const GOBIZ_MENU_ITEMS: MenuItem[] = [
         label: 'Vận chuyển',
         path: '/shipments',
     },
-    // Gom /packages + /delivery-requests thành 1 mục
     {
         key: '/packages',
         icon: React.createElement(DeliveredProcedureOutlined),
@@ -119,6 +124,7 @@ const GOBIZ_MENU_ITEMS: MenuItem[] = [
         path: '/packages',
     },
     {
+        // Gom /transactions + /withdrawal-slips thành 1 mục "Giao dịch"
         key: '/transactions',
         icon: React.createElement(WalletOutlined),
         label: 'Giao dịch',
@@ -137,42 +143,31 @@ const GOBIZ_MENU_ITEMS: MenuItem[] = [
         path: '/waybills',
     },
     {
-        key: '/withdrawal-slips',
-        icon: React.createElement(CreditCardOutlined),
-        label: 'Rút tiền',
-        path: '/withdrawal-slips',
+        key: '/vouchers',
+        icon: React.createElement(GiftOutlined),
+        label: 'Mã giảm giá',
+        path: '/vouchers',
     },
 ];
 
 /**
  * Hook lấy danh sách menu — hoàn toàn data-driven từ config backend.
- *
- * - Với gd3 (Gobiz): dùng GOBIZ_MENU_ITEMS (gom Kiện hàng + Yêu cầu giao)
- * - Với gd1 và các variant khác: dùng BASE_MENU_ITEMS (2 mục riêng)
- *
- * Backend vẫn có thể override qua menu.hiddenKeys và menu.labelOverrides.
  */
 export const useNavigation = (): MenuItem[] => {
     const { tenantConfig } = useTheme();
     const themeConfig = tenantConfig?.tenantConfig?.themeConfig;
     const activeVariant = useActiveVariantConfig();
 
-    // Xác định variant code: ưu tiên tenantConfig, sau đó activeVariant
     const variantCode = tenantConfig?.variantCode || 'gd1';
-
-    // Chọn danh sách menu gốc tuỳ variant
     const baseItems = variantCode === 'gd3' ? GOBIZ_MENU_ITEMS : BASE_MENU_ITEMS;
 
-    // Lấy menu config: Ưu tiên tenant override -> rồi đến mẫu hệ thống (activeVariant)
     const tenantMenuConfig = themeConfig?.menu;
     const globalMenuConfig = activeVariant?.config?.menu;
     const activeMenuConfig = tenantMenuConfig || globalMenuConfig;
 
-    // Lọc bỏ các item nằm trong hiddenKeys
     const hiddenKeys = activeMenuConfig?.hiddenKeys ?? [];
     const filtered = baseItems.filter(item => !hiddenKeys.includes(item.key));
 
-    // Đổi tên label theo labelOverrides
     const labelOverrides = activeMenuConfig?.labelOverrides ?? {};
     return filtered.map(item => ({
         ...item,
