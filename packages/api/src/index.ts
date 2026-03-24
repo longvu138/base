@@ -11,3 +11,6 @@ export * from './DeliveryNoteApi';
 export * from './WaybillApi';
 export * from './VoucherApi';
 export * from './ChatApi';
+export * from './AddressApi';
+export * from './WishlistApi';
+export * from './FaqApi';

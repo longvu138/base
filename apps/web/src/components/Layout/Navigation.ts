@@ -11,6 +11,9 @@ import {
     FileTextOutlined,
     TagsOutlined,
     GiftOutlined,
+    EnvironmentOutlined,
+    HeartOutlined,
+    QuestionCircleOutlined,
 } from '@ant-design/icons';
 import { useTheme, useActiveVariantConfig } from '@repo/theme-provider';
 
@@ -91,6 +94,24 @@ const BASE_MENU_ITEMS: MenuItem[] = [
         label: 'Mã giảm giá',
         path: '/vouchers',
     },
+    {
+        key: '/address',
+        icon: React.createElement(EnvironmentOutlined),
+        label: 'Địa chỉ nhận hàng',
+        path: '/address',
+    },
+    {
+        key: '/wishlist',
+        icon: React.createElement(HeartOutlined),
+        label: 'Sản phẩm đã lưu',
+        path: '/wishlist',
+    },
+    {
+        key: '/faqs',
+        icon: React.createElement(QuestionCircleOutlined),
+        label: 'Hướng dẫn',
+        path: '/faqs',
+    },
 ];
 
 /**
@@ -147,6 +168,24 @@ const GOBIZ_MENU_ITEMS: MenuItem[] = [
         icon: React.createElement(GiftOutlined),
         label: 'Mã giảm giá',
         path: '/vouchers',
+    },
+    {
+        key: '/address',
+        icon: React.createElement(EnvironmentOutlined),
+        label: 'Địa chỉ nhận hàng',
+        path: '/address',
+    },
+    {
+        key: '/wishlist',
+        icon: React.createElement(HeartOutlined),
+        label: 'Sản phẩm đã lưu',
+        path: '/wishlist',
+    },
+    {
+        key: '/faqs',
+        icon: React.createElement(QuestionCircleOutlined),
+        label: 'Hướng dẫn',
+        path: '/faqs',
     },
 ];
 

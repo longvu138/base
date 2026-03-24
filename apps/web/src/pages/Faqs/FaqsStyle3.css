@@ -1,0 +1,58 @@
+.faqs-style3-wrapper {
+    min-height: 100vh;
+}
+
+/* Style Quill HTML content */
+.faq-content ol,
+.faq-content ul {
+    padding-left: 1.5rem;
+    margin: 0.5rem 0;
+}
+.faq-content li {
+    margin-bottom: 0.25rem;
+    line-height: 1.7;
+}
+.faq-content p {
+    margin-bottom: 0.5rem;
+}
+.faq-content .ql-align-justify {
+    text-align: justify;
+}
+.faq-content .ql-align-center {
+    text-align: center;
+}
+.faq-content strong, .faq-content b {
+    font-weight: 600;
+}
+
+/* Custom Collapse panel */
+.faq-style3-collapse .ant-collapse-item {
+    border-radius: 16px !important;
+    overflow: hidden;
+    margin-bottom: 12px;
+    border: 1px solid var(--ant-color-border, #e5e7eb) !important;
+    background: white;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.faq-style3-collapse .ant-collapse-item:hover {
+    border-color: var(--tenant-primary-color, #1677ff) !important;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+}
+.faq-style3-collapse .ant-collapse-item-active {
+    border-color: var(--tenant-primary-color, #1677ff) !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+.dark .faq-style3-collapse .ant-collapse-item {
+    background: rgb(31, 41, 55);
+    border-color: rgb(55, 65, 81) !important;
+}
+.dark .faq-style3-collapse .ant-collapse-item-active {
+    border-color: var(--tenant-primary-color, #1677ff) !important;
+}
+.faq-style3-collapse .ant-collapse-header {
+    padding: 18px 20px !important;
+    align-items: center !important;
+}
+.faq-style3-collapse .ant-collapse-content-box {
+    padding: 0 20px 18px !important;
+}

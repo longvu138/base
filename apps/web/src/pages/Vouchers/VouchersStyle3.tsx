@@ -105,8 +105,8 @@ export const VouchersStyle3 = () => {
                         icon={<CopyOutlined />}
                         onClick={() => handleCopy(item.code)}
                         className={`h-10 px-5 rounded-full font-bold text-sm border-0 transition-all duration-200 shadow-sm ${isCopied
-                                ? 'bg-green-500 text-white'
-                                : 'bg-primary text-white hover:opacity-90'
+                            ? 'bg-green-500 text-white'
+                            : 'bg-primary text-white hover:opacity-90'
                             }`}
                         style={{ background: isCopied ? '#22c55e' : 'var(--tenant-primary-color)' }}
                     >
@@ -136,7 +136,7 @@ export const VouchersStyle3 = () => {
     );
 
     return (
-        <div className="vouchers-style-3-wrapper p-6 space-y-6 max-w-[1000px] mx-auto">
+        <div className="vouchers-style-3-wrapper space-y-6 mx-auto">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
                 <div className="space-y-1">

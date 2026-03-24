@@ -147,6 +147,36 @@ pages:
     sort_default: createdAt:desc
     filters: [query, statuses[], dateRange→receivedTimeFrom/receivedTimeTo]
 
+- pageKey: vouchers
+    route: /vouchers
+    menu_label: mã giảm giá
+    menu_style1: true
+    menu_style3: true
+    api_class: voucherApi
+    endpoints:
+      list: https://poseidon.20p.gobizdev.com/api/customer/customer_coupon?page=0&size=20
+
+
+- pageKey: address
+    route: /address
+    menu_label: Địa chỉ nhận hàng
+    menu_style1: true
+    menu_style3: true
+    api_class: addressApi
+    endpoints:
+      list: https://poseidon.20p.gobizdev.com/api/customer/addresses?receivingAddress=false&page=0&size=25&sort=defaultAddress:desc,createdAt:desc
+
+- pageKey: wishlist
+    route: /wishlist
+    menu_label: Danh sách sản phẩm đã lưu
+    menu_style1: true
+    menu_style3: true
+    api_class: wishlistApi
+    endpoints:
+      list: https://poseidon.20p.gobizdev.com/api/customer/wishlist?page=0&size=5&sort=createdAt:desc
+ sort_default: createdAt:desc
+    filters: [query, dateRange→ createdFrom/createdTo]
+
 
 # ──────────────────────────────────────────────
 # THÊM TRANG MỚI — điền bên dưới
@@ -174,11 +204,15 @@ new_pages:
   #     - field: createdAt label: Ngày tạo  type: date
   #   notes:
 
-- pageKey: vouchers
-    route: /vouchers
-    menu_label: mã giảm giá
+
+- pageKey: faqs
+    route: /faqs
+    menu_label: Hướng dẫn
     menu_style1: true
     menu_style3: true
-    api_class: voucherApi
+    api_class: faqApi
     endpoints:
-      list: https://poseidon.20p.gobizdev.com/api/customer/customer_coupon?page=0&size=20
+      list: https://poseidon.20p.gobizdev.com/api/faqs?page=0&size=25&sort=position:asc
+    sort_default: createdAt:desc
+    filters: []
+

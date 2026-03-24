@@ -15,3 +15,6 @@ export * from './useDeliveryNoteHooks';
 export * from './useWaybillHooks';
 export * from './useVoucherHooks';
 export * from './useChatHooks';
+export * from './useAddressHooks';
+export * from './useWishlistHooks';
+export * from './useFaqHooks';

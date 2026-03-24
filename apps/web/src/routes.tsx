@@ -15,6 +15,9 @@ import WithdrawalSlips from './pages/WithdrawalSlips';
 import { Packages } from './pages/Packages';
 import Profile from './pages/Profile';
 import { Vouchers } from './pages/Vouchers';
+import { Address } from './pages/Address';
+import { Wishlist } from './pages/Wishlist';
+import { Faqs } from './pages/Faqs';
 
 
 import PrivateRoute from './components/PrivateRoute';
@@ -40,6 +43,9 @@ function AppRoutes() {
                     <Route path="packages" element={<Packages />} />
                     <Route path="profile" element={<Profile />} />
                     <Route path="vouchers" element={<Vouchers />} />
+                    <Route path="address" element={<Address />} />
+                    <Route path="wishlist" element={<Wishlist />} />
+                    <Route path="faqs" element={<Faqs />} />
 
                     <Route index element={<Navigate to="/dashboard" replace />} />
                     <Route path="*" element={<Navigate to="/dashboard" replace />} />
