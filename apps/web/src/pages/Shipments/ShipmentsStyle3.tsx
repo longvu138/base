@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
     Form, Input as AntInput, Button as AntButton, Tag,
     Skeleton as AntSkeleton, Tabs, Empty, Table, List,
@@ -99,8 +100,10 @@ export const ShipmentsStyle3: React.FC<{ isTabView?: boolean }> = ({ isTabView }
                         <RocketOutlined className="text-primary text-sm" />
                     </div>
                     <div>
-                        <div className="font-extrabold text-[#1a1a1a] dark:text-gray-100 tracking-tight text-sm">{text}</div>
-                        <div className="text-[10px] text-gray-400 font-medium tracking-widest">{record.createdAt}</div>
+                        <Link to={`/shipments/${text}`}>
+                            <div className="font-extrabold text-[#1a1a1a] dark:text-gray-100 tracking-tight text-sm hover:text-primary transition-colors">{text}</div>
+                            <div className="text-[10px] text-gray-400 font-medium tracking-widest">{record.createdAt}</div>
+                        </Link>
                     </div>
                 </div>
             ),
@@ -135,8 +138,10 @@ export const ShipmentsStyle3: React.FC<{ isTabView?: boolean }> = ({ isTabView }
             title: '',
             key: 'action',
             width: 60,
-            render: () => (
-                <AntButton type="primary" size="small" shape="circle" icon={<ArrowRightOutlined />} className="shadow-sm" />
+            render: (_: any, record: any) => (
+                <Link to={`/shipments/${record.code}`}>
+                    <AntButton type="primary" size="small" shape="circle" icon={<ArrowRightOutlined />} className="shadow-sm" />
+                </Link>
             ),
         },
     ];

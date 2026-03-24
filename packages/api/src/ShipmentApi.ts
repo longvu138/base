@@ -13,4 +13,7 @@ export const ShipmentApi = {
     getShipmentServices: () => {
         return ApiClient.auth.get(`categories/shipment_services?size=1000&sort=position:asc`);
     },
+    getShipmentDetail: (code: string) => {
+        return ApiClient.auth.get(`customer/shipments/${code}`);
+    },
 };

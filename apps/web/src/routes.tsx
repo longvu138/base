@@ -5,6 +5,7 @@ import { Dashboard } from './pages/Dashboard';
 import { Orders } from './pages/Orders';
 import { OrderDetail } from './pages/OrderDetail';
 import { Shipments } from './pages/Shipments';
+import { ShipmentDetail } from './pages/ShipmentDetail';
 import { Transactions } from './pages/Transactions';
 import { DeliveryRequests } from './pages/DeliveryRequests';
 import { DeliveryNotes } from './pages/DeliveryNotes';
@@ -29,6 +30,7 @@ function AppRoutes() {
                     <Route path="orders" element={<Orders />} />
                     <Route path="orders/:code" element={<OrderDetail />} />
                     <Route path="shipments" element={<Shipments />} />
+                    <Route path="shipments/:code" element={<ShipmentDetail />} />
                     <Route path="transactions" element={<Transactions />} />
                     <Route path="delivery-requests" element={<DeliveryRequests />} />
                     <Route path="delivery-notes" element={<DeliveryNotes />} />

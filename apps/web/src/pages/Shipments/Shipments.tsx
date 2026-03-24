@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { Form, Input, DatePicker, Checkbox, Select, Table, Card, Tabs, Empty, Skeleton } from 'antd';
 import { FilterPanel, TableComponent, StatusFilter, Status, Pagination } from '@repo/ui';
 import { useTheme } from '@repo/theme-provider';
@@ -61,7 +62,11 @@ export const Shipments: React.FC<{ isTabView?: boolean }> = ({ isTabView }) => {
             title: t('shipments.columns.code'),
             dataIndex: 'code',
             key: 'code',
-            render: (text: string) => <span className="font-bold text-primary dark:text-primary-light">{text}</span>
+            render: (text: string) => (
+                <Link to={`/shipments/${text}`} className="font-bold text-primary dark:text-primary-light hover:underline">
+                    {text}
+                </Link>
+            )
         },
         {
             title: t('shipments.columns.waybill'),

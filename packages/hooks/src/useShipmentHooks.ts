@@ -49,3 +49,14 @@ export const useShipmentServicesQuery = () => {
     });
 };
 
+export const useShipmentDetailQuery = (code: string) => {
+    return useQuery({
+        queryKey: ['shipments.detail', code],
+        queryFn: async () => {
+            const res = await ShipmentApi.getShipmentDetail(code);
+            return res.data;
+        },
+        enabled: !!code,
+    });
+};
+
