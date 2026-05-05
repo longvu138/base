@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react';
 import { Form, Input, Empty, Tag } from 'antd';
 import { FilterPanel, Pagination } from '@repo/ui';
-import { useAddressesQuery } from '@repo/hooks';
-import { EnvironmentOutlined, CheckCircleFilled, HomeOutlined } from '@ant-design/icons';
+import { useAddressesQuery, useDeleteAddressMutation } from '@repo/hooks';
+import { EnvironmentOutlined, CheckCircleFilled, HomeOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { AddressModal } from './AddressModal';
+import { Button, Popconfirm, message } from 'antd';
 
 const PAGE_SIZE = 20;
 
@@ -10,6 +12,10 @@ export const AddressStyle1 = () => {
     const [form] = Form.useForm();
     const [page, setPage] = useState(1);
     const [keyword, setKeyword] = useState('');
+    const [modalOpen, setModalOpen] = useState(false);
+    const [editingAddress, setEditingAddress] = useState<any>(null);
+
+    const deleteMutation = useDeleteAddressMutation();
 
     const apiParams = useMemo(() => ({
         page: 0,
@@ -51,6 +57,25 @@ export const AddressStyle1 = () => {
         setPage(1);
     };
 
+    const handleAdd = () => {
+        setEditingAddress(null);
+        setModalOpen(true);
+    };
+
+    const handleEdit = (item: any) => {
+        setEditingAddress(item);
+        setModalOpen(true);
+    };
+
+    const handleDelete = async (id: number) => {
+        try {
+            await deleteMutation.mutateAsync(id);
+            message.success('Xóa địa chỉ thành công');
+        } catch (error) {
+            message.error('Có lỗi xảy ra khi xóa');
+        }
+    };
+
     return (
         <div className="min-h-screen bg-layout space-y-6 p-4">
             {/* Filter */}
@@ -77,12 +102,22 @@ export const AddressStyle1 = () => {
             </div>
 
             {/* Header */}
-            <div className="flex items-center gap-2 text-base font-bold text-gray-700 dark:text-gray-200">
-                <EnvironmentOutlined className="text-primary" />
-                <span>Địa chỉ nhận hàng</span>
-                <span className="text-sm font-normal text-gray-400 ml-1">
-                    ({filtered.length} địa chỉ{keyword ? ` / ${data?.data?.length ?? 0} tổng` : ''})
-                </span>
+            <div className="flex items-center justify-between gap-2 text-base font-bold text-gray-700 dark:text-gray-200">
+                <div className="flex items-center gap-2">
+                    <EnvironmentOutlined className="text-primary" />
+                    <span>Địa chỉ nhận hàng</span>
+                    <span className="text-sm font-normal text-gray-400 ml-1">
+                        ({filtered.length} địa chỉ{keyword ? ` / ${data?.data?.length ?? 0} tổng` : ''})
+                    </span>
+                </div>
+                <Button
+                    type="primary"
+                    icon={<PlusOutlined />}
+                    onClick={handleAdd}
+                    className="h-10 px-6 rounded-lg font-bold shadow-lg shadow-primary/20"
+                >
+                    Thêm địa chỉ mới
+                </Button>
             </div>
 
             {/* List */}
@@ -123,6 +158,29 @@ export const AddressStyle1 = () => {
                                     {[item.address, item.wardName, item.districtName, item.provinceName].filter(Boolean).join(', ')}
                                 </p>
                             </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                                <Button
+                                    type="text"
+                                    icon={<EditOutlined />}
+                                    onClick={() => handleEdit(item)}
+                                    className="text-gray-400 hover:text-primary"
+                                />
+                                <Popconfirm
+                                    title="Xóa địa chỉ?"
+                                    description="Bạn có chắc chắn muốn xóa địa chỉ này không?"
+                                    onConfirm={() => handleDelete(item.id)}
+                                    okText="Xóa"
+                                    cancelText="Hủy"
+                                    okButtonProps={{ danger: true }}
+                                >
+                                    <Button
+                                        type="text"
+                                        danger
+                                        icon={<DeleteOutlined />}
+                                        className="text-gray-400 hover:text-red-500"
+                                    />
+                                </Popconfirm>
+                            </div>
                         </div>
                     ))
                 )}
@@ -137,6 +195,13 @@ export const AddressStyle1 = () => {
                     onChange={(p) => setPage(p)}
                 />
             )}
+
+            <AddressModal
+                open={modalOpen}
+                onClose={() => setModalOpen(false)}
+                initialValues={editingAddress}
+                isEdit={!!editingAddress}
+            />
         </div>
     );
 };

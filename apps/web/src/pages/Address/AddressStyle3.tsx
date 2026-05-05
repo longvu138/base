@@ -9,8 +9,14 @@ import {
     HomeOutlined,
     CheckCircleFilled,
     PhoneOutlined,
+    PlusOutlined,
+    EditOutlined,
+    DeleteOutlined,
 } from '@ant-design/icons';
+import { Popconfirm, message } from 'antd';
 import './AddressStyle3.css';
+import { AddressModal } from './AddressModal';
+import { useDeleteAddressMutation } from '@repo/hooks';
 
 const PAGE_SIZE = 20;
 
@@ -18,6 +24,10 @@ export const AddressStyle3 = () => {
     const [searchText, setSearchText] = useState('');
     const [appliedSearch, setAppliedSearch] = useState('');
     const [page, setPage] = useState(1);
+    const [modalOpen, setModalOpen] = useState(false);
+    const [editingAddress, setEditingAddress] = useState<any>(null);
+
+    const deleteMutation = useDeleteAddressMutation();
 
     const apiParams = useMemo(() => ({
         page: 0,
@@ -58,12 +68,31 @@ export const AddressStyle3 = () => {
         setPage(1);
     };
 
+    const handleAdd = () => {
+        setEditingAddress(null);
+        setModalOpen(true);
+    };
+
+    const handleEdit = (item: any) => {
+        setEditingAddress(item);
+        setModalOpen(true);
+    };
+
+    const handleDelete = async (id: number) => {
+        try {
+            await deleteMutation.mutateAsync(id);
+            message.success('Xóa địa chỉ thành công');
+        } catch (error) {
+            message.error('Có lỗi xảy ra khi xóa');
+        }
+    };
+
     const AddressCard = ({ item }: { item: any }) => {
         const fullAddress = [item.address, item.wardName, item.districtName, item.provinceName]
             .filter(Boolean).join(', ');
 
         return (
-            <div className="address-card flex items-start gap-5 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 hover:border-primary/30 hover:shadow-md dark:hover:border-primary/30">
+            <div className="address-card group flex items-start gap-5 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 hover:border-primary/30 hover:shadow-md dark:hover:border-primary/30 transition-all duration-200">
                 {/* Icon */}
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
                     <HomeOutlined className="text-primary text-xl" />
@@ -94,6 +123,31 @@ export const AddressStyle3 = () => {
                             <span className="leading-snug">{fullAddress}</span>
                         </div>
                     )}
+                </div>
+
+                {/* Actions */}
+                <div className="flex flex-col gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <AntButton
+                        type="text"
+                        icon={<EditOutlined />}
+                        onClick={() => handleEdit(item)}
+                        className="text-gray-400 hover:text-primary rounded-full w-8 h-8 flex items-center justify-center p-0"
+                    />
+                    <Popconfirm
+                        title="Xóa địa chỉ?"
+                        description="Bạn có chắc chắn muốn xóa không?"
+                        onConfirm={() => handleDelete(item.id)}
+                        okText="Xóa"
+                        cancelText="Hủy"
+                        okButtonProps={{ danger: true }}
+                    >
+                        <AntButton
+                            type="text"
+                            danger
+                            icon={<DeleteOutlined />}
+                            className="text-gray-400 hover:text-red-500 rounded-full w-8 h-8 flex items-center justify-center p-0"
+                        />
+                    </Popconfirm>
                 </div>
             </div>
         );
@@ -149,6 +203,10 @@ export const AddressStyle3 = () => {
                         className="h-11 px-4 rounded-2xl font-bold border-gray-200 dark:border-gray-700 hover:text-primary transition-all bg-gray-50 dark:bg-gray-900">
                         Xoá lọc
                     </AntButton>
+                    <AntButton type="primary" icon={<PlusOutlined />} onClick={handleAdd}
+                        className="h-11 px-6 rounded-2xl font-bold shadow-lg shadow-primary/20">
+                        Thêm mới
+                    </AntButton>
                 </div>
             </div>
 
@@ -176,6 +234,13 @@ export const AddressStyle3 = () => {
                     />
                 </div>
             )}
+
+            <AddressModal
+                open={modalOpen}
+                onClose={() => setModalOpen(false)}
+                initialValues={editingAddress}
+                isEdit={!!editingAddress}
+            />
         </div>
     );
 };
