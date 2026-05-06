@@ -1,13 +1,6 @@
-import { useMemo } from 'react';
 import { Form, Input, DatePicker, Table, Tag, Select, Card } from 'antd';
 import { FilterPanel, TableComponent, StatusFilter, Pagination } from '@repo/ui';
-import {
-    useFilterWithURL,
-    usePaginationWithURL,
-    useListWithdrawalSlipQuery,
-    useWithdrawalSlipStatusesQuery,
-    useBanksQuery,
-} from '@repo/hooks';
+import { useWithdrawalSlipsPage } from './hooks/useWithdrawalSlipsPage';
 
 const { RangePicker } = DatePicker;
 
@@ -15,34 +8,11 @@ const { RangePicker } = DatePicker;
  * WithdrawalSlipStyle1 — Traditional layout (Baogam/gd1)
  */
 export const WithdrawalSlipStyle1 = () => {
-    const [form] = Form.useForm();
-
-    const { page, pageSize, setPage, setPageSize } = usePaginationWithURL({
-        defaultPage: 1,
-        defaultPageSize: 20,
-    });
-
-    const { applyFilters, clearFilters, filters } = useFilterWithURL({ form });
-
-    const apiParams = useMemo(() => {
-        const params: Record<string, any> = {
-            page: page - 1,
-            size: pageSize,
-            sort: 'createdAt:desc',
-            ...filters,
-        };
-        if (Array.isArray(params.statuses)) {
-            params.statuses = params.statuses.join(',');
-        }
-        return params;
-    }, [page, pageSize, filters]);
-
-    const { data: listData, isLoading } = useListWithdrawalSlipQuery(apiParams);
-    const { data: statusData } = useWithdrawalSlipStatusesQuery();
-    const { data: banksData } = useBanksQuery();
-
-    const statusOptions = useMemo(() => (statusData || []).map((s: any) => ({ label: s.name, value: s.code })), [statusData]);
-    const bankOptions = useMemo(() => (banksData || []).map((b: any) => ({ label: b.name, value: b.code })), [banksData]);
+    const {
+        form, page, pageSize, setPage, setPageSize,
+        listData, isWithdrawalSlipsLoading, statusData, banksData,
+        statusOptions, bankOptions, handleSearch, handleReset
+    } = useWithdrawalSlipsPage();
 
     const columns = [
         {
@@ -91,15 +61,13 @@ export const WithdrawalSlipStyle1 = () => {
         },
     ];
 
-    const handleSearch = () => applyFilters(form.getFieldsValue());
-
     return (
         <div className="min-h-screen bg-layout p-4 space-y-4">
             <Card className="mb-4 shadow-sm">
                 <FilterPanel
                     form={form}
                     onSearch={handleSearch}
-                    onReset={clearFilters}
+                    onReset={handleReset}
                     primaryContent={
                         <>
                             <Form.Item name="statuses" noStyle>
@@ -124,7 +92,7 @@ export const WithdrawalSlipStyle1 = () => {
             <TableComponent
                 title="Yêu cầu rút tiền"
                 totalCount={listData?.total}
-                loading={isLoading}
+                loading={isWithdrawalSlipsLoading}
             >
                 <Table
                     columns={columns}

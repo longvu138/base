@@ -1,0 +1,227 @@
+Component,Token,Kiểu,Giá trị mặc định,Mô tả (EN),Cách dùng trong components config
+=== BUTTON ===,,,,, 
+Button,fontWeight,string|number,400,Font weight of button text,Độ đậm chữ nút
+Button,contentFontSize,number,14,Font size of button content (default size),Cỡ chữ nút thường
+Button,contentFontSizeLG,number,16,Font size of large button content,Cỡ chữ nút large
+Button,contentFontSizeSM,number,14,Font size of small button content,Cỡ chữ nút small
+Button,paddingInline,number,15,Horizontal padding of button,Padding ngang nút thường
+Button,paddingInlineLG,number,15,Horizontal padding of large button,Padding ngang nút large
+Button,paddingInlineSM,number,7,Horizontal padding of small button,Padding ngang nút small
+Button,primaryColor,string,#fff,Text color of primary button,Màu chữ nút Primary
+Button,primaryShadow,string,0 2px 0 rgba(5;145;255;0.1),Shadow of primary button,Bóng đổ nút Primary
+Button,defaultColor,string,rgba(0;0;0;0.88),Text color of default button,Màu chữ nút Default
+Button,defaultBg,string,#fff,Background color of default button,Nền nút Default
+Button,defaultBorderColor,string,#d9d9d9,Border color of default button,Viền nút Default
+Button,defaultHoverBg,string,#fff,Hover background of default button,Nền nút Default khi hover
+Button,defaultHoverColor,string,#4096ff,Hover text color of default button,Chữ nút Default khi hover
+Button,defaultHoverBorderColor,string,#4096ff,Hover border color of default button,Viền nút Default khi hover
+Button,defaultActiveBg,string,#fff,Active background of default button,Nền nút Default khi active
+Button,defaultActiveColor,string,#0958d9,Active text color of default button,Chữ nút Default khi active
+Button,defaultActiveBorderColor,string,#0958d9,Active border color of default button,Viền nút Default khi active
+Button,dangerColor,string,#fff,Text color of danger button,Màu chữ nút Danger
+Button,dangerShadow,string,0 2px 0 rgba(255;38;5;0.06),Shadow of danger button,Bóng đổ nút Danger
+Button,ghostBg,string,transparent,Background color of ghost button,Nền nút Ghost
+Button,defaultGhostColor,string,#fff,Text color of default ghost button,Chữ nút Ghost mặc định
+Button,defaultGhostBorderColor,string,#fff,Border color of default ghost button,Viền nút Ghost mặc định
+Button,linkHoverBg,string,transparent,Hover background of link button,Nền nút Link khi hover
+Button,textHoverBg,string,rgba(0;0;0;0.06),Hover background of text button,Nền nút Text khi hover
+Button,textTextColor,string,rgba(0;0;0;0.88),Text color of text-type button,Chữ nút Text
+Button,solidTextColor,string,#fff,Text color of solid button,Chữ nút Solid
+Button,defaultShadow,string,0 2px 0 rgba(0;0;0;0.02),Shadow of default button,Bóng đổ nút Default
+Button,defaultBgDisabled,string,rgba(0;0;0;0.04),Background when default button is disabled,Nền nút Default khi disabled
+Button,dashedBgDisabled,string,rgba(0;0;0;0.04),Background when dashed button is disabled,Nền nút Dashed khi disabled
+=== INPUT ===,,,,,
+Input,paddingInline,number,11,Horizontal padding of input,Padding ngang input thường
+Input,paddingInlineSM,number,7,Horizontal padding of small input,Padding ngang input small
+Input,paddingInlineLG,number,11,Horizontal padding of large input,Padding ngang input large
+Input,paddingBlock,number,4,Vertical padding of input,Padding dọc input thường
+Input,paddingBlockSM,number,0,Vertical padding of small input,Padding dọc input small
+Input,paddingBlockLG,number,7,Vertical padding of large input,Padding dọc input large
+Input,inputFontSize,number,14,Font size of input,Cỡ chữ input thường
+Input,inputFontSizeSM,number,14,Font size of small input,Cỡ chữ input small
+Input,inputFontSizeLG,number,16,Font size of large input,Cỡ chữ input large
+Input,addonBg,string,rgba(0;0;0;0.02),Background color of addon (prefix/suffix block),Nền vùng addon
+Input,hoverBorderColor,string,#4096ff,Border color when hovering,Viền khi hover
+Input,activeBorderColor,string,#1677ff,Border color when focused/active,Viền khi focus
+Input,activeShadow,string,0 0 0 2px rgba(5;145;255;0.1),Box shadow when active/focused,Bóng khi focus
+Input,errorActiveShadow,string,0 0 0 2px rgba(255;38;5;0.06),Box shadow on error status + active,Bóng khi lỗi + focus
+Input,warningActiveShadow,string,0 0 0 2px rgba(255;215;5;0.1),Box shadow on warning status + active,Bóng khi warning + focus
+Input,hoverBg,string,#fff,Background when hovering,Nền khi hover
+Input,activeBg,string,#fff,Background when focused/active,Nền khi focus
+=== SELECT ===,,,,,
+Select,zIndexPopup,number,1050,Z-index of dropdown,Z-index của dropdown
+Select,optionSelectedColor,string,rgba(0;0;0;0.88),Text color of selected option,Chữ option đã chọn
+Select,optionSelectedFontWeight,string|number,600,Font weight of selected option,Độ đậm option đã chọn
+Select,optionSelectedBg,string,#e6f4ff,Background of selected option,Nền option đã chọn
+Select,optionActiveBg,string,rgba(0;0;0;0.04),Background of active/hovered option,Nền option đang hover
+Select,optionPadding,string,5px 12px,Padding of option,Padding option
+Select,optionFontSize,number,14,Font size of option,Cỡ chữ option
+Select,optionHeight,number,32,Height of option item,Chiều cao option
+Select,selectorBg,string,#fff,Background of selector box,Nền ô select
+Select,clearBg,string,#fff,Background of clear button,Nền nút xóa
+Select,hoverBorderColor,string,#4096ff,Hover border color,Viền khi hover
+Select,activeBorderColor,string,#1677ff,Active border color,Viền khi focus
+Select,activeOutlineColor,string,rgba(5;145;255;0.1),Active outline color,Outline khi focus
+Select,multipleItemBg,string,rgba(0;0;0;0.06),Background of multi-select tag,Nền tag multi-select
+Select,multipleItemBorderColor,string,transparent,Border of multi-select tag,Viền tag multi-select
+Select,multipleItemHeight,number,24,Height of multi-select tag (default),Chiều cao tag thường
+Select,multipleItemHeightSM,number,16,Height of multi-select tag (small),Chiều cao tag small
+Select,multipleItemHeightLG,number,32,Height of multi-select tag (large),Chiều cao tag large
+Select,multipleItemColorDisabled,string,rgba(0;0;0;0.25),Text color of disabled tag,Chữ tag khi disabled
+Select,multipleItemBorderColorDisabled,string,transparent,Border of disabled tag,Viền tag khi disabled
+Select,multipleSelectorBgDisabled,string,rgba(0;0;0;0.04),Background when multi-select disabled,Nền multi-select khi disabled
+=== TABLE ===,,,,,
+Table,headerBg,string,#fafafa,Background of table header,Nền header bảng
+Table,headerColor,string,rgba(0;0;0;0.88),Text color of table header,Màu chữ header bảng
+Table,headerSortActiveBg,string,#f0f0f0,Header background when sorted,Nền header khi đang sort
+Table,headerSortHoverBg,string,#e8e8e8,Header background when sorted + hovered,Nền header hover khi sort
+Table,bodySortBg,string,#fafafa,Sorted column body background,Nền cột body đang sort
+Table,rowHoverBg,string,#fafafa,Row background on hover,Nền hàng khi hover
+Table,rowSelectedBg,string,#e6f4ff,Selected row background,Nền hàng được chọn
+Table,rowSelectedHoverBg,string,#bae0ff,Selected + hovered row background,Nền hàng chọn + hover
+Table,rowExpandedBg,string,rgba(0;0;0;0.02),Expanded row background,Nền hàng expanded
+Table,borderColor,string,#f0f0f0,Border/divider color of table,Màu viền / đường kẻ bảng
+Table,headerBorderRadius,number,8,Border radius of table header,Bo góc header
+Table,footerBg,string,#fafafa,Background of table footer,Nền footer bảng
+Table,footerColor,string,rgba(0;0;0;0.88),Text color of table footer,Chữ footer bảng
+Table,cellPaddingBlock,number,16,Vertical cell padding (default),Padding dọc ô bảng
+Table,cellPaddingInline,number,16,Horizontal cell padding (default),Padding ngang ô bảng
+Table,cellPaddingBlockMD,number,12,Vertical cell padding (middle),Padding dọc ô middle
+Table,cellPaddingInlineMD,number,8,Horizontal cell padding (middle),Padding ngang ô middle
+Table,cellPaddingBlockSM,number,8,Vertical cell padding (small),Padding dọc ô small
+Table,cellPaddingInlineSM,number,8,Horizontal cell padding (small),Padding ngang ô small
+Table,cellFontSize,number,14,Font size of cell (default),Cỡ chữ ô bảng
+Table,cellFontSizeMD,number,14,Font size of cell (middle),Cỡ chữ ô middle
+Table,cellFontSizeSM,number,14,Font size of cell (small),Cỡ chữ ô small
+Table,headerSplitColor,string,#f0f0f0,Split border color in header,Màu đường chia cột header
+Table,filterDropdownBg,string,#fff,Background of filter dropdown,Nền dropdown filter
+Table,filterDropdownMenuBg,string,#fff,Background of filter menu items,Nền menu item filter
+Table,stickyScrollBarBg,string,rgba(0;0;0;0.25),Sticky scrollbar background,Nền scrollbar sticky
+Table,stickyScrollBarBorderRadius,number,100,Scrollbar border radius,Bo góc scrollbar sticky
+=== MODAL ===,,,,,
+Modal,headerBg,string,transparent,Background of modal header,Nền header modal
+Modal,contentBg,string,#fff,Background of modal content area,Nền vùng nội dung modal
+Modal,footerBg,string,transparent,Background of modal footer,Nền footer modal
+Modal,titleColor,string,rgba(0;0;0;0.88),Title text color,Màu chữ tiêu đề modal
+Modal,titleFontSize,number,16,Title font size,Cỡ chữ tiêu đề modal
+Modal,titleLineHeight,number,1.5,Title line height,Line height tiêu đề
+=== FORM ===,,,,,
+Form,labelRequiredMarkColor,string,#ff4d4f,Color of required mark (*),Màu dấu * bắt buộc
+Form,labelColor,string,rgba(0;0;0;0.88),Label text color,Màu chữ label
+Form,labelFontSize,number,14,Label font size,Cỡ chữ label
+Form,labelHeight,number,32,Height of label,Chiều cao label
+Form,itemMarginBottom,number,24,Margin bottom between form items,Khoảng cách giữa các form item
+Form,inlineItemMarginBottom,number,0,Margin bottom for inline form items,Khoảng cách form item inline
+=== MENU ===,,,,,
+Menu,itemColor,string,rgba(0;0;0;0.88),Text color of menu item,Màu chữ menu item
+Menu,itemSelectedColor,string,#1677ff,Text color of selected menu item,Màu chữ item đang chọn
+Menu,itemSelectedBg,string,#e6f4ff,Background of selected menu item,Nền item đang chọn
+Menu,itemHoverBg,string,rgba(0;0;0;0.04),Background of hovered menu item,Nền item khi hover
+Menu,itemHoverColor,string,rgba(0;0;0;0.88),Text color of hovered menu item,Màu chữ item khi hover
+Menu,itemActiveBg,string,#e6f4ff,Background of active menu item,Nền item đang active
+Menu,activeBarWidth,number,3,Width of active bar indicator,Độ rộng thanh indicator active
+Menu,activeBarHeight,number,2,Height of active bar (horizontal),Chiều cao thanh indicator (horizontal)
+Menu,activeBarBorderWidth,number,2,Border width of active bar,Độ dày viền thanh active
+Menu,subMenuItemBg,string,transparent,Background of sub-menu item,Nền item submenu
+Menu,horizontalItemSelectedColor,string,#1677ff,Selected item text color (horizontal),Màu chữ item chọn (horizontal)
+Menu,horizontalItemSelectedBg,string,transparent,Selected item bg (horizontal),Nền item chọn (horizontal)
+Menu,horizontalItemHoverBg,string,transparent,Hovered item bg (horizontal),Nền item hover (horizontal)
+Menu,horizontalItemHoverColor,string,rgba(0;0;0;0.88),Hovered item text (horizontal),Màu chữ hover (horizontal)
+Menu,popupBg,string,#fff,Popup/dropdown submenu background,Nền popup submenu
+Menu,darkItemColor,string,rgba(255;255;255;0.65),Dark theme item text color,Chữ item (dark)
+Menu,darkItemSelectedBg,string,#1677ff,Dark theme selected item bg,Nền item chọn (dark)
+Menu,darkItemSelectedColor,string,#fff,Dark theme selected item text,Chữ item chọn (dark)
+Menu,darkItemHoverBg,string,transparent,Dark theme hovered item bg,Nền item hover (dark)
+Menu,darkSubMenuItemBg,string,#000c17,Dark theme submenu bg,Nền submenu (dark)
+Menu,darkGroupTitleColor,string,rgba(255;255;255;0.45),Group title color in dark theme,Màu tiêu đề group (dark)
+Menu,collapsedWidth,number,80,Width when sidebar collapsed,Độ rộng khi menu thu gọn
+Menu,collapsedIconSize,number,16,Icon size when collapsed,Cỡ icon khi thu gọn
+=== LAYOUT ===,,,,,
+Layout,colorBgHeader,string,#001529,Background color of layout header,Nền header layout
+Layout,colorBgBody,string,#f5f5f5,Background color of layout body,Nền body layout
+Layout,colorBgTrigger,string,#002140,Background of sider collapse trigger,Nền nút thu gọn sider
+Layout,colorTextTrigger,string,#fff,Text/icon color of trigger,Màu icon nút thu gọn
+Layout,headerHeight,number,64,Height of header,Chiều cao header
+Layout,headerPadding,string,0 50px,Padding of header,Padding header
+Layout,headerColor,string,rgba(0;0;0;0.88),Text color of header,Màu chữ header
+Layout,footerPadding,string,24px 50px,Padding of footer,Padding footer
+Layout,footerBg,string,rgba(0;0;0;0.02),Background of footer,Nền footer
+Layout,siderBg,string,#001529,Background of sider,Nền sider
+Layout,lightSiderBg,string,#fff,Background of light-mode sider,Nền sider (light mode)
+Layout,lightTriggerBg,string,#fff,Trigger background in light mode,Nền trigger (light)
+Layout,lightTriggerColor,string,rgba(0;0;0;0.88),Trigger color in light mode,Màu trigger (light)
+=== CARD ===,,,,,
+Card,headerBg,string,transparent,Background of card header,Nền header card
+Card,headerFontSize,number,16,Font size of card header,Cỡ chữ header card
+Card,headerFontSizeSM,number,14,Font size of small card header,Cỡ chữ header card small
+Card,headerHeight,number,56,Height of card header,Chiều cao header card
+Card,headerHeightSM,number,38,Height of small card header,Chiều cao header card small
+Card,actionsBg,string,#fff,Background of card actions area,Nền vùng actions card
+Card,actionsLiMargin,string,12px 0,Margin of action items,Margin action item
+Card,tabsMarginBottom,number,-17,Margin bottom of tabs in card,Margin tab trong card
+Card,extraColor,string,rgba(0;0;0;0.88),Color of card extra content,Màu extra content
+=== TAG ===,,,,,
+Tag,defaultBg,string,rgba(0;0;0;0.02),Default background of tag,Nền tag mặc định
+Tag,defaultColor,string,rgba(0;0;0;0.88),Default text color of tag,Chữ tag mặc định
+=== BADGE ===,,,,,
+Badge,indicatorZIndex,number|string,auto,Z-index of badge indicator,Z-index của badge
+Badge,indicatorHeight,number,20,Height of badge (normal),Chiều cao badge
+Badge,indicatorHeightSM,number,14,Height of small badge,Chiều cao badge small
+Badge,dotSize,number,6,Size of dot badge,Kích thước badge dạng chấm
+Badge,textFontSize,number,12,Font size of badge text,Cỡ chữ badge
+Badge,textFontSizeSM,number,9,Font size of small badge text,Cỡ chữ badge small
+Badge,textFontWeight,string,normal,Font weight of badge text,Độ đậm chữ badge
+Badge,statusSize,number,6,Size of status badge dot,Kích thước chấm status badge
+=== PAGINATION ===,,,,,
+Pagination,itemBg,string,#fff,Background of pagination item,Nền item pagination
+Pagination,itemSize,number,32,Size of pagination item,Kích thước item pagination
+Pagination,itemSizeSM,number,24,Size of small pagination item,Kích thước item small
+Pagination,itemActiveBg,string,#fff,Background of active pagination item,Nền item đang active
+Pagination,itemInputBg,string,#fff,Background of input in pagination,Nền input pagination
+Pagination,miniOptionsSizeChangerTop,number,0,Top offset for mini size-changer,Offset top mini size-changer
+=== TOOLTIP ===,,,,,
+Tooltip,colorBgDefault,string,rgba(0;0;0;0.85),Default background of tooltip,Nền tooltip
+Tooltip,colorTextLightSolid,string,#fff,Text color on dark background,Màu chữ trên nền tối
+=== NOTIFICATION ===,,,,,
+Notification,zIndexPopup,number,2050,Z-index of notification,Z-index notification
+Notification,width,number,384,Width of notification,Độ rộng notification
+=== ALERT ===,,,,,
+Alert,defaultPadding,string,8px 12px,Default padding of alert,Padding alert mặc định
+Alert,withDescriptionPadding,string,20px 24px,Padding when has description,Padding khi có description
+Alert,withDescriptionIconSize,number,24,Icon size when has description,Cỡ icon khi có description
+=== DRAWER ===,,,,,
+Drawer,footerPaddingBlock,number,8,Vertical padding of footer,Padding dọc footer drawer
+Drawer,footerPaddingInline,number,16,Horizontal padding of footer,Padding ngang footer drawer
+=== TABS ===,,,,,
+Tabs,cardBg,string,rgba(0;0;0;0.02),Background of card-style tab,Nền tab kiểu card
+Tabs,cardHeight,number,40,Height of card tab,Chiều cao tab card
+Tabs,cardPadding,string,6px 16px,Padding of card tab,Padding tab card
+Tabs,titleFontSize,number,14,Font size of tab title,Cỡ chữ tiêu đề tab
+Tabs,titleFontSizeLG,number,16,Font size of large tab title,Cỡ chữ tab large
+Tabs,titleFontSizeSM,number,14,Font size of small tab title,Cỡ chữ tab small
+Tabs,inkBarColor,string,#1677ff,Color of active tab underline,Màu gạch dưới tab active
+Tabs,horizontalItemGutter,number,32,Gap between horizontal tabs,Khoảng cách tab ngang
+Tabs,horizontalItemPadding,string,12px 0,Padding of horizontal tab,Padding tab ngang
+Tabs,verticalItemPadding,string,8px 24px,Padding of vertical tab,Padding tab dọc
+Tabs,itemColor,string,rgba(0;0;0;0.88),Text color of tab item,Màu chữ tab
+Tabs,itemSelectedColor,string,#1677ff,Text color of selected tab,Màu chữ tab đang chọn
+Tabs,itemHoverColor,string,#1677ff,Text color of hovered tab,Màu chữ tab hover
+Tabs,itemActiveColor,string,#0958d9,Text color when tab is active,Màu chữ tab active
+Tabs,cardGutter,number,2,Gap between card tabs,Khoảng cách tab card
+=== CHECKBOX ===,,,,,
+Checkbox,colorBgContainer,string,#fff,Background of checkbox,Nền checkbox
+Checkbox,borderRadiusSM,number,4,Border radius of checkbox,Bo góc checkbox
+=== SWITCH ===,,,,,
+Switch,trackHeight,number,22,Height of switch track,Chiều cao track switch
+Switch,trackHeightSM,number,16,Height of small switch track,Chiều cao track switch small
+Switch,trackMinWidth,number,44,Min width of switch track,Độ rộng tối thiểu track
+Switch,trackMinWidthSM,number,28,Min width of small switch,Độ rộng tối thiểu switch small
+Switch,handleSize,number,18,Size of switch handle,Kích thước handle switch
+Switch,handleSizeSM,number,12,Size of small switch handle,Kích thước handle small
+Switch,handleShadow,string,0 2px 4px 0 rgba(0;35;11;0.2),Shadow of switch handle,Bóng handle switch
+Switch,innerMinMargin,number,3,Minimum inner margin,Margin trong tối thiểu
+Switch,innerMaxMargin,number,9,Maximum inner margin,Margin trong tối đa
+=== TYPOGRAPHY ===,,,,,
+Typography,titleMarginBottom,string|number,0.5em,Margin bottom of title,Margin dưới tiêu đề
+Typography,titleMarginTop,string|number,1.2em,Margin top of title,Margin trên tiêu đề
+Typography,fontWeightStrong,number,600,Font weight for strong/bold text,Độ đậm chữ strong

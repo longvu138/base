@@ -1,11 +1,11 @@
-import { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Form, Input as AntInput, Button as AntButton, Tag, Skeleton as AntSkeleton, Tabs, Empty, Table, List, DatePicker, Checkbox, Select } from 'antd';
 import { Pagination } from '@repo/ui';
-import { useFilterWithURL, usePaginationWithURL, useListOrderQuery, useOrderStatusesQuery, useOrderStatisticQuery, useOrderServicesQuery, useMarketplacesQuery } from '@repo/hooks';
 import { useTranslation } from '@repo/i18n';
 import { SearchOutlined, RedoOutlined, ArrowRightOutlined, BoxPlotOutlined, FilterOutlined } from '@ant-design/icons';
 import './OrdersStyle3.css';
+import { useOrdersPage } from './hooks/useOrdersPage';
 
 const { RangePicker } = DatePicker;
 
@@ -18,54 +18,17 @@ const { RangePicker } = DatePicker;
  */
 export const OrdersStyle3: React.FC<{ isTabView?: boolean }> = ({ isTabView }) => {
     const { t } = useTranslation();
-    const [form] = Form.useForm();
+    const navigate = useNavigate();
+    
+    const {
+        form, page, pageSize, setPage, setPageSize,
+        filters, orderData, isOrdersLoading, statusOptions,
+        statusData, marketplacesData, servicesData,
+        handleReset, applyFilters
+    } = useOrdersPage();
+
     const [searchText, setSearchText] = useState('');
     const [showFilters, setShowFilters] = useState(false);
-
-    const { page, pageSize, setPage, setPageSize } = usePaginationWithURL({
-        defaultPage: 1,
-        defaultPageSize: 12
-    });
-
-    const { applyFilters, clearFilters, filters } = useFilterWithURL({ form });
-
-    const apiParams = useMemo(() => {
-        const params: Record<string, any> = {
-            page: page - 1,
-            pageSize,
-            ...filters
-        };
-        if (searchText) params.query = searchText;
-        ['statuses', 'marketplaces', 'services'].forEach(key => {
-            if (Array.isArray(params[key])) {
-                params[key] = params[key].join(',');
-            }
-        });
-        if (params.dateRange) {
-            params.createdAtFrom = params.dateRange[0]?.toISOString?.() ?? params.dateRange[0];
-            params.createdAtTo = params.dateRange[1]?.toISOString?.() ?? params.dateRange[1];
-            delete params.dateRange;
-        }
-        return params;
-    }, [page, pageSize, filters, searchText]);
-
-    const { data: orderData, isLoading } = useListOrderQuery(apiParams);
-    const { data: statusData } = useOrderStatusesQuery();
-    const { data: statisticData } = useOrderStatisticQuery();
-    const { data: servicesData } = useOrderServicesQuery();
-    const { data: marketplacesData } = useMarketplacesQuery();
-
-    const statusOptions = useMemo(() => {
-        if (!statusData) return [];
-        return statusData.map((s: any) => {
-            const stat = statisticData?.find((item: any) => item.status === s.code);
-            const count = Number(stat?.total || 0);
-            return {
-                label: count > 0 ? `${s.name} (${count})` : s.name,
-                value: s.code,
-            };
-        });
-    }, [statusData, statisticData]);
 
     const getStatusTag = (status: string) => {
         const found = statusData?.find((s: any) => s.code === status);
@@ -80,8 +43,7 @@ export const OrdersStyle3: React.FC<{ isTabView?: boolean }> = ({ isTabView }) =
     };
 
     const handleSearch = () => applyFilters({ ...form.getFieldsValue(), query: searchText });
-    const handleReset = () => { setSearchText(''); clearFilters(); };
-    const navigate = useNavigate();
+    const handleResetAll = () => { setSearchText(''); handleReset(); };
 
     const inputCls = 'h-11 rounded-2xl bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700';
 
@@ -170,7 +132,7 @@ export const OrdersStyle3: React.FC<{ isTabView?: boolean }> = ({ isTabView }) =
                 className={`${compact ? 'h-10 px-4 rounded-xl font-medium' : 'h-11 px-5 rounded-2xl font-bold'} transition-all ${showFilters ? 'bg-primary/10 text-primary border-primary/20' : 'bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700'}`}>
                 Bộ lọc
             </AntButton>
-            <AntButton icon={<RedoOutlined />} onClick={handleReset}
+            <AntButton icon={<RedoOutlined />} onClick={handleResetAll}
                 className={`${compact ? 'h-10 px-4 rounded-xl font-medium' : 'h-11 px-5 rounded-2xl font-bold'} border-gray-200 dark:border-gray-700 hover:text-primary transition-all bg-gray-50 dark:bg-gray-900`}>
                 Làm mới
             </AntButton>
@@ -320,7 +282,7 @@ export const OrdersStyle3: React.FC<{ isTabView?: boolean }> = ({ isTabView }) =
 
             {/* Table */}
             <div className="bg-white dark:bg-gray-800 rounded-3xl overflow-hidden border border-gray-100 dark:border-gray-700 shadow-sm">
-                {isLoading ? (
+                {isOrdersLoading ? (
                     <List
                         dataSource={Array.from({ length: 5 }).map((_, i) => ({ id: `loading-${i}` }))}
                         renderItem={() => (

@@ -1,69 +1,23 @@
-import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Form, Input, DatePicker, Select, Table, Checkbox, Button } from 'antd';
 import { FilterPanel, TableComponent, Status, StatusFilter, Pagination } from '@repo/ui';
-import { useFilterWithURL, usePaginationWithURL, useListOrderQuery, useOrderStatusesQuery, useOrderStatisticQuery, useOrderServicesQuery, useMarketplacesQuery } from '@repo/hooks';
-import { useTranslation } from '@repo/i18n';
 import { Plus, Download } from 'lucide-react';
+import { useOrdersPage } from './hooks/useOrdersPage';
 
 const { RangePicker } = DatePicker;
 
-
+/**
+ * OrdersStyle1 — Giao diện cho Baogam (gd1)
+ * Layout bộ lọc kiểu FilterPanel và danh sách bảng truyền thống.
+ */
 export const OrdersStyle1 = () => {
-    const { t } = useTranslation();
-    const [form] = Form.useForm();
-
-    const { page, pageSize, setPage, setPageSize } = usePaginationWithURL({
-        defaultPage: 1,
-        defaultPageSize: 20
-    });
-
-    const { applyFilters, clearFilters, filters } = useFilterWithURL({
-        form
-    });
-
-    const apiParams = useMemo(() => {
-        const params: Record<string, any> = {
-            page: page - 1,
-            size: pageSize,
-            ...filters
-        };
-
-        ['statuses', 'marketplaces', 'services'].forEach(key => {
-            if (Array.isArray(params[key])) {
-                params[key] = params[key].join(',');
-            }
-        });
-
-        return params;
-    }, [page, pageSize, filters]);
-
-    const { data: orderData, isLoading: isOrderLoading } = useListOrderQuery(apiParams);
-    const { data: statusData } = useOrderStatusesQuery();
-    const { data: statisticData } = useOrderStatisticQuery();
-    const { data: servicesData } = useOrderServicesQuery();
-    const { data: marketplacesData } = useMarketplacesQuery();
-
-    const statusOptions = useMemo(() => {
-        if (!statusData) return [];
-        return statusData.map((s: any) => {
-            const statistic = statisticData?.find((item: any) => item.status === s.code);
-            const count = statistic ? statistic.total : 0;
-            return {
-                label: `${s.name} (${count})`,
-                value: s.code,
-            };
-        });
-    }, [statusData, statisticData]);
-
-    const handleSearch = () => {
-        const values = form.getFieldsValue();
-        applyFilters(values);
-    };
-
-    const handleReset = () => {
-        clearFilters();
-    };
+    const navigate = useNavigate();
+    const {
+        t, form, page, pageSize, setPage, setPageSize,
+        orderData, isOrderLoading, statusData,
+        servicesData, marketplacesData, statusOptions,
+        handleSearch, handleReset
+    } = useOrdersPage();
 
     const columns = [
         {
@@ -102,11 +56,8 @@ export const OrdersStyle1 = () => {
         }
     ];
 
-    const navigate = useNavigate();
-
     return (
         <div className="space-y-10">
-
             <div className='bg-filter dark:bg-filter-dark p-4 rounded-lg transition-colors duration-200'>
                 <FilterPanel
                     form={form}
@@ -198,8 +149,6 @@ export const OrdersStyle1 = () => {
                 />
             </div>
 
-
-
             <TableComponent
                 title={t('orders.title')}
                 totalCount={orderData?.total || 0}
@@ -237,7 +186,6 @@ export const OrdersStyle1 = () => {
                 />
             </TableComponent>
 
-
             <Pagination
                 current={page}
                 pageSize={pageSize}
@@ -250,3 +198,4 @@ export const OrdersStyle1 = () => {
         </div>
     );
 };
+

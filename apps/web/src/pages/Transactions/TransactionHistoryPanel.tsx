@@ -1,64 +1,27 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import {
     Form, Input as AntInput, Button as AntButton, Tag,
     Skeleton as AntSkeleton, Tabs, Empty, Table, List, DatePicker,
 } from 'antd';
 import { Pagination } from '@repo/ui';
 import {
-    useFilterWithURL, usePaginationWithURL,
-    useListTransactionQuery, useTransactionTypesQuery, useWalletAccountsQuery,
-} from '@repo/hooks';
-import {
     SearchOutlined, RedoOutlined, DollarCircleOutlined,
     FilterOutlined, DownloadOutlined,
 } from '@ant-design/icons';
-import { TransactionApi } from '@repo/api';
 import './TransactionsStyle3.css';
+import { useTransactionsPage } from './hooks/useTransactionsPage';
 
 /**
  * TransactionHistoryPanel — nội dung tab "Lịch sử giao dịch"
- * Tách ra từ TransactionsStyle3 cũ để dùng trong tab.
  */
 export const TransactionHistoryPanel = ({ isTabView }: { isTabView?: boolean }) => {
-    const [form] = Form.useForm();
+    const {
+        form, page, pageSize, setPage, setPageSize,
+        filters, listData, isTransactionsLoading, transactionTypes,
+        handleSearch, handleReset, applyFilters, handleExport
+    } = useTransactionsPage();
+
     const [showFilters, setShowFilters] = useState(false);
-
-    const { page, pageSize, setPage, setPageSize } = usePaginationWithURL({
-        defaultPage: 1,
-        defaultPageSize: 20,
-    });
-    const { applyFilters, clearFilters, filters } = useFilterWithURL({ form });
-
-    const { data: walletAccounts } = useWalletAccountsQuery();
-    const defaultAccount = walletAccounts?.find((acc: any) => acc.isDefault) || walletAccounts?.[0];
-    const accountId = defaultAccount?.account;
-
-    const apiParams = useMemo(() => {
-        const params: any = { page: page - 1, size: pageSize, ...filters };
-        if (Array.isArray(params.externalTypes)) params.externalTypes = params.externalTypes.join(',');
-        if (params.nominalTimestampFrom) params.nominalTimestampFrom = params.nominalTimestampFrom.startOf('day').toISOString();
-        if (params.nominalTimestampTo) params.nominalTimestampTo = params.nominalTimestampTo.endOf('day').toISOString();
-        return params;
-    }, [filters, page, pageSize]);
-
-    const { data: listData, isLoading } = useListTransactionQuery(accountId, apiParams);
-    const { data: transactionTypes } = useTransactionTypesQuery();
-
-    const handleExport = async () => {
-        if (!accountId) return;
-        try {
-            const response = await TransactionApi.exportTransactions(accountId, apiParams);
-            const url = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', `transactions_${Date.now()}.xlsx`);
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-        } catch (err) {
-            console.error('Export failed:', err);
-        }
-    };
 
     const getTypeColor = (type: string) => {
         const map: Record<string, string> = {
@@ -143,7 +106,7 @@ export const TransactionHistoryPanel = ({ isTabView }: { isTabView?: boolean }) 
 
     return (
         <div className="transactions-style-3-wrapper space-y-6">
-            {/* Header — ẩn khi isTabView vì tab header đã có title */}
+            {/* Header */}
             {!isTabView && (
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
                     <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Lịch sử Giao dịch</h1>
@@ -152,29 +115,29 @@ export const TransactionHistoryPanel = ({ isTabView }: { isTabView?: boolean }) 
 
             {/* Search + actions */}
             <div className="flex flex-wrap gap-3">
-                <Form form={form} onFinish={applyFilters} className="flex gap-3">
+                <Form form={form} component={false}>
                     <Form.Item name="query" noStyle>
                         <AntInput
                             placeholder="Mã giao dịch, nội dung..."
                             prefix={<SearchOutlined className="text-gray-400" />}
                             className="w-full md:w-80 h-11 rounded-2xl bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700"
-                            onPressEnter={() => form.submit()}
+                            onPressEnter={handleSearch}
                         />
                     </Form.Item>
-                    <AntButton type="primary" icon={<SearchOutlined />} onClick={() => form.submit()}
-                        className="h-11 px-8 rounded-2xl font-bold shadow-lg shadow-primary/20">
-                        Tìm kiếm
-                    </AntButton>
                 </Form>
+                <AntButton type="primary" icon={<SearchOutlined />} onClick={handleSearch}
+                    className="h-11 px-8 rounded-2xl font-bold shadow-lg shadow-primary/20">
+                    Tìm kiếm
+                </AntButton>
                 <AntButton icon={<FilterOutlined />} onClick={() => setShowFilters(!showFilters)}
                     className={`h-11 px-5 rounded-2xl font-bold transition-all ${showFilters ? 'bg-primary/10 text-primary border-primary/20' : 'bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700'}`}>
                     Bộ lọc
                 </AntButton>
                 <AntButton icon={<DownloadOutlined />} onClick={handleExport}
                     className="h-11 px-5 rounded-2xl font-bold bg-green-50 text-green-600 border-green-100 hover:bg-green-100">
-                    Export
+                    Xuất Excel
                 </AntButton>
-                <AntButton icon={<RedoOutlined />} onClick={clearFilters}
+                <AntButton icon={<RedoOutlined />} onClick={handleReset}
                     className="h-11 px-5 rounded-2xl font-bold border-gray-200 dark:border-gray-700 hover:text-primary transition-all bg-gray-50 dark:bg-gray-900">
                     Làm mới
                 </AntButton>
@@ -210,7 +173,7 @@ export const TransactionHistoryPanel = ({ isTabView }: { isTabView?: boolean }) 
 
             {/* Table */}
             <div className="bg-white dark:bg-gray-800 rounded-3xl overflow-hidden border border-gray-100 dark:border-gray-700 shadow-sm">
-                {isLoading ? (
+                {isTransactionsLoading ? (
                     <List
                         dataSource={Array.from({ length: 6 }).map((_, i) => ({ id: `sk-${i}` }))}
                         renderItem={() => (
@@ -242,3 +205,4 @@ export const TransactionHistoryPanel = ({ isTabView }: { isTabView?: boolean }) 
         </div>
     );
 };
+

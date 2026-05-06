@@ -1,51 +1,19 @@
-import { useMemo } from 'react';
 import { Form, Input, DatePicker, Table, Tag, Empty, Card } from 'antd';
 import { FilterPanel, TableComponent, StatusFilter, Pagination } from '@repo/ui';
-import { useFilterWithURL, usePaginationWithURL, useWaybillsQuery, useWaybillStatusesQuery } from '@repo/hooks';
 import dayjs from 'dayjs';
+import { useWaybillsPage } from './hooks/useWaybillsPage';
 
 const { RangePicker } = DatePicker;
 
 /**
  * WaybillsStyle1 — Giao diện cho Baogam (gd1)
- * Dùng FilterPanel + TableComponent chuẩn, phong cách quản lý truyền thống.
- * Filter theo mã vận đơn (query) và thời gian nhận (receivedTimeFrom/To).
  */
 export const WaybillsStyle1 = () => {
-    const [form] = Form.useForm();
-
-    const { page, pageSize, setPage, setPageSize } = usePaginationWithURL({
-        defaultPage: 1,
-        defaultPageSize: 25,
-    });
-
-    const { applyFilters, clearFilters, filters } = useFilterWithURL({ form });
-
-    const apiParams = useMemo(() => {
-        const params: Record<string, any> = {
-            page: page - 1,
-            size: pageSize,
-            sort: 'createdAt:desc',
-            ...filters,
-        };
-        if (params.receivedTimeRange) {
-            params.receivedTimeFrom = params.receivedTimeRange[0]?.toISOString();
-            params.receivedTimeTo = params.receivedTimeRange[1]?.toISOString();
-            delete params.receivedTimeRange;
-        }
-        if (Array.isArray(params.statuses)) {
-            params.statuses = params.statuses.join(',');
-        }
-        return params;
-    }, [page, pageSize, filters]);
-
-    const { data: listData, isLoading } = useWaybillsQuery(apiParams);
-    const { data: statusData } = useWaybillStatusesQuery();
-
-    const statusOptions = useMemo(() => {
-        if (!statusData) return [];
-        return statusData.map((s) => ({ label: s.name, value: s.code }));
-    }, [statusData]);
+    const {
+        form, page, pageSize, setPage, setPageSize,
+        listData, isWaybillsLoading, statusData, statusOptions,
+        handleSearch, handleReset
+    } = useWaybillsPage();
 
     const getStatusColor = (code: string) => {
         const found = statusData?.find(s => s.code === code);
@@ -103,7 +71,6 @@ export const WaybillsStyle1 = () => {
         },
     ];
 
-    const handleSearch = () => applyFilters(form.getFieldsValue());
 
     return (
         <div className="min-h-screen bg-layout">
@@ -111,7 +78,7 @@ export const WaybillsStyle1 = () => {
                 <FilterPanel
                     form={form}
                     onSearch={handleSearch}
-                    onReset={clearFilters}
+                    onReset={handleReset}
                     searchText="Tìm kiếm"
                     resetText="Đặt lại"
                     primaryContent={
@@ -140,8 +107,8 @@ export const WaybillsStyle1 = () => {
             <TableComponent
                 title="Danh sách mã vận đơn"
                 totalCount={listData?.total}
-                loading={isLoading}
-                showEmpty={!isLoading && listData?.data?.length === 0}
+                loading={isWaybillsLoading}
+                showEmpty={!isWaybillsLoading && listData?.data?.length === 0}
                 emptyText={<Empty description="Không tìm thấy mã vận đơn nào" />}
             >
                 <Table

@@ -2,12 +2,24 @@
 description: Spec tạo trang mới — điền YAML ở cuối file rồi nhắn "tạo trang mới theo new-page.md"
 ---
 
-# Naming convention nhanh
-# pageKey (camelCase) → PascalKey → {PascalKey}Style1 / Style3 / Api / Hooks
-# route: kebab-case, menu_icon: Ant Design icon name
-
 # ──────────────────────────────────────────────
-# PAGES HIỆN TẠI
+# QUY TẮC TRIỂN KHAI (SHARED LOGIC PATTERN)
+# ──────────────────────────────────────────────
+# Khi tạo trang mới, PHẢI tuân thủ 3 lớp sau:
+# 1. CORE LOGIC (@repo/hooks):
+#    - Tạo file: packages/hooks/src/pages/{pageKey}.ts
+#    - Hook: use{PascalKey}Logic({ page, pageSize, filters })
+#    - Nhiệm vụ: Xử lý API params, gọi React Query, tính toán dữ liệu phái sinh (statusOptions).
+#    - Tuyệt đối không dùng: antd, react-router-dom, window, document.
+#
+# 2. WEB CONNECTOR (apps/web):
+#    - Tạo file: apps/web/src/pages/{PascalKey}/hooks/use{PascalKey}Page.ts
+#    - Hook: use{PascalKey}Page()
+#    - Nhiệm vụ: Kết nối Core Logic với Web (useFilterWithURL, usePaginationWithURL, antd Form).
+#
+# 3. UI STYLE (apps/web):
+#    - Tạo file: apps/web/src/pages/{PascalKey}/{PascalKey}StyleX.tsx
+#    - Nhiệm vụ: Chỉ render JSX. Lấy toàn bộ data/handler từ use{PascalKey}Page().
 # ──────────────────────────────────────────────
 
 pages:

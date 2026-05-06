@@ -1,51 +1,17 @@
-import { useMemo } from 'react';
 import { Form, Input, DatePicker, Table, Tag, Card } from 'antd';
 import { FilterPanel, TableComponent, StatusFilter, Pagination } from '@repo/ui';
-import {
-    useFilterWithURL,
-    usePaginationWithURL,
-    usePackagesQuery,
-    usePackageStatusesQuery,
-} from '@repo/hooks';
 import dayjs from 'dayjs';
 import { ParcelMilestoneSteps } from '../../components/Package/ParcelMilestoneSteps';
+import { usePackagesPage } from './hooks/usePackagesPage';
 
 const { RangePicker } = DatePicker;
 
 export const PackageStyle1 = () => {
-    const [form] = Form.useForm();
-    const { page, pageSize, setPage, setPageSize } = usePaginationWithURL({
-        defaultPage: 1,
-        defaultPageSize: 20,
-    });
-
-    const { applyFilters, clearFilters, filters } = useFilterWithURL({ form });
-
-    const apiParams = useMemo(() => {
-        const params: Record<string, any> = {
-            page: page - 1,
-            size: pageSize,
-            sort: 'createdAt:desc',
-            ...filters,
-        };
-        if (filters.createdFromTo) {
-            params.createdFrom = filters.createdFromTo[0]?.toISOString();
-            params.createdTo = filters.createdFromTo[1]?.toISOString();
-            delete params.createdFromTo;
-        }
-        if (Array.isArray(params.statuses)) {
-            params.statuses = params.statuses.join(',');
-        }
-        return params;
-    }, [page, pageSize, filters]);
-
-    const { data, isLoading } = usePackagesQuery(apiParams);
-    const { data: statusData } = usePackageStatusesQuery();
-
-    const statusOptions = useMemo(
-        () => (statusData || []).map((s: any) => ({ label: s.name, value: s.code })),
-        [statusData],
-    );
+    const {
+        form, page, pageSize, setPage, setPageSize,
+        packageData, isPackageLoading, statusData, statusOptions,
+        handleSearch, handleReset
+    } = usePackagesPage();
 
     const columns = [
         {
@@ -99,7 +65,6 @@ export const PackageStyle1 = () => {
         },
     ];
 
-    const handleSearch = () => applyFilters(form.getFieldsValue());
 
     return (
         <div className="min-h-screen bg-layout p-4 space-y-4">
@@ -107,7 +72,7 @@ export const PackageStyle1 = () => {
                 <FilterPanel
                     form={form}
                     onSearch={handleSearch}
-                    onReset={clearFilters}
+                    onReset={handleReset}
                     primaryContent={
                         <>
                             <Form.Item name="statuses" noStyle>
@@ -134,12 +99,12 @@ export const PackageStyle1 = () => {
 
             <TableComponent
                 title="Danh sách kiện hàng"
-                totalCount={data?.total}
-                loading={isLoading}
+                totalCount={packageData?.total}
+                loading={isPackageLoading}
             >
                 <Table
                     columns={columns}
-                    dataSource={data?.data || []}
+                    dataSource={packageData?.data || []}
                     pagination={false}
                     rowKey="code"
                     size="middle"
@@ -156,7 +121,7 @@ export const PackageStyle1 = () => {
             <Pagination
                 current={page}
                 pageSize={pageSize}
-                total={data?.total || 0}
+                total={packageData?.total || 0}
                 onChange={(p, s) => {
                     setPage(p);
                     if (s !== pageSize) setPageSize(s);

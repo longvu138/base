@@ -4,6 +4,7 @@ import OrdersPage from './pages/Orders';
 import Dashboard from './pages/Dashboard';
 import Layout from './components/Layout';
 import AboutPage from './pages/AboutPage';
+import { WishlistPage } from './pages/Wishlist/WishlistPage';
 import PrivateRoute from './components/PrivateRoute';
 
 function AppRoutes() {
@@ -16,6 +17,7 @@ function AppRoutes() {
                     <Route index element={<Navigate to="/dashboard" replace />} />
                     <Route path="dashboard" element={<Dashboard />} />
                     <Route path="orders" element={<OrdersPage />} />
+                    <Route path="wishlist" element={<WishlistPage />} />
                     <Route path="about" element={<AboutPage />} />
                 </Route>
             </Route>

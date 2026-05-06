@@ -1,45 +1,41 @@
-import { useMemo, useState } from 'react';
-import { Form, Input as AntInput, Button as AntButton, Tag, Skeleton as AntSkeleton, Tabs, Empty, Table, List } from 'antd';
+import { useState } from 'react';
+import {
+    Form,
+    Input as AntInput,
+    Button as AntButton,
+    Tag,
+    Skeleton as AntSkeleton,
+    Tabs,
+    Empty,
+    Table,
+    List,
+} from 'antd';
 import { Pagination } from '@repo/ui';
-import { useFilterWithURL, usePaginationWithURL, useListDeliveryRequestQuery, useDeliveryRequestStatusesQuery } from '@repo/hooks';
-import { SearchOutlined, RedoOutlined, ArrowRightOutlined, InboxOutlined, FilterOutlined } from '@ant-design/icons';
+import {
+    SearchOutlined,
+    RedoOutlined,
+    FilterOutlined,
+    ArrowRightOutlined,
+    DeploymentUnitOutlined,
+} from '@ant-design/icons';
 import './DeliveryRequestsStyle3.css';
+import { useDeliveryRequestsPage } from './hooks/useDeliveryRequestsPage';
 
 /**
  * DeliveryRequestsStyle3 — Giao diện cho Gobiz (gd3)
- * Premium table view với status tabs, aligned với phong cách Gobiz Logistics.
+ * Premium table view với status tabs, hiện đại và sạch sẽ.
  */
-export const DeliveryRequestsStyle3: React.FC<{ isTabView?: boolean }> = ({ isTabView }) => {
-    const [form] = Form.useForm();
+export const DeliveryRequestsStyle3 = ({ isTabView: _isTabView }: { isTabView?: boolean }) => {
+    const {
+        form, page, pageSize, setPage, setPageSize,
+        filters, listData, isDeliveryRequestsLoading, statusData,
+        handleSearch, handleReset, applyFilters
+    } = useDeliveryRequestsPage();
+
     const [showFilters, setShowFilters] = useState(false);
 
-    const { page, pageSize, setPage, setPageSize } = usePaginationWithURL({
-        defaultPage: 1,
-        defaultPageSize: 25,
-    });
-
-    const { applyFilters, clearFilters, filters } = useFilterWithURL({ form });
-
-    const apiParams = useMemo(() => {
-        const params: Record<string, any> = {
-            page: page - 1,
-            size: pageSize,
-            sort: 'createdAt:desc',
-            ...filters,
-        };
-        ['statuses'].forEach(key => {
-            if (Array.isArray(params[key])) {
-                params[key] = params[key].join(',');
-            }
-        });
-        return params;
-    }, [page, pageSize, filters]);
-
-    const { data: listData, isLoading } = useListDeliveryRequestQuery(apiParams);
-    const { data: statusData } = useDeliveryRequestStatusesQuery();
-
     const getStatusTag = (status: string) => {
-        const found = statusData?.find(s => s.code === status);
+        const found = statusData?.find((s: any) => s.code === status);
         return (
             <Tag
                 color={found?.color || 'default'}
@@ -58,7 +54,7 @@ export const DeliveryRequestsStyle3: React.FC<{ isTabView?: boolean }> = ({ isTa
             render: (text: string, record: any) => (
                 <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <InboxOutlined className="text-primary text-sm" />
+                        <DeploymentUnitOutlined className="text-primary text-sm" />
                     </div>
                     <div>
                         <div className="font-extrabold text-[#1a1a1a] dark:text-gray-100 tracking-tight text-sm">{text}</div>
@@ -69,22 +65,23 @@ export const DeliveryRequestsStyle3: React.FC<{ isTabView?: boolean }> = ({ isTa
         },
         {
             title: 'Người nhận',
-            key: 'receiver',
-            render: (_: any, record: any) => (
+            dataIndex: 'receiverName',
+            key: 'receiverName',
+            render: (text: string, record: any) => (
                 <div>
-                    <div className="font-semibold text-sm text-gray-800 dark:text-gray-100">{record.receiverName || '—'}</div>
-                    <div className="text-[11px] text-gray-400">{record.receiverPhone || ''}</div>
+                    <div className="font-semibold text-sm text-gray-800 dark:text-gray-100">{text || '—'}</div>
+                    <div className="text-[11px] text-gray-400">{record.receiverPhone || '—'}</div>
                 </div>
             ),
         },
         {
-            title: 'Địa chỉ giao',
+            title: 'Địa chỉ',
             dataIndex: 'receiverAddress',
             key: 'receiverAddress',
             render: (text: string) => (
-                <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 m-0 max-w-[220px]">
-                    {text || <span className="opacity-40 italic">Chưa có địa chỉ</span>}
-                </p>
+                <div className="max-w-[250px]">
+                    <div className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 leading-snug">{text || '—'}</div>
+                </div>
             ),
         },
         {
@@ -114,64 +111,72 @@ export const DeliveryRequestsStyle3: React.FC<{ isTabView?: boolean }> = ({ isTa
         : 'ALL';
 
     return (
-        <div className={`delivery-requests-style-3-wrapper ${isTabView ? '' : 'p-6'} space-y-6 mx-auto`}>
-            {/* Header — chỉ hiện khi không phải tab view */}
-            {!isTabView && (
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
-                    <div className="space-y-1">
-                        <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Yêu cầu giao hàng</h1>
-                    </div>
-                    <div className="flex flex-wrap gap-3">
-                        <Form form={form} onFinish={applyFilters} className="flex gap-3">
-                            <Form.Item name="query" noStyle>
+        <div className="delivery-requests-style-3-wrapper space-y-6 max-w-[1600px] mx-auto">
+            {/* Header / Filter */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
+                <div className="space-y-1">
+                    <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Yêu cầu giao hàng</h1>
+                    <p className="text-gray-500 text-sm">Quản lý và theo dõi các yêu cầu giao hàng tận nơi.</p>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                    <Form form={form} component={false}>
+                        <Form.Item name="query" noStyle>
+                            <AntInput
+                                placeholder="Tìm theo mã yêu cầu, người nhận..."
+                                prefix={<SearchOutlined className="text-gray-400" />}
+                                className="w-full md:w-80 h-11 rounded-2xl bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700"
+                                onPressEnter={handleSearch}
+                            />
+                        </Form.Item>
+                    </Form>
+                    <AntButton
+                        type="primary"
+                        icon={<SearchOutlined />}
+                        onClick={handleSearch}
+                        className="h-11 px-8 rounded-2xl font-bold shadow-lg shadow-primary/20"
+                    >
+                        Tìm kiếm
+                    </AntButton>
+                    <AntButton
+                        icon={<FilterOutlined />}
+                        onClick={() => setShowFilters(!showFilters)}
+                        className={`h-11 px-5 rounded-2xl font-bold transition-all ${showFilters ? 'bg-primary/10 text-primary border-primary/20' : 'bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700'}`}
+                    >
+                        Bộ lọc
+                    </AntButton>
+                    <AntButton
+                        icon={<RedoOutlined />}
+                        onClick={handleReset}
+                        className="h-11 px-5 rounded-2xl font-bold border-gray-200 dark:border-gray-700 hover:text-primary transition-all bg-gray-50 dark:bg-gray-900"
+                    >
+                        Làm mới
+                    </AntButton>
+                </div>
+            </div>
+
+            {/* Advanced Filters */}
+            <div
+                className={`advanced-filters-container overflow-hidden transition-all duration-300 ease-in-out ${showFilters ? 'max-h-[400px] opacity-100 mb-6' : 'max-h-0 opacity-0'
+                    }`}
+            >
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
+                    <Form
+                        form={form}
+                        layout="vertical"
+                        onValuesChange={() => applyFilters(form.getFieldsValue())}
+                    >
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <Form.Item name="query" label="Tìm kiếm nhanh">
                                 <AntInput
-                                    placeholder="Tìm theo mã, tên người nhận..."
-                                    prefix={<SearchOutlined className="text-gray-400" />}
-                                    className="w-full md:w-80 h-11 rounded-2xl bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700"
-                                    onPressEnter={() => form.submit()}
+                                    placeholder="Nhập mã yêu cầu, tên hoặc SĐT..."
+                                    className="h-11 rounded-2xl bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700"
                                 />
                             </Form.Item>
-                            <AntButton type="primary" icon={<SearchOutlined />} onClick={() => form.submit()} className="h-11 px-8 rounded-2xl font-bold shadow-lg shadow-primary/20">
-                                Tìm kiếm
-                            </AntButton>
-                        </Form>
-                        <AntButton icon={<FilterOutlined />} onClick={() => setShowFilters(!showFilters)} className={`h-11 px-5 rounded-2xl font-bold transition-all ${showFilters ? 'bg-primary/10 text-primary border-primary/20' : 'bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700'}`}>
-                            Bộ lọc
-                        </AntButton>
-                        <AntButton icon={<RedoOutlined />} onClick={clearFilters} className="h-11 px-5 rounded-2xl font-bold border-gray-200 dark:border-gray-700 hover:text-primary transition-all bg-gray-50 dark:bg-gray-900">
-                            Làm mới
-                        </AntButton>
-                    </div>
-                </div>
-            )}
-
-            {/* Tab view: search bar nhỏ gọn */}
-            {isTabView && (
-                <div className="flex justify-end gap-3">
-                    <Form form={form} onFinish={applyFilters} className="flex gap-3">
-                        <Form.Item name="query" noStyle>
-                            <AntInput placeholder="Tìm theo mã, tên người nhận..." prefix={<SearchOutlined className="text-gray-400" />} className="w-full md:w-72 h-10 rounded-xl bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700" onPressEnter={() => form.submit()} />
-                        </Form.Item>
-                        <AntButton type="primary" icon={<SearchOutlined />} onClick={() => form.submit()} className="h-10 px-6 rounded-xl font-medium">Tìm kiếm</AntButton>
-                    </Form>
-                    <AntButton icon={<FilterOutlined />} onClick={() => setShowFilters(!showFilters)} className={`h-10 px-4 rounded-xl font-medium transition-all ${showFilters ? 'bg-primary/10 text-primary border-primary/20' : 'bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700'}`}>Bộ lọc</AntButton>
-                    <AntButton icon={<RedoOutlined />} onClick={clearFilters} className="h-10 px-4 rounded-xl font-medium border-gray-200 dark:border-gray-700 hover:text-primary transition-all bg-gray-50 dark:bg-gray-900">Làm mới</AntButton>
-                </div>
-            )}
-
-            {/* Advanced Filters Panel */}
-            <div className={`advanced-filters-container overflow-hidden transition-all duration-300 ease-in-out ${showFilters ? 'max-h-[1000px] opacity-100 mb-6' : 'max-h-0 opacity-0 overflow-hidden'}`}>
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
-                    <Form form={form} layout="vertical" onValuesChange={() => applyFilters(form.getFieldsValue())}>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <Form.Item name="receiverName" label="Tên người nhận" className="mb-0">
-                                <AntInput placeholder="Nhập tên người nhận" className="h-11 rounded-2xl bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700" />
-                            </Form.Item>
-                            <Form.Item name="receiverPhone" label="Số điện thoại" className="mb-0">
-                                <AntInput placeholder="Nhập số điện thoại" className="h-11 rounded-2xl bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700" />
-                            </Form.Item>
-                            <Form.Item name="code" label="Mã yêu cầu" className="mb-0">
-                                <AntInput placeholder="Nhập mã yêu cầu" className="h-11 rounded-2xl bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700" />
+                            <Form.Item name="receiverAddress" label="Địa chỉ người nhận">
+                                <AntInput
+                                    placeholder="Nhập địa chỉ để lọc..."
+                                    className="h-11 rounded-2xl bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700"
+                                />
                             </Form.Item>
                         </div>
                     </Form>
@@ -179,18 +184,18 @@ export const DeliveryRequestsStyle3: React.FC<{ isTabView?: boolean }> = ({ isTa
             </div>
 
             {/* Status Tabs */}
-            <div className="bg-white dark:bg-gray-800 p-1 rounded-2xl border border-gray-100 dark:border-gray-700 inline-block overflow-hidden max-w-full">
+            <div className="flex items-center gap-4 bg-white dark:bg-gray-800 p-2 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-x-auto no-scrollbar">
                 <Tabs
                     activeKey={activeStatus}
-                    onChange={key => {
-                        const newStatuses = key === 'ALL' ? undefined : [key];
-                        applyFilters({ ...filters, statuses: newStatuses });
-                    }}
+                    onChange={key =>
+                        applyFilters({ ...filters, statuses: key === 'ALL' ? undefined : [key] })
+                    }
+                    className="delivery-requests-status-tabs"
                     items={[
-                        { key: 'ALL', label: <span className="px-4 py-1">Tất cả</span> },
-                        ...(statusData || []).map(s => ({
+                        { key: 'ALL', label: <span className="px-5 py-1">Tất cả</span> },
+                        ...(statusData || []).map((s: any) => ({
                             key: s.code,
-                            label: <span className="px-4 py-1">{s.name}</span>,
+                            label: <span className="px-5 py-1">{s.name}</span>,
                         })),
                     ]}
                 />
@@ -198,7 +203,7 @@ export const DeliveryRequestsStyle3: React.FC<{ isTabView?: boolean }> = ({ isTa
 
             {/* Table */}
             <div className="bg-white dark:bg-gray-800 rounded-3xl overflow-hidden border border-gray-100 dark:border-gray-700 shadow-sm">
-                {isLoading ? (
+                {isDeliveryRequestsLoading ? (
                     <List
                         dataSource={Array.from({ length: 6 }).map((_, i) => ({ id: `skel-${i}` }))}
                         renderItem={() => (
@@ -216,7 +221,7 @@ export const DeliveryRequestsStyle3: React.FC<{ isTabView?: boolean }> = ({ isTa
                         locale={{
                             emptyText: (
                                 <div className="py-20">
-                                    <Empty description="Không tìm thấy yêu cầu giao nào" />
+                                    <Empty description="Không tìm thấy yêu cầu giao hàng nào" />
                                 </div>
                             ),
                         }}
@@ -239,3 +244,4 @@ export const DeliveryRequestsStyle3: React.FC<{ isTabView?: boolean }> = ({ isTa
         </div>
     );
 };
+

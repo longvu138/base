@@ -1,54 +1,17 @@
-import { useMemo, useState } from 'react';
-import { Form, Input, DatePicker, Table, Empty, Card, Button, Popconfirm, message, Tag } from 'antd';
+import { Form, Input, DatePicker, Table, Empty, Card, Button, Popconfirm, Tag } from 'antd';
 import { FilterPanel, TableComponent, Pagination } from '@repo/ui';
-import { usePaginationWithURL, useFilterWithURL, useWishlistQuery, useDeleteWishlistItemMutation } from '@repo/hooks';
 import { DeleteOutlined, ShoppingCartOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
+import { useWishlistPage } from './hooks/useWishlistPage';
 
 const { RangePicker } = DatePicker;
 
 export const WishlistStyle1 = () => {
-    const [form] = Form.useForm();
-    const [deletingId, setDeletingId] = useState<string | number | null>(null);
-
-    const { page, pageSize, setPage, setPageSize } = usePaginationWithURL({
-        defaultPage: 1,
-        defaultPageSize: 20,
-    });
-
-    const { applyFilters, clearFilters, filters } = useFilterWithURL({ form });
-
-    const apiParams = useMemo(() => {
-        const params: Record<string, any> = {
-            page: page - 1,
-            size: pageSize,
-            sort: 'createdAt:desc',
-            ...filters,
-        };
-        if (params.dateRange) {
-            params.createdFrom = params.dateRange[0]?.toISOString?.() ?? params.dateRange[0];
-            params.createdTo   = params.dateRange[1]?.toISOString?.() ?? params.dateRange[1];
-            delete params.dateRange;
-        }
-        return params;
-    }, [page, pageSize, filters]);
-
-    const { data, isLoading } = useWishlistQuery(apiParams);
-    const deleteMutation = useDeleteWishlistItemMutation(apiParams);
-
-    const handleSearch = () => applyFilters(form.getFieldsValue());
-
-    const handleDelete = async (id: string | number) => {
-        setDeletingId(id);
-        try {
-            await deleteMutation.mutateAsync(id);
-            message.success('Đã xóa sản phẩm khỏi danh sách yêu thích');
-        } catch {
-            message.error('Xóa thất bại, vui lòng thử lại');
-        } finally {
-            setDeletingId(null);
-        }
-    };
+    const {
+        form, page, pageSize, setPage, setPageSize,
+        deletingId, wishlistData, isWishlistLoading,
+        handleSearch, handleReset, handleDelete
+    } = useWishlistPage();
 
     const columns = [
         {
@@ -145,7 +108,7 @@ export const WishlistStyle1 = () => {
                 <FilterPanel
                     form={form}
                     onSearch={handleSearch}
-                    onReset={clearFilters}
+                    onReset={handleReset}
                     searchText="Tìm kiếm"
                     resetText="Đặt lại"
                     primaryContent={
@@ -167,14 +130,14 @@ export const WishlistStyle1 = () => {
             {/* Table */}
             <TableComponent
                 title="❤️ Danh sách sản phẩm đã lưu"
-                totalCount={data?.total}
-                loading={isLoading}
-                showEmpty={!isLoading && data?.data?.length === 0}
+                totalCount={wishlistData?.total}
+                loading={isWishlistLoading}
+                showEmpty={!isWishlistLoading && wishlistData?.data?.length === 0}
                 emptyText={<Empty description="Chưa có sản phẩm nào được lưu" />}
             >
                 <Table
                     columns={columns}
-                    dataSource={data?.data || []}
+                    dataSource={wishlistData?.data || []}
                     pagination={false}
                     rowKey="id"
                     size="middle"
@@ -192,7 +155,7 @@ export const WishlistStyle1 = () => {
             <Pagination
                 current={page}
                 pageSize={pageSize}
-                total={data?.total || 0}
+                total={wishlistData?.total || 0}
                 onChange={(p, s) => {
                     setPage(p);
                     if (s !== pageSize) setPageSize(s);
@@ -201,3 +164,4 @@ export const WishlistStyle1 = () => {
         </div>
     );
 };
+

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import {
     Form,
     Input as AntInput,
@@ -13,12 +13,6 @@ import {
 } from 'antd';
 import { Pagination } from '@repo/ui';
 import {
-    useFilterWithURL,
-    usePaginationWithURL,
-    useWaybillsQuery,
-    useWaybillStatusesQuery,
-} from '@repo/hooks';
-import {
     SearchOutlined,
     RedoOutlined,
     FilterOutlined,
@@ -27,46 +21,23 @@ import {
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import './WaybillsStyle3.css';
+import { useWaybillsPage } from './hooks/useWaybillsPage';
 
 /**
  * WaybillsStyle3 — Giao diện cho Gobiz (gd3)
  * Premium table view với status tabs, aligned với phong cách Gobiz Logistics.
- * Filter theo: mã vận đơn (query), khoảng thời gian nhận (receivedTimeFrom/To).
  */
 export const WaybillsStyle3 = () => {
-    const [form] = Form.useForm();
+    const {
+        form, page, pageSize, setPage, setPageSize,
+        filters, listData, isWaybillsLoading, statusData,
+        handleSearch, handleReset, applyFilters
+    } = useWaybillsPage();
+
     const [showFilters, setShowFilters] = useState(false);
 
-    const { page, pageSize, setPage, setPageSize } = usePaginationWithURL({
-        defaultPage: 1,
-        defaultPageSize: 25,
-    });
-
-    const { applyFilters, clearFilters, filters } = useFilterWithURL({ form });
-
-    const apiParams = useMemo(() => {
-        const params: Record<string, any> = {
-            page: page - 1,
-            size: pageSize,
-            sort: 'createdAt:desc',
-            ...filters,
-        };
-        if (params.receivedTimeRange) {
-            params.receivedTimeFrom = params.receivedTimeRange[0]?.toISOString();
-            params.receivedTimeTo = params.receivedTimeRange[1]?.toISOString();
-            delete params.receivedTimeRange;
-        }
-        if (Array.isArray(params.statuses)) {
-            params.statuses = params.statuses.join(',');
-        }
-        return params;
-    }, [page, pageSize, filters]);
-
-    const { data: listData, isLoading } = useWaybillsQuery(apiParams);
-    const { data: statusData } = useWaybillStatusesQuery();
-
     const getStatusTag = (status: string) => {
-        const found = statusData?.find(s => s.code === status);
+        const found = statusData?.find((s: any) => s.code === status);
         return (
             <Tag
                 color={found?.color || 'default'}
@@ -164,89 +135,89 @@ export const WaybillsStyle3 = () => {
     return (
         <div className="waybills-style-3-wrapper space-y-6 max-w-[1600px] mx-auto">
             {/* Header / Filter card */}
-            <Form form={form} onFinish={applyFilters} className="space-y-4">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
-                    <div className="space-y-1">
-                        <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-                            Mã vận đơn
-                        </h1>
-                        <p className="text-gray-500 text-sm">
-                            Tra cứu và theo dõi trạng thái các mã vận đơn.
-                        </p>
-                    </div>
-                    <div className="flex flex-wrap gap-3">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
+                <div className="space-y-1">
+                    <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+                        Mã vận đơn
+                    </h1>
+                    <p className="text-gray-500 text-sm">
+                        Tra cứu và theo dõi trạng thái các mã vận đơn.
+                    </p>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                    <Form form={form} component={false}>
                         <Form.Item name="query" noStyle>
                             <AntInput
                                 placeholder="Tìm theo mã vận đơn..."
                                 prefix={<SearchOutlined className="text-gray-400" />}
                                 className="w-full md:w-80 h-11 rounded-2xl bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700"
-                                onPressEnter={() => form.submit()}
+                                onPressEnter={handleSearch}
                             />
                         </Form.Item>
-                        <AntButton
-                            type="primary"
-                            icon={<SearchOutlined />}
-                            onClick={() => form.submit()}
-                            className="h-11 px-8 rounded-2xl font-bold shadow-lg shadow-primary/20"
-                        >
-                            Tìm kiếm
-                        </AntButton>
-                        <AntButton
-                            icon={<FilterOutlined />}
-                            onClick={() => setShowFilters(!showFilters)}
-                            className={`h-11 px-5 rounded-2xl font-bold transition-all ${showFilters
-                                    ? 'bg-primary/10 text-primary border-primary/20'
-                                    : 'bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700'
-                                }`}
-                        >
-                            Bộ lọc
-                        </AntButton>
-                        <AntButton
-                            icon={<RedoOutlined />}
-                            onClick={clearFilters}
-                            className="h-11 px-5 rounded-2xl font-bold border-gray-200 dark:border-gray-700 hover:text-primary transition-all bg-gray-50 dark:bg-gray-900"
-                        >
-                            Làm mới
-                        </AntButton>
-                    </div>
+                    </Form>
+                    <AntButton
+                        type="primary"
+                        icon={<SearchOutlined />}
+                        onClick={handleSearch}
+                        className="h-11 px-8 rounded-2xl font-bold shadow-lg shadow-primary/20"
+                    >
+                        Tìm kiếm
+                    </AntButton>
+                    <AntButton
+                        icon={<FilterOutlined />}
+                        onClick={() => setShowFilters(!showFilters)}
+                        className={`h-11 px-5 rounded-2xl font-bold transition-all ${showFilters
+                                ? 'bg-primary/10 text-primary border-primary/20'
+                                : 'bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700'
+                            }`}
+                    >
+                        Bộ lọc
+                    </AntButton>
+                    <AntButton
+                        icon={<RedoOutlined />}
+                        onClick={handleReset}
+                        className="h-11 px-5 rounded-2xl font-bold border-gray-200 dark:border-gray-700 hover:text-primary transition-all bg-gray-50 dark:bg-gray-900"
+                    >
+                        Làm mới
+                    </AntButton>
                 </div>
+            </div>
 
-                {/* Advanced Filters */}
-                <div
-                    className={`advanced-filters-container overflow-hidden transition-all duration-300 ease-in-out ${showFilters ? 'max-h-[400px] opacity-100 mt-6 mb-6' : 'max-h-0 opacity-0'
-                        }`}
-                >
-                    <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
-                        <Form
-                            form={form}
-                            layout="vertical"
-                            onValuesChange={() => applyFilters(form.getFieldsValue())}
-                        >
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <Form.Item name="query" label="Mã vận đơn" className="mb-0">
-                                    <AntInput
-                                        placeholder="Nhập mã vận đơn"
-                                        className="h-11 rounded-2xl bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700"
-                                        allowClear
-                                    />
-                                </Form.Item>
-                                <Form.Item
-                                    name="receivedTimeRange"
-                                    label="Thời gian nhận"
-                                    className="mb-0 md:col-span-2"
-                                >
-                                    <DatePicker.RangePicker
-                                        className="w-full h-11 rounded-2xl"
-                                        showTime
-                                        format="DD/MM/YYYY HH:mm"
-                                        placeholder={['Từ ngày', 'Đến ngày']}
-                                    />
-                                </Form.Item>
-                            </div>
-                        </Form>
-                    </div>
+            {/* Advanced Filters */}
+            <div
+                className={`advanced-filters-container overflow-hidden transition-all duration-300 ease-in-out ${showFilters ? 'max-h-[400px] opacity-100 mb-6' : 'max-h-0 opacity-0'
+                    }`}
+            >
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
+                    <Form
+                        form={form}
+                        layout="vertical"
+                        onValuesChange={() => applyFilters(form.getFieldsValue())}
+                    >
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <Form.Item name="query" label="Mã vận đơn" className="mb-0">
+                                <AntInput
+                                    placeholder="Nhập mã vận đơn"
+                                    className="h-11 rounded-2xl bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700"
+                                    allowClear
+                                />
+                            </Form.Item>
+                            <Form.Item
+                                name="receivedTimeRange"
+                                label="Thời gian nhận"
+                                className="mb-0 md:col-span-2"
+                            >
+                                <DatePicker.RangePicker
+                                    className="w-full h-11 rounded-2xl"
+                                    showTime
+                                    format="DD/MM/YYYY HH:mm"
+                                    placeholder={['Từ ngày', 'Đến ngày']}
+                                />
+                            </Form.Item>
+                        </div>
+                    </Form>
                 </div>
-            </Form>
+            </div>
 
             {/* Status Tabs */}
             <div className="flex items-center gap-4 bg-white dark:bg-gray-800 p-2 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-x-auto no-scrollbar">
@@ -258,7 +229,7 @@ export const WaybillsStyle3 = () => {
                     className="waybills-status-tabs"
                     items={[
                         { key: 'ALL', label: <span className="px-5 py-1">Tất cả</span> },
-                        ...(statusData || []).map(s => ({
+                        ...(statusData || []).map((s: any) => ({
                             key: s.code,
                             label: <span className="px-5 py-1">{s.name}</span>,
                         })),
@@ -268,7 +239,7 @@ export const WaybillsStyle3 = () => {
 
             {/* Table */}
             <div className="bg-white dark:bg-gray-800 rounded-3xl overflow-hidden border border-gray-100 dark:border-gray-700 shadow-sm">
-                {isLoading ? (
+                {isWaybillsLoading ? (
                     <List
                         dataSource={Array.from({ length: 6 }).map((_, i) => ({ id: `skel-${i}` }))}
                         renderItem={() => (

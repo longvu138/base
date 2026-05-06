@@ -1,7 +1,5 @@
-import { useMemo, useState } from 'react';
-import { Input as AntInput, Button as AntButton, Empty } from 'antd';
+import { Input as AntInput, Button as AntButton, Empty, Popconfirm } from 'antd';
 import { Pagination } from '@repo/ui';
-import { useAddressesQuery } from '@repo/hooks';
 import {
     SearchOutlined,
     RedoOutlined,
@@ -13,79 +11,25 @@ import {
     EditOutlined,
     DeleteOutlined,
 } from '@ant-design/icons';
-import { Popconfirm, message } from 'antd';
 import './AddressStyle3.css';
 import { AddressModal } from './AddressModal';
-import { useDeleteAddressMutation } from '@repo/hooks';
+import { useAddressPage } from './hooks/useAddressPage';
 
 const PAGE_SIZE = 20;
 
 export const AddressStyle3 = () => {
-    const [searchText, setSearchText] = useState('');
-    const [appliedSearch, setAppliedSearch] = useState('');
-    const [page, setPage] = useState(1);
-    const [modalOpen, setModalOpen] = useState(false);
-    const [editingAddress, setEditingAddress] = useState<any>(null);
+    const {
+        form, page, setPage, keyword, modalOpen, setModalOpen,
+        editingAddress, isAddressLoading, addressData, filteredAddresses,
+        handleSearch, handleReset, handleAdd, handleEdit, handleDelete
+    } = useAddressPage();
 
-    const deleteMutation = useDeleteAddressMutation();
+    // Mapping for style3 compatibility (searchText -> keyword)
+    const searchText = form.getFieldValue('keyword') || '';
+    const setSearchText = (val: string) => form.setFieldsValue({ keyword: val });
+    const appliedSearch = keyword;
 
-    const apiParams = useMemo(() => ({
-        page: 0,
-        size: 1000,
-        receivingAddress: false,
-        sort: 'defaultAddress:desc,createdAt:desc',
-    }), []);
-
-    const { data, isLoading } = useAddressesQuery(apiParams);
-
-    // Client-side filter: tên, SĐT, địa chỉ
-    const filtered = useMemo(() => {
-        const all = data?.data ?? [];
-        if (!appliedSearch.trim()) return all;
-        const kw = appliedSearch.trim().toLowerCase();
-        return all.filter((item: any) => {
-            const name = (item.name || item.fullName || '').toLowerCase();
-            const phone = (item.phone || '').toLowerCase();
-            const address = [item.address, item.wardName, item.districtName, item.provinceName]
-                .filter(Boolean).join(' ').toLowerCase();
-            return name.includes(kw) || phone.includes(kw) || address.includes(kw);
-        });
-    }, [data?.data, appliedSearch]);
-
-    const paginated = useMemo(() => {
-        const start = (page - 1) * PAGE_SIZE;
-        return filtered.slice(start, start + PAGE_SIZE);
-    }, [filtered, page]);
-
-    const handleSearch = () => {
-        setAppliedSearch(searchText);
-        setPage(1);
-    };
-
-    const handleReset = () => {
-        setSearchText('');
-        setAppliedSearch('');
-        setPage(1);
-    };
-
-    const handleAdd = () => {
-        setEditingAddress(null);
-        setModalOpen(true);
-    };
-
-    const handleEdit = (item: any) => {
-        setEditingAddress(item);
-        setModalOpen(true);
-    };
-
-    const handleDelete = async (id: number) => {
-        try {
-            await deleteMutation.mutateAsync(id);
-            message.success('Xóa địa chỉ thành công');
-        } catch (error) {
-            message.error('Có lỗi xảy ra khi xóa');
-        }
-    };
+    const paginated = (filteredAddresses ?? []).slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
     const AddressCard = ({ item }: { item: any }) => {
         const fullAddress = [item.address, item.wardName, item.districtName, item.provinceName]
@@ -178,9 +122,9 @@ export const AddressStyle3 = () => {
                     </h1>
                     <p className="text-gray-500 text-sm">
                         {appliedSearch
-                            ? `${filtered.length} kết quả cho "${appliedSearch}"`
-                            : data?.data?.length
-                                ? `${data.data.length} địa chỉ đã lưu`
+                            ? `${filteredAddresses.length} kết quả cho "${appliedSearch}"`
+                            : addressData?.data?.length
+                                ? `${addressData.data.length} địa chỉ đã lưu`
                                 : 'Danh sách địa chỉ nhận hàng của bạn'}
                     </p>
                 </div>
@@ -212,7 +156,7 @@ export const AddressStyle3 = () => {
 
             {/* Address list */}
             <div className="space-y-3">
-                {isLoading ? (
+                {isAddressLoading ? (
                     Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
                 ) : !paginated.length ? (
                     <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 py-20">
@@ -224,12 +168,12 @@ export const AddressStyle3 = () => {
             </div>
 
             {/* Pagination */}
-            {filtered.length > PAGE_SIZE && (
+            {filteredAddresses.length > PAGE_SIZE && (
                 <div className="flex justify-center pt-2">
                     <Pagination
                         current={page}
                         pageSize={PAGE_SIZE}
-                        total={filtered.length}
+                        total={filteredAddresses.length}
                         onChange={(p) => setPage(p)}
                     />
                 </div>

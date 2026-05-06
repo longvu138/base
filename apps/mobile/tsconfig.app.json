@@ -16,6 +16,33 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
+    /* Path mappings for monorepo packages (enables Ctrl+Click / Go to Definition) */
+    "baseUrl": ".",
+    "paths": {
+      "@repo/ui": ["../../packages/ui/src"],
+      "@repo/ui/*": ["../../packages/ui/src/*"],
+      "@repo/api": ["../../packages/api/src"],
+      "@repo/api/*": ["../../packages/api/src/*"],
+      "@repo/hooks": ["../../packages/hooks/src"],
+      "@repo/hooks/*": ["../../packages/hooks/src/*"],
+      "@repo/config": ["../../packages/config"],
+      "@repo/config/*": ["../../packages/config/*"],
+      "@repo/types": ["../../packages/types/src"],
+      "@repo/types/*": ["../../packages/types/src/*"],
+      "@repo/util": ["../../packages/util/src"],
+      "@repo/util/*": ["../../packages/util/src/*"],
+      "@repo/i18n": ["../../packages/i18n/src"],
+      "@repo/i18n/*": ["../../packages/i18n/src/*"],
+      "@repo/antd-config": ["../../packages/antd-config/src"],
+      "@repo/antd-config/*": ["../../packages/antd-config/src/*"],
+      "@repo/tenant-config": ["../../packages/tenant-config/src"],
+      "@repo/tenant-config/*": ["../../packages/tenant-config/src/*"],
+      "@repo/theme-provider": ["../../packages/theme-provider/src"],
+      "@repo/theme-provider/*": ["../../packages/theme-provider/src/*"],
+      "@repo/tailwind-config": ["../../packages/tailwind-config/src"],
+      "@repo/tailwind-config/*": ["../../packages/tailwind-config/src/*"]
+    },
+
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,
@@ -24,5 +51,9 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src"]
+  "include": [
+    "src",
+    "../../packages/*/src"
+  ]
 }
+

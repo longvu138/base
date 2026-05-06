@@ -1,69 +1,18 @@
-import { useMemo } from 'react';
 import { Form, Input, DatePicker, Table, Checkbox, Card, Tag, Divider, Typography, Button } from 'antd';
 import { TableComponent, Status, StatusFilter, Pagination } from '@repo/ui';
-import { useFilterWithURL, usePaginationWithURL, useListOrderQuery, useOrderStatusesQuery, useOrderStatisticQuery, useOrderServicesQuery, useMarketplacesQuery } from '@repo/hooks';
-import { useTranslation } from '@repo/i18n';
 import { Plus, Download } from 'lucide-react';
+import { useOrdersPage } from './hooks/useOrdersPage';
 
 const { RangePicker } = DatePicker;
 const { Title, Text } = Typography;
 
 export const OrdersStyle2 = () => {
-    const { t } = useTranslation();
-    const [form] = Form.useForm();
-
-    const { page, pageSize, setPage, setPageSize } = usePaginationWithURL({
-        defaultPage: 1,
-        defaultPageSize: 20
-    });
-
-    const { applyFilters, clearFilters, filters } = useFilterWithURL({
-        form
-    });
-
-    const apiParams = useMemo(() => {
-        const params: Record<string, any> = {
-            page: page - 1,
-            size: pageSize,
-            ...filters
-        };
-
-        ['statuses', 'marketplaces', 'services'].forEach(key => {
-            if (Array.isArray(params[key])) {
-                params[key] = params[key].join(',');
-            }
-        });
-
-        return params;
-    }, [page, pageSize, filters]);
-
-    const { data: orderData, isLoading: isOrderLoading } = useListOrderQuery(apiParams);
-    const { data: statusData } = useOrderStatusesQuery();
-    const { data: statisticData } = useOrderStatisticQuery();
-    const { data: servicesData } = useOrderServicesQuery();
-    const { data: marketplacesData } = useMarketplacesQuery();
-
-    const statusOptions = useMemo(() => {
-        if (!statusData) return [];
-        return statusData.map((s: any) => {
-            const statistic = statisticData?.find((item: any) => item.status === s.code);
-            const count = statistic ? statistic.total : 0;
-            return {
-                label: `${s.name} (${count})`,
-                value: s.code,
-            };
-        });
-    }, [statusData, statisticData]);
-
-    const handleSearch = () => {
-        const values = form.getFieldsValue();
-        applyFilters(values);
-    };
-
-    const handleReset = () => {
-        clearFilters();
-    };
-
+    const {
+        t, form, page, pageSize, setPage, setPageSize,
+        orderData, isOrderLoading, statusData,
+        servicesData, marketplacesData, statusOptions,
+        handleSearch, handleReset, navigateToDetail
+    } = useOrdersPage();
 
     const columns = [
         {
@@ -216,6 +165,9 @@ export const OrdersStyle2 = () => {
                             pagination={false}
                             size="middle"
                             rowClassName="hover:bg-blue-50 transition-colors cursor-pointer"
+                            onRow={(record: any) => ({
+                                onClick: () => navigateToDetail(record.code),
+                            })}
                         />
                     </TableComponent>
 

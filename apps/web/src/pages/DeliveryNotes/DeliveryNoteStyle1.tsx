@@ -1,8 +1,7 @@
-import { useMemo } from 'react';
 import { Form, Input, DatePicker, Table, Tag, Empty, Card } from 'antd';
 import { FilterPanel, TableComponent, Pagination } from '@repo/ui';
-import { useFilterWithURL, usePaginationWithURL, useDeliveryNotesQuery } from '@repo/hooks';
 import dayjs from 'dayjs';
+import { useDeliveryNotesPage } from './hooks/useDeliveryNotesPage';
 
 const { RangePicker } = DatePicker;
 
@@ -11,31 +10,10 @@ const { RangePicker } = DatePicker;
  * Dùng FilterPanel + TableComponent chuẩn, filter theo mã phiếu xuất và thời gian.
  */
 export const DeliveryNoteStyle1 = () => {
-    const [form] = Form.useForm();
-
-    const { page, pageSize, setPage, setPageSize } = usePaginationWithURL({
-        defaultPage: 1,
-        defaultPageSize: 25,
-    });
-
-    const { applyFilters, clearFilters, filters } = useFilterWithURL({ form });
-
-    const apiParams = useMemo(() => {
-        const params: Record<string, any> = {
-            page: page - 1,
-            size: pageSize,
-            sort: 'exported_at:desc',
-            ...filters,
-        };
-        if (params.exportedAtRange) {
-            params.exportedAtFrom = params.exportedAtRange[0]?.toISOString();
-            params.exportedAtTo = params.exportedAtRange[1]?.toISOString();
-            delete params.exportedAtRange;
-        }
-        return params;
-    }, [page, pageSize, filters]);
-
-    const { data: listData, isLoading } = useDeliveryNotesQuery(apiParams);
+    const {
+        form, page, pageSize, setPage, setPageSize,
+        listData, isDeliveryNotesLoading, handleSearch, handleReset
+    } = useDeliveryNotesPage();
 
     const columns = [
         {
@@ -80,15 +58,13 @@ export const DeliveryNoteStyle1 = () => {
         },
     ];
 
-    const handleSearch = () => applyFilters(form.getFieldsValue());
-
     return (
         <div className="min-h-screen bg-layout">
             <Card className="mb-6 shadow-sm">
                 <FilterPanel
                     form={form}
                     onSearch={handleSearch}
-                    onReset={clearFilters}
+                    onReset={handleReset}
                     searchText="Tìm kiếm"
                     resetText="Đặt lại"
                     primaryContent={
@@ -114,8 +90,8 @@ export const DeliveryNoteStyle1 = () => {
             <TableComponent
                 title="Danh sách phiếu xuất"
                 totalCount={listData?.total}
-                loading={isLoading}
-                showEmpty={!isLoading && listData?.data?.length === 0}
+                loading={isDeliveryNotesLoading}
+                showEmpty={!isDeliveryNotesLoading && listData?.data?.length === 0}
                 emptyText={<Empty description="Không tìm thấy phiếu xuất nào" />}
             >
                 <Table

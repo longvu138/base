@@ -1,61 +1,18 @@
-import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Form, Input, DatePicker, Checkbox, Select, Table, Card, Tabs, Empty, Skeleton } from 'antd';
 import { FilterPanel, TableComponent, StatusFilter, Status, Pagination } from '@repo/ui';
 import { useTheme } from '@repo/theme-provider';
-import { useFilterWithURL, usePaginationWithURL, useListShipmentQuery, useShipmentStatusesQuery, useShipmentStatisticQuery, useShipmentServicesQuery } from '@repo/hooks';
-import { useTranslation } from '@repo/i18n';
+import { useShipmentsPage } from './hooks/useShipmentsPage';
 
 const { RangePicker } = DatePicker;
 
-
-
 export const Shipments: React.FC<{ isTabView?: boolean }> = ({ isTabView }) => {
-    const { t } = useTranslation();
-    const [form] = Form.useForm();
-
-
-    const { page, pageSize, setPage, setPageSize } = usePaginationWithURL();
-    const { applyFilters, clearFilters, filters } = useFilterWithURL({ form });
-
-    const apiParams = useMemo(() => {
-        const params: Record<string, any> = {
-            page: page - 1, // 0-indexed pagination for all tenants
-            pageSize,
-            ...filters
-        };
-
-        // Convert array types for API
-        ['statuses', 'services'].forEach(key => {
-            if (Array.isArray(params[key])) {
-                params[key] = params[key].join(',');
-            }
-        });
-
-        return params;
-    }, [page, pageSize, filters]);
-
-    const { data: shipmentData, isLoading } = useListShipmentQuery(apiParams);
-    const { data: statusData } = useShipmentStatusesQuery();
-    const { data: statisticData } = useShipmentStatisticQuery();
-    const { data: servicesData, isLoading: isServicesLoading } = useShipmentServicesQuery();
-
-    const statusOptions = useMemo(() => {
-        if (!statusData) return [];
-        return statusData.map((s: any) => {
-            const statistic = statisticData?.find((item: any) => item.status === s.code);
-            const count = Number(statistic?.total || 0);
-            return {
-                label: count > 0 ? `${s.name} (${count})` : s.name,
-                value: s.code,
-            };
-        });
-    }, [statusData, statisticData]);
-
-    const handleSearch = () => {
-        const values = form.getFieldsValue();
-        applyFilters(values);
-    };
+    const {
+        t, form, page, pageSize, setPage, setPageSize,
+        shipmentData, isShipmentLoading, statusData,
+        servicesData, isServicesLoading, statusOptions,
+        handleSearch, clearFilters, filters, applyFilters
+    } = useShipmentsPage();
 
     const columns = [
         {
@@ -203,8 +160,8 @@ export const Shipments: React.FC<{ isTabView?: boolean }> = ({ isTabView }) => {
             <TableComponent
                 title={t('shipments.title')}
                 totalCount={shipmentData?.total}
-                loading={isLoading}
-                showEmpty={!isLoading && shipmentData?.data?.length === 0}
+                loading={isShipmentLoading}
+                showEmpty={!isShipmentLoading && shipmentData?.data?.length === 0}
                 emptyText={<Empty description="Không tìm thấy yêu cầu ký gửi nào" />}
             >
                 <Table
@@ -235,3 +192,4 @@ export const Shipments: React.FC<{ isTabView?: boolean }> = ({ isTabView }) => {
         </div>
     );
 };
+

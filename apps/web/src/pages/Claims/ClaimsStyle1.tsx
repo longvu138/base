@@ -1,51 +1,17 @@
-import { useMemo } from 'react';
 import { Form, Input, Table, Tag, Empty, Card } from 'antd';
 import { FilterPanel, TableComponent, StatusFilter, Pagination } from '@repo/ui';
-import { useFilterWithURL, usePaginationWithURL, useListClaimQuery, useClaimStatusesQuery, useSolutionsQuery } from '@repo/hooks';
+import { useClaimsPage } from './hooks/useClaimsPage';
 
 /**
  * ClaimsStyle1 — Giao diện cho Baogam (gd1)
  * Phong cách quản lý truyền thống với bộ lọc rõ ràng.
  */
 export const ClaimsStyle1 = () => {
-    const [form] = Form.useForm();
-
-    const { page, pageSize, setPage, setPageSize } = usePaginationWithURL({
-        defaultPage: 1,
-        defaultPageSize: 25,
-    });
-
-    const { applyFilters, clearFilters, filters } = useFilterWithURL({ form });
-
-    const apiParams = useMemo(() => {
-        const params: Record<string, any> = {
-            page: page - 1,
-            size: pageSize,
-            sort: 'createdAt:desc',
-            ...filters,
-        };
-        // Convert arrays to comma strings for API if needed
-        ['publicStates', 'ticketTypes', 'solutionCodes'].forEach(key => {
-            if (Array.isArray(params[key])) {
-                params[key] = params[key].join(',');
-            }
-        });
-        return params;
-    }, [page, pageSize, filters]);
-
-    const { data: listData, isLoading } = useListClaimQuery(apiParams);
-    const { data: statusData } = useClaimStatusesQuery();
-    const { data: solutionData } = useSolutionsQuery();
-
-    const statusOptions = useMemo(() => {
-        if (!statusData) return [];
-        return statusData.map((s) => ({ label: s.name, value: s.code }));
-    }, [statusData]);
-
-    const solutionOptions = useMemo(() => {
-        if (!solutionData) return [];
-        return solutionData.map((s) => ({ label: s.name, value: s.code }));
-    }, [solutionData]);
+    const {
+        form, page, pageSize, setPage, setPageSize,
+        listData, isClaimsLoading, statusData, solutionData,
+        statusOptions, solutionOptions, handleSearch, handleReset
+    } = useClaimsPage();
 
     const getStatusColor = (code: string) => {
         const found = statusData?.find(s => s.code === code);
@@ -99,7 +65,6 @@ export const ClaimsStyle1 = () => {
         },
     ];
 
-    const handleSearch = () => applyFilters(form.getFieldsValue());
 
     return (
         <div className="min-h-screen bg-layout">
@@ -107,7 +72,7 @@ export const ClaimsStyle1 = () => {
                 <FilterPanel
                     form={form}
                     onSearch={handleSearch}
-                    onReset={clearFilters}
+                    onReset={handleReset}
                     searchText="Tìm kiếm"
                     resetText="Đặt lại"
                     primaryContent={
@@ -146,8 +111,8 @@ export const ClaimsStyle1 = () => {
             <TableComponent
                 title="Quản lý Khiếu nại"
                 totalCount={listData?.total}
-                loading={isLoading}
-                showEmpty={!isLoading && listData?.data?.length === 0}
+                loading={isClaimsLoading}
+                showEmpty={!isClaimsLoading && listData?.data?.length === 0}
             >
                 <Table
                     columns={columns}

@@ -70,6 +70,21 @@ const UI_VARIANTS = [
 ];
 
 /**
+ * === ĐỊNH NGHĨA CÁC BIẾN MÀU (THEME VARIABLES) ===
+ * Các biến màu dưới đây được cấu hình trong themeConfig để tuỳ biến giao diện (Ant Design) cho từng Tenant:
+ * 
+ * 1. colorPrimary: 
+ *    - Là màu gì: Màu sắc chủ đạo (Primary color) đại diện cho thương hiệu.
+ *    - Dùng ở đâu: Dùng cho các nút bấm chính (Primary Button), viền của Input/Select khi focus, màu chữ của đường link, trạng thái active của Menu/Tabs, và các thành phần nhấn mạnh (Call to Action).
+ * 
+ * 2. colorBgLayout:
+ *    - Là màu gì: Màu nền tổng thể của Layout (áp dụng cho giao diện Sáng - Light mode).
+ *    - Dùng ở đâu: Dùng làm màu nền nằm dưới các khối nội dung (Card/Panel), giúp tạo không gian phân cách và làm nổi bật các khối nội dung chính.
+ * 
+ * 3. colorBgLayoutDark:
+ *    - Là màu gì: Màu nền tổng thể của Layout (áp dụng cho giao diện Tối - Dark mode).
+ *    - Dùng ở đâu: Chức năng tương tự như colorBgLayout nhưng được sử dụng làm nền tổng thể khi ứng dụng chuyển sang chế độ Dark mode (thường là các màu tối sâu như đen, xanh đen).
+ *
  * === CẤU HÌNH TENANTS ===
  * Khôi phục đầy đủ màu sắc và cấu hình lồng ghép đúng như ban đầu.
  */
@@ -119,13 +134,13 @@ const tenants = {
   },
   'tetetete': {
     name: "Te te nè Express",
-    variantCode: "gd1",
+    variantCode: "gd2",
     tenantConfig: {
       themeConfig: {
         uiLib: 'antd',
         colorPrimary: '#ff4d4f',
         colorBgLayout: '#fff1f0',
-        borderRadius: 4,
+        borderRadius: 12,
         colorBgLayoutDark: '#000000',
         // Override đặc thù cho Thiên Long
         variants: {
@@ -140,8 +155,8 @@ app.get('/api/tenants/:id/config', (req, res) => {
   const tenantId = req.params.id;
   const tenant = tenants[tenantId] || tenants['baogam'];
   res.json({
-      id: tenantId,
-      ...tenant
+    id: tenantId,
+    ...tenant
   });
 });
 

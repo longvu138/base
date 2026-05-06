@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import {
     Form,
     Input as AntInput,
@@ -13,12 +13,6 @@ import {
 } from 'antd';
 import { Pagination } from '@repo/ui';
 import {
-    useFilterWithURL,
-    usePaginationWithURL,
-    usePackagesQuery,
-    usePackageStatusesQuery,
-} from '@repo/hooks';
-import {
     SearchOutlined,
     RedoOutlined,
     FilterOutlined,
@@ -28,32 +22,20 @@ import {
 import dayjs from 'dayjs';
 import { ParcelMilestoneSteps } from '../../components/Package/ParcelMilestoneSteps';
 import './PackageStyle3.css';
+import { usePackagesPage } from './hooks/usePackagesPage';
 
-/*──────────────────────────────────────────────
-  PACKAGE STYLE 3
-  - isTabView=false (default): trang độc lập với header card
-  - isTabView=true: dùng trong PackagesStyle3, header card ẩn
-──────────────────────────────────────────────*/
+/**
+ * PackageStyle3 — Giao diện cho Gobiz (gd3)
+ * Premium table view với status tabs, hiện đại và sạch sẽ.
+ */
 export const PackageStyle3: React.FC<{ isTabView?: boolean }> = ({ isTabView }) => {
-    const [form] = Form.useForm();
+    const {
+        form, page, pageSize, setPage, setPageSize,
+        filters, listData, isPackagesLoading, statusData,
+        handleSearch, handleReset, applyFilters
+    } = usePackagesPage();
+
     const [showFilters, setShowFilters] = useState(false);
-
-    const { page, pageSize, setPage, setPageSize } = usePaginationWithURL({ defaultPage: 1, defaultPageSize: 25 });
-    const { applyFilters, clearFilters, filters } = useFilterWithURL({ form });
-
-    const apiParams = useMemo(() => {
-        const params: Record<string, any> = { page: page - 1, size: pageSize, sort: 'createdAt:desc', ...filters };
-        if (params.createdAtRange) {
-            params.createdFrom = params.createdAtRange[0]?.toISOString();
-            params.createdTo = params.createdAtRange[1]?.toISOString();
-            delete params.createdAtRange;
-        }
-        if (Array.isArray(params.statuses)) params.statuses = params.statuses.join(',');
-        return params;
-    }, [page, pageSize, filters]);
-
-    const { data: listData, isLoading } = usePackagesQuery(apiParams);
-    const { data: statusData } = usePackageStatusesQuery();
 
     const getStatusInfo = (val: any) => {
         const code = typeof val === 'object' ? val?.code : val;
@@ -124,7 +106,7 @@ export const PackageStyle3: React.FC<{ isTabView?: boolean }> = ({ isTabView }) 
     return (
         <div className={`package-style-3-wrapper ${isTabView ? '' : 'p-6'} space-y-6 max-w-[1600px] mx-auto`}>
 
-            {/* STANDALONE: full header card */}
+            {/* Header STANDALONE */}
             {!isTabView && (
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
                     <div className="space-y-1">
@@ -132,33 +114,33 @@ export const PackageStyle3: React.FC<{ isTabView?: boolean }> = ({ isTabView }) 
                         <p className="text-gray-500 text-sm">Theo dõi và tra cứu trạng thái các kiện hàng.</p>
                     </div>
                     <div className="flex flex-wrap gap-3">
-                        <Form form={form} onFinish={applyFilters} className="flex gap-3">
+                        <Form form={form} component={false}>
                             <Form.Item name="packageCode" noStyle>
-                                <AntInput placeholder="Tìm theo mã kiện, mã đơn..." prefix={<SearchOutlined className="text-gray-400" />} className="w-full md:w-80 h-11 rounded-2xl bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700" onPressEnter={() => form.submit()} />
+                                <AntInput placeholder="Tìm theo mã kiện, mã đơn..." prefix={<SearchOutlined className="text-gray-400" />} className="w-full md:w-80 h-11 rounded-2xl bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700" onPressEnter={handleSearch} />
                             </Form.Item>
-                            <AntButton type="primary" icon={<SearchOutlined />} onClick={() => form.submit()} className="h-11 px-8 rounded-2xl font-bold shadow-lg shadow-primary/20">Tìm kiếm</AntButton>
                         </Form>
+                        <AntButton type="primary" icon={<SearchOutlined />} onClick={handleSearch} className="h-11 px-8 rounded-2xl font-bold shadow-lg shadow-primary/20">Tìm kiếm</AntButton>
                         <AntButton icon={<FilterOutlined />} onClick={() => setShowFilters(!showFilters)} className={`h-11 px-5 rounded-2xl font-bold transition-all ${showFilters ? 'bg-primary/10 text-primary border-primary/20' : 'bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700'}`}>Bộ lọc</AntButton>
-                        <AntButton icon={<RedoOutlined />} onClick={clearFilters} className="h-11 px-5 rounded-2xl font-bold border-gray-200 dark:border-gray-700 hover:text-primary transition-all bg-gray-50 dark:bg-gray-900">Làm mới</AntButton>
+                        <AntButton icon={<RedoOutlined />} onClick={handleReset} className="h-11 px-5 rounded-2xl font-bold border-gray-200 dark:border-gray-700 hover:text-primary transition-all bg-gray-50 dark:bg-gray-900">Làm mới</AntButton>
                     </div>
                 </div>
             )}
 
-            {/* TAB VIEW: compact search bar (right-aligned) */}
+            {/* Header TAB VIEW */}
             {isTabView && (
                 <div className="flex justify-end gap-3">
-                    <Form form={form} onFinish={applyFilters} className="flex gap-3">
+                    <Form form={form} component={false}>
                         <Form.Item name="packageCode" noStyle>
-                            <AntInput placeholder="Tìm theo mã kiện, mã đơn..." prefix={<SearchOutlined className="text-gray-400" />} className="w-full md:w-72 h-10 rounded-xl bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700" onPressEnter={() => form.submit()} />
+                            <AntInput placeholder="Tìm theo mã kiện, mã đơn..." prefix={<SearchOutlined className="text-gray-400" />} className="w-full md:w-72 h-10 rounded-xl bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700" onPressEnter={handleSearch} />
                         </Form.Item>
-                        <AntButton type="primary" icon={<SearchOutlined />} onClick={() => form.submit()} className="h-10 px-6 rounded-xl font-medium">Tìm kiếm</AntButton>
                     </Form>
+                    <AntButton type="primary" icon={<SearchOutlined />} onClick={handleSearch} className="h-10 px-6 rounded-xl font-medium">Tìm kiếm</AntButton>
                     <AntButton icon={<FilterOutlined />} onClick={() => setShowFilters(!showFilters)} className={`h-10 px-4 rounded-xl font-medium transition-all ${showFilters ? 'bg-primary/10 text-primary border-primary/20' : 'bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700'}`}>Bộ lọc</AntButton>
-                    <AntButton icon={<RedoOutlined />} onClick={clearFilters} className="h-10 px-4 rounded-xl font-medium border-gray-200 dark:border-gray-700 hover:text-primary transition-all bg-gray-50 dark:bg-gray-900">Làm mới</AntButton>
+                    <AntButton icon={<RedoOutlined />} onClick={handleReset} className="h-10 px-4 rounded-xl font-medium border-gray-200 dark:border-gray-700 hover:text-primary transition-all bg-gray-50 dark:bg-gray-900">Làm mới</AntButton>
                 </div>
             )}
 
-            {/* Advanced Filters Panel */}
+            {/* Advanced Filters */}
             <div className={`advanced-filters-container overflow-hidden transition-all duration-300 ease-in-out ${showFilters ? 'max-h-[400px] opacity-100 mb-6' : 'max-h-0 opacity-0 overflow-hidden'}`}>
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
                     <Form form={form} layout="vertical" onValuesChange={() => applyFilters(form.getFieldsValue())}>
@@ -194,7 +176,7 @@ export const PackageStyle3: React.FC<{ isTabView?: boolean }> = ({ isTabView }) 
 
             {/* Table */}
             <div className="bg-white dark:bg-gray-800 rounded-3xl overflow-hidden border border-gray-100 dark:border-gray-700 shadow-sm">
-                {isLoading ? (
+                {isPackagesLoading ? (
                     <List
                         dataSource={Array.from({ length: 6 }).map((_, i) => ({ id: `sk-${i}` }))}
                         renderItem={() => (
@@ -226,3 +208,4 @@ export const PackageStyle3: React.FC<{ isTabView?: boolean }> = ({ isTabView }) 
         </div>
     );
 };
+

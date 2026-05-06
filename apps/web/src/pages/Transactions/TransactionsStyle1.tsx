@@ -1,77 +1,18 @@
-import { useMemo } from 'react';
 import { Form, Input, DatePicker, Table, Button, Card, Tag } from 'antd';
 import { FilterPanel, TableComponent, Pagination, StatusFilter } from '@repo/ui';
-import { useFilterWithURL, usePaginationWithURL, useListTransactionQuery, useTransactionTypesQuery, useWalletAccountsQuery } from '@repo/hooks';
 import { Download } from 'lucide-react';
-import { TransactionApi } from '@repo/api';
-
+import { useTransactionsPage } from './hooks/useTransactionsPage';
 
 export const TransactionsStyle1 = () => {
+    const {
+        form, page, pageSize, setPage, setPageSize,
+        isLoadingAccounts, isTransactionLoading,
+        transactionData, transactionTypes,
+        transactionTypeOptions, handleSearch, handleReset, handleExport,
+        accountId
+    } = useTransactionsPage();
 
-    const [form] = Form.useForm();
-
-    const { page, pageSize, setPage, setPageSize } = usePaginationWithURL({
-        defaultPage: 1,
-        defaultPageSize: 20
-    });
-    const { applyFilters, clearFilters, filters } = useFilterWithURL({ form });
-
-    const { data: walletAccounts, isLoading: isLoadingAccounts } = useWalletAccountsQuery();
-    const defaultAccount = walletAccounts?.find((acc: any) => acc.isDefault) || walletAccounts?.[0];
-    const accountId = defaultAccount?.account;
-
-    const currentFilters = useMemo(() => {
-        const params: any = {
-            page: page - 1,  // Convert from 1-indexed (UI) to 0-indexed (API)
-            size: pageSize,
-            ...filters
-        };
-
-        // Transform array to comma-separated string
-        if (Array.isArray(params.externalTypes)) {
-            params.externalTypes = params.externalTypes.join(',');
-        }
-
-        // Transform dates to ISO strings
-        if (params.nominalTimestampFrom) {
-            params.nominalTimestampFrom = params.nominalTimestampFrom.startOf('day').toISOString();
-        }
-        if (params.nominalTimestampTo) {
-            params.nominalTimestampTo = params.nominalTimestampTo.endOf('day').toISOString();
-        }
-
-        return params;
-    }, [filters, page, pageSize]);
-
-    const { data, isLoading } = useListTransactionQuery(accountId, currentFilters);
-    const { data: transactionTypes } = useTransactionTypesQuery();
-
-    const handleSearch = () => {
-        const values = form.getFieldsValue();
-        applyFilters(values);
-    };
-
-    const handleReset = () => {
-        clearFilters();
-    };
-
-    const handleExport = async () => {
-        if (!accountId) return;
-        try {
-            const response = await TransactionApi.exportTransactions(accountId, currentFilters);
-            const url = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', `transactions_${new Date().getTime()}.xlsx`);
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-        } catch (error) {
-            console.error('Export failed:', error);
-        }
-    };
-
-    const isPageLoading = isLoadingAccounts || isLoading;
+    const isPageLoading = isLoadingAccounts || isTransactionLoading;
 
     const getTransactionTypeColor = (type: string) => {
         const colorMap: Record<string, string> = {
@@ -181,14 +122,6 @@ export const TransactionsStyle1 = () => {
         },
     ];
 
-    const transactionTypeOptions = useMemo(() => {
-        if (!transactionTypes) return [];
-        return transactionTypes.map((type: any) => ({
-            label: type.name,
-            value: type.code,
-        }));
-    }, [transactionTypes]);
-
     return (
         <div className="min-h-screen">
             <Card className="mb-6 shadow-sm">
@@ -248,7 +181,7 @@ export const TransactionsStyle1 = () => {
 
             <TableComponent
                 title="Danh Sách Lịch Sử Giao Dịch"
-                totalCount={data?.total}
+                totalCount={transactionData?.total}
                 loading={isPageLoading}
                 extra={
                     <Button
@@ -262,7 +195,7 @@ export const TransactionsStyle1 = () => {
             >
                 <Table
                     columns={columns}
-                    dataSource={data?.data || []}
+                    dataSource={transactionData?.data || []}
                     loading={isPageLoading}
                     pagination={false}
                     rowKey="id"
@@ -273,7 +206,7 @@ export const TransactionsStyle1 = () => {
             <Pagination
                 current={page}
                 pageSize={pageSize}
-                total={data?.total || 0}
+                total={transactionData?.total || 0}
                 onChange={(p, s) => {
                     setPage(p);
                     if (s !== pageSize) setPageSize(s);

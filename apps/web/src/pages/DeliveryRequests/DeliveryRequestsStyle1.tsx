@@ -1,46 +1,18 @@
-import { useMemo } from 'react';
 import { Form, Input, DatePicker, Table, Tag, Empty, Card } from 'antd';
 import { FilterPanel, TableComponent, StatusFilter, Pagination } from '@repo/ui';
-import { useFilterWithURL, usePaginationWithURL, useListDeliveryRequestQuery, useDeliveryRequestStatusesQuery } from '@repo/hooks';
+import { useDeliveryRequestsPage } from './hooks/useDeliveryRequestsPage';
 
 const { RangePicker } = DatePicker;
 
 /**
  * DeliveryRequestsStyle1 — Giao diện cho Baogam (gd1)
- * Dùng FilterPanel + TableComponent chuẩn, sạch sẽ theo phong cách quản lý truyền thống.
  */
 export const DeliveryRequestsStyle1 = () => {
-    const [form] = Form.useForm();
-
-    const { page, pageSize, setPage, setPageSize } = usePaginationWithURL({
-        defaultPage: 1,
-        defaultPageSize: 25,
-    });
-
-    const { applyFilters, clearFilters, filters } = useFilterWithURL({ form });
-
-    const apiParams = useMemo(() => {
-        const params: Record<string, any> = {
-            page: page - 1,
-            size: pageSize,
-            sort: 'createdAt:desc',
-            ...filters,
-        };
-        ['statuses'].forEach(key => {
-            if (Array.isArray(params[key])) {
-                params[key] = params[key].join(',');
-            }
-        });
-        return params;
-    }, [page, pageSize, filters]);
-
-    const { data: listData, isLoading } = useListDeliveryRequestQuery(apiParams);
-    const { data: statusData } = useDeliveryRequestStatusesQuery();
-
-    const statusOptions = useMemo(() => {
-        if (!statusData) return [];
-        return statusData.map((s) => ({ label: s.name, value: s.code }));
-    }, [statusData]);
+    const {
+        form, page, pageSize, setPage, setPageSize,
+        listData, isDeliveryRequestsLoading, statusData, statusOptions,
+        handleSearch, handleReset
+    } = useDeliveryRequestsPage();
 
     const getStatusColor = (code: string) => {
         const found = statusData?.find(s => s.code === code);
@@ -88,15 +60,13 @@ export const DeliveryRequestsStyle1 = () => {
         },
     ];
 
-    const handleSearch = () => applyFilters(form.getFieldsValue());
-
     return (
         <div className="min-h-screen bg-layout">
             <Card className="mb-6 shadow-sm">
                 <FilterPanel
                     form={form}
                     onSearch={handleSearch}
-                    onReset={clearFilters}
+                    onReset={handleReset}
                     searchText="Tìm kiếm"
                     resetText="Đặt lại"
                     primaryContent={
@@ -123,8 +93,8 @@ export const DeliveryRequestsStyle1 = () => {
             <TableComponent
                 title="Yêu cầu giao hàng"
                 totalCount={listData?.total}
-                loading={isLoading}
-                showEmpty={!isLoading && listData?.data?.length === 0}
+                loading={isDeliveryRequestsLoading}
+                showEmpty={!isDeliveryRequestsLoading && listData?.data?.length === 0}
                 emptyText={<Empty description="Không tìm thấy yêu cầu giao nào" />}
             >
                 <Table

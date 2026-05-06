@@ -1,6 +1,6 @@
 import { Layout as AntLayout, Menu, Drawer, Button, Select } from 'antd';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { HomeOutlined, ShoppingCartOutlined, MenuOutlined, LogoutOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { HomeOutlined, ShoppingCartOutlined, MenuOutlined, LogoutOutlined, InfoCircleOutlined, HeartFilled } from '@ant-design/icons';
 import { useState, useEffect } from 'react';
 import { ThemeSwitcher } from '@repo/theme-provider';
 import { getTenantOptions, dispatchTenantChange } from '@repo/tenant-config';
@@ -45,6 +45,11 @@ function Layout() {
             key: '/orders',
             icon: <ShoppingCartOutlined />,
             label: <Link to="/orders" onClick={() => setDrawerVisible(false)}>{t('orders.title')}</Link>,
+        },
+        {
+            key: '/wishlist',
+            icon: <HeartFilled />,
+            label: <Link to="/wishlist" onClick={() => setDrawerVisible(false)}>Yêu thích</Link>,
         },
         {
             key: '/about',
@@ -136,6 +141,10 @@ function Layout() {
                 <Link to="/orders" className={`flex flex-col items-center gap-1 ${location.pathname.includes('orders') ? 'text-primary' : 'text-gray-400'}`}>
                     <ShoppingCartOutlined className="text-xl" />
                     <span className="text-[10px] font-bold uppercase tracking-tight">Orders</span>
+                </Link>
+                <Link to="/wishlist" className={`flex flex-col items-center gap-1 ${location.pathname.includes('wishlist') ? 'text-primary' : 'text-gray-400'}`}>
+                    <HeartFilled className="text-xl" />
+                    <span className="text-[10px] font-bold uppercase tracking-tight">Wishlist</span>
                 </Link>
                 <Link to="/about" className={`flex flex-col items-center gap-1 ${location.pathname.includes('about') ? 'text-primary' : 'text-gray-400'}`}>
                     <InfoCircleOutlined className="text-xl" />
