@@ -1,6 +1,6 @@
 import React from 'react';
 import { useVariant } from '@repo/theme-provider';
-import { DynamicVariant } from '../Common/DynamicVariant';
+import { DynamicVariant } from '@repo/ui';
 
 /**
  * Layout Factory - Trái tim của kiến trúc Layout đa Tenant

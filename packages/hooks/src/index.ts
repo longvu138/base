@@ -26,6 +26,7 @@ export * from './useCustomerHooks';
 export * from './useLogin';
 export * from './useLogout';
 export * from './useLoginMutation';
+export * from './useProfileQuery';
 export * from './usePackageHooks';
 export * from './useDeliveryRequestHooks';
 export * from './useDeliveryNoteHooks';

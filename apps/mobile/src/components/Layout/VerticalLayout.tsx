@@ -1,6 +1,24 @@
 import { Layout as AntLayout, Menu, Drawer, Button, Select } from 'antd';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { HomeOutlined, ShoppingCartOutlined, MenuOutlined, LogoutOutlined, InfoCircleOutlined, HeartFilled } from '@ant-design/icons';
+import { 
+    HomeOutlined, 
+    ShoppingCartOutlined, 
+    MenuOutlined, 
+    LogoutOutlined, 
+    InfoCircleOutlined, 
+    HeartFilled,
+    CarOutlined,
+    AlertOutlined,
+    FileTextOutlined,
+    BoxPlotOutlined,
+    TransactionOutlined,
+    UserOutlined,
+    EnvironmentOutlined,
+    SendOutlined,
+    TagOutlined,
+    QuestionCircleOutlined,
+    WalletOutlined
+} from '@ant-design/icons';
 import { useState, useEffect } from 'react';
 import { ThemeSwitcher } from '@repo/theme-provider';
 import { getTenantOptions, dispatchTenantChange } from '@repo/tenant-config';
@@ -10,7 +28,7 @@ import { useLanguage, useTranslation } from '@repo/i18n';
 const { Header, Content } = AntLayout;
 
 function Layout() {
-    const { t } = useTranslation();
+    useTranslation();
     const location = useLocation();
     const navigate = useNavigate();
     const [drawerVisible, setDrawerVisible] = useState(false);
@@ -39,12 +57,73 @@ function Layout() {
         {
             key: '/dashboard',
             icon: <HomeOutlined />,
-            label: <Link to="/dashboard" onClick={() => setDrawerVisible(false)}>{t('ui.dashboard', { defaultValue: 'Bảng điều khiển' })}</Link>,
+            label: <Link to="/dashboard" onClick={() => setDrawerVisible(false)}>Dashboard</Link>,
         },
         {
             key: '/orders',
             icon: <ShoppingCartOutlined />,
-            label: <Link to="/orders" onClick={() => setDrawerVisible(false)}>{t('orders.title')}</Link>,
+            label: <Link to="/orders" onClick={() => setDrawerVisible(false)}>Đơn hàng</Link>,
+        },
+        {
+            key: '/shipments',
+            icon: <CarOutlined />,
+            label: <Link to="/shipments" onClick={() => setDrawerVisible(false)}>Ký gửi</Link>,
+        },
+        {
+            key: '/packages',
+            icon: <BoxPlotOutlined />,
+            label: <Link to="/packages" onClick={() => setDrawerVisible(false)}>Kiện hàng</Link>,
+        },
+        {
+            key: '/claims',
+            icon: <AlertOutlined />,
+            label: <Link to="/claims" onClick={() => setDrawerVisible(false)}>Khiếu nại</Link>,
+        },
+        {
+            key: '/transactions',
+            icon: <TransactionOutlined />,
+            label: <Link to="/transactions" onClick={() => setDrawerVisible(false)}>Giao dịch</Link>,
+        },
+        {
+            key: '/withdrawal-slips',
+            icon: <WalletOutlined />,
+            label: <Link to="/withdrawal-slips" onClick={() => setDrawerVisible(false)}>Rút tiền</Link>,
+        },
+        {
+            type: 'divider',
+        },
+        {
+            key: '/delivery-notes',
+            icon: <FileTextOutlined />,
+            label: <Link to="/delivery-notes" onClick={() => setDrawerVisible(false)}>Phiếu giao</Link>,
+        },
+        {
+            key: '/delivery-requests',
+            icon: <SendOutlined />,
+            label: <Link to="/delivery-requests" onClick={() => setDrawerVisible(false)}>YC giao hàng</Link>,
+        },
+        {
+            key: '/waybills',
+            icon: <TagOutlined />,
+            label: <Link to="/waybills" onClick={() => setDrawerVisible(false)}>Vận đơn</Link>,
+        },
+        {
+            type: 'divider',
+        },
+        {
+            key: '/profile',
+            icon: <UserOutlined />,
+            label: <Link to="/profile" onClick={() => setDrawerVisible(false)}>Hồ sơ</Link>,
+        },
+        {
+            key: '/address',
+            icon: <EnvironmentOutlined />,
+            label: <Link to="/address" onClick={() => setDrawerVisible(false)}>Địa chỉ</Link>,
+        },
+        {
+            key: '/vouchers',
+            icon: <TagOutlined />,
+            label: <Link to="/vouchers" onClick={() => setDrawerVisible(false)}>Mã giảm giá</Link>,
         },
         {
             key: '/wishlist',
@@ -52,9 +131,14 @@ function Layout() {
             label: <Link to="/wishlist" onClick={() => setDrawerVisible(false)}>Yêu thích</Link>,
         },
         {
+            key: '/faqs',
+            icon: <QuestionCircleOutlined />,
+            label: <Link to="/faqs" onClick={() => setDrawerVisible(false)}>FAQ</Link>,
+        },
+        {
             key: '/about',
             icon: <InfoCircleOutlined />,
-            label: <Link to="/about" onClick={() => setDrawerVisible(false)}>{t('auth.profile')}</Link>,
+            label: <Link to="/about" onClick={() => setDrawerVisible(false)}>Thông tin</Link>,
         },
         {
             type: 'divider',
@@ -62,7 +146,7 @@ function Layout() {
         {
             key: 'logout',
             icon: <LogoutOutlined className="text-red-500" />,
-            label: <span className="text-red-500">{t('auth.logout')}</span>,
+            label: <span className="text-red-500">Đăng xuất</span>,
             onClick: () => {
                 setDrawerVisible(false);
                 handleLogout();

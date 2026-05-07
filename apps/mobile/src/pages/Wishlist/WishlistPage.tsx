@@ -1,8 +1,14 @@
 import { Input, Button, Card, Empty, Tag, Popconfirm } from 'antd';
 import { SearchOutlined, DeleteOutlined, ShoppingCartOutlined, HeartFilled } from '@ant-design/icons';
+import { DynamicVariant } from '@repo/ui';
+import { useVariant } from '@repo/theme-provider';
 import { useWishlistMobile } from './hooks/useWishlistMobile';
 
+// Stable reference
+const modules = import.meta.glob('./*.tsx');
+
 export const WishlistPage = () => {
+    const variant = useVariant('wishlist');
     const {
         wishlistData,
         isWishlistLoading,
@@ -11,20 +17,38 @@ export const WishlistPage = () => {
         updateQuery,
     } = useWishlistMobile();
 
+    if (variant === 'WishlistStyle3') {
+        return (
+            <DynamicVariant
+                variantName={variant}
+                modules={modules}
+                fallbackName="WishlistStyle1"
+                featureName="Wishlist"
+            />
+        );
+    }
+
     return (
         <div className="pb-20">
             {/* Vùng Header */}
-            <div className="mb-4">
-                <h1 className="text-2xl font-black text-gray-900 dark:text-white flex items-center gap-2">
-                    <HeartFilled className="text-red-500" />
-                    Yêu thích
-                </h1>
-                <p className="text-gray-500 text-sm">
-                    {wishlistData?.total || 0} sản phẩm trong danh sách
-                </p>
+            <div className="mb-4 flex items-center justify-between">
+                <div>
+                    <h1 className="text-2xl font-black text-gray-900 dark:text-white flex items-center gap-2 m-0">
+                        <HeartFilled className="text-red-500" />
+                        Yêu thích
+                    </h1>
+                    <p className="text-gray-500 text-sm m-0">
+                        {wishlistData?.total || 0} sản phẩm trong danh sách
+                    </p>
+                </div>
+                
+                <span className="text-[10px] text-gray-400 italic">
+                    Variant: <strong className="text-primary">{variant}</strong>
+                </span>
             </div>
 
             {/* Thanh tìm kiếm Mobile */}
+
             <div className="mb-6 sticky top-0 z-10 bg-layout/80 backdrop-blur-md py-2">
                 <Input
                     placeholder="Tìm sản phẩm..."
@@ -34,6 +58,7 @@ export const WishlistPage = () => {
                     allowClear
                 />
             </div>
+
 
             {/* Danh sách */}
             <div className="grid grid-cols-1 gap-4">

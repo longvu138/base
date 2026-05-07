@@ -1,0 +1,26 @@
+import React from 'react';
+import { useVariant } from '@repo/theme-provider';
+import { DynamicVariant } from '@repo/ui';
+
+/**
+ * Layout Factory cho Mobile
+ * Tự động chọn Layout dựa trên cấu hình từ API
+ */
+const Layout: React.FC = () => {
+    // Lấy tên Layout từ cấu hình Tenant (Mặc định là VerticalLayout)
+    const layoutName = useVariant('layout');
+
+    // Quét tất cả file .tsx trong thư mục này để load động
+    const modules = import.meta.glob('./*.tsx');
+
+    return (
+        <DynamicVariant
+            variantName={layoutName}
+            modules={modules}
+            fallbackName="VerticalLayout"
+            featureName="Layout"
+        />
+    );
+};
+
+export default Layout;

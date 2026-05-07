@@ -1,5 +1,5 @@
 import { useVariant } from '@repo/theme-provider';
-import { DynamicVariant } from '../../components/Common/DynamicVariant';
+import { DynamicVariant } from '@repo/ui';
 
 const modules = import.meta.glob('./*.tsx');
 

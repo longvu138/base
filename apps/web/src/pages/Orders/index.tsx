@@ -1,5 +1,5 @@
 import { useVariant } from '@repo/theme-provider';
-import { DynamicVariant } from '../../components/Common/DynamicVariant';
+import { DynamicVariant } from '@repo/ui';
 
 // Move glob OUTSIDE the component so it's created once (stable reference)
 // This prevents DynamicVariant from recreating React.lazy on every re-render

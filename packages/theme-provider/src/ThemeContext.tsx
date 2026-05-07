@@ -97,5 +97,7 @@ export function useVariant(pageKey: string): string {
     const styleNumber = variantCode.replace(/\D/g, '') || '1';
     const capitalizedKey = pageKey.charAt(0).toUpperCase() + pageKey.slice(1);
 
-    return `${capitalizedKey}Style${styleNumber}`;
+    const result = `${capitalizedKey}Style${styleNumber}`;
+    console.log(`[useVariant] ${pageKey} -> ${result} (code: ${variantCode})`);
+    return result;
 }
