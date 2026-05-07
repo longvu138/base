@@ -19,6 +19,8 @@ export * from './pages/deliveryRequests';
 export * from './pages/deliveryNotes';
 export * from './pages/address';
 export * from './pages/wishlist';
+export * from './pages/vouchers';
+export * from './pages/faqs';
 
 export * from './useCustomerHooks';
 export * from './useLogin';

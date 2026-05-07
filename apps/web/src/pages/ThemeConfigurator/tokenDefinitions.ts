@@ -176,7 +176,7 @@ export const TOKEN_GROUPS: TokenGroup[] = [
     label: 'Layout',
     icon: '🏗️',
     tokens: [
-      { key: 'colorBgHeader', label: 'Header Background', type: 'color', defaultValue: '#001529', description: 'Nền header layout' },
+      { key: 'headerBg', label: 'Header Background', type: 'color', defaultValue: '#001529', description: 'Nền header layout' },
       { key: 'colorBgBody', label: 'Body Background', type: 'color', defaultValue: '#f5f5f5', description: 'Nền body layout' },
       { key: 'colorBgTrigger', label: 'Trigger Background', type: 'color', defaultValue: '#002140', description: 'Nền nút thu gọn sider' },
       { key: 'siderBg', label: 'Sider Background', type: 'color', defaultValue: '#001529', description: 'Nền sider' },

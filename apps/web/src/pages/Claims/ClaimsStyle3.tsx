@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import { useState } from 'react';
 import { Form, Input as AntInput, Button as AntButton, Tag, Skeleton as AntSkeleton, Tabs, Empty, Table, List } from 'antd';
 import { Pagination } from '@repo/ui';
@@ -42,7 +43,9 @@ export const ClaimsStyle3 = () => {
                     </div>
                     <div>
                         <div className="font-extrabold text-[#1a1a1a] dark:text-gray-100 tracking-tight text-sm">{text}</div>
-                        <div className="text-[10px] text-gray-400 font-medium tracking-widest">{record.createdAt}</div>
+                        <div className="text-[10px] text-gray-400 font-medium tracking-widest">
+                            {record.createdAt ? dayjs(record.createdAt).format('HH:mm DD/MM/YYYY') : '-'}
+                        </div>
                     </div>
                 </div>
             ),

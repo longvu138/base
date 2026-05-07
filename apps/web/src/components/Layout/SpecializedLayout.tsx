@@ -105,7 +105,7 @@ const SpecializedLayout: React.FC = () => {
                                     ),
                                 }))}
                                 style={{ width: 100 }}
-                                bordered={false}
+                                variant='borderless'
                                 suffixIcon={<Languages size={14} className="text-gray-400" />}
                             />
 
@@ -114,7 +114,7 @@ const SpecializedLayout: React.FC = () => {
                                 onChange={(val) => dispatchTenantChange(val)}
                                 options={getTenantOptions()}
                                 style={{ width: 160 }}
-                                bordered={false}
+                                variant='borderless'
                                 className="font-bold text-gray-800 dark:text-gray-200"
                             />
                         </Space>

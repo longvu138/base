@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
 import { Form, Input, DatePicker, Select, Table, Checkbox, Button } from 'antd';
 import { FilterPanel, TableComponent, Status, StatusFilter, Pagination } from '@repo/ui';
@@ -53,6 +54,7 @@ export const OrdersStyle1 = () => {
             title: t('orders.columns.created_at'),
             dataIndex: 'createdAt',
             key: 'createdAt',
+            render: (text: string) => <span>{text ? dayjs(text).format('HH:mm DD/MM/YYYY') : '-'}</span>
         }
     ];
 

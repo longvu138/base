@@ -1,8 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Collapse, Empty, Form } from 'antd';
 import { Input as AntInput, Button as AntButton } from 'antd';
 import { Pagination } from '@repo/ui';
-import { usePaginationWithURL, useFilterWithURL, useFaqsQuery } from '@repo/hooks';
 import {
     SearchOutlined,
     RedoOutlined,
@@ -10,35 +9,25 @@ import {
     BookOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
+import { useFaqsPage } from './hooks/useFaqsPage';
 import './FaqsStyle3.css';
 
 export const FaqsStyle3 = () => {
-    const [form] = Form.useForm();
     const [searchText, setSearchText] = useState('');
 
-    const { page, pageSize, setPage, setPageSize } = usePaginationWithURL({
-        defaultPage: 1,
-        defaultPageSize: 25,
-    });
-
-    const { applyFilters, clearFilters, filters } = useFilterWithURL({ form });
-
-    const apiParams = useMemo(() => ({
-        page: page - 1,
-        size: pageSize,
-        sort: 'position:asc',
-        ...(searchText ? { query: searchText } : {}),
-        ...filters,
-    }), [page, pageSize, filters, searchText]);
-
-    const { data, isLoading } = useFaqsQuery(apiParams);
+    const {
+        form, page, pageSize, setPage, setPageSize,
+        faqsData: data, isFaqsLoading: isLoading,
+        handleReset: baseReset,
+        applyFilters
+    } = useFaqsPage();
 
     const handleSearch = () => {
         applyFilters({ ...form.getFieldsValue(), query: searchText });
     };
     const handleReset = () => {
         setSearchText('');
-        clearFilters();
+        baseReset();
         setPage(1);
     };
 
@@ -133,7 +122,7 @@ export const FaqsStyle3 = () => {
                                         <span>
                                             Cập nhật:{' '}
                                             <span className="font-medium text-gray-500 dark:text-gray-400">
-                                                {dayjs(item.modifiedAt || item.createdAt).format('DD/MM/YYYY')}
+                                                {dayjs(item.modifiedAt || item.createdAt).format('HH:mm DD/MM/YYYY')}
                                             </span>
                                         </span>
                                         {item.modifiedBy && (

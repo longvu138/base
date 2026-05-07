@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Skeleton, Tag, Tabs, Divider } from 'antd';
 import {
@@ -196,7 +197,9 @@ export const OrderDetailStyle3 = () => {
                                             <div className="font-semibold text-sm text-gray-800 dark:text-gray-100">
                                                 {d(h.action ?? h.status ?? h.event ?? h.description)}
                                             </div>
-                                            <div className="text-xs text-gray-400 mt-0.5">{d(h.createdAt ?? h.timestamp)}</div>
+                                            <div className="text-xs text-gray-400 mt-0.5">
+                                                {h.createdAt || h.timestamp ? dayjs(h.createdAt ?? h.timestamp).format('HH:mm DD/MM/YYYY') : '---'}
+                                            </div>
                                             {h.note && <p className="text-xs text-gray-500 italic mt-1 border-l-2 border-gray-200 dark:border-gray-600 pl-2">{h.note}</p>}
                                         </div>
                                     </div>

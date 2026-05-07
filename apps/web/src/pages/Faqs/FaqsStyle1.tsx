@@ -1,30 +1,15 @@
-import { useMemo } from 'react';
 import { Collapse, Empty, Input, Form, Card, Tag } from 'antd';
 import { FilterPanel, Pagination } from '@repo/ui';
-import { usePaginationWithURL, useFilterWithURL, useFaqsQuery } from '@repo/hooks';
 import { QuestionCircleOutlined, BookOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
+import { useFaqsPage } from './hooks/useFaqsPage';
 
 export const FaqsStyle1 = () => {
-    const [form] = Form.useForm();
-
-    const { page, pageSize, setPage, setPageSize } = usePaginationWithURL({
-        defaultPage: 1,
-        defaultPageSize: 25,
-    });
-
-    const { applyFilters, clearFilters, filters } = useFilterWithURL({ form });
-
-    const apiParams = useMemo(() => ({
-        page: page - 1,
-        size: pageSize,
-        sort: 'position:asc',
-        ...filters,
-    }), [page, pageSize, filters]);
-
-    const { data, isLoading } = useFaqsQuery(apiParams);
-
-    const handleSearch = () => applyFilters(form.getFieldsValue());
+    const {
+        form, page, pageSize, setPage, setPageSize,
+        faqsData: data, isFaqsLoading: isLoading,
+        handleSearch, handleReset
+    } = useFaqsPage();
 
     return (
         <div className="min-h-screen bg-layout space-y-6 p-4">
@@ -35,7 +20,7 @@ export const FaqsStyle1 = () => {
                     searchText="Tìm kiếm"
                     resetText="Làm mới"
                     onSearch={handleSearch}
-                    onReset={clearFilters}
+                    onReset={handleReset}
                     loading={isLoading}
                     primaryContent={
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -95,7 +80,7 @@ export const FaqsStyle1 = () => {
                                         dangerouslySetInnerHTML={{ __html: item.content || '' }}
                                     />
                                     <div className="flex items-center gap-4 pt-2 border-t border-gray-100 dark:border-gray-700 text-xs text-gray-400">
-                                        <span>Cập nhật: {item.modifiedAt ? dayjs(item.modifiedAt).format('DD/MM/YYYY') : '—'}</span>
+                                        <span>Cập nhật: {item.modifiedAt ? dayjs(item.modifiedAt).format('HH:mm DD/MM/YYYY') : '—'}</span>
                                         {item.modifiedBy && <span>bởi <span className="font-medium">{item.modifiedBy}</span></span>}
                                     </div>
                                 </div>

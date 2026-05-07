@@ -60,7 +60,7 @@ export const PackageStyle1 = () => {
             dataIndex: 'createdAt',
             key: 'createdAt',
             render: (text: string) => (
-                <span className="text-gray-500 text-sm">{dayjs(text).format('DD/MM/YYYY HH:mm')}</span>
+                <span className="text-gray-500 text-sm">{text ? dayjs(text).format('HH:mm DD/MM/YYYY') : '-'}</span>
             ),
         },
     ];

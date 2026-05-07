@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Skeleton, Tag, Tabs, Divider, Button } from 'antd';
 import {
@@ -107,7 +108,7 @@ export const ShipmentDetailStyle1 = () => {
                             </div>
                             <div>
                                 <div className="text-gray-500 text-xs mb-0.5">Ngày tạo</div>
-                                <div className="font-semibold text-gray-800 dark:text-gray-200">{d(shipment.createdAt)}</div>
+                                <div className="font-semibold text-gray-800 dark:text-gray-200">{shipment.createdAt ? dayjs(shipment.createdAt).format('HH:mm DD/MM/YYYY') : '---'}</div>
                             </div>
                             <div>
                                 <div className="text-gray-500 text-xs mb-0.5">Dịch vụ</div>
@@ -210,7 +211,7 @@ export const ShipmentDetailStyle1 = () => {
                                                             <div className="w-2 h-2 rounded-full bg-blue-400 mt-1.5 flex-shrink-0" />
                                                             <div>
                                                                 <div className="font-medium text-gray-800 dark:text-gray-200">{d(h.description ?? h.status ?? h.action)}</div>
-                                                                <div className="text-xs text-gray-400 mt-0.5">{d(h.createdAt ?? h.timestamp)}</div>
+                                                                <div className="text-xs text-gray-400 mt-0.5">{h.createdAt || h.timestamp ? dayjs(h.createdAt ?? h.timestamp).format('HH:mm DD/MM/YYYY') : '---'}</div>
                                                             </div>
                                                         </div>
                                                     ))}

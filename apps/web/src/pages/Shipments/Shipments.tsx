@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import { Link } from 'react-router-dom';
 import { Form, Input, DatePicker, Checkbox, Select, Table, Card, Tabs, Empty, Skeleton } from 'antd';
 import { FilterPanel, TableComponent, StatusFilter, Status, Pagination } from '@repo/ui';
@@ -45,6 +46,7 @@ export const Shipments: React.FC<{ isTabView?: boolean }> = ({ isTabView }) => {
             title: t('shipments.columns.created_at'),
             dataIndex: 'createdAt',
             key: 'createdAt',
+            render: (text: string) => <span>{text ? dayjs(text).format('HH:mm DD/MM/YYYY') : '-'}</span>
         },
     ];
 

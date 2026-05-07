@@ -89,7 +89,7 @@ export const PackageStyle3: React.FC<{ isTabView?: boolean }> = ({ isTabView }) 
             title: 'Ngày tạo',
             dataIndex: 'createdAt',
             key: 'createdAt',
-            render: (t: string) => <span className="text-sm text-gray-500">{dayjs(t).format('DD/MM/YYYY HH:mm')}</span>,
+            render: (t: string) => <span className="text-sm text-gray-500">{t ? dayjs(t).format('HH:mm DD/MM/YYYY') : '-'}</span>,
         },
         {
             title: '',

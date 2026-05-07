@@ -1,52 +1,25 @@
-import { useMemo, useState } from 'react';
-import { Form, Input as AntInput, Button as AntButton, DatePicker, Empty, message } from 'antd';
+import { useState } from 'react';
+import { Form, Input as AntInput, Button as AntButton, DatePicker, Empty } from 'antd';
 import { Pagination } from '@repo/ui';
-import { useFilterWithURL, usePaginationWithURL, useVouchersQuery } from '@repo/hooks';
 import { SearchOutlined, RedoOutlined, FilterOutlined, GiftOutlined, CopyOutlined } from '@ant-design/icons';
+import { useVouchersPage } from './hooks/useVouchersPage';
 import './VouchersStyle3.css';
 
 const { RangePicker } = DatePicker;
 
 export const VouchersStyle3 = () => {
-    const [form] = Form.useForm();
     const [searchText, setSearchText] = useState('');
     const [showFilters, setShowFilters] = useState(false);
-    const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
-    const { page, pageSize, setPage, setPageSize } = usePaginationWithURL({
-        defaultPage: 1,
-        defaultPageSize: 20,
-    });
-
-    const { applyFilters, clearFilters, filters } = useFilterWithURL({ form });
-
-    const apiParams = useMemo(() => {
-        const params: Record<string, any> = {
-            page: page - 1,
-            size: pageSize,
-            ...filters,
-        };
-        if (searchText) params.code = searchText;
-        if (params.dateRange) {
-            params.createdAtFrom = params.dateRange[0]?.toISOString?.() ?? params.dateRange[0];
-            params.createdAtTo = params.dateRange[1]?.toISOString?.() ?? params.dateRange[1];
-            delete params.dateRange;
-        }
-        return params;
-    }, [page, pageSize, filters, searchText]);
-
-    const { data, isLoading } = useVouchersQuery(apiParams);
+    const {
+        form, page, pageSize, setPage, setPageSize,
+        vouchersData: data, isVouchersLoading: isLoading,
+        handleReset: baseReset, handleCopy, copiedCode,
+        applyFilters
+    } = useVouchersPage();
 
     const handleSearch = () => applyFilters({ ...form.getFieldsValue(), code: searchText });
-    const handleReset = () => { setSearchText(''); clearFilters(); };
-
-    const handleCopy = (code: string) => {
-        navigator.clipboard.writeText(code).then(() => {
-            setCopiedCode(code);
-            message.success('Đã sao chép mã!');
-            setTimeout(() => setCopiedCode(null), 2000);
-        });
-    };
+    const handleReset = () => { setSearchText(''); baseReset(); };
 
     const inputCls = 'h-11 rounded-2xl bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700';
 

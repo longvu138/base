@@ -18,7 +18,7 @@ export const baseAntdTheme: ThemeConfig = {
     },
     components: {
         Layout: {
-            colorBgHeader: '#fff',
+            headerBg: '#fff',
         }
     }
 };

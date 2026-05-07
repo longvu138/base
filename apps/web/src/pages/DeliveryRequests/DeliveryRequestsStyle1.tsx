@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import { Form, Input, DatePicker, Table, Tag, Empty, Card } from 'antd';
 import { FilterPanel, TableComponent, StatusFilter, Pagination } from '@repo/ui';
 import { useDeliveryRequestsPage } from './hooks/useDeliveryRequestsPage';
@@ -56,7 +57,7 @@ export const DeliveryRequestsStyle1 = () => {
             title: 'Ngày tạo',
             dataIndex: 'createdAt',
             key: 'createdAt',
-            render: (text: string) => <span className="text-gray-500 text-sm">{text}</span>,
+            render: (text: string) => <span className="text-gray-500 text-sm">{text ? dayjs(text).format('HH:mm DD/MM/YYYY') : '-'}</span>,
         },
     ];
 

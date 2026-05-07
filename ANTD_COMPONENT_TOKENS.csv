@@ -137,7 +137,7 @@ Menu,darkGroupTitleColor,string,rgba(255;255;255;0.45),Group title color in dark
 Menu,collapsedWidth,number,80,Width when sidebar collapsed,Độ rộng khi menu thu gọn
 Menu,collapsedIconSize,number,16,Icon size when collapsed,Cỡ icon khi thu gọn
 === LAYOUT ===,,,,,
-Layout,colorBgHeader,string,#001529,Background color of layout header,Nền header layout
+Layout,headerBg,string,#001529,Background color of layout header,Nền header layout
 Layout,colorBgBody,string,#f5f5f5,Background color of layout body,Nền body layout
 Layout,colorBgTrigger,string,#002140,Background of sider collapse trigger,Nền nút thu gọn sider
 Layout,colorTextTrigger,string,#fff,Text/icon color of trigger,Màu icon nút thu gọn

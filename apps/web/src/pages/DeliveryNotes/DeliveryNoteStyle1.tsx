@@ -52,7 +52,7 @@ export const DeliveryNoteStyle1 = () => {
             key: 'exportedAt',
             render: (t: string) => (
                 <span className="text-gray-500 text-sm">
-                    {t ? dayjs(t).format('DD/MM/YYYY HH:mm') : '—'}
+                    {t ? dayjs(t).format('HH:mm DD/MM/YYYY') : '—'}
                 </span>
             ),
         },

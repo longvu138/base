@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import { Form, Input, DatePicker, Table, Checkbox, Card, Tag, Divider, Typography, Button } from 'antd';
 import { TableComponent, Status, StatusFilter, Pagination } from '@repo/ui';
 import { Plus, Download } from 'lucide-react';
@@ -22,7 +23,7 @@ export const OrdersStyle2 = () => {
             render: (_: any, record: any) => (
                 <div className="flex flex-col gap-1">
                     <span className="font-bold text-base text-primary cursor-pointer hover:underline">{record.code}</span>
-                    <Text type="secondary" className="text-xs">{record.createdAt}</Text>
+                    <Text type="secondary" className="text-xs">{record.createdAt ? dayjs(record.createdAt).format('HH:mm DD/MM/YYYY') : '-'}</Text>
                     {record.note && <Tag color="warning" className="w-fit mt-1">{record.note}</Tag>}
                 </div>
             )

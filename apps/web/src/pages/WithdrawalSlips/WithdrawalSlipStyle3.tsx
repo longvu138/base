@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import { useState } from 'react';
 import {
     Form, Input as AntInput, Button as AntButton, Tag,
@@ -47,7 +48,9 @@ export const WithdrawalSlipStyle3 = ({ isTabView }: { isTabView?: boolean }) => 
                     </div>
                     <div>
                         <div className="font-extrabold text-[#1a1a1a] dark:text-gray-100 text-sm">{text || '—'}</div>
-                        <div className="text-[10px] text-gray-400 font-medium">{record.createdAt || '—'}</div>
+                        <div className="text-[10px] text-gray-400 font-medium">
+                            {record.createdAt ? dayjs(record.createdAt).format('HH:mm DD/MM/YYYY') : '—'}
+                        </div>
                     </div>
                 </div>
             ),

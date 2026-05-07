@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Skeleton, Tag, Tabs, Divider } from 'antd';
 import {
@@ -127,7 +128,9 @@ export const ShipmentDetailStyle2 = () => {
                                     <div key={i} className="relative">
                                         <div className="absolute -left-[22px] top-1 w-3 h-3 rounded-full bg-white dark:bg-gray-800 border-2 border-primary" />
                                         <div className="font-bold text-sm">{d(h.description ?? h.status ?? h.action)}</div>
-                                        <div className="text-[10px] text-gray-400 mt-1">{d(h.createdAt ?? h.timestamp)}</div>
+                                        <div className="text-[10px] text-gray-400 mt-1">
+                                            {h.createdAt || h.timestamp ? dayjs(h.createdAt ?? h.timestamp).format('HH:mm DD/MM/YYYY') : '---'}
+                                        </div>
                                         {h.note && <div className="mt-2 p-2 bg-gray-50 dark:bg-gray-900 rounded text-xs italic">"{h.note}"</div>}
                                     </div>
                                 ))}
@@ -227,7 +230,9 @@ export const ShipmentDetailStyle2 = () => {
                                     </div>
                                     <div className="sd2-compact-metric">
                                         <div className="sd2-metric-top"><HistoryOutlined /> Ngày tạo</div>
-                                        <div className="sd2-metric-bottom text-[10px]">{d(shipment.createdAt)}</div>
+                                        <div className="sd2-metric-bottom text-[10px]">
+                                            {shipment.createdAt ? dayjs(shipment.createdAt).format('HH:mm DD/MM/YYYY') : '---'}
+                                        </div>
                                     </div>
                                 </div>
                             </div>

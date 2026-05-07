@@ -63,7 +63,7 @@ export const WaybillsStyle3 = () => {
                             {text || '—'}
                         </div>
                         <div className="text-[10px] text-gray-400 font-medium tracking-widest">
-                            {record.createdAt ? dayjs(record.createdAt).format('DD/MM/YYYY HH:mm') : ''}
+                            {record.createdAt ? dayjs(record.createdAt).format('HH:mm DD/MM/YYYY') : ''}
                         </div>
                     </div>
                 </div>
@@ -96,14 +96,9 @@ export const WaybillsStyle3 = () => {
             dataIndex: 'receivedTime',
             key: 'receivedTime',
             render: (t: string) => (
-                <div>
                     <div className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                        {t ? dayjs(t).format('DD/MM/YYYY') : '—'}
+                        {t ? dayjs(t).format('HH:mm DD/MM/YYYY') : '—'}
                     </div>
-                    {t && (
-                        <div className="text-[10px] text-gray-400">{dayjs(t).format('HH:mm')}</div>
-                    )}
-                </div>
             ),
         },
         {

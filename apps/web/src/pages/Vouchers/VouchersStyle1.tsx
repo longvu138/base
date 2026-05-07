@@ -1,47 +1,16 @@
-import { useMemo, useState } from 'react';
-import { Form, Input, DatePicker, Empty, message } from 'antd';
+import { Form, Input, DatePicker, Empty } from 'antd';
 import { FilterPanel, Pagination } from '@repo/ui';
-import { useFilterWithURL, usePaginationWithURL, useVouchersQuery } from '@repo/hooks';
 import { GiftOutlined, CopyOutlined } from '@ant-design/icons';
+import { useVouchersPage } from './hooks/useVouchersPage';
 
 const { RangePicker } = DatePicker;
 
 export const VouchersStyle1 = () => {
-    const [form] = Form.useForm();
-    const [copiedCode, setCopiedCode] = useState<string | null>(null);
-
-    const { page, pageSize, setPage, setPageSize } = usePaginationWithURL({
-        defaultPage: 1,
-        defaultPageSize: 20,
-    });
-
-    const { applyFilters, clearFilters, filters } = useFilterWithURL({ form });
-
-    const apiParams = useMemo(() => {
-        const params: Record<string, any> = {
-            page: page - 1,
-            size: pageSize,
-            ...filters,
-        };
-        if (params.dateRange) {
-            params.createdAtFrom = params.dateRange[0]?.toISOString?.() ?? params.dateRange[0];
-            params.createdAtTo = params.dateRange[1]?.toISOString?.() ?? params.dateRange[1];
-            delete params.dateRange;
-        }
-        return params;
-    }, [page, pageSize, filters]);
-
-    const { data, isLoading } = useVouchersQuery(apiParams);
-
-    const handleSearch = () => applyFilters(form.getFieldsValue());
-
-    const handleCopy = (code: string) => {
-        navigator.clipboard.writeText(code).then(() => {
-            setCopiedCode(code);
-            message.success('Đã sao chép mã!');
-            setTimeout(() => setCopiedCode(null), 2000);
-        });
-    };
+    const {
+        form, page, pageSize, setPage, setPageSize,
+        vouchersData: data, isVouchersLoading: isLoading,
+        handleSearch, handleReset, handleCopy, copiedCode
+    } = useVouchersPage();
 
     return (
         <div className="min-h-screen bg-layout space-y-6 p-4">
@@ -52,7 +21,7 @@ export const VouchersStyle1 = () => {
                     searchText="Tìm kiếm"
                     resetText="Làm mới"
                     onSearch={handleSearch}
-                    onReset={clearFilters}
+                    onReset={handleReset}
                     loading={isLoading}
                     primaryContent={
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

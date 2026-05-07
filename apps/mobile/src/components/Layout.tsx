@@ -83,7 +83,7 @@ function Layout() {
                         }))}
                         size="small"
                         style={{ width: 60 }}
-                        bordered={false}
+                        variant='borderless'
                         suffixIcon={null}
                     />
                     <Select
@@ -92,8 +92,7 @@ function Layout() {
                         options={getTenantOptions()}
                         size="small"
                         style={{ width: 100 }}
-                        bordered={false}
-                        dropdownMatchSelectWidth={false}
+                        variant='borderless'
                     />
                     <div className="scale-90">
                         <ThemeSwitcher />
