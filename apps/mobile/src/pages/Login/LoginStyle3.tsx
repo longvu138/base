@@ -17,7 +17,8 @@ export const LoginStyle3: React.FC = () => {
         clientId: appConfig.clientId,
         onSuccess: () => navigate('/orders'),
         showMessage: (type, msg) => {
-            type === 'success' ? message.success(msg) : message.error(msg);
+            if (type === 'success') message.success(msg);
+            else message.error(msg);
         }
     });
 
