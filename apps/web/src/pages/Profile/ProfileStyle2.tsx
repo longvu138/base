@@ -274,4 +274,4 @@ const InfoItem: React.FC<{
     );
 };
 
-export default ProfileStyle1;
+export default ProfileStyle2;

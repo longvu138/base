@@ -1,4 +1,4 @@
-import { Layout as AntLayout, Menu, Drawer, Button, Select, Avatar } from 'antd';
+import { Layout as AntLayout, Drawer, Button, Select, Avatar } from 'antd';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
     HomeOutlined, 
@@ -10,9 +10,9 @@ import {
     UserOutlined,
     BellOutlined
 } from '@ant-design/icons';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { ThemeSwitcher } from '@repo/theme-provider';
-import { getTenantOptions, dispatchTenantChange } from '@repo/tenant-config';
+
 import { useLogout } from '@repo/hooks';
 import { useLanguage } from '@repo/i18n';
 
@@ -32,20 +32,7 @@ export const ThanhlaLayout = () => {
         onSuccess: () => navigate('/login')
     });
 
-    const [currentTenant, setCurrentTenant] = useState(() => {
-        return localStorage.getItem('selected-tenant') || 'thanhla';
-    });
 
-    useEffect(() => {
-        const handleSync = (e: any) => setCurrentTenant(e.detail);
-        window.addEventListener('app:tenant-changed', handleSync);
-        return () => window.removeEventListener('app:tenant-changed', handleSync);
-    }, []);
-
-    const handleTenantUpdate = (value: string) => {
-        setCurrentTenant(value);
-        dispatchTenantChange(value);
-    };
 
     return (
         <AntLayout className="min-h-screen bg-white dark:bg-[#0a0a0a]">

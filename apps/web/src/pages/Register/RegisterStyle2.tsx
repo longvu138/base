@@ -6,7 +6,7 @@ import { ArrowRight, Lock, User, Mail, Phone, BadgeInfo } from 'lucide-react';
  * RegisterStyle2 — Giao diện cho Thanhla (gd2)
  * Phong cách Modern Split-Screen tương tự LoginStyle2.
  */
-export const RegisterStyle2 = ({ form, onFinish, isLoading }: any) => {
+export const RegisterStyle2 = ({ onFinish, isLoading }: any) => {
     return (
         <div className="min-h-screen flex w-full bg-white dark:bg-[#0a0a0a]">
             {/* Left side: Graphic/Branding */}
@@ -17,17 +17,17 @@ export const RegisterStyle2 = ({ form, onFinish, isLoading }: any) => {
                         THANHLA
                     </div>
                 </div>
-                
+
                 <div className="relative z-10 max-w-lg">
                     <h1 className="text-5xl font-black text-gray-900 dark:text-white leading-tight mb-6">
-                        Khởi Đầu <br/>
+                        Khởi Đầu <br />
                         <span className="text-primary">Hành Trình Mới.</span>
                     </h1>
                     <p className="text-lg text-gray-600 dark:text-gray-400">
                         Đăng ký tài khoản ngay hôm nay để trải nghiệm hệ sinh thái Logistics thế hệ mới.
                     </p>
                 </div>
-                
+
                 {/* Decorative elements */}
                 <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-primary/20 rounded-full blur-3xl"></div>
                 <div className="absolute top-1/4 -right-24 w-72 h-72 bg-blue-400/20 rounded-full blur-3xl"></div>

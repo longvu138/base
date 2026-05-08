@@ -38,7 +38,7 @@ export const useWishlistMobile = () => {
             setDeletingId(id);
             await logic.deleteWishlistItemMutation.mutateAsync(id);
             // Show mobile alert/toast here
-        } catch (error) {
+        } catch {
             // Show error toast
         } finally {
             setDeletingId(null);
