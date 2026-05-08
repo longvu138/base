@@ -37,21 +37,13 @@ const FALLBACK_TENANT_CONFIG: FullTenantResponse = {
  * Returns merged result as a FullTenantResponse.
  */
 async function fetchAppData(tenantKey: string): Promise<FullTenantResponse> {
-  const [tenantRes, variantsRes] = await Promise.all([
-    fetch(`${appConfig.be}/api/tenants/${tenantKey}/config`),
-    fetch(`${appConfig.be}/api/ui-variants`),
-  ]);
+  const tenantRes = await fetch(`${appConfig.be}/api/tenants/${tenantKey}/config`);
 
-  if (!tenantRes.ok || !variantsRes.ok) {
-    throw new Error(`Backend error: tenant=${tenantRes.status} variants=${variantsRes.status}`);
+  if (!tenantRes.ok) {
+    throw new Error(`Backend error: tenant=${tenantRes.status}`);
   }
 
-  const [tenantData, variantsData] = await Promise.all([
-    tenantRes.json(),
-    variantsRes.json(),
-  ]);
-
-  return { ...tenantData, uiVariants: variantsData };
+  return tenantRes.json();
 }
 
 function AppContent() {

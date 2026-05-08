@@ -7,18 +7,17 @@
 
 ## 📋 Tổng Quan Kiến Trúc
 
-Hệ thống sử dụng **mô hình cấu hình 2 tầng**:
+Hệ thống sử dụng **mô hình cấu hình đơn giản**:
 
 ```
 Backend API
-    └── /api/tenants/{tenantKey}/config    → Màu sắc, variant, token design
-    └── /api/ui-variants                   → Danh sách bộ giao diện mẫu (gd1, gd2, gd3...)
+    └── /api/tenants/{tenantKey}/config    → Màu sắc, variantCode, token design
 ```
 
 Client khi khởi động sẽ fetch từ API → áp dụng tự động:
 - Ant Design token (màu sắc, border radius...)
 - CSS Variables (dùng cho Tailwind & CSS custom)
-- Component variant (trang nào dùng giao diện nào)
+- Component variant (resolve ở frontend bằng quy tắc tenant-specific + naming convention)
 
 ---
 
@@ -142,7 +141,7 @@ Mỗi giá trị màu được ánh xạ sang CSS variable trên `<html>`:
 
 ---
 
-## 🖼️ Phần 2: Cấu Hình Giao Diện (UI Variant)
+## 🖼️ Phần 2: Cấu Hình Giao Diện (Frontend-Driven)
 
 ### 2.1 Nguyên Lý Hoạt Động
 
@@ -155,17 +154,16 @@ OrdersStyle3   → Giao diện Gobiz premium (gd3)
 OrdersCombined → Giao diện tổng hợp Orders + Shipments
 ```
 
-Hệ thống chọn component nào để render theo **3 cấp ưu tiên**:
+Hệ thống chọn component nào để render theo **2 cấp ưu tiên**:
 
 ```
-1️⃣ DIRECT OVERRIDE  (tenant.themeConfig.variants)     ← Cao nhất
-2️⃣ UI VARIANT MAP   (/api/ui-variants → pages config) ← Trung bình  
-3️⃣ NAMING CONVENTION (pageKey + variantCode)           ← Mặc định
+1️⃣ TENANT-SPECIFIC RULES  (hardcode ở frontend)   ← Cao nhất
+2️⃣ NAMING CONVENTION      (pageKey + variantCode) ← Mặc định
 ```
 
-### 2.2 Cách 1: Dùng Bộ Giao Diện Mẫu (Khuyến Nghị)
+### 2.2 Cách 1: Dùng `variantCode` + convention (Khuyến nghị)
 
-Khai báo `variantCode` — hệ thống sẽ map tự động tất cả các trang:
+Khai báo `variantCode` — frontend map tự động theo tên file:
 
 ```json
 {
@@ -181,64 +179,24 @@ Ví dụ mapping tự động theo từng `variantCode`:
 | `gd2`         | OrdersStyle2 | ClaimsStyle2 | ShipmentsStyle2 | MainLayout    |
 | `gd3`         | OrdersCombined | ClaimsStyle3 | ShipmentsStyle3 | MainLayout |
 
-> **Lưu ý kỹ thuật:** Convention mặc định là `{PageKey}Style{số}` (ví dụ: `gd3` → style số `3` → `OrdersStyle3`). Backend có thể override hoàn toàn thông qua `/api/ui-variants`.
+> **Lưu ý kỹ thuật:** Convention mặc định là `{PageKey}Style{số}` (ví dụ: `gd3` → style số `3` → `OrdersStyle3`).
 
-### 2.3 Cách 2: API `/api/ui-variants` — Định Nghĩa Bộ Giao Diện
+### 2.3 Cách 2: Quy tắc tenant-specific ở frontend
 
-Backend trả về danh sách các bộ giao diện mẫu. Mỗi bộ có thể map **từng trang** sang component khác nhau:
-
-```json
-[
-  {
-    "code": "gd3",
-    "name": "Gobiz Premium",
-    "config": {
-      "layout": "MainLayout",
-      "menu": {
-        "hiddenKeys": ["/shipments"],
-        "labelOverrides": {
-          "/orders": "Quản lý Tổng hợp"
-        }
-      },
-      "pages": {
-        "orders": "OrdersCombined",
-        "claims": "ClaimsStyle3",
-        "shipments": "ShipmentsStyle3",
-        "transactions": "TransactionsStyle3",
-        "deliveryRequests": "DeliveryRequestsStyle3",
-        "login": "LoginStyle3"
-      }
-    }
-  }
-]
-```
-
-**Giải thích:**
-- `"orders": "OrdersCombined"` → Trang Orders dùng component `OrdersCombined.tsx`
-- `"hiddenKeys": ["/shipments"]` → Ẩn menu Shipments (vì đã gộp vào OrdersCombined)
-- `"labelOverrides"` → Đổi tên menu `/orders` thành "Quản lý Tổng hợp"
-
-### 2.4 Cách 3: Direct Override Theo Từng Tenant (Cao Nhất)
-
-Nếu một tenant cần **một trang cụ thể khác** với bộ giao diện chung, dùng `variants` trong `themeConfig`:
+Nếu một tenant cần UI khác hẳn (ví dụ layout/menu/tabs riêng), xử lý trực tiếp ở frontend theo `tenantConfig.id`:
 
 ```json
 {
-  "variantCode": "gd3",
+  "id": "gobiz",
   "tenantConfig": {
     "themeConfig": {
-      "colorPrimary": "#6366f1",
-      "variants": {
-        "orders": "OrdersCombined",
-        "login": "LoginStyle3",
-        "dashboard": "DashboardPremium"
-      }
+      "colorPrimary": "#6366f1"
     }
   }
 }
 ```
 
-> `variants` ghi đè lên bất cứ mapping nào, kể cả `/api/ui-variants`.
+Phần layout/menu logic đặc thù được code ở frontend (ví dụ `useVariant`, `useNavigation`, các page component).
 
 ---
 
@@ -263,7 +221,7 @@ apps/web/src/
 packages/
 ├── tenant-config/src/index.ts  ← Types + helper functions (applyTenantConfig, updateTenantCSSVariables)
 ├── theme-provider/src/         ← ThemeContext, useVariant() hook
-│   ├── ThemeContext.tsx        ← useTheme(), useVariant(), useActiveVariantConfig()
+│   ├── ThemeContext.tsx        ← useTheme(), useVariant()
 │   └── ThemeSwitcher.tsx       ← Toggle Dark/Light UI
 └── antd-config/src/index.ts   ← Base AntD theme (light + dark)
 ```
@@ -314,7 +272,7 @@ export const tenantExamples: Record<string, { name: string }> = {
 |----------------|-------------------|
 | Truyền thống, đơn giản | `"gd1"` |
 | Hiện đại, premium | `"gd3"` |
-| Tổng hợp Orders+Shipments | `"gd3"` + `"orders": "OrdersCombined"` trong variants |
+| Tổng hợp Orders+Shipments | `"gd3"` + xử lý tenant-specific ở frontend |
 
 ---
 
@@ -342,39 +300,14 @@ export const OrdersStyle4 = () => {
 # import.meta.glob('./*.tsx') sẽ tự tìm thấy OrdersStyle4.tsx
 ```
 
-```json
-// 3. Backend khai báo tenant dùng Style4
-{
-  "variantCode": "gd3",
-  "tenantConfig": {
-    "themeConfig": {
-      "variants": {
-        "orders": "OrdersStyle4"
-      }
-    }
-  }
-}
-```
+Sau đó thêm rule frontend để tenant mục tiêu dùng `OrdersStyle4` (không cần lưu mapping UI vào backend/DB).
 
-### 5.2 Thêm Bộ Giao Diện Mẫu Mới (gd4)
+### 5.2 Thêm Biến Thể UI Mới
 
-`GET /api/ui-variants` → Thêm vào array:
-
-```json
-{
-  "code": "gd4",
-  "name": "Enterprise Style",
-  "config": {
-    "layout": "MainLayout",
-    "menu": {},
-    "pages": {
-      "orders": "OrdersStyle4",
-      "claims": "ClaimsStyle3",
-      "login": "LoginStyle3"
-    }
-  }
-}
-```
+Không cần thêm API mapping. Chỉ cần:
+- Tạo component style mới (`*Style4.tsx`)
+- Đặt `variantCode` phù hợp hoặc thêm rule tenant-specific ở frontend
+- Kiểm tra fallback để tránh văng UI nếu thiếu component
 
 ---
 
@@ -390,8 +323,8 @@ export const OrdersStyle4 = () => {
 | Border radius riêng per-tenant | ✅ | Áp dụng toàn bộ Ant Design |
 | Dark mode | ✅ | Toggle real-time, CSS vars tự cập nhật |
 | Giao diện khác nhau per-tenant | ✅ | Per-page override |
-| Menu ẩn/hiện per-tenant | ✅ | `hiddenKeys` |
-| Label menu per-tenant | ✅ | `labelOverrides` |
+| Menu ẩn/hiện per-tenant | ✅ | Frontend tenant-specific rules |
+| Label menu per-tenant | ✅ | Frontend tenant-specific rules |
 | Thêm giao diện mới | ✅ | Chỉ cần tạo file, không sửa routing |
 | UI Library (AntD / MUI) | ✅ | Switch per-tenant |
 | Cấu hình từ API | ✅ | Không cần deploy lại frontend |
@@ -411,7 +344,7 @@ export const OrdersStyle4 = () => {
 
 ```bash
 # Đổi màu tenant → Chỉ cần sửa trên backend API, không cần deploy frontend
-# Đổi giao diện tenant → Đổi variantCode hoặc variants trong themeConfig trên backend
-# Thêm giao diện mới → Tạo file *Style4.tsx, backend khai báo "orders": "OrdersStyle4"
+# Đổi giao diện tenant → Đổi variantCode + rule frontend nếu cần tenant-specific
+# Thêm giao diện mới → Tạo file *Style4.tsx, thêm rule frontend cho tenant mục tiêu
 # Test local → Dropdown "TEST UI" ở trang Login để switch tenant
 ```

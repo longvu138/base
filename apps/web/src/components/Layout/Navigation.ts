@@ -15,7 +15,7 @@ import {
     HeartOutlined,
     QuestionCircleOutlined,
 } from '@ant-design/icons';
-import { useTheme, useActiveVariantConfig } from '@repo/theme-provider';
+import { useTheme, getVariantDefaults } from '@repo/theme-provider';
 
 export interface MenuItem {
     key: string;
@@ -195,19 +195,17 @@ const GOBIZ_MENU_ITEMS: MenuItem[] = [
 export const useNavigation = (): MenuItem[] => {
     const { tenantConfig } = useTheme();
     const themeConfig = tenantConfig?.tenantConfig?.themeConfig;
-    const activeVariant = useActiveVariantConfig();
-
     const variantCode = tenantConfig?.variantCode || 'gd1';
-    const baseItems = variantCode === 'gd3' ? GOBIZ_MENU_ITEMS : BASE_MENU_ITEMS;
+    const variantDefaults = getVariantDefaults(variantCode);
+    const menuPreset = variantDefaults.menu?.preset || 'base';
+    const baseItems = menuPreset === 'gobiz' ? GOBIZ_MENU_ITEMS : BASE_MENU_ITEMS;
 
-    const tenantMenuConfig = themeConfig?.menu;
-    const globalMenuConfig = activeVariant?.config?.menu;
-    const activeMenuConfig = tenantMenuConfig || globalMenuConfig;
-
-    const hiddenKeys = activeMenuConfig?.hiddenKeys ?? [];
+    const defaultHiddenKeys = variantDefaults.menu?.hiddenKeys ?? [];
+    const hiddenKeys = themeConfig?.menu?.hiddenKeys ?? defaultHiddenKeys;
     const filtered = baseItems.filter(item => !hiddenKeys.includes(item.key));
 
-    const labelOverrides = activeMenuConfig?.labelOverrides ?? {};
+    const defaultLabelOverrides: Record<string, string> = variantDefaults.menu?.labelOverrides ?? {};
+    const labelOverrides: Record<string, string> = themeConfig?.menu?.labelOverrides ?? defaultLabelOverrides;
     return filtered.map(item => ({
         ...item,
         label: labelOverrides[item.key] ?? item.label,

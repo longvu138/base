@@ -5,9 +5,10 @@ const modules = import.meta.glob('./*.tsx');
 
 /**
  * OrderDetail dispatcher — dùng đúng pattern như các trang khác.
- * Backend config (tenant-server) quyết định variant:
- *   gd1/gd2 → pages.orderDetail = 'OrderDetailStyle1'
- *   gd3     → pages.orderDetail = 'OrderDetailStyle3'
+ * Variant được resolve bởi useVariant:
+ *   - Ưu tiên tenant override
+ *   - Sau đó theo naming convention (Style1/2/3)
+ *   - Riêng gd2 hiện fallback về Style1 để tránh thiếu component
  */
 export const OrderDetail = () => {
     const variant = useVariant('orderDetail');

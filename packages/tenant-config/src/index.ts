@@ -40,18 +40,6 @@ export interface SimpleTenantConfig extends ThemeConfig {
     borderRadius?: number;
 }
 
-
-export interface UIVariant {
-    code: string;
-    name: string;
-    config: {
-        layout: string;
-        menu: MenuConfig;
-        features?: Record<string, string>;
-        pages?: Record<string, string>;
-    };
-}
-
 export interface FullTenantResponse {
     id: string;
     name: string;
@@ -60,7 +48,6 @@ export interface FullTenantResponse {
         themeConfig: SimpleTenantConfig;
         [key: string]: any;
     };
-    uiVariants?: UIVariant[]; // Danh sách các bộ giao diện hệ thống có sẵn
     [key: string]: any;
 }
 

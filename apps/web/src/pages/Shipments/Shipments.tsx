@@ -2,12 +2,15 @@ import dayjs from 'dayjs';
 import { Link } from 'react-router-dom';
 import { Form, Input, DatePicker, Checkbox, Select, Table, Card, Tabs, Empty, Skeleton } from 'antd';
 import { FilterPanel, TableComponent, StatusFilter, Status, Pagination } from '@repo/ui';
-import { useTheme } from '@repo/theme-provider';
+import { useTheme, getVariantDefaults } from '@repo/theme-provider';
 import { useShipmentsPage } from './hooks/useShipmentsPage';
 
 const { RangePicker } = DatePicker;
 
 export const Shipments: React.FC<{ isTabView?: boolean }> = ({ isTabView }) => {
+    const { tenantConfig } = useTheme();
+    const variantCode = tenantConfig?.variantCode || 'gd1';
+    const variantDefaults = getVariantDefaults(variantCode);
     const {
         t, form, page, pageSize, setPage, setPageSize,
         shipmentData, isShipmentLoading, statusData,
@@ -63,9 +66,9 @@ export const Shipments: React.FC<{ isTabView?: boolean }> = ({ isTabView }) => {
                     primaryContent={
                         <>
                             {(() => {
-                                const { tenantConfig } = useTheme();
-                                // Backend config drive: nếu variants.shipmentStatusDisplay = 'tabs' thì dùng Tabs, còn lại dùng StatusFilter
-                                const useTabsForStatus = tenantConfig?.tenantConfig?.themeConfig?.variants?.['shipmentStatusDisplay'] === 'tabs';
+                                const useTabsForStatus =
+                                    tenantConfig?.tenantConfig?.themeConfig?.variants?.['shipmentStatusDisplay'] === 'tabs'
+                                    || variantDefaults.features?.shipmentStatusDisplay === 'tabs';
                                 return useTabsForStatus ? (
                                     <div className="mb-6 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
                                         <Tabs

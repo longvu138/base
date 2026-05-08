@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import type { FullTenantResponse } from '@repo/tenant-config';
+import { getVariantDefaults } from './variantDefaults';
 
 export type ThemeMode = 'light' | 'dark';
 
@@ -57,43 +58,34 @@ export function useTheme() {
 }
 
 /**
- * Helper: Tìm cấu hình bộ giao diện (UI Variant) mẫu tương ứng với Tenant hiện tại.
- */
-export function useActiveVariantConfig() {
-    const { tenantConfig } = useTheme();
-    const variantCode = tenantConfig?.variantCode || 'gd1';
-    return tenantConfig?.uiVariants?.find(v => v.code === variantCode);
-}
-
-/**
  * Hook: Quyết định component nào sẽ được render cho một pageKey nhất định.
- * Luồng ưu tiên: 
- * 1. Cấu hình đè riêng của Tenant (Direct Override)
- * 2. Cấu hình trong bộ giao diện mẫu từ Backend (System Mapping)
- * 3. Quy ước đặt tên mặc định (Naming Convention)
+ * Luồng ưu tiên:
+ * 1. Quy tắc tenant-specific ở frontend
+ * 2. Quy ước đặt tên mặc định (Naming Convention)
  */
 export function useVariant(pageKey: string): string {
     const { tenantConfig } = useTheme();
     const themeConfig = tenantConfig?.tenantConfig?.themeConfig;
-    const activeMapping = useActiveVariantConfig();
+    const variantCode = tenantConfig?.variantCode || 'gd1';
+    const variantDefaults = getVariantDefaults(variantCode);
 
-    // 1. Direct Override từ Tenant
+    // Direct override injected by frontend tenant UI rules.
     if (themeConfig?.variants?.[pageKey]) {
         return themeConfig.variants[pageKey];
     }
 
-    // 2. Tra cứu từ Mẫu Hệ thống
-    if (activeMapping?.config?.pages?.[pageKey]) {
-        return activeMapping.config.pages[pageKey];
+    // Variant-level defaults for UI behavior without backend mapping.
+    const variantOverride = variantDefaults.componentOverrides?.[pageKey];
+    if (variantOverride) {
+        return variantOverride;
     }
 
-    // Trường hợp đặc biệt cho Layout
-    if (pageKey === 'layout' && activeMapping?.config?.layout) {
-        return activeMapping.config.layout;
+    // Guard các trang chưa có Style2 để không bị văng UI.
+    if (variantCode === 'gd2' && pageKey === 'orderDetail') {
+        return 'OrderDetailStyle1';
     }
 
-    // 3. Naming Convention (Ví dụ: 'orders' + 'gd3' -> 'OrdersStyle3')
-    const variantCode = tenantConfig?.variantCode || 'gd1';
+    // Naming Convention (Ví dụ: 'orders' + 'gd3' -> 'OrdersStyle3')
     const styleNumber = variantCode.replace(/\D/g, '') || '1';
     const capitalizedKey = pageKey.charAt(0).toUpperCase() + pageKey.slice(1);
 

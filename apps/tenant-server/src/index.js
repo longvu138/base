@@ -7,67 +7,57 @@ const port = 3003;
 app.use(cors());
 app.use(express.json());
 
-/**
- * === DANH SÁCH CẤU HÌNH GIAO DIỆN MẪU (UI VARIANTS) ===
- * Chứa các "quy tắc" chung cho từng bộ giao diện.
- * Cấu trúc này giúp bạn thay đổi giao diện hàng loạt mà không cần sửa từng Tenant.
- */
-const UI_VARIANTS = [
-  {
-    code: 'gd1',
-    name: 'Giao diện Phổ thông',
-    config: {
-      layout: 'VerticalLayout',
-      menu: {
-        hiddenKeys: [],
-        labelOverrides: {}
-      },
-      pages: {
-        orderDetail: 'OrderDetailStyle1',
+function isPlainObject(value) {
+  return value && typeof value === 'object' && !Array.isArray(value);
+}
+
+function deepMerge(base, override) {
+  if (!isPlainObject(base)) return override;
+  if (!isPlainObject(override)) return base;
+
+  const result = { ...base };
+  Object.entries(override).forEach(([key, value]) => {
+    if (isPlainObject(value) && isPlainObject(result[key])) {
+      result[key] = deepMerge(result[key], value);
+    } else {
+      result[key] = value;
+    }
+  });
+  return result;
+}
+
+const VARIANT_NAMES = {
+  gd1: 'Giao diện Phổ thông',
+  gd2: 'Giao diện Hiện đại',
+  gd3: 'Giao diện Premium',
+};
+
+const PLAN_PRESETS = {
+  free: {
+    tenantConfig: {
+      themeConfig: {
+        uiLib: 'antd',
+        colorPrimary: '#1677ff',
+        colorBgLayout: '#f5f8ff',
+        colorBorder: '#d9d9d9',
+        borderRadius: 8,
+        colorBgLayoutDark: '#0d1b2a'
       }
     }
   },
-  {
-    code: 'gd2',
-    name: 'Giao diện Hiện đại',
-    config: {
-      layout: 'VerticalLayout',
-      menu: {
-        hiddenKeys: [],
-        labelOverrides: {}
-      },
-      pages: {
-        orderDetail: 'OrderDetailStyle1',
-      }
-    }
-  },
-  {
-    code: 'gd3',
-    name: 'Giao diện Premium (Gobiz Theme)',
-    config: {
-      layout: 'SpecializedLayout',
-      menu: {
-        hiddenKeys: ['/shipments'],
-        labelOverrides: {
-          '/orders': 'Quản lý Tổng hợp'
-        }
-      },
-      features: {
-        shipmentStatusDisplay: 'tabs'
-      },
-      pages: {
-        orders: 'OrdersCombined',
-        orderDetail: 'OrderDetailStyle3',
-        claims: 'ClaimsStyle3',
-        transactions: 'TransactionsStyle3',
-        deliveryRequests: 'DeliveryRequestsStyle3',
-        shipments: 'ShipmentsStyle3',
-        withdrawalSlips: 'WithdrawalSlipStyle3',
-        profile: 'ProfileStyle3'
+  paid: {
+    tenantConfig: {
+      themeConfig: {
+        uiLib: 'antd',
+        colorPrimary: '#722ed1',
+        colorBgLayout: '#f9f5ff',
+        colorBorder: '#c7b5eb',
+        borderRadius: 12,
+        colorBgLayoutDark: '#1a0f2e'
       }
     }
   }
-];
+};
 
 /**
  * === ĐỊNH NGHĨA CÁC BIẾN MÀU (THEME VARIABLES) ===
@@ -89,79 +79,96 @@ const UI_VARIANTS = [
  * Khôi phục đầy đủ màu sắc và cấu hình lồng ghép đúng như ban đầu.
  */
 const tenants = {
-  'baogam': {
-    name: "Báo Gấm",
-    variantCode: "gd1",
-    tenantConfig: {
-      themeConfig: {
-        uiLib: 'antd',
-        colorPrimary: '#1890ff',
-        colorBgLayout: '#f5f8ff',
-        borderRadius: 8,
-        colorBgLayoutDark: '#0d1b2a',
-      }
-    }
-  },
-  'gobiz': {
-    name: "Gobiz Logistics",
-    variantCode: "gd3",
-    tenantConfig: {
-      themeConfig: {
-        uiLib: 'antd',
-        colorPrimary: '#722ed1',
-        colorBgLayout: '#f9f5ff',
-        borderRadius: 12,
-        colorBgLayoutDark: '#1a0f2e',
-      }
-    }
-  },
-  'thien_long': {
-    name: "Thiên Long Express",
-    variantCode: "gd1",
-    tenantConfig: {
-      themeConfig: {
-        uiLib: 'antd',
-        colorPrimary: '#ff4d4f',
-        colorBgLayout: '#fff1f0',
-        borderRadius: 4,
-        colorBgLayoutDark: '#2d0a0a',
-        // Override đặc thù cho Thiên Long
-        variants: {
-          // shipmentStatusDisplay: 'tabs' 
+  baogam: {
+    name: 'Báo Gấm',
+    planCode: 'free',
+    variantCode: 'gd1',
+    override: {
+      tenantConfig: {
+        themeConfig: {
+          colorPrimary: '#1890ff'
         }
       }
     }
   },
-  'tetetete': {
-    name: "Te te nè Express",
-    variantCode: "gd2",
-    tenantConfig: {
-      themeConfig: {
-        uiLib: 'antd',
-        colorPrimary: '#ff4d4f',
-        colorBgLayout: '#fff1f0',
-        borderRadius: 12,
-        colorBgLayoutDark: '#000000',
-        // Override đặc thù cho Thiên Long
-        variants: {
-          // shipmentStatusDisplay: 'tabs' 
+  thien_long: {
+    name: 'Thiên Long Express',
+    planCode: 'free',
+    variantCode: 'gd1',
+    override: {
+      tenantConfig: {
+        themeConfig: {
+          colorPrimary: '#ff4d4f',
+          colorBgLayout: '#fff1f0',
+          colorBgLayoutDark: '#2d0a0a',
+          borderRadius: 4
+        }
+      }
+    }
+  },
+  free_sample_3: {
+    name: 'Free Tenant 3',
+    planCode: 'free',
+    variantCode: 'gd1',
+    override: {
+      tenantConfig: {
+        themeConfig: {
+          colorPrimary: '#13c2c2',
+          colorBorder: '#36cfc9'
+        }
+      }
+    }
+  },
+  gobiz: {
+    name: 'Gobiz Logistics',
+    planCode: 'paid',
+    variantCode: 'gd3',
+    override: {
+      tenantConfig: {
+        themeConfig: {
+          colorPrimary: '#722ed1',
+          colorBorder: '#9254de'
+        }
+      }
+    }
+  },
+  tetetete: {
+    name: 'Te te nè Express',
+    planCode: 'paid',
+    variantCode: 'gd2',
+    override: {
+      tenantConfig: {
+        themeConfig: {
+          colorPrimary: '#ff4d4f',
+          colorBgLayout: '#fff1f0',
+          colorBgLayoutDark: '#000000'
         }
       }
     }
   }
 };
 
+function resolveTenantConfig(tenantId) {
+  const fallbackId = 'baogam';
+  const tenant = tenants[tenantId] || tenants[fallbackId];
+  const variantCode = VARIANT_NAMES[tenant.variantCode] ? tenant.variantCode : 'gd1';
+  const plan = PLAN_PRESETS[tenant.planCode] || PLAN_PRESETS.free;
+
+  const resolved = deepMerge(plan, tenant.override || {});
+
+  const resolvedId = tenants[tenantId] ? tenantId : fallbackId;
+  return {
+    id: resolvedId,
+    tenant: resolvedId,
+    name: tenant.name,
+    variantCode,
+    ...resolved
+  };
+}
+
 app.get('/api/tenants/:id/config', (req, res) => {
   const tenantId = req.params.id;
-  const tenant = tenants[tenantId] || tenants['baogam'];
-  res.json({
-    id: tenantId,
-    ...tenant
-  });
-});
-
-app.get('/api/ui-variants', (req, res) => {
-  res.json(UI_VARIANTS);
+  res.json(resolveTenantConfig(tenantId));
 });
 
 app.listen(port, () => {

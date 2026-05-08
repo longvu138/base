@@ -60,12 +60,7 @@ App mount
 ```
 fetchAppData(tenantId)
    │
-   ├── [Song song] GET /api/tenants/:tenantId/config  → { themeConfig, variantCode, ... }
-   └── [Song song] GET /api/ui-variants               → [{ code, name, config }]
-   │
-   ▼ Promise.all resolve
-[5] Merge kết quả:
-   │  data = { ...tenantData, uiVariants: variantsData }
+   └── GET /api/tenants/:tenantId/config  → { themeConfig, variantCode, ... }
    │
    ▼ .then(data => ...)
 [6] setGlobalTenantConfig(data)
@@ -233,8 +228,7 @@ Trigger: mount / tenant change / dark toggle
         │
         ▼
     fetchAppData()
-    ├── GET /api/tenants/:id/config
-    └── GET /api/ui-variants
+    └── GET /api/tenants/:id/config
         │
         ▼
     setGlobalTenantConfig(data)
