@@ -1,12 +1,17 @@
-import { type FormEvent } from 'react';
-import { message } from 'antd';
-import { ArrowRight } from 'lucide-react';
+import { Form, Input, Button, message } from 'antd';
 import { useLogin } from '@repo/hooks';
 import { useNavigate, Link } from 'react-router-dom';
 import { appConfig } from '@repo/config';
+import { useTranslation } from '@repo/i18n';
+import { ArrowRight, Lock, User } from 'lucide-react';
 
+/**
+ * LoginStyle2 — Giao diện cho Thanhla (gd2)
+ * Phong cách Modern Split-Screen.
+ */
 export const LoginStyle2 = () => {
     const navigate = useNavigate();
+    const { t } = useTranslation();
 
     const login = useLogin({
         clientId: appConfig.clientId,
@@ -16,63 +21,106 @@ export const LoginStyle2 = () => {
         }
     });
 
-    const handleSubmit = (e: FormEvent) => {
-        e.preventDefault();
-        login.handleLogin();
+    const onFinish = (values: any) => {
+        login.handleLogin(values);
     };
 
     return (
-        <div className="min-h-screen flex flex-col bg-filter dark:bg-filter-dark text-text-color font-sans selection:bg-gray-200 transition-colors duration-200">
-            <div className="flex-1 flex flex-col items-center justify-center px-4 -mt-20">
-                <div className="w-full max-w-[360px]">
-                    <div className="mb-8 text-center">
-                        <h1 className="text-2xl font-semibold tracking-tight mb-2 text-primary">Đăng nhập tài khoản</h1>
-                        <p className="text-gray-500 dark:text-gray-400 text-sm">Nhập thông tin truy cập hệ thống của bạn</p>
+        <div className="min-h-screen flex w-full bg-white dark:bg-[#0a0a0a]">
+            {/* Left side: Graphic/Branding */}
+            <div className="hidden lg:flex w-1/2 bg-primary/5 flex-col justify-between p-12 border-r border-gray-100 dark:border-gray-800 relative overflow-hidden">
+                <div className="relative z-10">
+                    <div className="flex items-center gap-2 font-black text-3xl text-primary tracking-tight">
+                        <div className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center">T</div>
+                        THANHLA
                     </div>
-
-                    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                        <div className="group">
-                            <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wider">Email / Tên đăng nhập</label>
-                            <input
-                                type="text"
-                                value={login.credentials.username}
-                                onChange={(e) => login.updateField('username', e.target.value)}
-                                className="w-full bg-filter dark:bg-gray-800 border border-border rounded-md px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all shadow-sm group-hover:border-gray-300 dark:text-white"
-                                placeholder="username"
-                                autoFocus
-                            />
-                        </div>
-
-                        <div className="group">
-                            <div className="flex justify-between items-center mb-1.5">
-                                <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Mật khẩu</label>
-                                <a href="#" className="text-xs text-gray-500 hover:text-primary transition-colors">Quên?</a>
-                            </div>
-                            <input
-                                type="password"
-                                value={login.credentials.password}
-                                onChange={(e) => login.updateField('password', e.target.value)}
-                                className="w-full bg-filter dark:bg-gray-800 border border-border rounded-md px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all shadow-sm group-hover:border-gray-300 dark:text-white"
-                                placeholder="password"
-                            />
-                        </div>
-
-                        <button
-                            type="submit"
-                            disabled={login.isLoading}
-                            className="mt-2 w-full bg-primary text-white rounded-md py-2.5 text-sm font-medium hover:opacity-90 hover:shadow-lg transition-all flex items-center justify-center gap-2 group disabled:opacity-70 disabled:cursor-not-allowed"
-                        >
-                            {login.isLoading ? 'Đang xác thực...' : 'Tiếp tục'}
-                            {!login.isLoading && <ArrowRight size={14} className="opacity-70 group-hover:translate-x-0.5 transition-transform" />}
-                        </button>
-                    </form>
-
-                    <p className="text-center text-xs text-gray-400 mt-8">
-                        Chưa có tài khoản? <Link to="/register" className="text-gray-600 hover:text-black hover:underline transition-colors">Đăng ký dùng thử</Link>
+                </div>
+                
+                <div className="relative z-10 max-w-lg">
+                    <h1 className="text-5xl font-black text-gray-900 dark:text-white leading-tight mb-6">
+                        Logistics <br/>
+                        <span className="text-primary">Next Generation.</span>
+                    </h1>
+                    <p className="text-lg text-gray-600 dark:text-gray-400">
+                        Quản lý vận đơn, đơn hàng, và tài chính trong một nền tảng duy nhất với giao diện Thanhla Style 2.
                     </p>
                 </div>
+                
+                {/* Decorative elements */}
+                <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-primary/20 rounded-full blur-3xl"></div>
+                <div className="absolute top-1/4 -left-24 w-72 h-72 bg-blue-400/20 rounded-full blur-3xl"></div>
             </div>
 
+            {/* Right side: Login Form */}
+            <div className="flex-1 flex items-center justify-center p-8">
+                <div className="w-full max-w-[420px]">
+                    <div className="mb-12 text-center lg:text-left">
+                        <div className="lg:hidden flex items-center justify-center lg:justify-start gap-2 font-black text-3xl text-primary tracking-tight mb-8">
+                            <div className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center">T</div>
+                            THANHLA
+                        </div>
+                        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{t('auth.login.title')}</h2>
+                        <p className="text-gray-500 dark:text-gray-400">Đăng nhập để trải nghiệm không gian làm việc mới.</p>
+                    </div>
+
+                    <Form
+                        name="login"
+                        layout="vertical"
+                        onFinish={onFinish}
+                        autoComplete="off"
+                        size="large"
+                        className="space-y-6"
+                        requiredMark={false}
+                    >
+                        <Form.Item
+                            name="username"
+                            rules={[{ required: true, message: t('auth.login.usernameRequired') }]}
+                        >
+                            <Input
+                                prefix={<User className="text-gray-400 mr-2" size={18} />}
+                                className="h-14 rounded-xl border-gray-200 dark:border-gray-700 dark:bg-gray-800 text-base"
+                                placeholder="Tên đăng nhập / Email"
+                            />
+                        </Form.Item>
+
+                        <Form.Item
+                            name="password"
+                            rules={[{ required: true, message: t('auth.login.passwordRequired') }]}
+                        >
+                            <Input.Password
+                                prefix={<Lock className="text-gray-400 mr-2" size={18} />}
+                                className="h-14 rounded-xl border-gray-200 dark:border-gray-700 dark:bg-gray-800 text-base"
+                                placeholder="Mật khẩu"
+                            />
+                        </Form.Item>
+
+                        <div className="flex items-center justify-end -mt-2">
+                            <Link to="/forgot-password" className="text-sm font-medium text-primary hover:text-blue-700">
+                                Quên mật khẩu?
+                            </Link>
+                        </div>
+
+                        <Form.Item className="pt-4">
+                            <Button
+                                type="primary"
+                                htmlType="submit"
+                                loading={login.isLoading}
+                                className="w-full h-14 rounded-xl font-bold text-lg bg-primary hover:opacity-90 shadow-lg shadow-primary/30 flex items-center justify-center gap-2 group"
+                            >
+                                {t('auth.login.loginButton')}
+                                <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                            </Button>
+                        </Form.Item>
+
+                        <div className="text-center mt-8">
+                            <span className="text-gray-500 dark:text-gray-400">Chưa có tài khoản? </span>
+                            <Link to="/register" className="font-bold text-primary hover:text-blue-700">
+                                {t('auth.login.signUp')}
+                            </Link>
+                        </div>
+                    </Form>
+                </div>
+            </div>
         </div>
     );
 };

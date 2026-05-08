@@ -1,189 +1,203 @@
 import dayjs from 'dayjs';
-import { Form, Input, DatePicker, Table, Checkbox, Card, Tag, Divider, Typography, Button } from 'antd';
-import { TableComponent, Status, StatusFilter, Pagination } from '@repo/ui';
+import { useNavigate } from 'react-router-dom';
+import { Form, Input, DatePicker, Select, Table, Checkbox, Button } from 'antd';
+import { FilterPanel, TableComponent, Status, StatusFilter, Pagination } from '@repo/ui';
 import { Plus, Download } from 'lucide-react';
 import { useOrdersPage } from './hooks/useOrdersPage';
 
 const { RangePicker } = DatePicker;
-const { Title, Text } = Typography;
 
+/**
+ * OrdersStyle2 — Giao diện cho Thanhla (gd2)
+ * Phong cách Modern Card.
+ */
 export const OrdersStyle2 = () => {
+    const navigate = useNavigate();
     const {
         t, form, page, pageSize, setPage, setPageSize,
         orderData, isOrderLoading, statusData,
         servicesData, marketplacesData, statusOptions,
-        handleSearch, handleReset, navigateToDetail
+        handleSearch, handleReset
     } = useOrdersPage();
 
     const columns = [
         {
             title: t('orders.columns.code'),
-            key: 'info',
-            width: 300,
-            render: (_: any, record: any) => (
-                <div className="flex flex-col gap-1">
-                    <span className="font-bold text-base text-primary cursor-pointer hover:underline">{record.code}</span>
-                    <Text type="secondary" className="text-xs">{record.createdAt ? dayjs(record.createdAt).format('HH:mm DD/MM/YYYY') : '-'}</Text>
-                    {record.note && <Tag color="warning" className="w-fit mt-1">{record.note}</Tag>}
-                </div>
-            )
+            dataIndex: 'code',
+            key: 'code',
+            render: (text: string) => <span className="font-medium text-primary">{text}</span>
         },
         {
-            title: t('orders.columns.details'),
-            key: 'details',
-            render: (_: any, record: any) => (
-                <div className="flex flex-col gap-1 text-sm">
-                    <div className="flex justify-between">
-                        <span className="text-text-color opacity-60">{t('orders.columns.warehouse')}:</span>
-                        <span>{record.receivingWarehouse?.displayName || '-'}</span>
-                    </div>
-                </div>
-            )
+            title: t('orders.columns.note'),
+            dataIndex: 'note',
+            key: 'note',
         },
         {
-            title: t('orders.columns.total'),
-            key: 'finance',
-            align: 'right' as const,
-            render: (_: any, record: any) => (
-                <div className="font-semibold text-green-600">
-                    {record.grandTotal?.toLocaleString()} đ
-                </div>
-            )
+            title: t('orders.columns.warehouse'),
+            dataIndex: 'receivingWarehouse',
+            key: 'receivingWarehouse',
+            render: (warehouse: any) => warehouse?.displayName || warehouse?.name || '-'
         },
         {
             title: t('orders.columns.status'),
+            dataIndex: 'status',
             key: 'status',
-            align: 'center' as const,
-            width: 150,
-            render: (_: any, record: any) => <Status status={record.status} statuses={statusData} />
+            render: (status: string) => <Status status={status} statuses={statusData} />
         },
+        {
+            title: t('orders.columns.total'),
+            dataIndex: 'grandTotal',
+            key: 'grandTotal',
+            render: (amount: number) => <span>{amount?.toLocaleString()} đ</span>
+        },
+        {
+            title: t('orders.columns.created_at'),
+            dataIndex: 'createdAt',
+            key: 'createdAt',
+            render: (text: string) => <span>{text ? dayjs(text).format('HH:mm DD/MM/YYYY') : '-'}</span>
+        }
     ];
 
     return (
-        <div className="flex flex-col lg:flex-row gap-6 h-full">
-            <div className="w-full lg:w-80 flex-shrink-0">
-                <Card className="sticky top-4 border-0 shadow-sm" bodyStyle={{ padding: 16 }}>
-                    <Title level={5} className="mb-4">{t('orders.buttons.search')}</Title>
-
-                    <Form form={form} layout="vertical" onFinish={handleSearch}>
-                        <Form.Item name="query" className="mb-4">
-                            <Input.Search placeholder={t('orders.search_placeholder')} onSearch={handleSearch} allowClear />
-                        </Form.Item>
-
-                        <Divider className="my-3" />
-
-                        <Form.Item name="dateRange" label={t('orders.filters.created_at')}>
-                            <RangePicker className="w-full" placeholder={[t('orders.filters.start_date'), t('orders.filters.end_date')]} />
-                        </Form.Item>
-
-                        <Form.Item name="financialPayment" valuePropName="checked" className="mb-4">
-                            <Checkbox>{t('orders.filters.financial_payment')}</Checkbox>
-                        </Form.Item>
-
-                        <Divider className="my-3" />
-
-                        <div className="mb-4">
-                            <div className="font-medium text-xs text-gray-500 uppercase mb-2">{t('orders.filters.source')}</div>
-                            <Form.Item name="marketplaces" noStyle>
-                                <Checkbox.Group className="flex flex-col gap-2">
-                                    {marketplacesData?.map((item: any) => (
-                                        <Checkbox key={item.code} value={item.code} className="m-0 text-sm">{item.name}</Checkbox>
-                                    ))}
-                                </Checkbox.Group>
-                            </Form.Item>
-                        </div>
-
-                        <div className="mb-4">
-                            <div className="font-medium text-xs text-gray-500 uppercase mb-2">{t('orders.filters.services')}</div>
-                            <Form.Item name="services" noStyle>
-                                <Checkbox.Group className="flex flex-col gap-2">
-                                    {servicesData?.map((item: any) => (
-                                        <Checkbox key={item.code} value={item.code} className="m-0 text-sm">{item.name}</Checkbox>
-                                    ))}
-                                </Checkbox.Group>
-                            </Form.Item>
-                        </div>
-
-                        <div className="flex gap-2 mt-4">
-                            <Button
-                                onClick={handleReset}
-                                className="flex-1 px-4 py-2 border border-gray-300 rounded-md text-gray-600 hover:bg-gray-50 transition-colors"
-                            >
-                                {t('orders.buttons.reset')}
-                            </Button>
-                            <Button
-                                onClick={handleSearch}
-                                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors shadow-sm"
-                            >
-                                {t('orders.buttons.apply')}
-                            </Button>
-                        </div>
-                    </Form>
-                </Card>
-            </div>
-
-
-            <div className="flex-1 min-w-0 flex flex-col h-full">
-
-                <div className="mb-4 overflow-x-auto pb-2">
-                    <Form form={form} component={false}>
-                        <Form.Item name="statuses" noStyle>
-                            <StatusFilter options={statusOptions} label="" />
-                        </Form.Item>
-                    </Form>
-                </div>
-
-                <div className="flex-1 flex flex-col">
-                    <TableComponent
-                        title={
-                            <div className="flex items-center justify-between w-full">
-                                <span>{t('orders.title')} ({orderData?.total || 0})</span>
-                            </div>
-                        }
-                        totalCount={orderData?.total || 0}
-                        loading={isOrderLoading}
-                        showEmpty={!isOrderLoading && (!orderData?.data || orderData?.data.length === 0)}
-                        extra={
-                            <div className="flex gap-2">
-                                <Button
-                                    icon={<Download size={16} />}
-                                    onClick={() => console.log('Exporting...')}
+        <div className="space-y-8 bg-white dark:bg-[#141414] p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
+            <div className='border border-blue-100 bg-blue-50/50 dark:bg-filter-dark p-4 rounded-lg transition-colors duration-200'>
+                <FilterPanel
+                    form={form}
+                    searchText={t('orders.buttons.search')}
+                    resetText={t('orders.buttons.reset')}
+                    onSearch={handleSearch}
+                    onReset={handleReset}
+                    showCollapseAll={true}
+                    loading={isOrderLoading}
+                    primaryContent={
+                        <div className="flex flex-col gap-4">
+                            <Form.Item name="statuses" noStyle>
+                                <StatusFilter
+                                    options={statusOptions}
+                                    label={t('orders.filters.status') + ':'}
                                 />
-                                <Button
-                                    type="primary"
-                                    icon={<Plus size={16} />}
-                                    onClick={() => console.log('Creating...')}
-                                >
-                                    {t('common.create', { defaultValue: 'Tạo mới' })}
-                                </Button>
+                            </Form.Item>
+
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                <Form.Item name="query" label={t('orders.search_placeholder')}>
+                                    <Input placeholder={t('orders.search_placeholder')} />
+                                </Form.Item>
+                                <Form.Item name="note" label={t('orders.filters.note')}>
+                                    <Input placeholder="" />
+                                </Form.Item>
+                                <Form.Item name="dateRange" label={t('orders.filters.created_at') + ':'}>
+                                    <RangePicker className="w-full" placeholder={[t('orders.filters.start_date'), t('orders.filters.end_date')]} />
+                                </Form.Item>
+                                <div className="flex items-end pb-2">
+                                    <Form.Item name="financialPayment" valuePropName="checked" noStyle>
+                                        <Checkbox>{t('orders.filters.financial_payment')}</Checkbox>
+                                    </Form.Item>
+                                </div>
                             </div>
-                        }
-                    >
-                        <Table
-                            columns={columns}
-                            dataSource={orderData?.data || []}
-                            rowKey="id"
-                            pagination={false}
-                            size="middle"
-                            rowClassName="hover:bg-blue-50 transition-colors cursor-pointer"
-                            onRow={(record: any) => ({
-                                onClick: () => navigateToDetail(record.code),
-                            })}
-                        />
-                    </TableComponent>
+                        </div>
+                    }
+                    secondaryContent={
+                        <div className='w-full space-y-4 pt-2 border-t border-gray-100'>
+                            <div className='flex items-start gap-1 w-full'>
+                                <div className='whitespace-nowrap pt-1 font-medium text-gray-700 min-w-[120px]'>{t('orders.filters.source')}:</div>
+                                <Form.Item name="marketplaces" className="mb-0 flex-1">
+                                    <Checkbox.Group className="flex flex-wrap gap-x-6 gap-y-3">
+                                        {marketplacesData?.map((item: any) => (
+                                            <Checkbox key={item.code} value={item.code}>{item.name}</Checkbox>
+                                        ))}
+                                    </Checkbox.Group>
+                                </Form.Item>
+                            </div>
 
+                            <div className='flex items-start gap-1 w-full'>
+                                <div className='whitespace-nowrap pt-1 font-medium text-gray-700 min-w-[120px]'>{t('orders.filters.services')}:</div>
+                                <Form.Item name="services" className="mb-0 flex-1">
+                                    <Checkbox.Group className="flex flex-wrap gap-x-6 gap-y-3">
+                                        {servicesData?.map((item: any) => (
+                                            <Checkbox key={item.code} value={item.code}>{item.name}</Checkbox>
+                                        ))}
+                                    </Checkbox.Group>
+                                </Form.Item>
+                            </div>
 
-                    <Pagination
-                        current={page}
-                        pageSize={pageSize}
-                        total={orderData?.total || 0}
-                        onChange={(p, s) => {
-                            setPage(p);
-                            if (s !== pageSize) setPageSize(s);
-                        }}
-                    />
-                </div>
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-2 border-t border-gray-100">
+                                <Form.Item name="stuckStatus" label={t('orders.filters.stuck_status') + ':'}>
+                                    <Select placeholder={t('orders.filters.status')} options={statusData?.map((s: any) => ({ label: s.name, value: s.code }))} allowClear />
+                                </Form.Item>
+                                <Form.Item name="stuckRange" label=" ">
+                                    <Select placeholder="Khoảng" options={[{ label: 'Khoảng', value: 'range' }]} />
+                                </Form.Item>
+                                <Form.Item name="stuckFrom" label=" ">
+                                    <Input placeholder="Từ" />
+                                </Form.Item>
+                                <Form.Item name="stuckTo" label=" ">
+                                    <Input placeholder="Đến" />
+                                </Form.Item>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                <Form.Item name="timeType" label={<span className="dark:text-gray-100">{t('orders.filters.time_range') + ':'}</span>}>
+                                    <Select placeholder={t('orders.filters.time_range')} options={[{ label: 'Ngày tạo', value: 'created' }, { label: 'Ngày cập nhật', value: 'updated' }]} />
+                                </Form.Item>
+                                <Form.Item name="timeStart" label=" ">
+                                    <DatePicker className="w-full" placeholder={t('orders.filters.start_date')} />
+                                </Form.Item>
+                                <Form.Item name="timeEnd" label=" ">
+                                    <DatePicker className="w-full" placeholder={t('orders.filters.end_date')} />
+                                </Form.Item>
+                            </div>
+                        </div>
+                    }
+                />
             </div>
+
+            <TableComponent
+                title={t('orders.title')}
+                totalCount={orderData?.total || 0}
+                hideTotalCount={true}
+                loading={isOrderLoading}
+                showEmpty={!isOrderLoading && (!orderData?.data || orderData?.data.length === 0)}
+                extra={
+                    <div className="flex gap-2">
+                        <Button
+                            type='default'
+                            icon={<Download size={16} />}
+                            onClick={() => console.log('Exporting...')}
+                        >
+                            {t('common.export')}
+                        </Button>
+                        <Button
+                            type="primary"
+                            icon={<Plus size={16} />}
+                            onClick={() => console.log('Creating...')}
+                        >
+                            {t('common.create', { defaultValue: 'Tạo mới' })}
+                        </Button>
+                    </div>
+                }
+            >
+                <Table
+                    columns={columns}
+                    dataSource={orderData?.data || []}
+                    rowKey="id"
+                    pagination={false}
+                    onRow={(record: any) => ({
+                        onClick: () => navigate(`/orders/${record.code}`),
+                        className: 'cursor-pointer hover:bg-blue-50',
+                    })}
+                />
+            </TableComponent>
+
+            <Pagination
+                current={page}
+                pageSize={pageSize}
+                total={orderData?.total || 0}
+                onChange={(p, s) => {
+                    setPage(p);
+                    if (s !== pageSize) setPageSize(s);
+                }}
+            />
         </div>
     );
 };
+

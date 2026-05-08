@@ -69,6 +69,9 @@ export const tenantExamples: Record<string, { name: string }> = {
     tetetete: {
         name: 'Tetetete',
     },
+    thanhla: {
+        name: 'Thanhla Logistics',
+    },
 };
 
 /**

@@ -145,6 +145,20 @@ const tenants = {
         }
       }
     }
+  },
+  thanhla: {
+    name: 'Thanhla Logistics',
+    planCode: 'paid',
+    variantCode: 'gd2',
+    override: {
+      tenantConfig: {
+        themeConfig: {
+          colorPrimary: '#0ea5e9',
+          colorBorder: '#7dd3fc',
+          borderRadius: 10
+        }
+      }
+    }
   }
 };
 

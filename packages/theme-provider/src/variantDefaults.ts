@@ -27,6 +27,38 @@ const DEFAULTS: VariantDefaults = {
 };
 
 const VARIANT_DEFAULTS: Record<string, VariantDefaults> = {
+    gd2: {
+        componentOverrides: {
+            layout: 'ThanhlaLayout',
+            login: 'LoginStyle2',
+            register: 'RegisterStyle2',
+            dashboard: 'DashboardStyle2',
+            orders: 'OrdersStyle2',
+            orderDetail: 'OrderDetailStyle2',
+            shipments: 'ShipmentsStyle2',
+            shipmentDetail: 'ShipmentDetailStyle2',
+            claims: 'ClaimsStyle2',
+            packages: 'PackagesStyle2',
+            transactions: 'TransactionsStyle2',
+            deliveryRequests: 'DeliveryRequestsStyle2',
+            deliveryNotes: 'DeliveryNotesStyle2',
+            withdrawalSlips: 'WithdrawalSlipsStyle2',
+            vouchers: 'VouchersStyle2',
+            wishlist: 'WishlistStyle2',
+            waybills: 'WaybillsStyle2',
+            profile: 'ProfileStyle2',
+            address: 'AddressStyle2',
+            faqs: 'FaqsStyle2',
+        },
+        menu: {
+            preset: 'base',
+            hiddenKeys: [],
+            labelOverrides: {},
+        },
+        features: {
+            shipmentStatusDisplay: 'filter',
+        },
+    },
     gd3: {
         componentOverrides: {
             layout: 'SpecializedLayout',
