@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout/index';
 import { Login } from './pages/Login';
+import { RegisterPage } from './pages/Register';
 import { Dashboard } from './pages/Dashboard';
 import { Orders } from './pages/Orders';
 import { OrderDetail } from './pages/OrderDetail';
@@ -27,6 +28,7 @@ function AppRoutes() {
     return (
         <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<RegisterPage />} />
 
             <Route element={<PrivateRoute />}>
                 <Route path="/" element={<Layout />}>

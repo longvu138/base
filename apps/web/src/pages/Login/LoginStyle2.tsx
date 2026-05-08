@@ -1,7 +1,8 @@
+import { type FormEvent } from 'react';
 import { message } from 'antd';
 import { ArrowRight } from 'lucide-react';
 import { useLogin } from '@repo/hooks';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { appConfig } from '@repo/config';
 
 export const LoginStyle2 = () => {
@@ -15,7 +16,7 @@ export const LoginStyle2 = () => {
         }
     });
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
         login.handleLogin();
     };
@@ -67,7 +68,7 @@ export const LoginStyle2 = () => {
                     </form>
 
                     <p className="text-center text-xs text-gray-400 mt-8">
-                        Chưa có tài khoản? <a href="#" className="text-gray-600 hover:text-black hover:underline transition-colors">Đăng ký dùng thử</a>
+                        Chưa có tài khoản? <Link to="/register" className="text-gray-600 hover:text-black hover:underline transition-colors">Đăng ký dùng thử</Link>
                     </p>
                 </div>
             </div>

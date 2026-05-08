@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
-import { 
-    useListTransactionQuery, 
-    useTransactionTypesQuery, 
-    useWalletAccountsQuery 
+import {
+    useListTransactionQuery,
+    useTransactionTypesQuery,
+    useWalletAccountsQuery
 } from '../useTransactionHooks';
 
 export interface UseTransactionsLogicProps {
@@ -42,13 +42,20 @@ export const useTransactionsLogic = ({ accountId, page, pageSize, filters }: Use
 
     // 2. Fetch data
     const { data: walletAccounts, isLoading: isLoadingAccounts } = useWalletAccountsQuery();
-    const { data: transactionData, isLoading: isTransactionLoading } = useListTransactionQuery(accountId, apiParams);
+
+    const activeAccountId = useMemo(() => {
+        if (accountId) return accountId;
+        const defaultAcc = walletAccounts?.find((acc: any) => acc.isDefault) || walletAccounts?.[0];
+        return defaultAcc?.account;
+    }, [accountId, walletAccounts]);
+
+    const { data: transactionData, isLoading: isTransactionLoading } = useListTransactionQuery(activeAccountId, apiParams);
     const { data: transactionTypes } = useTransactionTypesQuery();
 
     // 3. Derived State
-    const defaultAccount = useMemo(() => 
+    const defaultAccount = useMemo(() =>
         walletAccounts?.find((acc: any) => acc.isDefault) || walletAccounts?.[0]
-    , [walletAccounts]);
+        , [walletAccounts]);
 
     const transactionTypeOptions = useMemo(() => {
         if (!transactionTypes) return [];

@@ -10,4 +10,7 @@ export const CustomerApi = {
     updateProfile: (payload: any) => {
         return ApiClient.auth.patch("customer/profile", payload);
     },
+    register: (payload: any) => {
+        return ApiClient.noAuth.post("customer/profile/register", payload);
+    },
 };

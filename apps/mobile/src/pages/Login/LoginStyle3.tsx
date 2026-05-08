@@ -1,6 +1,6 @@
 import React from 'react';
 import { Form, Input as AntInput, Button as AntButton, Checkbox, message } from 'antd';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useLogin } from '@repo/hooks';
 import { appConfig } from '@repo/config';
@@ -97,8 +97,14 @@ export const LoginStyle3: React.FC = () => {
                 </Form.Item>
             </Form>
 
-            <div className="text-center pt-2">
-                <p className="text-gray-400 text-xs font-medium">
+            <div className="text-center pt-2 space-y-4">
+                <p className="text-sm font-medium">
+                    <span className="text-gray-500">Chưa có tài khoản? </span>
+                    <Link to="/register" className="text-primary font-bold">
+                        Đăng ký ngay
+                    </Link>
+                </p>
+                <p className="text-gray-400 text-[10px] font-medium">
                     Gobiz Logistics System v2026
                 </p>
             </div>

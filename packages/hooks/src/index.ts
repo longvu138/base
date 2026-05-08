@@ -35,3 +35,4 @@ export * from './useVoucherHooks';
 export * from './useChatHooks';
 export * from './useAddressHooks';
 export * from './useFaqHooks';
+export * from './pages/register';

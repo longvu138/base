@@ -1,6 +1,7 @@
+import { type FormEvent } from 'react';
 import { message } from 'antd';
 import { useLogin } from '@repo/hooks';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { appConfig } from '@repo/config';
 import { useTranslation } from '@repo/i18n';
 
@@ -15,7 +16,7 @@ export const LoginStyle2 = () => {
         }
     });
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
         login.handleLogin();
     };
@@ -69,6 +70,13 @@ export const LoginStyle2 = () => {
                 >
                     {login.isLoading ? t('auth.login.logging_in') : t('auth.login.submit')}
                 </button>
+
+                <div className="text-center mt-6">
+                    <span className="text-gray-500 font-medium">Chưa có tài khoản? </span>
+                    <Link to="/register" className="text-black font-black underline">
+                        Tham gia ngay
+                    </Link>
+                </div>
             </form>
         </div>
     );

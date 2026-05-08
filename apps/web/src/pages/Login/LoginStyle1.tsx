@@ -1,6 +1,6 @@
 import { Form, Input, Button, message } from 'antd';
 import { useLogin } from '@repo/hooks';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { appConfig } from '@repo/config';
 import { useTranslation } from '@repo/i18n';
 import { ArrowRight } from 'lucide-react';
@@ -78,9 +78,9 @@ export const LoginStyle1 = () => {
 
                         <div className="text-center mt-6">
                             <span className="text-gray-500 dark:text-gray-400 text-sm">Chưa có tài khoản? </span>
-                            <a href="#" className="font-semibold text-blue-600 hover:text-blue-700 text-sm">
+                            <Link to="/register" className="font-semibold text-blue-600 hover:text-blue-700 text-sm">
                                 {t('auth.login.signUp')}
-                            </a>
+                            </Link>
                         </div>
                     </Form>
                 </div >

@@ -1,6 +1,5 @@
-import React from 'react';
 import { Form, Input as AntInput, Button as AntButton, Checkbox, message } from 'antd';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useLogin } from '@repo/hooks';
 import { appConfig } from '@repo/config';
@@ -9,7 +8,7 @@ import { appConfig } from '@repo/config';
  * Giao diện đăng nhập 3 — Ant Design (Split Screen Style)
  * Dành cho Gobiz Logistics (gd3)
  */
-export const LoginStyle3: React.FC = () => {
+export const LoginStyle3 = () => {
     const navigate = useNavigate();
 
     const login = useLogin({
@@ -119,6 +118,13 @@ export const LoginStyle3: React.FC = () => {
                                 Đăng nhập ngay
                             </AntButton>
                         </Form.Item>
+
+                        <div className="text-center">
+                            <span className="text-gray-500">Chưa có tài khoản? </span>
+                            <Link to="/register" className="text-primary font-bold hover:underline">
+                                Đăng ký ngay
+                            </Link>
+                        </div>
                     </Form>
                 </div>
             </div>

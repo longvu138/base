@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import Login from './pages/Login';
+import RegisterPage from './pages/Register/RegisterPage';
 import OrdersPage from './pages/Orders';
 import ShipmentsPage from './pages/Shipments';
 import ClaimsPage from './pages/Claims';
@@ -23,6 +24,7 @@ function AppRoutes() {
     return (
         <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<RegisterPage />} />
 
             <Route element={<PrivateRoute />}>
                 <Route path="/" element={<Layout />}>

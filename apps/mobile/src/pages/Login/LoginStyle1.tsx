@@ -1,7 +1,8 @@
+import { type FormEvent } from 'react';
 import { message } from 'antd';
 import { ArrowRight } from 'lucide-react';
 import { useLogin } from '@repo/hooks';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { appConfig } from '@repo/config';
 import { useTranslation } from '@repo/i18n';
 
@@ -16,7 +17,7 @@ export const LoginStyle1 = () => {
         }
     });
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
         login.handleLogin();
     };
@@ -59,6 +60,13 @@ export const LoginStyle1 = () => {
                     {login.isLoading ? t('auth.login.logging_in') : t('auth.login.submit')}
                     {!login.isLoading && <ArrowRight size={20} />}
                 </button>
+
+                <div className="text-center mt-4">
+                    <span className="text-gray-500 text-sm">Chưa có tài khoản? </span>
+                    <Link to="/register" className="text-blue-600 font-bold text-sm">
+                        Đăng ký ngay
+                    </Link>
+                </div>
             </form>
         </div>
     );
