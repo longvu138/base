@@ -64,7 +64,7 @@ export const Dashboard = () => {
                     <Statistic
                         title={<Text type="secondary" className="text-xs uppercase font-bold tracking-wider">{t('ui.purchased', { defaultValue: 'Đã mua' })}</Text>}
                         value={DASHBOARD_DATA.stats.purchased.count}
-                        prefix={<ShoppingCart size={18} className="text-blue-500 mr-2" />}
+                        prefix={<ShoppingCart size={18} className="text-primarymr-2" />}
                     />
                 </Card>
                 <Card className="border-0 shadow-sm rounded-xl py-2" bodyStyle={{ padding: '16px 20px' }}>

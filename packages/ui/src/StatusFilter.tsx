@@ -42,13 +42,11 @@ export const StatusFilter: React.FC<StatusFilterProps> = ({
                         key={item.value}
                         checked={value.includes(item.value)}
                         onChange={(checked) => handleChange(item.value, checked)}
-                        className="border border-solid border-gray-200"
+                        className="border border-solid border-gray-200 px-2 text-sm"
                     >
                         {item.label}
-                        {item.count !== undefined && (
-                            <span className="ml-1 opacity-50 text-[11px]">
-                                ({item.count})
-                            </span>
+                        {item.count && item.count > 0 && (
+                            <span className="ml-1">({item.count})</span>
                         )}
                     </CheckableTag>
                 ))}

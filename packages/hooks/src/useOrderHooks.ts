@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { OrderApi } from '@repo/api';
+import { notification } from 'antd';
 
 export const useListOrderQuery = (params: any) => {
     return useQuery({
@@ -97,6 +98,53 @@ export const useCreateOrderCommentMutation = (code: string) => {
         mutationFn: (content: string) => OrderApi.createOrderComment(code, { content }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['orders.comments', code] });
+        },
+    });
+};
+
+export const useUpdateOrderNoteMutation = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ code, note }: { code: string; note: string }) => OrderApi.patchOrder(code, { note }),
+        onMutate: async (newOrder) => {
+            // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+            await queryClient.cancelQueries({ queryKey: ['orders.list'] });
+
+            // Snapshot the previous value
+            const previousQueries = queryClient.getQueriesData({ queryKey: ['orders.list'] });
+
+            // Optimistically update to the new value in all matching queries
+            queryClient.setQueriesData({ queryKey: ['orders.list'] }, (old: any) => {
+                if (!old) return old;
+                return {
+                    ...old,
+                    data: old.data.map((item: any) =>
+                        item.code === newOrder.code ? { ...item, note: newOrder.note } : item
+                    )
+                };
+            });
+
+            // Return a context object with the snapshotted value
+            return { previousQueries };
+        },
+        onError: (_err, _newOrder, context: any) => {
+            // If the mutation fails, use the context to roll back
+            if (context?.previousQueries) {
+                context.previousQueries.forEach(([queryKey, value]: any) => {
+                    queryClient.setQueryData(queryKey, value);
+                });
+            }
+        },
+        onSuccess: (_, variables) => {
+            notification.success({
+                message: 'Cập nhật thành công',
+                description: `Ghi chú cho đơn hàng #${variables.code} đã được cập nhật.`,
+                placement: 'topRight'
+            });
+        },
+        onSettled: () => {
+            // Always refetch after error or success to keep server sync
+            queryClient.invalidateQueries({ queryKey: ['orders.list'] });
         },
     });
 };

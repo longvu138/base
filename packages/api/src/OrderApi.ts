@@ -33,4 +33,7 @@ export const OrderApi = {
     createOrderComment: (code: string, data: { content: string }) => {
         return ApiClient.auth.post(`customer/orders/${code}/comments`, data);
     },
+    patchOrder: (code: string, data: any) => {
+        return ApiClient.auth.patch(`customer/orders/${code}`, data);
+    },
 };
