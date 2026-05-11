@@ -11,6 +11,6 @@ export const CustomerApi = {
         return ApiClient.auth.patch("customer/profile", payload);
     },
     register: (payload: any) => {
-        return ApiClient.noAuth.post("customer/profile/register", payload);
+        return ApiClient.noAuth.post("api/customer/profile/register", payload);
     },
 };
