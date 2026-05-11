@@ -108,10 +108,7 @@ export const LoginStyle3 = () => {
                             />
                         </Form.Item>
 
-                        <div className="flex items-center justify-between mb-6">
-                            <Form.Item name="remember" valuePropName="checked" noStyle>
-                                <Checkbox>Ghi nhớ mật khẩu</Checkbox>
-                            </Form.Item>
+                        <div className="flex items-center justify-end mb-6">
                             <a className="text-primary font-medium hover:underline text-sm" href="">
                                 Quên mật khẩu?
                             </a>

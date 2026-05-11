@@ -84,10 +84,7 @@ export const LoginStyle3: React.FC = () => {
                     />
                 </Form.Item>
 
-                <div className="flex items-center justify-between mb-8">
-                    <Form.Item name="remember" valuePropName="checked" noStyle>
-                        <Checkbox className="text-xs font-medium">Ghi nhớ</Checkbox>
-                    </Form.Item>
+                <div className="flex items-center justify-end mb-8">
                     <a className="text-primary font-bold hover:underline text-xs" href="">
                         Quên mật khẩu?
                     </a>
