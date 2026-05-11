@@ -18,7 +18,7 @@ export function Status({ status, statuses = [] }: StatusProps): any {
     };
 
     return (
-        <Tag color={colorMap[status] || statusConfig?.color || 'default'}>
+        <Tag style={{ padding: "2px 12px", borderRadius: "16px", marginRight: 0 }} color={colorMap[status] || statusConfig?.color || 'default'}>
             {label}
         </Tag>
     );

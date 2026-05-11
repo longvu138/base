@@ -76,9 +76,6 @@ export const webAntdTheme: ThemeConfig = {
     ...baseAntdTheme,
     token: {
         ...baseAntdTheme.token,
-        fontSize: 14,
-        borderRadius: 8,
-        controlHeight: 32,
     },
 };
 
@@ -86,9 +83,6 @@ export const webDarkAntdTheme: ThemeConfig = {
     ...baseDarkAntdTheme,
     token: {
         ...baseDarkAntdTheme.token,
-        fontSize: 14,
-        borderRadius: 8,
-        controlHeight: 32,
     },
 };
 
@@ -96,10 +90,6 @@ export const mobileAntdTheme: ThemeConfig = {
     ...baseAntdTheme,
     token: {
         ...baseAntdTheme.token,
-        fontSize: 16,
-        borderRadius: 12,
-        controlHeight: 44,
-        lineHeight: 1.6,
     },
 };
 
@@ -107,9 +97,5 @@ export const mobileDarkAntdTheme: ThemeConfig = {
     ...baseDarkAntdTheme,
     token: {
         ...baseDarkAntdTheme.token,
-        fontSize: 16,
-        borderRadius: 12,
-        controlHeight: 44,
-        lineHeight: 1.6,
     },
 };

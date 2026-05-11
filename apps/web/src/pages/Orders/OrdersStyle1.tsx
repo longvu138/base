@@ -1,9 +1,11 @@
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
-import { Form, Input, DatePicker, Select, Table, Checkbox, Button } from 'antd';
+import { Form, Input, DatePicker, Select, Table, Checkbox, Button, Tooltip, Popover, Typography } from 'antd';
 import { FilterPanel, TableComponent, Status, StatusFilter, Pagination } from '@repo/ui';
 import { Plus, Download } from 'lucide-react';
 import { useOrdersPage } from './hooks/useOrdersPage';
+import Paragraph from 'antd/es/typography/Paragraph';
+import { formatCurrency } from '@repo/util';
 
 const { RangePicker } = DatePicker;
 
@@ -17,7 +19,7 @@ export const OrdersStyle1 = () => {
         t, form, page, pageSize, setPage, setPageSize,
         orderData, isOrderLoading, statusData,
         servicesData, marketplacesData, statusOptions,
-        handleSearch, handleReset
+        handleSearch, handleReset, updateOrderNote
     } = useOrdersPage();
 
     const columns = [
@@ -25,37 +27,118 @@ export const OrdersStyle1 = () => {
             title: t('orders.columns.code'),
             dataIndex: 'code',
             key: 'code',
-            render: (text: string) => <span className="font-medium text-primary">{text}</span>
+            width: 600,
+            render: (_: any, record: any) => (
+                <>
+                    <div className='flex items-center gap-2 mb-2'>
+                        <Paragraph className="text-primary cursor-pointer mb-0" copyable={{ text: record?.code }}>
+                            <span className="font-medium text-primary cursor-pointer hover:underline" onClick={() => navigate(`/orders/${record?.code}`)}>
+                                #{record?.code}
+                            </span>
+                        </Paragraph>
+
+                        |
+                        <span className='text-sm'>{record?.merchantName}</span>
+                    </div>
+
+                    <div className='flex items-start gap-3'>
+                        <Popover placement='right' content={<img src={record?.image} alt="" className='h-56 w-56 object-cover' />}>
+                            <img src={record?.image} alt="" className='h-28 w-28 rounded-md border object-cover' />
+                        </Popover>
+                        <div className='flex flex-col gap-1.5 flex-1'>
+                            <div className='flex items-start gap-1'>
+                                <span className="">Ghi chú:</span>
+                                <Typography.Paragraph
+                                    className="mb-0 text-sm flex-1 max-w-[400px]"
+                                    ellipsis={{ rows: 1, tooltip: record?.note || "---" }}
+                                    editable={{
+                                        onChange: (val) => {
+                                            if (val !== record?.note) {
+                                                updateOrderNote.mutateAsync({ code: record?.code, note: val });
+                                            }
+                                        },
+                                        triggerType: ['icon', 'text']
+                                    }}
+                                >
+                                    {record?.note || "---"}
+                                </Typography.Paragraph>
+                            </div>
+                            <span className='text-sm truncate'>Kho nhận:{" "}{record?.receivingWarehouse?.displayName || '---'}</span>
+                            <Tooltip title={`Đặt/Mua/Nhận`}>
+                                Số lượng: {record?.orderedQuantity || '---'}/{record?.purchasedQuantity || '---'}/{record?.receivedQuantity || '---'}
+                            </Tooltip>
+                        </div>
+                    </div>
+                    <div className='flex items-center gap-1 mt-1'>
+                        <span className='text-sm truncate'>Dịch vụ:</span>
+                        <Checkbox.Group className="flex flex-wrap">
+                            {record?.services?.map((item: any, idx: number) => (
+                                <span key={item.code} className='text-sm'>
+                                    {item.name}{idx !== record.services.length - 1 && " | "}
+                                </span>
+                            ))}
+                        </Checkbox.Group>
+                    </div>
+                </>
+            )
         },
         {
-            title: t('orders.columns.note'),
-            dataIndex: 'note',
-            key: 'note',
+            title: "",
+            key: "price-info",
+            render: (_: any, record: any) => (
+                <div className="text-sm space-y-1.5">
+                    <div>
+                        <span className="text-gray-600">Tiền hàng: </span>
+                        <span className="font-semibold">{formatCurrency(record?.exchangedTotalValue)}</span>
+                    </div>
+                    <div>
+                        <span className="text-gray-600">Tổng chi phí: </span>
+                        <span className="font-semibold">{formatCurrency(record?.grandTotal)}</span>
+                    </div>
+                    <div>
+                        <span className="text-gray-600">{record?.totalUnpaid < 0 ? "Tiền thừa: " : 'Cần thanh toán: '} </span>
+                        <span className={`font-semibold ${record?.totalUnpaid < 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            {formatCurrency(Math.abs(record?.totalUnpaid))}
+                        </span>
+                    </div>
+                </div>
+            )
         },
         {
-            title: t('orders.columns.warehouse'),
-            dataIndex: 'receivingWarehouse',
-            key: 'receivingWarehouse',
-            render: (warehouse: any) => warehouse?.displayName || warehouse?.name || '-'
-        },
-        {
-            title: t('orders.columns.status'),
-            dataIndex: 'status',
-            key: 'status',
-            render: (status: string) => <Status status={status} statuses={statusData} />
-        },
-        {
-            title: t('orders.columns.total'),
-            dataIndex: 'grandTotal',
-            key: 'grandTotal',
-            render: (amount: number) => <span>{amount?.toLocaleString()} đ</span>
-        },
-        {
-            title: t('orders.columns.created_at'),
+            title: '',
             dataIndex: 'createdAt',
             key: 'createdAt',
-            render: (text: string) => <span>{text ? dayjs(text).format('HH:mm DD/MM/YYYY') : '-'}</span>
+            render: (_: any, record: any) => <div className="text-sm space-y-1.5">
+                <div>
+                    <span className="text-gray-600">Cân nặng tính phí:</span>
+                    <span className="font-semibold ml-1">{record?.chargeableWeight ? record?.chargeableWeight + 'kg' : '---'} </span>
+                </div>
+                <div>
+                    <span className="text-gray-600">Số lượng kiện:</span>
+                    <span className="font-semibold ml-1">{record?.totalPackage ? record?.totalPackage + ' kiện' : '---'}</span>
+                </div>
+                <div>
+                    <span className="text-gray-600">Giảm giá từ NCC: </span>
+                    <span className="font-semibold">{record?.merchantDiscountAmount ? formatCurrency(record?.merchantDiscountAmount) : '---'}</span>
+                </div>
+            </div>
         }
+        , {
+            title: '',
+            dataIndex: 'status',
+            key: 'status',
+            render: (status: string, record: any) => {
+                return <div className="flex flex-col items-end">
+                    <Status status={status} statuses={statusData} />
+                    <div className="flex flex-col items-end mt-1">
+                        <div>Ngày tạo đơn</div>
+                        <div>
+                            {record.createdAt ? dayjs(record.createdAt).format('HH:mm DD/MM/YYYY') : '-'}
+                        </div>
+                    </div>
+                </div>
+            }
+        },
     ];
 
     return (
@@ -88,11 +171,11 @@ export const OrdersStyle1 = () => {
                                 <Form.Item name="dateRange" label={t('orders.filters.created_at') + ':'}>
                                     <RangePicker className="w-full" placeholder={[t('orders.filters.start_date'), t('orders.filters.end_date')]} />
                                 </Form.Item>
-                                <div className="flex items-end pb-2">
-                                    <Form.Item name="financialPayment" valuePropName="checked" noStyle>
-                                        <Checkbox>{t('orders.filters.financial_payment')}</Checkbox>
-                                    </Form.Item>
-                                </div>
+                            </div>
+                            <div className="flex items-end pb-2">
+                                <Form.Item name="needPaid" valuePropName="checked" noStyle>
+                                    <Checkbox>{t('orders.filters.financial_payment')}</Checkbox>
+                                </Form.Item>
                             </div>
                         </div>
                     }
@@ -181,8 +264,7 @@ export const OrdersStyle1 = () => {
                     dataSource={orderData?.data || []}
                     rowKey="id"
                     pagination={false}
-                    onRow={(record: any) => ({
-                        onClick: () => navigate(`/orders/${record.code}`),
+                    onRow={() => ({
                         className: 'cursor-pointer hover:bg-blue-50',
                     })}
                 />

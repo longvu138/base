@@ -1,10 +1,11 @@
 import { useMemo } from 'react';
-import { 
-    useListOrderQuery, 
-    useOrderStatusesQuery, 
-    useOrderStatisticQuery, 
-    useOrderServicesQuery, 
-    useMarketplacesQuery 
+import {
+    useListOrderQuery,
+    useOrderStatusesQuery,
+    useOrderStatisticQuery,
+    useOrderServicesQuery,
+    useMarketplacesQuery,
+    useUpdateOrderNoteMutation
 } from '../useOrderHooks';
 
 export interface UseOrdersLogicProps {
@@ -23,6 +24,7 @@ export const useOrdersLogic = ({ page, pageSize, filters }: UseOrdersLogicProps)
         const params: Record<string, any> = {
             page: page - 1,
             size: pageSize,
+            sort: 'createdAt:desc',
             ...filters
         };
 
@@ -42,16 +44,18 @@ export const useOrdersLogic = ({ page, pageSize, filters }: UseOrdersLogicProps)
     const { data: statisticData } = useOrderStatisticQuery();
     const { data: servicesData } = useOrderServicesQuery();
     const { data: marketplacesData } = useMarketplacesQuery();
+    const updateOrderNote = useUpdateOrderNoteMutation();
 
     // 3. State phái sinh: Các tùy chọn trạng thái kèm số lượng
     const statusOptions = useMemo(() => {
         if (!statusData) return [];
         return statusData.map((s: any) => {
             const statistic = statisticData?.find((item: any) => item.status === s.code);
-            const count = statistic ? statistic.total : 0;
+            const count = statistic ? statistic.total : '0';
             return {
-                label: `${s.name} (${count})`,
+                label: s.name,
                 value: s.code,
+                count
             };
         });
     }, [statusData, statisticData]);
@@ -65,6 +69,7 @@ export const useOrdersLogic = ({ page, pageSize, filters }: UseOrdersLogicProps)
         servicesData,
         marketplacesData,
         statusOptions,
-        apiParams
+        apiParams,
+        updateOrderNote
     };
 };

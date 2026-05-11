@@ -46,7 +46,6 @@
   --card-foreground: 0 0% 95%;
   --popover: 0 0% 10%;
   --popover-foreground: 0 0% 95%;
-  --primary: 221 83% 53%;
   --primary-foreground: 0 0% 100%;
   --secondary: 240 4% 16%;
   --secondary-foreground: 0 0% 95%;
@@ -59,6 +58,7 @@
   --border: 240 4% 16%;
   --input: 240 4% 16%;
   --ring: 221 83% 53%;
+  --radius: 0.5rem;
 
   /* Tenant dark mode fallbacks (overridden at runtime by API config) */
   --tenant-primary-color: #818cf8;
