@@ -14,3 +14,4 @@ export * from './ChatApi';
 export * from './AddressApi';
 export * from './WishlistApi';
 export * from './FaqApi';
+export * from './TenantApi';

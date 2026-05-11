@@ -1,14 +1,28 @@
-import { Form, Input, Button, Typography } from 'antd';
-import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined, IdcardOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import { Form, Input, Button, Typography, Checkbox } from 'antd';
+import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined, IdcardOutlined, ArrowLeftOutlined, UserAddOutlined } from '@ant-design/icons';
 import { Link, useNavigate } from 'react-router-dom';
 
 const { Title, Text } = Typography;
 
-export const RegisterStyle1 = ({ form, onFinish, isLoading }: any) => {
+export const RegisterStyle1 = ({ form, onFinish, isLoading, projectInfo }: any) => {
     const navigate = useNavigate();
+    const bgImage = projectInfo?.tenantConfig?.generalConfig?.registerBackgroundImage;
 
     return (
         <div className="mobile-page-container p-5">
+            {bgImage ? (
+                <div className="mb-6 -mx-5 -mt-5 h-48 overflow-hidden">
+                    <img src={bgImage} alt="banner" className="w-full h-full object-cover" />
+                </div>
+            ) : projectInfo?.tenantConfig?.logoStandard && (
+                <div className="flex justify-center mb-8">
+                    <img 
+                        src={projectInfo.tenantConfig.logoStandard} 
+                        alt="logo" 
+                        className="h-16 object-contain"
+                    />
+                </div>
+            )}
             <div className="mb-8 flex items-center gap-4">
                 <Button 
                     type="text" 
@@ -90,6 +104,55 @@ export const RegisterStyle1 = ({ form, onFinish, isLoading }: any) => {
                         size="large" 
                         className="rounded-xl h-12"
                     />
+                </Form.Item>
+
+                <Form.Item
+                    name="confirm"
+                    dependencies={['password']}
+                    rules={[
+                        { required: true, message: 'Vui lòng xác nhận mật khẩu!' },
+                        ({ getFieldValue }) => ({
+                            validator(_, value) {
+                                if (!value || getFieldValue('password') === value) {
+                                    return Promise.resolve();
+                                }
+                                return Promise.reject(new Error('Mật khẩu xác nhận không khớp!'));
+                            },
+                        }),
+                    ]}
+                >
+                    <Input.Password 
+                        prefix={<LockOutlined className="text-gray-400" />} 
+                        placeholder="Xác nhận mật khẩu" 
+                        size="large" 
+                        className="rounded-xl h-12"
+                    />
+                </Form.Item>
+
+                <Form.Item
+                    name="ref"
+                >
+                    <Input 
+                        prefix={<UserAddOutlined className="text-gray-400" />} 
+                        placeholder="Mã giới thiệu (không bắt buộc)" 
+                        size="large" 
+                        className="rounded-xl h-12"
+                    />
+                </Form.Item>
+
+                <Form.Item
+                    name="terms"
+                    valuePropName="checked"
+                    rules={[
+                        {
+                            validator: (_, value) =>
+                                value ? Promise.resolve() : Promise.reject(new Error('Vui lòng đồng ý với điều khoản và chính sách!')),
+                        },
+                    ]}
+                >
+                    <Checkbox>
+                        Tôi đồng ý với <Link to="/terms" className="text-primary font-bold">điều khoản và chính sách</Link>
+                    </Checkbox>
                 </Form.Item>
 
                 <Form.Item className="mt-8">

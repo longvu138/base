@@ -35,6 +35,13 @@ export const LoginStyle3: React.FC = () => {
             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 pointer-events-none"></div>
             
             <div className="text-left space-y-2 relative z-10">
+                {login.projectInfo?.tenantConfig?.logoStandard && (
+                    <img 
+                        src={login.projectInfo.tenantConfig.logoStandard} 
+                        alt="logo" 
+                        className="h-16 object-contain mb-4"
+                    />
+                )}
                 <h2 className="text-3xl font-black tracking-tight text-gray-900 dark:text-white">
                     {t('auth.login.title')}
                 </h2>
@@ -59,7 +66,7 @@ export const LoginStyle3: React.FC = () => {
                 >
                     <AntInput
                         prefix={<UserOutlined className="text-gray-400" />}
-                        placeholder="Username"
+                        placeholder={t('auth.login.username')}
                         className="rounded-xl h-12 bg-gray-50 border-gray-100 dark:bg-gray-900 dark:border-gray-700"
                     />
                 </Form.Item>
@@ -72,7 +79,7 @@ export const LoginStyle3: React.FC = () => {
                 >
                     <AntInput.Password
                         prefix={<LockOutlined className="text-gray-400" />}
-                        placeholder="Password"
+                        placeholder={t('auth.login.password')}
                         className="rounded-xl h-12 bg-gray-50 border-gray-100 dark:bg-gray-900 dark:border-gray-700"
                     />
                 </Form.Item>

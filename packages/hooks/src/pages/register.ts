@@ -1,4 +1,6 @@
+import { useEffect, useState } from 'react';
 import { useRegisterMutation } from '../useRegisterMutation';
+import { TenantApi } from '@repo/api';
 import { useNavigate } from 'react-router-dom';
 
 export interface UseRegisterPageOptions {
@@ -11,9 +13,24 @@ export const useRegisterPage = (options: UseRegisterPageOptions = {}) => {
     const navigate = useNavigate();
     const registerMutation = useRegisterMutation();
 
+    const [projectInfo, setProjectInfo] = useState<any>(() => {
+        const saved = localStorage.getItem('currentProjectInfo');
+        return saved ? JSON.parse(saved) : null;
+    });
+
+    useEffect(() => {
+        TenantApi.getCurrentTenant().then(res => {
+            if (res.data) {
+                localStorage.setItem('currentProjectInfo', JSON.stringify(res.data));
+                setProjectInfo(res.data);
+            }
+        }).catch(console.error);
+    }, []);
+
     const onFinish = async (values: any) => {
+        const { confirm, terms, ...registerData } = values;
         try {
-            await registerMutation.mutateAsync(values);
+            await registerMutation.mutateAsync(registerData);
             onSuccess?.();
             navigate('/login');
         } catch (error: any) {
@@ -24,5 +41,6 @@ export const useRegisterPage = (options: UseRegisterPageOptions = {}) => {
     return {
         onFinish,
         isLoading: registerMutation.isPending,
+        projectInfo,
     };
 };

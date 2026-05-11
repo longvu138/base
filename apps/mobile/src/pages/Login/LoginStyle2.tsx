@@ -25,6 +25,13 @@ export const LoginStyle2 = () => {
     return (
         <div className="w-full max-w-sm mx-auto">
             <div className="mb-12">
+                {login.projectInfo?.tenantConfig?.logoStandard && (
+                    <img 
+                        src={login.projectInfo.tenantConfig.logoStandard} 
+                        alt="logo" 
+                        className="h-20 mb-6 object-contain"
+                    />
+                )}
                 <h1 className="text-4xl font-black tracking-tight text-black mb-2">{t('auth.login.title')}</h1>
                 <p className="text-gray-500 font-medium">{t('auth.login.subtitle')}</p>
             </div>

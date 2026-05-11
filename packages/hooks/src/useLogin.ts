@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLoginMutation } from './useLoginMutation';
+import { TenantApi } from '@repo/api';
 
 export interface LoginCredentials {
     username: string;
@@ -29,6 +30,7 @@ export interface UseLoginReturn {
 
     // Validation
     isValid: boolean;
+    projectInfo: any;
 }
 
 /**
@@ -52,6 +54,20 @@ export interface UseLoginReturn {
  */
 export const useLogin = (options: UseLoginOptions = {}): UseLoginReturn => {
     const { clientId = 'default-client', onSuccess, onError, showMessage } = options;
+
+    const [projectInfo, setProjectInfo] = useState<any>(() => {
+        const saved = localStorage.getItem('currentProjectInfo');
+        return saved ? JSON.parse(saved) : null;
+    });
+
+    useEffect(() => {
+        TenantApi.getCurrentTenant().then(res => {
+            if (res.data) {
+                localStorage.setItem('currentProjectInfo', JSON.stringify(res.data));
+                setProjectInfo(res.data);
+            }
+        }).catch(console.error);
+    }, []);
 
     // Quản lý trạng thái form
     const [credentials, setCredentials] = useState<LoginCredentials>({
@@ -113,5 +129,6 @@ export const useLogin = (options: UseLoginOptions = {}): UseLoginReturn => {
         isLoading: isPending,
         error,
         isValid,
+        projectInfo,
     };
 };

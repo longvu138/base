@@ -1,21 +1,33 @@
-import { Form, Input, Button, Card, Typography } from 'antd';
-import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined, IdcardOutlined } from '@ant-design/icons';
+import { Form, Input, Button, Card, Typography, Checkbox } from 'antd';
+import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined, IdcardOutlined, UserAddOutlined } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
 
 const { Title, Text } = Typography;
 
-export const RegisterStyle1 = ({ form, onFinish, isLoading }: any) => {
+export const RegisterStyle1 = ({ form, onFinish, isLoading, projectInfo }: any) => {
+    const bgImage = projectInfo?.tenantConfig?.generalConfig?.registerBackgroundImage;
+    console.log("bgImage", projectInfo);
+
     return (
-        <div style={{ 
-            display: 'flex', 
-            justifyContent: 'center', 
-            alignItems: 'center', 
+        <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
             minHeight: '80vh',
-            background: '#f0f2f5',
+            background: bgImage ? `url(${bgImage}) center/cover no-repeat` : '#f0f2f5',
             padding: '40px 0'
         }}>
             <Card style={{ width: 450, borderRadius: 12, boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
                 <div style={{ textAlign: 'center', marginBottom: 32 }}>
+                    {!bgImage && projectInfo?.tenantConfig?.logoStandard && (
+                        <div style={{ marginBottom: 20 }}>
+                            <img 
+                                src={projectInfo.tenantConfig.logoStandard} 
+                                alt="logo" 
+                                style={{ height: 64, objectFit: 'contain' }} 
+                            />
+                        </div>
+                    )}
                     <Title level={2}>Đăng ký tài khoản</Title>
                     <Text type="secondary">Tham gia cùng chúng tôi ngay hôm nay</Text>
                 </div>
@@ -81,6 +93,27 @@ export const RegisterStyle1 = ({ form, onFinish, isLoading }: any) => {
                         ]}
                     >
                         <Input.Password prefix={<LockOutlined />} placeholder="Xác nhận mật khẩu" size="large" />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="ref"
+                    >
+                        <Input prefix={<UserAddOutlined />} placeholder="Mã giới thiệu (nếu có)" size="large" />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="terms"
+                        valuePropName="checked"
+                        rules={[
+                            {
+                                validator: (_, value) =>
+                                    value ? Promise.resolve() : Promise.reject(new Error('Vui lòng đồng ý với điều khoản và chính sách!')),
+                            },
+                        ]}
+                    >
+                        <Checkbox>
+                            Tôi đồng ý với <Link to="/terms">điều khoản và chính sách</Link>
+                        </Checkbox>
                     </Form.Item>
 
                     <Form.Item>

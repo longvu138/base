@@ -1,33 +1,53 @@
-import { Form, Input, Button, Typography, Row, Col } from 'antd';
-import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined, IdcardOutlined, ArrowRightOutlined } from '@ant-design/icons';
+import { Form, Input, Button, Typography, Row, Col, Checkbox } from 'antd';
+import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined, IdcardOutlined, ArrowRightOutlined, UserAddOutlined } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
 import './RegisterStyle3.css';
 
 const { Title, Text } = Typography;
 
-export const RegisterStyle3 = ({ form, onFinish, isLoading }: any) => {
+export const RegisterStyle3 = ({ form, onFinish, isLoading, projectInfo }: any) => {
+    const bgImage = projectInfo?.tenantConfig?.generalConfig?.registerBackgroundImage;
     return (
         <div className="register-style3-container">
             <Row className="register-card-wrapper" align="middle">
-                <Col xs={0} md={12} className="register-hero-section">
-                    <div className="hero-content">
-                        <Title level={1} className="hero-title">Chào mừng bạn đến với <span className="brand-text">Gobiz</span></Title>
-                        <Text className="hero-subtitle">Bắt đầu hành trình vận hành thông minh cùng chúng tôi ngay hôm nay.</Text>
-                        <div className="hero-features">
-                            <div className="feature-item">
-                                <div className="feature-icon">🚀</div>
-                                <Text>Vận hành nhanh chóng</Text>
-                            </div>
-                            <div className="feature-item">
-                                <div className="feature-icon">🛡️</div>
-                                <Text>Bảo mật tuyệt đối</Text>
-                            </div>
-                            <div className="feature-item">
-                                <div className="feature-icon">📊</div>
-                                <Text>Báo cáo chuyên sâu</Text>
+                <Col 
+                    xs={0} md={12} 
+                    className="register-hero-section"
+                    style={bgImage ? {
+                        backgroundImage: `url(${bgImage})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center'
+                    } : {}}
+                >
+                    {!bgImage && (
+                        <div className="hero-content">
+                            {projectInfo?.tenantConfig?.logoStandard && (
+                                <div className="hero-logo-box mb-6">
+                                    <img 
+                                        src={projectInfo.tenantConfig.logoStandard} 
+                                        alt="logo" 
+                                        className="h-16 object-contain"
+                                    />
+                                </div>
+                            )}
+                            <Title level={1} className="hero-title">Chào mừng bạn đến với <span className="brand-text">Gobiz</span></Title>
+                            <Text className="hero-subtitle">Bắt đầu hành trình vận hành thông minh cùng chúng tôi ngay hôm nay.</Text>
+                            <div className="hero-features">
+                                <div className="feature-item">
+                                    <div className="feature-icon">🚀</div>
+                                    <Text>Vận hành nhanh chóng</Text>
+                                </div>
+                                <div className="feature-item">
+                                    <div className="feature-icon">🛡️</div>
+                                    <Text>Bảo mật tuyệt đối</Text>
+                                </div>
+                                <div className="feature-item">
+                                    <div className="feature-icon">📊</div>
+                                    <Text>Báo cáo chuyên sâu</Text>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    )}
                 </Col>
                 <Col xs={24} md={12} className="register-form-section">
                     <div className="form-container">
@@ -87,6 +107,47 @@ export const RegisterStyle3 = ({ form, onFinish, isLoading }: any) => {
                                 rules={[{ required: true, message: 'Vui lòng nhập mật khẩu!' }]}
                             >
                                 <Input.Password prefix={<LockOutlined />} placeholder="••••••••" size="large" />
+                            </Form.Item>
+
+                            <Form.Item
+                                name="confirm"
+                                label="Xác nhận mật khẩu"
+                                dependencies={['password']}
+                                rules={[
+                                    { required: true, message: 'Vui lòng xác nhận mật khẩu!' },
+                                    ({ getFieldValue }) => ({
+                                        validator(_, value) {
+                                            if (!value || getFieldValue('password') === value) {
+                                                return Promise.resolve();
+                                            }
+                                            return Promise.reject(new Error('Mật khẩu xác nhận không khớp!'));
+                                        },
+                                    }),
+                                ]}
+                            >
+                                <Input.Password prefix={<LockOutlined />} placeholder="••••••••" size="large" />
+                            </Form.Item>
+
+                            <Form.Item
+                                name="ref"
+                                label="Mã giới thiệu"
+                            >
+                                <Input prefix={<UserAddOutlined />} placeholder="Nhập mã giới thiệu (nếu có)" size="large" />
+                            </Form.Item>
+
+                            <Form.Item
+                                name="terms"
+                                valuePropName="checked"
+                                rules={[
+                                    {
+                                        validator: (_, value) =>
+                                            value ? Promise.resolve() : Promise.reject(new Error('Vui lòng đồng ý với điều khoản và chính sách!')),
+                                    },
+                                ]}
+                            >
+                                <Checkbox>
+                                    Tôi đồng ý với <Link to="/terms">điều khoản và chính sách</Link>
+                                </Checkbox>
                             </Form.Item>
 
                             <Form.Item>

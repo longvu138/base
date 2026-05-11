@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useLogin } from '@repo/hooks';
 import { appConfig } from '@repo/config';
+import { useTranslation } from '@repo/i18n';
 
 /**
  * Giao diện đăng nhập 3 — Ant Design (Split Screen Style)
@@ -10,6 +11,7 @@ import { appConfig } from '@repo/config';
  */
 export const LoginStyle3 = () => {
     const navigate = useNavigate();
+    const { t } = useTranslation();
 
     const login = useLogin({
         clientId: appConfig.clientId,
@@ -59,6 +61,13 @@ export const LoginStyle3 = () => {
             <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
                 <div className="w-full max-w-md space-y-8">
                     <div className="text-left space-y-2">
+                        {login.projectInfo?.tenantConfig?.logoStandard && (
+                            <img
+                                src={login.projectInfo.tenantConfig.logoStandard}
+                                alt="logo"
+                                className="h-28 object-contain mb-4"
+                            />
+                        )}
                         <h2 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
                             Chào mừng trở lại
                         </h2>
@@ -82,7 +91,7 @@ export const LoginStyle3 = () => {
                         >
                             <AntInput
                                 prefix={<UserOutlined className="text-gray-400" />}
-                                placeholder="Username"
+                                placeholder={t('auth.login.username')}
                                 className="rounded-lg h-12"
                             />
                         </Form.Item>
@@ -94,7 +103,7 @@ export const LoginStyle3 = () => {
                         >
                             <AntInput.Password
                                 prefix={<LockOutlined className="text-gray-400" />}
-                                placeholder="Password"
+                                placeholder={t('auth.login.password')}
                                 className="rounded-lg h-12"
                             />
                         </Form.Item>

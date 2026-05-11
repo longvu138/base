@@ -1,32 +1,50 @@
-import { Form, Input, Button } from 'antd';
+import { Form, Input, Button, Checkbox } from 'antd';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Lock, User, Mail, Phone, BadgeInfo } from 'lucide-react';
+import { ArrowRight, Lock, User, Mail, Phone, BadgeInfo, UserPlus } from 'lucide-react';
 
 /**
  * RegisterStyle2 — Giao diện cho Thanhla (gd2)
  * Phong cách Modern Split-Screen tương tự LoginStyle2.
  */
-export const RegisterStyle2 = ({ onFinish, isLoading }: any) => {
+export const RegisterStyle2 = ({ onFinish, isLoading, projectInfo }: any) => {
+    const bgImage = projectInfo?.tenantConfig?.generalConfig?.registerBackgroundImage;
     return (
         <div className="min-h-screen flex w-full bg-white dark:bg-[#0a0a0a]">
             {/* Left side: Graphic/Branding */}
-            <div className="hidden lg:flex w-1/2 bg-primary/5 flex-col justify-between p-12 border-r border-gray-100 dark:border-gray-800 relative overflow-hidden">
+            <div 
+                className="hidden lg:flex w-1/2 bg-primary/5 flex-col justify-between p-12 border-r border-gray-100 dark:border-gray-800 relative overflow-hidden"
+                style={bgImage ? {
+                    backgroundImage: `url(${bgImage})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center'
+                } : {}}
+            >
                 <div className="relative z-10">
-                    <div className="flex items-center gap-2 font-black text-3xl text-primary tracking-tight">
-                        <div className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center">T</div>
-                        THANHLA
-                    </div>
+                    {!bgImage && projectInfo?.tenantConfig?.logoStandard ? (
+                        <img 
+                            src={projectInfo.tenantConfig.logoStandard} 
+                            alt="logo" 
+                            className="h-20 object-contain"
+                        />
+                    ) : !bgImage && (
+                        <div className="flex items-center gap-2 font-black text-3xl text-primary tracking-tight">
+                            <div className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center">T</div>
+                            THANHLA
+                        </div>
+                    )}
                 </div>
 
-                <div className="relative z-10 max-w-lg">
-                    <h1 className="text-5xl font-black text-gray-900 dark:text-white leading-tight mb-6">
-                        Khởi Đầu <br />
-                        <span className="text-primary">Hành Trình Mới.</span>
-                    </h1>
-                    <p className="text-lg text-gray-600 dark:text-gray-400">
-                        Đăng ký tài khoản ngay hôm nay để trải nghiệm hệ sinh thái Logistics thế hệ mới.
-                    </p>
-                </div>
+                {!bgImage && (
+                    <div className="relative z-10 max-w-lg">
+                        <h1 className="text-5xl font-black text-gray-900 dark:text-white leading-tight mb-6">
+                            Khởi Đầu <br />
+                            <span className="text-primary">Hành Trình Mới.</span>
+                        </h1>
+                        <p className="text-lg text-gray-600 dark:text-gray-400">
+                            Đăng ký tài khoản ngay hôm nay để trải nghiệm hệ sinh thái Logistics thế hệ mới.
+                        </p>
+                    </div>
+                )}
 
                 {/* Decorative elements */}
                 <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-primary/20 rounded-full blur-3xl"></div>
@@ -140,6 +158,33 @@ export const RegisterStyle2 = ({ onFinish, isLoading }: any) => {
                                 className="h-12 rounded-xl border-gray-200 dark:border-gray-700 dark:bg-gray-800 text-base"
                                 placeholder="Xác nhận mật khẩu"
                             />
+                        </Form.Item>
+
+                        <Form.Item
+                            name="ref"
+                            className="mb-0"
+                        >
+                            <Input
+                                prefix={<UserPlus className="text-gray-400 mr-2" size={18} />}
+                                className="h-12 rounded-xl border-gray-200 dark:border-gray-700 dark:bg-gray-800 text-base"
+                                placeholder="Mã giới thiệu (không bắt buộc)"
+                            />
+                        </Form.Item>
+
+                        <Form.Item
+                            name="terms"
+                            valuePropName="checked"
+                            rules={[
+                                {
+                                    validator: (_, value) =>
+                                        value ? Promise.resolve() : Promise.reject(new Error('Vui lòng đồng ý với điều khoản và chính sách!')),
+                                },
+                            ]}
+                            className="mb-0"
+                        >
+                            <Checkbox className="dark:text-gray-400">
+                                Tôi đồng ý với <Link to="/terms" className="text-primary font-medium">điều khoản và chính sách</Link>
+                            </Checkbox>
                         </Form.Item>
 
                         <Form.Item className="pt-4">

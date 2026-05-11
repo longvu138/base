@@ -26,9 +26,16 @@ export const LoginStyle1 = () => {
 
             <div className="flex-1 flex items-center justify-center bg-filter dark:bg-filter-dark p-8">
                 <div className="w-full max-w-[400px]">
-                    <div className="mb-10">
-                        <h1 className="text-3xl font-bold text-primary mb-2">{t('auth.login.title')}</h1>
-                        <p className="text-gray-500 dark:text-gray-400">{t('auth.login.subtitle')}</p>
+                    <div className="text-center">
+                        {login.projectInfo?.tenantConfig?.logoStandard && (
+                            <img
+                                src={login.projectInfo.tenantConfig.logoStandard}
+                                alt="logo"
+                                className="h-32 mx-auto mb-6 object-contain"
+                            />
+                        )}
+                        <h1 className="text-3xl font-bold text-primary mb-2 text-left">{t('auth.login.title')}</h1>
+                        <p className="text-gray-500 dark:text-gray-400 text-left">{t('auth.login.subtitle')}</p>
                     </div>
 
                     <Form
@@ -49,7 +56,7 @@ export const LoginStyle1 = () => {
                         >
                             <Input
                                 className="rounded-lg border-gray-300 hover:border-blue-500 transition-colors"
-                                placeholder="name@company.com"
+                                placeholder={t('auth.login.username')}
                             />
                         </Form.Item>
 
@@ -60,7 +67,7 @@ export const LoginStyle1 = () => {
                         >
                             <Input.Password
                                 className="rounded-lg border-gray-300 hover:border-blue-500 transition-colors"
-                                placeholder="nhập mật khẩu"
+                                placeholder={t('auth.login.password')}
                             />
                         </Form.Item>
 
