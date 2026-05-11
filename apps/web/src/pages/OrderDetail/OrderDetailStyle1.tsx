@@ -104,24 +104,24 @@ export const OrderDetailStyle1 = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-            {/* Back bar */}
-            <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-6 py-3 flex items-center justify-between sticky top-0 z-10">
-                <button
-                    onClick={() => navigate('/orders')}
-                    className="flex items-center gap-2 text-sm text-blue-500 hover:text-blue-600 font-medium"
-                >
-                    <ArrowLeftOutlined /> Danh sách đơn hàng
-                </button>
-                <Button type="primary">Đặt lại đơn</Button>
-            </div>
+        <div className="min-h-screen flex dark:bg-gray-950">
+            {/* Left side: Main Content */}
+            <div className="flex-1 min-w-0 flex flex-col bg-white rounded-xl">
+                {/* Back bar */}
+                <div className="dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-6 py-3 flex items-center justify-between">
+                    <span
+                        onClick={() => navigate('/orders')}
+                        className="flex cursor-pointer items-center gap-2 text-sm text-primary hover:text-primary-hover font-medium"
+                    >
+                        <ArrowLeftOutlined /> Danh sách đơn hàng
+                    </span>
+                    <Button type="primary">Đặt lại đơn</Button>
+                </div>
 
-            {/* Two-column: main + chat */}
-            <div className="flex gap-4 p-6 max-w-[1400px] mx-auto items-start">
-                {/* Main content */}
-                <div className="flex-1 min-w-0 space-y-4">
+                {/* Main content area */}
+                <div>
                     {/* Header card */}
-                    <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-5">
+                    <div className="dark:bg-gray-900 border border-gray-200 dark:border-gray-700 p-5">
                         {/* Top row */}
                         <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
                             <div className="flex items-center gap-3">
@@ -208,7 +208,7 @@ export const OrderDetailStyle1 = () => {
                     </div>
 
                     {/* Tabs */}
-                    <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <div className="dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
                         <Tabs
                             className="px-4"
                             items={[
@@ -294,12 +294,13 @@ export const OrderDetailStyle1 = () => {
                         />
                     </div>
                 </div>
+            </div>
 
-                {/* Chat panel — sticky bên phải */}
-                <div className="w-[300px] flex-shrink-0 sticky top-[57px]" style={{ height: 'calc(100vh - 73px)' }}>
-                    <ChatPanel entityType="orders" entityCode={code || ''} rounded="square" />
-                </div>
+            {/* Right side: Chat panel */}
+            <div className="w-1/4 min-w-[320px] flex-shrink-0 sticky top-0 h-screen border-l border-gray-200 dark:border-gray-700 z-10 px-4">
+                <ChatPanel entityType="orders" entityCode={code || ''} rounded="square" />
             </div>
         </div>
+
     );
 };
