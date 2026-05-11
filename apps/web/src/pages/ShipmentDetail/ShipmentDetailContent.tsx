@@ -692,7 +692,7 @@ export const ShipmentDetailContent = ({
         />
       )}
 
-      <Card className="border-t-4 border-t-green-500">
+      <Card className="">
         <Row align="middle" gutter={[16, 16]}>
           <Col xs={24} lg={8}>
             <Flex align="center" gap={12}>
