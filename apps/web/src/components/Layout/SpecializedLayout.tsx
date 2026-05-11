@@ -17,6 +17,7 @@ import { Languages } from 'lucide-react';
 import { useLogout, useCustomerProfile, useCustomerBalance } from '@repo/hooks';
 import { formatCurrency } from '@repo/util';
 import { useNavigation } from './Navigation';
+import { appConfig } from '@repo/config';
 
 
 const { Header, Sider, Content } = AntLayout;
@@ -109,14 +110,16 @@ const SpecializedLayout: React.FC = () => {
                                 suffixIcon={<Languages size={14} className="text-gray-400" />}
                             />
 
-                            <Select
-                                value={currentTenant}
-                                onChange={(val) => dispatchTenantChange(val)}
-                                options={getTenantOptions()}
-                                style={{ width: 160 }}
-                                variant='borderless'
-                                className="font-bold text-gray-800 dark:text-gray-200"
-                            />
+                            {appConfig.enableTenantSelector && (
+                                <Select
+                                    value={currentTenant}
+                                    onChange={(val) => dispatchTenantChange(val)}
+                                    options={getTenantOptions()}
+                                    style={{ width: 160 }}
+                                    variant='borderless'
+                                    className="font-bold text-gray-800 dark:text-gray-200"
+                                />
+                            )}
                         </Space>
 
                         <div className="h-8 w-[1px] bg-gray-100 dark:bg-gray-800 mx-2" />

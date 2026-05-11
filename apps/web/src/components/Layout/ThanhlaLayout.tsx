@@ -13,6 +13,7 @@ import { useLanguage } from '@repo/i18n';
 import { Languages } from 'lucide-react';
 import { useLogout, useCustomerProfile, useCustomerBalance } from '@repo/hooks';
 import { useNavigation } from './Navigation';
+import { appConfig } from '@repo/config';
 
 const { Header, Content, Footer } = AntLayout;
 
@@ -96,14 +97,16 @@ export const ThanhlaLayout: React.FC = () => {
                         suffixIcon={<Languages size={14} />}
                     />
 
-                    <Select
-                        value={currentTenant}
-                        onChange={handleTenantUpdate}
-                        options={getTenantOptions()}
-                        style={{ width: 150 }}
-                        bordered={false}
-                        className="font-bold text-gray-800 dark:text-gray-200 bg-gray-50 dark:bg-gray-800 rounded-lg"
-                    />
+                    {appConfig.enableTenantSelector && (
+                        <Select
+                            value={currentTenant}
+                            onChange={handleTenantUpdate}
+                            options={getTenantOptions()}
+                            style={{ width: 150 }}
+                            bordered={false}
+                            className="font-bold text-gray-800 dark:text-gray-200 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                        />
+                    )}
 
                     <ThemeSwitcher />
 

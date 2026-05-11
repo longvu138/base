@@ -10,4 +10,5 @@ export const appConfig = {
   platform: import.meta.env.APP_PLATFORM,
   notificationWss: import.meta.env.APP_NOTIFICATION_WSS,
   be: import.meta.env.APP_BE || "http://localhost:3003",
+  enableTenantSelector: true
 }

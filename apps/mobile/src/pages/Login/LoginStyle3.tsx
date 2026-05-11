@@ -1,5 +1,5 @@
 import React from 'react';
-import { Form, Input as AntInput, Button as AntButton, Checkbox, message } from 'antd';
+import { Form, Input as AntInput, Button as AntButton, message } from 'antd';
 import { useNavigate, Link } from 'react-router-dom';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useLogin } from '@repo/hooks';

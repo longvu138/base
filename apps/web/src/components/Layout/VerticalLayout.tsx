@@ -16,6 +16,7 @@ import { Languages } from 'lucide-react';
 import { useLogout, useCustomerProfile, useCustomerBalance } from '@repo/hooks';
 import { formatCurrency } from '@repo/util';
 import { useNavigation } from './Navigation';
+import { appConfig } from '@repo/config';
 
 
 const { Header, Sider, Content } = AntLayout;
@@ -107,14 +108,16 @@ export const VerticalLayout = () => {
                             suffixIcon={<Languages size={14} />}
                         />
 
-                        <Select
-                            value={currentTenant}
-                            onChange={handleTenantUpdate}
-                            options={getTenantOptions()}
-                            style={{ width: 140 }}
-                            bordered={false}
-                            placeholder="Select Tenant"
-                        />
+                        {appConfig.enableTenantSelector && (
+                            <Select
+                                value={currentTenant}
+                                onChange={handleTenantUpdate}
+                                options={getTenantOptions()}
+                                style={{ width: 140 }}
+                                bordered={false}
+                                placeholder="Select Tenant"
+                            />
+                        )}
 
                         <Dropdown
                             menu={{
