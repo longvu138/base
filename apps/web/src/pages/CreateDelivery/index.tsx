@@ -3,17 +3,17 @@ import { DynamicVariant } from "@repo/ui";
 
 const modules = import.meta.glob("./*.tsx");
 
-export const Dashboard = () => {
-  const variant = useVariant("dashboard");
+export const CreateDelivery = () => {
+  const variant = useVariant("createDelivery");
 
   return (
     <DynamicVariant
       variantName={variant}
       modules={modules}
-      fallbackName="DashboardStyle1"
-      featureName="Dashboard"
+      fallbackName="CreateDeliveryStyle1"
+      featureName="CreateDelivery"
     />
   );
 };
 
-export default Dashboard;
+export default CreateDelivery;

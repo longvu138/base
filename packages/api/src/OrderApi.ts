@@ -39,6 +39,11 @@ export const OrderApi = {
     getOrderProducts: (code: string) => {
         return ApiClient.auth.get(`customer/orders/${code}/products?size=6969`);
     },
+    exportOrderProducts: (code: string, data: { secret?: string }) => {
+        return ApiClient.auth.post(`customer/orders/${code}/products/export_excel`, data, {
+            responseType: 'blob',
+        });
+    },
     getOrderPackages: (code: string) => {
         return ApiClient.auth.get(`customer/orders/${code}/packages?size=10000&sort=createdAt:DESC`);
     },

@@ -22,7 +22,8 @@
         "APP_KUN_LUN",
         "APP_REDIRECT_URL",
         "APP_PLATFORM",
-        "APP_BE"
+        "APP_BE",
+        "APP_GOODWAY_URL"
       ]
     },
     "lint": {

@@ -1,330 +1,466 @@
-import dayjs from 'dayjs';
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Form, Input as AntInput, Button as AntButton, Tag, Skeleton as AntSkeleton, Tabs, Empty, Table, List, DatePicker, Checkbox, Select } from 'antd';
-import { Pagination } from '@repo/ui';
-import { useTranslation } from '@repo/i18n';
-import { SearchOutlined, RedoOutlined, ArrowRightOutlined, BoxPlotOutlined, FilterOutlined } from '@ant-design/icons';
-import './OrdersStyle3.css';
-import { useOrdersPage } from './hooks/useOrdersPage';
+import dayjs from "dayjs";
+import React, { useState } from "react";
+import {
+  Alert,
+  Avatar,
+  Button,
+  Card,
+  Checkbox,
+  Col,
+  DatePicker,
+  Drawer,
+  Empty,
+  Flex,
+  Form,
+  Input,
+  Pagination,
+  Row,
+  Select,
+  Space,
+  Table,
+  Tabs,
+  Tag,
+  Typography,
+  theme,
+} from "antd";
+import {
+  ArrowRightOutlined,
+  DownOutlined,
+  FilterOutlined,
+  RedoOutlined,
+  SearchOutlined,
+  ShoppingCartOutlined,
+  UpOutlined,
+} from "@ant-design/icons";
+import { formatCurrency } from "@repo/util";
+import { useOrdersPage } from "./hooks/useOrdersPage";
 
-const { RangePicker } = DatePicker;
+const getStatusMeta = (statuses: any[] = [], code?: string) =>
+  statuses.find((item) => item.code === code) || { name: code || "---" };
 
-/**
- * Giao diện 3 — Gobiz Logistics (gd3)
- * Bộ lọc đầy đủ ngang bằng giao diện 1:
- * code, note, dateRange, receivingWarehouse, shopName, financialPayment,
- * marketplaces, services, stuckStatus/stuckRange/stuckFrom/stuckTo,
- * timeType/timeStart/timeEnd
- */
 export const OrdersStyle3: React.FC<{ isTabView?: boolean }> = ({ isTabView }) => {
-    const { t } = useTranslation();
-    const navigate = useNavigate();
-    
-    const {
-        form, page, pageSize, setPage, setPageSize,
-        filters, orderData, isOrdersLoading, statusOptions,
-        statusData, marketplacesData, servicesData,
-        handleReset, applyFilters
-    } = useOrdersPage();
+  const { token } = theme.useToken();
+  const {
+    t,
+    form,
+    page,
+    pageSize,
+    setPage,
+    setPageSize,
+    filters,
+    orderData,
+    isOrdersLoading,
+    statusOptions,
+    statusData,
+    marketplacesData,
+    servicesData,
+    handleReset,
+    applyFilters,
+    navigateToDetail,
+    navigateToCreateDelivery,
+    deliveryReadyCount,
+    isAdvancedFilterOpen,
+    toggleAdvancedFilter,
+  } = useOrdersPage();
 
-    const [searchText, setSearchText] = useState('');
-    const [showFilters, setShowFilters] = useState(false);
+  const [searchText, setSearchText] = useState("");
+  const [filterOpen, setFilterOpen] = useState(false);
 
-    const getStatusTag = (status: string) => {
-        const found = statusData?.find((s: any) => s.code === status);
-        return (
-            <Tag
-                color={found?.color || 'default'}
-                className="rounded-xl px-3 py-0.5 m-0 border-0 font-bold text-[10px] uppercase shadow-sm"
-            >
-                {found?.name || status}
-            </Tag>
-        );
-    };
+  const handleSearch = () =>
+    applyFilters({ ...form.getFieldsValue(), query: searchText });
 
-    const handleSearch = () => applyFilters({ ...form.getFieldsValue(), query: searchText });
-    const handleResetAll = () => { setSearchText(''); handleReset(); };
+  const handleResetAll = () => {
+    setSearchText("");
+    handleReset();
+  };
 
-    const inputCls = 'h-11 rounded-2xl bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700';
+  const columns = [
+    {
+      title: t("orders.columns.code"),
+      dataIndex: "code",
+      key: "code",
+      render: (code: string, record: any) => (
+        <Space>
+          <Avatar
+            icon={<ShoppingCartOutlined />}
+            style={{
+              background: token.colorPrimaryBg,
+              color: token.colorPrimary,
+            }}
+          />
+          <Space direction="vertical" size={0}>
+            <Typography.Text strong>{code}</Typography.Text>
+            <Typography.Text type="secondary">
+              {record?.createdAt
+                ? dayjs(record.createdAt).format("HH:mm DD/MM/YYYY")
+                : "-"}
+            </Typography.Text>
+          </Space>
+        </Space>
+      ),
+    },
+    {
+      title: t("orders.columns.status"),
+      dataIndex: "status",
+      key: "status",
+      render: (status: string) => {
+        const meta = getStatusMeta(statusData, status);
+        return <Tag color={meta?.color || "default"}>{meta?.name}</Tag>;
+      },
+    },
+    {
+      title: t("orders.columns.warehouse"),
+      dataIndex: "receivingWarehouse",
+      key: "receivingWarehouse",
+      render: (warehouse: any) => warehouse?.displayName || "---",
+    },
+    {
+      title: t("orders.columns.note"),
+      dataIndex: "note",
+      key: "note",
+      ellipsis: true,
+      render: (note: string) => (
+        <Typography.Text type="secondary">{note || "---"}</Typography.Text>
+      ),
+    },
+    {
+      title: t("orders.columns.total"),
+      dataIndex: "grandTotal",
+      key: "grandTotal",
+      align: "right" as const,
+      render: (total: number) => (
+        <Typography.Text strong style={{ color: token.colorPrimary }}>
+          {formatCurrency(total || 0)}
+        </Typography.Text>
+      ),
+    },
+    {
+      title: "",
+      key: "action",
+      width: 72,
+      render: () => (
+        <Button type="primary" shape="circle" icon={<ArrowRightOutlined />} />
+      ),
+    },
+  ];
 
-    const columns = [
-        {
-            title: 'Mã đơn hàng',
-            dataIndex: 'code',
-            key: 'code',
-            render: (text: string, record: any) => (
-                <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <BoxPlotOutlined className="text-primary text-sm" />
-                    </div>
-                    <div>
-                        <div className="font-extrabold text-[#1a1a1a] dark:text-gray-100 tracking-tight">{text}</div>
-                        <div className="text-[10px] text-gray-400 font-medium uppercase tracking-widest">
-                            {record.createdAt ? dayjs(record.createdAt).format('HH:mm DD/MM/YYYY') : '-'}
-                        </div>
-                    </div>
-                </div>
-            )
-        },
-        {
-            title: 'Trạng thái',
-            dataIndex: 'status',
-            key: 'status',
-            render: (status: string) => getStatusTag(status),
-        },
-        {
-            title: 'Kho nhận',
-            dataIndex: 'receivingWarehouse',
-            key: 'receivingWarehouse',
-            render: (warehouse: any) => (
-                <span className="text-[11px] font-bold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-lg">
-                    {warehouse?.displayName || '---'}
-                </span>
-            )
-        },
-        {
-            title: 'Ghi chú',
-            dataIndex: 'note',
-            key: 'note',
-            render: (note: string) => (
-                <div className="max-w-[200px]">
-                    <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-1 m-0 italic">
-                        {note || <span className="opacity-40">Không có ghi chú</span>}
-                    </p>
-                </div>
-            )
-        },
-        {
-            title: 'Giá trị đơn',
-            dataIndex: 'grandTotal',
-            key: 'grandTotal',
-            align: 'right' as const,
-            render: (total: number) => (
-                <div className="flex flex-col items-end">
-                    <span className="text-base font-black text-primary leading-none">{total?.toLocaleString()}</span>
-                    <span className="text-[9px] text-gray-400 uppercase tracking-widest font-black mt-1">VNĐ</span>
-                </div>
-            )
-        },
-        {
-            title: '',
-            key: 'action',
-            width: 80,
-            render: () => (
-                <AntButton type="primary" size="small" shape="circle" icon={<ArrowRightOutlined />} className="shadow-sm" />
-            )
-        }
-    ];
+  const statusActiveKey = Array.isArray(filters.statuses)
+    ? filters.statuses[0]
+    : filters.statuses || "ALL";
 
-    const searchBar = (compact: boolean) => (
-        <div className={`flex flex-wrap gap-3 ${compact ? '' : ''}`}>
-            <AntInput
-                placeholder={t('orders.search_placeholder')}
-                prefix={<SearchOutlined className="text-gray-400" />}
+  return (
+    <Space direction="vertical" size="large" style={{ width: "100%" }}>
+      {deliveryReadyCount > 0 && (
+        <Alert
+          type="success"
+          showIcon
+          closable
+          message={<Typography.Text strong>{t("orders.notice.title")}</Typography.Text>}
+          description={
+            <Typography.Text>
+              {t("orders.notice.have")} <Typography.Text strong>{deliveryReadyCount}</Typography.Text>{" "}
+              {t("orders.notice.order_at_stock")}, {t("orders.notice.please")}{" "}
+              <Typography.Link onClick={navigateToCreateDelivery}>
+                {t("orders.notice.delivery_request")}
+              </Typography.Link>{" "}
+              {t("orders.notice.to_delivery")}
+            </Typography.Text>
+          }
+        />
+      )}
+      {!isTabView && (
+        <Card>
+          <Flex justify="space-between" align="center" gap={token.marginMD} wrap>
+            <div>
+              <Space size="small" align="center">
+                <Typography.Title level={3} style={{ margin: 0 }}>
+                  {t("orders.title")}
+                </Typography.Title>
+                <Tag color="blue">{orderData?.total || 0}</Tag>
+              </Space>
+              <Typography.Text type="secondary">
+                Gobiz Logistics
+              </Typography.Text>
+            </div>
+            <Space wrap>
+              <Input
+                allowClear
+                prefix={<SearchOutlined />}
                 value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
+                onChange={(event) => setSearchText(event.target.value)}
                 onPressEnter={handleSearch}
-                className={`w-full md:w-80 ${compact ? 'h-10 rounded-xl' : 'h-11 rounded-2xl'} bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700`}
+                placeholder={t("orders.search_placeholder")}
+                style={{ width: 320 }}
+              />
+              <Button type="primary" icon={<SearchOutlined />} onClick={handleSearch}>
+                {t("common.search")}
+              </Button>
+              <Button icon={<FilterOutlined />} onClick={() => setFilterOpen(true)}>
+                {t("common.filter")}
+              </Button>
+              <Button icon={<RedoOutlined />} onClick={handleResetAll}>
+                {t("orders.buttons.reset")}
+              </Button>
+            </Space>
+          </Flex>
+        </Card>
+      )}
+
+      {isTabView && (
+        <Flex justify="flex-end">
+          <Space wrap>
+            <Input
+              allowClear
+              prefix={<SearchOutlined />}
+              value={searchText}
+              onChange={(event) => setSearchText(event.target.value)}
+              onPressEnter={handleSearch}
+              placeholder={t("orders.search_placeholder")}
+              style={{ width: 280 }}
             />
-            <AntButton type="primary" icon={<SearchOutlined />} onClick={handleSearch}
-                className={`${compact ? 'h-10 px-6 rounded-xl font-medium' : 'h-11 px-8 rounded-2xl font-bold shadow-lg shadow-primary/20'}`}>
-                {t('common.search')}
-            </AntButton>
-            <AntButton icon={<FilterOutlined />} onClick={() => setShowFilters(!showFilters)}
-                className={`${compact ? 'h-10 px-4 rounded-xl font-medium' : 'h-11 px-5 rounded-2xl font-bold'} transition-all ${showFilters ? 'bg-primary/10 text-primary border-primary/20' : 'bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700'}`}>
-                Bộ lọc
-            </AntButton>
-            <AntButton icon={<RedoOutlined />} onClick={handleResetAll}
-                className={`${compact ? 'h-10 px-4 rounded-xl font-medium' : 'h-11 px-5 rounded-2xl font-bold'} border-gray-200 dark:border-gray-700 hover:text-primary transition-all bg-gray-50 dark:bg-gray-900`}>
-                Làm mới
-            </AntButton>
-        </div>
-    );
+            <Button type="primary" icon={<SearchOutlined />} onClick={handleSearch}>
+              {t("common.search")}
+            </Button>
+            <Button icon={<FilterOutlined />} onClick={() => setFilterOpen(true)}>
+              {t("common.filter")}
+            </Button>
+          </Space>
+        </Flex>
+      )}
 
-    return (
-        <div className={`orders-style-3-wrapper ${isTabView ? '' : 'p-6'} space-y-6 max-w-[1600px] mx-auto`}>
-            {/* Header full page */}
-            {!isTabView && (
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
-                    <div className="space-y-1">
-                        <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Quản lý đơn hàng</h1>
-                        <p className="text-gray-500 text-sm">Quản lý và vận hành thông minh cùng Gobiz Logistics.</p>
-                    </div>
-                    {searchBar(false)}
-                </div>
-            )}
+      <Card>
+        <Tabs
+          activeKey={statusActiveKey}
+          onChange={(key) => {
+            applyFilters({
+              ...form.getFieldsValue(),
+              statuses: key === "ALL" ? undefined : [key],
+            });
+          }}
+          items={[
+            { key: "ALL", label: t("notifications.all") },
+            ...statusOptions.map((item: any) => ({
+              key: item.value,
+              label: `${item.label} (${item.count})`,
+            })),
+          ]}
+        />
 
-            {/* Tab view compact */}
-            {isTabView && (
-                <div className="flex justify-end mb-4">
-                    {searchBar(true)}
-                </div>
-            )}
+        <Table
+          columns={columns}
+          dataSource={orderData?.data || []}
+          rowKey={(record: any) => record.id || record.code}
+          loading={isOrdersLoading}
+          pagination={false}
+          locale={{
+            emptyText: (
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description={t("common.no_data")}
+              />
+            ),
+          }}
+          onRow={(record: any) => ({
+            onClick: () => navigateToDetail(record.code),
+            style: { cursor: "pointer" },
+          })}
+        />
 
-            {/* Advanced Filters Panel — đầy đủ như giao diện 1 */}
-            <div className={`advanced-filters-container overflow-hidden transition-all duration-300 ease-in-out ${showFilters ? 'max-h-[1400px] opacity-100 mb-6' : 'max-h-0 opacity-0 overflow-hidden'}`}>
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 space-y-6">
-                    <Form form={form} layout="vertical" onValuesChange={() => applyFilters(form.getFieldsValue())}>
-                        {/* Hàng 1: text fields cơ bản */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <Form.Item name="code" label="Mã đơn hàng" className="mb-0">
-                                <AntInput placeholder="Nhập mã đơn hàng" className={inputCls} allowClear />
-                            </Form.Item>
-                            <Form.Item name="note" label="Ghi chú" className="mb-0">
-                                <AntInput placeholder="Tìm theo ghi chú" className={inputCls} allowClear />
-                            </Form.Item>
-                            <Form.Item name="dateRange" label="Ngày tạo" className="mb-0 md:col-span-2">
-                                <RangePicker className="w-full h-11 rounded-2xl" showTime format="DD/MM/YYYY HH:mm" placeholder={['Từ ngày', 'Đến ngày']} />
-                            </Form.Item>
-                        </div>
+        <Flex justify="center" style={{ marginTop: token.marginLG }}>
+          <Pagination
+            current={page}
+            pageSize={pageSize}
+            total={orderData?.total || 0}
+            showSizeChanger
+            onChange={(nextPage, nextPageSize) => {
+              setPage(nextPage);
+              if (nextPageSize !== pageSize) setPageSize(nextPageSize);
+            }}
+          />
+        </Flex>
+      </Card>
 
-                        {/* Hàng 2: kho + shop + thanh toán */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-100 dark:border-gray-700">
-                            <Form.Item name="receivingWarehouse" label="Kho nhận" className="mb-0">
-                                <AntInput placeholder="Nhập kho nhận" className={inputCls} allowClear />
-                            </Form.Item>
-                            <Form.Item name="shopName" label="Tên Shop" className="mb-0">
-                                <AntInput placeholder="Nhập tên shop" className={inputCls} allowClear />
-                            </Form.Item>
-                            <div className="flex items-end pb-1">
-                                <Form.Item name="financialPayment" valuePropName="checked" className="mb-0">
-                                    <Checkbox className="font-medium text-gray-700 dark:text-gray-200">Thanh toán tài chính</Checkbox>
-                                </Form.Item>
-                            </div>
-                        </div>
-
-                        {/* Hàng 3: Nguồn đơn */}
-                        {(marketplacesData?.length ?? 0) > 0 && (
-                            <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
-                                <div className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-3">Nguồn đơn hàng</div>
-                                <Form.Item name="marketplaces" className="mb-0">
-                                    <Checkbox.Group className="flex flex-wrap gap-x-6 gap-y-3">
-                                        {marketplacesData!.map((item: any) => (
-                                            <Checkbox key={item.code} value={item.code} className="text-sm">{item.name}</Checkbox>
-                                        ))}
-                                    </Checkbox.Group>
-                                </Form.Item>
-                            </div>
-                        )}
-
-                        {/* Hàng 4: Dịch vụ */}
-                        {(servicesData?.length ?? 0) > 0 && (
-                            <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
-                                <div className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-3">Dịch vụ</div>
-                                <Form.Item name="services" className="mb-0">
-                                    <Checkbox.Group className="flex flex-wrap gap-x-6 gap-y-3">
-                                        {servicesData!.map((item: any) => (
-                                            <Checkbox key={item.code} value={item.code} className="text-sm">{item.name}</Checkbox>
-                                        ))}
-                                    </Checkbox.Group>
-                                </Form.Item>
-                            </div>
-                        )}
-
-                        {/* Hàng 5: Kẹt trạng thái */}
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-4 border-t border-gray-100 dark:border-gray-700">
-                            <Form.Item name="stuckStatus" label="Kẹt ở trạng thái" className="mb-0">
-                                <Select placeholder="Chọn trạng thái" allowClear className="h-11"
-                                    options={statusData?.map((s: any) => ({ label: s.name, value: s.code }))} />
-                            </Form.Item>
-                            <Form.Item name="stuckRange" label="Khoảng thời gian" className="mb-0">
-                                <Select placeholder="Khoảng" allowClear className="h-11"
-                                    options={[
-                                        { label: 'Bất kỳ', value: 'any' },
-                                        { label: '1 ngày', value: '1d' },
-                                        { label: '3 ngày', value: '3d' },
-                                        { label: '7 ngày', value: '7d' },
-                                    ]} />
-                            </Form.Item>
-                            <Form.Item name="stuckFrom" label="Từ (ngày)" className="mb-0">
-                                <AntInput placeholder="VD: 1" className={inputCls} type="number" />
-                            </Form.Item>
-                            <Form.Item name="stuckTo" label="Đến (ngày)" className="mb-0">
-                                <AntInput placeholder="VD: 7" className={inputCls} type="number" />
-                            </Form.Item>
-                        </div>
-
-                        {/* Hàng 6: Loại thời gian */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-100 dark:border-gray-700">
-                            <Form.Item name="timeType" label="Loại thời gian" className="mb-0">
-                                <Select placeholder="Chọn loại" allowClear className="h-11"
-                                    options={[
-                                        { label: 'Ngày tạo', value: 'created' },
-                                        { label: 'Ngày cập nhật', value: 'updated' },
-                                    ]} />
-                            </Form.Item>
-                            <Form.Item name="timeStart" label="Từ ngày" className="mb-0">
-                                <DatePicker className="w-full h-11 rounded-2xl" placeholder="Từ ngày" />
-                            </Form.Item>
-                            <Form.Item name="timeEnd" label="Đến ngày" className="mb-0">
-                                <DatePicker className="w-full h-11 rounded-2xl" placeholder="Đến ngày" />
-                            </Form.Item>
-                        </div>
-                    </Form>
-                </div>
-            </div>
-
-            {/* Status Tabs */}
-            <div className="bg-white dark:bg-gray-800 p-1 rounded-2xl border border-gray-100 dark:border-gray-700 inline-block overflow-hidden max-w-full">
-                <Tabs
-                    activeKey={filters.statuses ? (Array.isArray(filters.statuses) ? filters.statuses[0] : filters.statuses) : 'ALL'}
-                    onChange={(key) => {
-                        const newStatuses = key === 'ALL' ? undefined : [key];
-                        applyFilters({ ...form.getFieldsValue(), statuses: newStatuses });
-                    }}
-                    items={[
-                        { key: 'ALL', label: <span className="px-4 py-1">Tất cả</span> },
-                        ...statusOptions.map((opt: any) => ({
-                            key: opt.value,
-                            label: <span className="px-4 py-1">{opt.label}</span>
-                        }))
-                    ]}
+      <Drawer
+        title={t("common.filter")}
+        open={filterOpen}
+        width={560}
+        onClose={() => setFilterOpen(false)}
+        extra={
+          <Space>
+            <Button onClick={handleResetAll}>{t("orders.buttons.reset")}</Button>
+            <Button
+              type="primary"
+              onClick={() => {
+                handleSearch();
+                setFilterOpen(false);
+              }}
+            >
+              {t("orders.buttons.apply")}
+            </Button>
+          </Space>
+        }
+      >
+        <Form form={form} layout="vertical">
+          <Row gutter={[16, 16]}>
+            <Col xs={24} md={12}>
+              <Form.Item name="query" label={t("orders.search_placeholder")}>
+                <Input allowClear />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={12}>
+              <Form.Item name="note" label={t("orders.filters.note")}>
+                <Input allowClear />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={12}>
+              <Form.Item name="timestampFrom" label={t("orders.filters.created_at")}>
+                <DatePicker
+                  style={{ width: "100%" }}
+                  format="DD/MM/YYYY"
+                  placeholder={t("orders.filters.start_date")}
                 />
-            </div>
-
-            {/* Table */}
-            <div className="bg-white dark:bg-gray-800 rounded-3xl overflow-hidden border border-gray-100 dark:border-gray-700 shadow-sm">
-                {isOrdersLoading ? (
-                    <List
-                        dataSource={Array.from({ length: 5 }).map((_, i) => ({ id: `loading-${i}` }))}
-                        renderItem={() => (
-                            <div className="p-6 border-b border-gray-50 dark:border-gray-700/50">
-                                <AntSkeleton active paragraph={{ rows: 1 }} title={false} />
-                            </div>
-                        )}
-                    />
-                ) : (
-                    <Table
-                        columns={columns}
-                        dataSource={orderData?.data || []}
-                        rowKey="id"
-                        pagination={false}
-                        className="custom-modern-table"
-                        onRow={(record: any) => ({
-                            onClick: () => navigate(`/orders/${record.code}`),
-                            style: { cursor: 'pointer' },
-                        })}
-                        locale={{
-                            emptyText: (
-                                <div className="py-20">
-                                    <Empty description="Không tìm thấy đơn hàng nào" />
-                                </div>
-                            )
-                        }}
-                    />
-                )}
-            </div>
-
-            {/* Pagination */}
-            <div className="flex justify-center pt-4">
-                <Pagination
-                    current={page}
-                    pageSize={pageSize}
-                    total={orderData?.total || 0}
-                    onChange={(p, s) => { setPage(p); if (s !== pageSize) setPageSize(s); }}
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={12}>
+              <Form.Item name="timestampTo" label=" ">
+                <DatePicker
+                  style={{ width: "100%" }}
+                  format="DD/MM/YYYY"
+                  placeholder={t("orders.filters.end_date")}
                 />
-            </div>
-        </div>
-    );
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={12}>
+              <Form.Item name="refOrderCode" label={t("orders.filters.ref_order_code")}>
+                <Input allowClear placeholder={t("orders.filters.ref_order_code")} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={12}>
+              <Form.Item name="refCustomerCode" label={t("orders.filters.ref_customer_code")}>
+                <Input allowClear placeholder={t("orders.filters.ref_customer_code")} />
+              </Form.Item>
+            </Col>
+            <Col span={24}>
+              <Button
+                type="link"
+                icon={isAdvancedFilterOpen ? <UpOutlined /> : <DownOutlined />}
+                onClick={toggleAdvancedFilter}
+              >
+                {isAdvancedFilterOpen
+                  ? t("orders.buttons.search_collapse")
+                  : t("orders.buttons.search_expand")}
+              </Button>
+            </Col>
+
+            {isAdvancedFilterOpen && (
+              <>
+            <Col span={24}>
+              <Form.Item name="marketplaces" label={t("orders.filters.source")}>
+                <Checkbox.Group>
+                  <Space wrap>
+                    {marketplacesData?.map((item: any) => (
+                      <Checkbox key={item.code} value={item.code}>
+                        {item.name}
+                      </Checkbox>
+                    ))}
+                  </Space>
+                </Checkbox.Group>
+              </Form.Item>
+            </Col>
+            <Col span={24}>
+              <Form.Item name="services" label={t("orders.filters.services")}>
+                <Checkbox.Group>
+                  <Space wrap>
+                    {servicesData?.map((item: any) => (
+                      <Checkbox key={item.code} value={item.code}>
+                        {item.name}
+                      </Checkbox>
+                    ))}
+                  </Space>
+                </Checkbox.Group>
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={12}>
+              <Form.Item name="cutOffStatus" label={t("orders.filters.stuck_status")}>
+                <Select
+                  allowClear
+                  showSearch
+                  optionFilterProp="label"
+                  options={statusData?.map((item: any) => ({
+                    label: item.name,
+                    value: item.code,
+                  }))}
+                />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={12}>
+              <Form.Item name="typeSearch" label={t("orders.filters.period")}>
+                <Select
+                  allowClear
+                  placeholder={t("orders.filters.period")}
+                  options={[
+                    { label: t("orders.filters.cut_off_range"), value: "range" },
+                    { label: t("orders.filters.cut_off_equal"), value: "equal" },
+                    { label: t("orders.filters.cut_off_from"), value: "from" },
+                    { label: t("orders.filters.cut_off_to"), value: "to" },
+                  ]}
+                />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={12}>
+              <Form.Item name="handlingTimeFrom" label={t("orders.filters.from")}>
+                <Input allowClear placeholder={t("orders.filters.from")} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={12}>
+              <Form.Item name="handlingTimeTo" label={t("orders.filters.to")}>
+                <Input allowClear placeholder={t("orders.filters.to")} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={12}>
+              <Form.Item name="needPaid" valuePropName="checked" label=" ">
+                <Checkbox>{t("orders.filters.financial_payment")}</Checkbox>
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={12}>
+              <Form.Item name="milestoneStatus" label={t("orders.filters.time_range")}>
+                <Select
+                  allowClear
+                  showSearch
+                  placeholder={t("orders.filters.status")}
+                  optionFilterProp="label"
+                  options={statusData?.map((item: any) => ({
+                    label: item.name,
+                    value: item.code,
+                  }))}
+                />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={12}>
+              <Form.Item name="milestoneStatusFrom" label={t("orders.filters.start_date")}>
+                <DatePicker
+                  style={{ width: "100%" }}
+                  format="DD/MM/YYYY"
+                  placeholder={t("orders.filters.start_date")}
+                />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={12}>
+              <Form.Item name="milestoneStatusTo" label={t("orders.filters.end_date")}>
+                <DatePicker
+                  style={{ width: "100%" }}
+                  format="DD/MM/YYYY"
+                  placeholder={t("orders.filters.end_date")}
+                />
+              </Form.Item>
+            </Col>
+              </>
+            )}
+          </Row>
+        </Form>
+      </Drawer>
+    </Space>
+  );
 };
+
+export default OrdersStyle3;

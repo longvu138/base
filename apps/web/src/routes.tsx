@@ -9,6 +9,7 @@ import { Shipments } from "./pages/Shipments";
 import { ShipmentDetail } from "./pages/ShipmentDetail";
 import { Transactions } from "./pages/Transactions";
 import { DeliveryRequests } from "./pages/DeliveryRequests";
+import { CreateDelivery } from "./pages/CreateDelivery";
 import { DeliveryNotes } from "./pages/DeliveryNotes";
 import { Waybills } from "./pages/Waybills";
 import Claims from "./pages/Claims";
@@ -39,6 +40,7 @@ function AppRoutes() {
           <Route path="shipments" element={<Shipments />} />
           <Route path="shipments/:code" element={<ShipmentDetail />} />
           <Route path="transactions" element={<Transactions />} />
+          <Route path="delivery/create" element={<CreateDelivery />} />
           <Route path="delivery-requests" element={<DeliveryRequests />} />
           <Route path="delivery-notes" element={<DeliveryNotes />} />
           <Route path="waybills" element={<Waybills />} />

@@ -60,6 +60,13 @@ export const useOrdersLogic = ({ page, pageSize, filters }: UseOrdersLogicProps)
         });
     }, [statusData, statisticData]);
 
+    const deliveryReadyCount = useMemo(() => {
+        const statistic =
+            statisticData?.find((item: any) => item.status === 'DELIVERY_READY') ||
+            statisticData?.find((item: any) => item.status === 'READY_FOR_DELIVERY');
+        return Number(statistic?.total || 0);
+    }, [statisticData]);
+
     return {
         orderData,
         isOrderLoading,
@@ -69,6 +76,7 @@ export const useOrdersLogic = ({ page, pageSize, filters }: UseOrdersLogicProps)
         servicesData,
         marketplacesData,
         statusOptions,
+        deliveryReadyCount,
         apiParams,
         updateOrderNote
     };

@@ -1,5 +1,47 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { DeliveryRequestApi } from '@repo/api';
+import { notification } from 'antd';
+
+export const useAvailableDeliveryOrdersQuery = () => {
+    return useQuery({
+        queryKey: ['delivery_requests.available_orders'],
+        queryFn: async () => {
+            const res = await DeliveryRequestApi.getAvailableOrders();
+            return res.data || [];
+        },
+    });
+};
+
+export const useShippingMethodsQuery = () => {
+    return useQuery({
+        queryKey: ['delivery_requests.shipping_methods'],
+        queryFn: async () => {
+            const res = await DeliveryRequestApi.getShippingMethods();
+            return res.data || [];
+        },
+    });
+};
+
+export const useCreateDeliveryRequestMutation = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: any) => DeliveryRequestApi.createDeliveryRequest(data),
+        onSuccess: () => {
+            notification.success({ message: 'Tạo yêu cầu giao thành công' });
+            queryClient.invalidateQueries({ queryKey: ['delivery_requests.available_orders'] });
+            queryClient.invalidateQueries({ queryKey: ['delivery_requests.list'] });
+            queryClient.invalidateQueries({ queryKey: ['orders.statistic'] });
+        },
+        onError: (error: any) => {
+            notification.error({
+                message:
+                    error?.response?.data?.message ||
+                    error?.response?.data?.title ||
+                    'Không thể tạo yêu cầu giao',
+            });
+        },
+    });
+};
 
 export const useListDeliveryRequestQuery = (params: any) => {
     return useQuery({

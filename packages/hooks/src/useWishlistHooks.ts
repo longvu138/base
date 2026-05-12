@@ -14,6 +14,17 @@ export const useWishlistQuery = (params: any) => {
     });
 };
 
+export const useAddWishlistItemMutation = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ source, data }: { source: string; data: string | number }) =>
+            WishlistApi.addWishlistItem(source, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['wishlist.list'] });
+        },
+    });
+};
+
 export const useDeleteWishlistItemMutation = (queryParams: any) => {
     const queryClient = useQueryClient();
     return useMutation({

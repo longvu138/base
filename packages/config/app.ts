@@ -9,6 +9,7 @@ export const appConfig = {
   appRedirectUrl: import.meta.env.APP_REDIRECT_URL || "http://localhost:9000",
   platform: import.meta.env.APP_PLATFORM,
   notificationWss: import.meta.env.APP_NOTIFICATION_WSS,
+  goodwayUrl: import.meta.env.APP_GOODWAY_URL,
   be: import.meta.env.APP_BE || "http://localhost:3003",
   enableTenantSelector: true
 }
