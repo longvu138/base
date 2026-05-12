@@ -237,7 +237,7 @@ export const useUpdateOrderMutation = () => {
                 description: 'Vui lòng thử lại sau.'
             });
         },
-        onSuccess: (_, variables) => {
+        onSuccess: () => {
             notification.success({
                 message: 'Cập nhật thành công',
                 placement: 'topRight'

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Table, Tag, Typography, Empty, Skeleton } from 'antd';
+import { Table, Empty, Skeleton } from 'antd';
 import { DatabaseOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -9,7 +9,6 @@ import { useOrderFinancialsQuery } from '@repo/hooks';
 dayjs.extend(relativeTime);
 dayjs.locale('vi');
 
-const { Text } = Typography;
 
 interface TransactionTabProps {
     orderCode: string;

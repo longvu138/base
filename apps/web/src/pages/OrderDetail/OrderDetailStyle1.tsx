@@ -1,11 +1,8 @@
-import React, { useState } from 'react';
-import dayjs from 'dayjs';
+import { useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { Skeleton, Tag, Tabs, Table, Divider, Button, Typography, Input } from 'antd';
+import { Skeleton, Tag, Tabs, Divider, Button, Typography } from 'antd';
 import {
-    ArrowLeftOutlined, ShoppingCartOutlined,
-    FundOutlined, HistoryOutlined, FileProtectOutlined,
-    SwapOutlined, InboxOutlined, EditOutlined,
+    ArrowLeftOutlined, ShoppingCartOutlined, EditOutlined,
 } from '@ant-design/icons';
 import { useOrderDetailQuery, useOrderStatusesQuery, useUpdateOrderMutation } from '@repo/hooks';
 
@@ -176,7 +173,6 @@ export const OrderDetailStyle1 = () => {
                                         editable={{
                                             icon: <EditOutlined className="text-blue-500 ml-1 transition-colors hover:text-blue-600" />,
                                             tooltip: 'Sửa ghi chú',
-                                            placeholder: 'Nhập ghi chú cá nhân...',
                                             onStart: () => setEditingField('note'),
                                             onCancel: () => setEditingField(null),
                                             onChange: (val) => {
@@ -200,7 +196,6 @@ export const OrderDetailStyle1 = () => {
                                         editable={{
                                             icon: <EditOutlined className="text-blue-500 ml-1 transition-colors hover:text-blue-600" />,
                                             tooltip: 'Sửa mã khách hàng',
-                                            placeholder: 'Nhập mã khách hàng...',
                                             onStart: () => setEditingField('refCustomerCode'),
                                             onCancel: () => setEditingField(null),
                                             onChange: (val) => {
@@ -223,7 +218,6 @@ export const OrderDetailStyle1 = () => {
                                         editable={{
                                             icon: <EditOutlined className="text-blue-500 ml-1 transition-colors hover:text-blue-600" />,
                                             tooltip: 'Sửa mã đơn hàng khách',
-                                            placeholder: 'Nhập mã đơn hàng khách...',
                                             onStart: () => setEditingField('refOrderCode'),
                                             onCancel: () => setEditingField(null),
                                             onChange: (val) => {

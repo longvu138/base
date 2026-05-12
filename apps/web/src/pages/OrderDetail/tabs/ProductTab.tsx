@@ -1,19 +1,13 @@
 import React from 'react';
-import { Table, Button, Space, Typography, Tooltip, Empty, Skeleton } from 'antd';
+import { Button, Tooltip, Empty, Skeleton } from 'antd';
 import { CopyOutlined, HeartOutlined, QuestionCircleOutlined, DownloadOutlined } from '@ant-design/icons';
 import { useOrderProductsQuery } from '@repo/hooks';
 
-const { Text } = Typography;
 
 interface ProductTabProps {
     orderCode: string;
 }
 
-/** Trả về '---' nếu value là null/undefined/''/NaN */
-const d = (val: any, suffix = ''): string => {
-    if (val === null || val === undefined || val === '' || (typeof val === 'number' && isNaN(val))) return '---';
-    return `${val}${suffix}`;
-};
 
 const money = (val: any, currency = 'đ'): string => {
     if (val === null || val === undefined || isNaN(Number(val))) return '---';

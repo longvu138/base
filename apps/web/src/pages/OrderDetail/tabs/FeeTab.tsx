@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Row, Col, Typography, Divider, Button, Modal, Input, Space, Skeleton, Empty, Tooltip } from 'antd';
+import { Row, Col, Typography, Divider, Button, Modal, Input, Space, Skeleton, Tooltip } from 'antd';
 import { InfoCircleOutlined, SafetyCertificateOutlined, TagOutlined } from '@ant-design/icons';
 import { useOrderFeesQuery } from '@repo/hooks';
 
@@ -17,7 +17,6 @@ export const FeeTab: React.FC<FeeTabProps> = ({ orderCode, order }) => {
 
     if (isLoading) return <Skeleton active paragraph={{ rows: 10 }} />;
 
-    const d = (val: any) => (val !== null && val !== undefined ? Number(val).toLocaleString('vi-VN') + 'đ' : '---');
     const money = (val: any) => (val !== null && val !== undefined ? Number(val).toLocaleString('vi-VN') + 'đ' : '0đ');
 
     // Group fees

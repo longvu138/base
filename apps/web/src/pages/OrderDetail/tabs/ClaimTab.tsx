@@ -1,5 +1,5 @@
 import React from 'react';
-import { Table, Tag, Button, Empty, Skeleton, Typography, Space } from 'antd';
+import { Table, Tag, Button, Skeleton, Typography, Space } from 'antd';
 import { PlusOutlined, WarningOutlined, CommentOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { useOrderClaimsQuery, useClaimStatusesQuery } from '@repo/hooks';

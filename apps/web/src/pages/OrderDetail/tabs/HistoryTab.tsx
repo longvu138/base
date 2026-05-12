@@ -1,10 +1,9 @@
 import React from 'react';
-import { Timeline, Empty, Skeleton, Typography } from 'antd';
-import { ClockCircleOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import { Timeline, Empty, Skeleton } from 'antd';
+import { ClockCircleOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { useOrderMilestonesQuery, useOrderStatusesQuery } from '@repo/hooks';
 
-const { Text } = Typography;
 
 interface HistoryTabProps {
     orderCode: string;
