@@ -36,4 +36,19 @@ export const OrderApi = {
     patchOrder: (code: string, data: any) => {
         return ApiClient.auth.patch(`customer/orders/${code}`, data);
     },
+    getOrderProducts: (code: string) => {
+        return ApiClient.auth.get(`customer/orders/${code}/products?size=6969`);
+    },
+    getOrderPackages: (code: string) => {
+        return ApiClient.auth.get(`customer/orders/${code}/packages?size=10000&sort=createdAt:DESC`);
+    },
+    getOrderFinancials: (code: string) => {
+        return ApiClient.auth.get(`customer/orders/${code}/financial`);
+    },
+    getOrderMilestones: (code: string) => {
+        return ApiClient.auth.get(`customer/orders/${code}/milestones?sort=timestamp:ASC`);
+    },
+    getOrderFees: (code: string) => {
+        return ApiClient.auth.get(`customer/orders/${code}/fees`);
+    },
 };

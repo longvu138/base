@@ -55,6 +55,10 @@ export const VerticalLayout = () => {
         label: <Link to={item.path}>{item.label}</Link>,
     }));
 
+    const activeMenu = menuItems.find(item => 
+        location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path))
+    );
+
     return (
         <AntLayout className="h-screen overflow-hidden">
             <Sider
@@ -72,7 +76,7 @@ export const VerticalLayout = () => {
                 </div>
                 <Menu
                     mode="inline"
-                    selectedKeys={[location.pathname]}
+                    selectedKeys={activeMenu ? [activeMenu.path] : []}
                     items={antMenuItems}
                     className="border-0 h-[calc(100vh-64px)] overflow-y-auto dark:!bg-[#141414]"
                 />

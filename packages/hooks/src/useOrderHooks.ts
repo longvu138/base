@@ -148,3 +148,104 @@ export const useUpdateOrderNoteMutation = () => {
         },
     });
 };
+
+export const useOrderProductsQuery = (code: string) => {
+    return useQuery({
+        queryKey: ['orders.products', code],
+        queryFn: async () => {
+            const res = await OrderApi.getOrderProducts(code);
+            return res.data;
+        },
+        enabled: !!code,
+    });
+};
+
+export const useOrderPackagesQuery = (code: string) => {
+    return useQuery({
+        queryKey: ['orders.packages', code],
+        queryFn: async () => {
+            const res = await OrderApi.getOrderPackages(code);
+            return res.data;
+        },
+        enabled: !!code,
+    });
+};
+
+export const useOrderFinancialsQuery = (code: string) => {
+    return useQuery({
+        queryKey: ['orders.financials', code],
+        queryFn: async () => {
+            const res = await OrderApi.getOrderFinancials(code);
+            return res.data;
+        },
+        enabled: !!code,
+    });
+};
+
+export const useOrderMilestonesQuery = (code: string) => {
+    return useQuery({
+        queryKey: ['orders.milestones', code],
+        queryFn: async () => {
+            const res = await OrderApi.getOrderMilestones(code);
+            return res.data;
+        },
+        enabled: !!code,
+    });
+};
+
+export const useOrderFeesQuery = (code: string) => {
+    return useQuery({
+        queryKey: ['orders.fees', code],
+        queryFn: async () => {
+            const res = await OrderApi.getOrderFees(code);
+            return res.data;
+        },
+        enabled: !!code,
+        retry: false,
+    });
+};
+export const useUpdateOrderMutation = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ code, data }: { code: string; data: any }) => OrderApi.patchOrder(code, data),
+        onMutate: async ({ code, data }) => {
+            // Cancel outgoing refetches
+            await queryClient.cancelQueries({ queryKey: ['orders.detail', code] });
+
+            // Snapshot the previous value
+            const previousOrder = queryClient.getQueryData(['orders.detail', code]);
+
+            // Optimistically update to the new value
+            queryClient.setQueryData(['orders.detail', code], (old: any) => {
+                if (!old) return old;
+                // Map refCustomerCode to customerCode and refOrderCode to customerOrderCode for local display consistency
+                const displayUpdate: any = { ...data };
+                if (data.refCustomerCode) displayUpdate.customerCode = data.refCustomerCode;
+                if (data.refOrderCode) displayUpdate.customerOrderCode = data.refOrderCode;
+                
+                return { ...old, ...displayUpdate };
+            });
+
+            return { previousOrder };
+        },
+        onError: (_err, variables, context: any) => {
+            if (context?.previousOrder) {
+                queryClient.setQueryData(['orders.detail', variables.code], context.previousOrder);
+            }
+            notification.error({
+                message: 'Cập nhật thất bại',
+                description: 'Vui lòng thử lại sau.'
+            });
+        },
+        onSuccess: (_, variables) => {
+            notification.success({
+                message: 'Cập nhật thành công',
+                placement: 'topRight'
+            });
+        },
+        onSettled: (_, __, variables) => {
+            queryClient.invalidateQueries({ queryKey: ['orders.detail', variables.code] });
+            queryClient.invalidateQueries({ queryKey: ['orders.list'] });
+        },
+    });
+};

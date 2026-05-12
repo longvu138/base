@@ -12,4 +12,7 @@ export const ClaimApi = {
         ticketTypes.forEach(type => params.append('ticketTypes', type));
         return ApiClient.auth.get(`category/canines/solutions`, { params });
     },
+    getClaimsByOrder: (orderCode: string) => {
+        return ApiClient.auth.get(`customer/canines/claims/orderCode/${orderCode}?page=0&size=10000&sort=createdAt:desc`);
+    },
 };
