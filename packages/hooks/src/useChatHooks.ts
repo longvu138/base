@@ -1,35 +1,61 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ChatApi } from '@repo/api';
+import type { ChatMode } from '@repo/api';
 
 /**
  * useChatComments — generic hook lấy comments của bất kỳ entity nào.
  * @param entityType  'orders' | 'shipments' | 'peerpayments' | ...
  * @param entityCode  mã entity, ví dụ 'BG00W5F'
  */
-export const useChatCommentsQuery = (entityType: string, entityCode: string) => {
-    return useQuery({
-        queryKey: ['chat.comments', entityType, entityCode],
-        queryFn: async () => {
-            const res = await ChatApi.getComments(entityType, entityCode);
-            // API trả về array hoặc { data: [] }
-            return Array.isArray(res.data) ? res.data : (res.data?.data ?? []);
+export const useChatCommentsQuery = (entityType: string, entityCode: string, mode: ChatMode = 'legacy') => {
+    return useInfiniteQuery({
+        queryKey: ['chat.comments', entityType, entityCode, mode],
+        initialPageParam: 0,
+        queryFn: async ({ pageParam = 0 }) => {
+            const res = await ChatApi.getComments(entityType, entityCode, { page: pageParam }, mode);
+            return {
+                data: Array.isArray(res.data) ? res.data : (res.data?.data ?? []),
+                page: Number(res.headers?.['x-page-number'] ?? pageParam),
+                pageCount: Number(res.headers?.['x-page-count'] ?? 1),
+                size: Number(res.headers?.['x-page-size'] ?? 25),
+                total: Number(res.headers?.['x-total-count'] ?? 0),
+            };
         },
         enabled: !!entityType && !!entityCode,
         refetchInterval: 15000,
+        getNextPageParam: (lastPage) =>
+            lastPage.page + 1 < lastPage.pageCount ? lastPage.page + 1 : undefined,
     });
 };
 
 /**
  * useCreateChatComment — generic hook gửi comment cho bất kỳ entity nào.
  */
-export const useCreateChatCommentMutation = (entityType: string, entityCode: string) => {
+export const useCreateChatCommentMutation = (entityType: string, entityCode: string, mode: ChatMode = 'legacy') => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: (payload: { comment: string }) =>
-            ChatApi.createComment(entityType, entityCode, payload),
+            ChatApi.createComment(entityType, entityCode, payload, mode),
         onSuccess: () => {
             queryClient.invalidateQueries({
-                queryKey: ['chat.comments', entityType, entityCode],
+                queryKey: ['chat.comments', entityType, entityCode, mode],
+            });
+        },
+    });
+};
+
+export const useCreateChatCommentWithAttachmentsMutation = (
+    entityType: string,
+    entityCode: string,
+    mode: ChatMode = 'legacy',
+) => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (payload: { comment?: string; files: File[] }) =>
+            ChatApi.createCommentWithAttachments(entityType, entityCode, payload, mode),
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: ['chat.comments', entityType, entityCode, mode],
             });
         },
     });

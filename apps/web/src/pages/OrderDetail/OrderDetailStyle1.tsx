@@ -33,6 +33,7 @@ import { ChatPanel } from "../../components/Common/ChatPanel";
 import { ClaimTab } from "./tabs/ClaimTab";
 import { FeeTab } from "./tabs/FeeTab";
 import { HistoryTab } from "./tabs/HistoryTab";
+import { LogTab } from "./tabs/LogTab";
 import { PackageTab } from "./tabs/PackageTab";
 import { ProductTab } from "./tabs/ProductTab";
 import { TransactionTab } from "./tabs/TransactionTab";
@@ -40,6 +41,7 @@ import {
   displayMoney,
   displayPercent,
   displayValue,
+  displayYuan,
   useOrderDetailPage,
 } from "./hooks/useOrderDetailPage";
 
@@ -155,7 +157,7 @@ export const OrderDetailStyle1 = () => {
   const baseAddress = order.address || order.shippingAddress || order.deliveryAddress;
   const receiptAddress = order.receiptAddress;
   const exchangeRate = order.exchangeRate
-    ? `¥1 = ${Number(order.exchangeRate).toLocaleString("vi-VN")} đ`
+    ? `¥1 = ${Number(order.exchangeRate).toLocaleString("vi-VN")} ₫`
     : "---";
   const canCancelOrder = Boolean(statusInfo?.cancellable);
 
@@ -208,7 +210,7 @@ export const OrderDetailStyle1 = () => {
           {
             label: t("orderDetail.supplier_discount"),
             value: `${displayMoney(order.exchangedDiscountAmount || order.supplierDiscount)}${
-              order.discountAmount ? ` (${displayValue(order.discountAmount, " CNY")})` : ""
+              order.discountAmount ? ` (${displayYuan(order.discountAmount)})` : ""
             }`,
             span: 5,
           },
@@ -234,7 +236,7 @@ export const OrderDetailStyle1 = () => {
     {
       key: "fees",
       label: t("orderDetail.financial"),
-      children: <FeeTab orderCode={code} order={order} />,
+      children: <FeeTab orderCode={code} order={order} statusInfo={statusInfo} />,
     },
     ...(order.contractWithShopkeeper
       ? [
@@ -273,7 +275,7 @@ export const OrderDetailStyle1 = () => {
     {
       key: "log",
       label: t("orderDetail.log"),
-      children: <Empty description={t("orderDetail.empty_log")} />,
+      children: <LogTab orderCode={code} order={order} />,
     },
   ];
 
@@ -346,7 +348,7 @@ export const OrderDetailStyle1 = () => {
                       <Space size={token.marginXS}>
                         {marketplaceImage && <Avatar shape="square" size={14} src={marketplaceImage} />}
                         <Text type="secondary">{t("orderDetail.seller")}:</Text>
-                        <Tooltip title={merchantName}>
+                        <Tooltip title={merchantName} color={token.colorPrimary}>
                           <Text strong ellipsis style={{ maxWidth: 280 }}>
                             {displayValue(merchantName)}
                           </Text>
@@ -509,7 +511,12 @@ export const OrderDetailStyle1 = () => {
 
         <Col xs={24} xl={7}>
           <Card styles={{ body: { padding: 0 } }}>
-            <ChatPanel entityType="orders" entityCode={code} rounded="square" />
+            <ChatPanel
+              entityType="orders"
+              entityCode={code}
+              entityCreatedAt={order.createdAt}
+              rounded="square"
+            />
           </Card>
         </Col>
       </Row>

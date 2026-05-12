@@ -1,103 +1,175 @@
-import React from 'react';
-import { Table, Tag, Button, Skeleton, Typography, Space } from 'antd';
-import { PlusOutlined, WarningOutlined, CommentOutlined } from '@ant-design/icons';
-import dayjs from 'dayjs';
-import { useOrderClaimsQuery, useClaimStatusesQuery } from '@repo/hooks';
+import { Link } from "react-router-dom";
+import { PlusOutlined, WarningOutlined } from "@ant-design/icons";
+import {
+  Button,
+  Card,
+  Empty,
+  Flex,
+  Skeleton,
+  Space,
+  Table,
+  Typography,
+  theme,
+} from "antd";
+import dayjs from "dayjs";
+import { useClaimStatusesQuery, useOrderClaimsQuery } from "@repo/hooks";
+import { moneyFormat, quantityFormat } from "@repo/util";
+import { useTranslation } from "react-i18next";
+
+interface ClaimTabProps {
+  orderCode: string;
+}
 
 const { Text, Title } = Typography;
 
-interface ClaimTabProps {
-    orderCode: string;
-}
+const getClaimStatus = (claim: any, statuses: any[] = []) => {
+  if (claim.publicStateNewView) return claim.publicStateNewView;
+  if (typeof claim.status === "object") return claim.status;
+  if (typeof claim.state === "object") return claim.state;
+  return (
+    statuses.find((item: any) => item.code === claim.status || item.code === claim.state) || {}
+  );
+};
 
-export const ClaimTab: React.FC<ClaimTabProps> = ({ orderCode }) => {
-    const { data: claims, isLoading, isError } = useOrderClaimsQuery(orderCode);
-    const { data: statuses } = useClaimStatusesQuery();
+const claimName = (claim: any) =>
+  claim.name || claim.subject || claim.title || claim.content || "---";
 
-    if (isLoading) return <Skeleton active paragraph={{ rows: 6 }} />;
+export const ClaimTab = ({ orderCode }: ClaimTabProps) => {
+  const { t } = useTranslation();
+  const { token } = theme.useToken();
+  const { data: claims = [], isLoading, isError } = useOrderClaimsQuery(orderCode);
+  const { data: statuses = [] } = useClaimStatusesQuery();
+  const data = !isError && Array.isArray(claims)
+    ? [...claims].sort(
+        (a: any, b: any) =>
+          dayjs(b.createdAt).valueOf() - dayjs(a.createdAt).valueOf(),
+      )
+    : [];
+  const createHref = `/tickets/create?orderCode=${orderCode}`;
 
-    const hasClaims = !isError && claims && claims.length > 0;
+  if (isLoading) return <Skeleton active paragraph={{ rows: 6 }} />;
 
-    const columns = [
-        {
-            title: 'Mã khiếu nại',
-            dataIndex: 'code',
-            key: 'code',
-            render: (v: string) => <Text strong className="text-blue-500">#{v}</Text>,
-        },
-        {
-            title: 'Ngày tạo',
-            dataIndex: 'createdAt',
-            key: 'createdAt',
-            render: (v: string) => dayjs(v).format('HH:mm DD/MM/YYYY'),
-        },
-        {
-            title: 'Nội dung khiếu nại',
-            dataIndex: 'content',
-            key: 'content',
-            render: (v: string, r: any) => (
-                <div className="max-w-[300px]">
-                    <div className="font-medium text-gray-800 line-clamp-1">{r.subject || 'Khiếu nại đơn hàng'}</div>
-                    <div className="text-xs text-gray-400 line-clamp-2">{v}</div>
-                </div>
-            ),
-        },
-        {
-            title: 'Giải pháp',
-            dataIndex: ['solution', 'name'],
-            key: 'solution',
-            render: (v: string) => v || 'Chưa xác định',
-        },
-        {
-            title: 'Trạng thái',
-            dataIndex: 'status',
-            key: 'status',
-            render: (v: any) => {
-                const statusName = typeof v === 'object' ? v.name : (statuses?.find(s => s.code === v)?.name || v);
-                const color = typeof v === 'object' ? v.color : (statuses?.find(s => s.code === v)?.color || 'blue');
-                return <Tag color={color} className="rounded-full px-3">{statusName}</Tag>;
-            },
-        },
-        {
-            title: 'Thao tác',
-            key: 'action',
-            align: 'right' as const,
-            render: () => (
-                <Space>
-                    <Button type="link" size="small" icon={<CommentOutlined />}>Chi tiết</Button>
-                </Space>
-            ),
-        },
-    ];
+  const columns = [
+    {
+      title: t("complaint_tab.complaint_code"),
+      dataIndex: "code",
+      key: "code",
+      render: (code: string) => (
+        <Link to={`/tickets/${code}`}>
+          <Text style={{ color: token.colorPrimary }}>#{code}</Text>
+        </Link>
+      ),
+    },
+    {
+      title: t("complaint_tab.complaint_name"),
+      key: "name",
+      render: (_: any, record: any) => (
+        <Link to={`/tickets/${record.code}`}>
+          <Text style={{ color: token.colorPrimary }}>{claimName(record)}</Text>
+        </Link>
+      ),
+    },
+    {
+      title: t("complaint_tab.time"),
+      dataIndex: "createdAt",
+      key: "createdAt",
+      render: (value: string) => (
+        <Text>{value ? dayjs(value).format("HH:mm DD/MM") : "---"}</Text>
+      ),
+    },
+    {
+      title: t("complaint_tab.status"),
+      key: "state",
+      render: (_: any, record: any) => {
+        const status = getClaimStatus(record, statuses);
+        const statusText = `${status.name || "---"}${
+          record.archived ? ` (${t("complaint_tab.closed")})` : ""
+        }`;
 
+        return (
+          <Space size={token.marginXXS}>
+            <span
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: "50%",
+                backgroundColor: status.color || token.colorWarning,
+                display: "inline-block",
+              }}
+            />
+            <Text>{statusText}</Text>
+          </Space>
+        );
+      },
+    },
+    {
+      title: t("complaint_tab.refund"),
+      dataIndex: "totalRefund",
+      key: "totalRefund",
+      render: (value: any) => (
+        <Text strong style={{ color: token.colorSuccess }}>
+          {moneyFormat(value || 0)}
+        </Text>
+      ),
+    },
+    {
+      title: "",
+      key: "action",
+      align: "right" as const,
+      render: (_: any, record: any) => (
+        <Link to={`/tickets/${record.code}`}>
+          <Button type="link">{t("complaint_tab.detail")}</Button>
+        </Link>
+      ),
+    },
+  ];
+
+  if (data.length === 0) {
     return (
-        <div className="claim-tab-container px-2">
-            {hasClaims ? (
-                <div className="space-y-4">
-                    <div className="flex justify-end">
-                        <Button type="primary" icon={<PlusOutlined />}>Tạo khiếu nại</Button>
-                    </div>
-                    <Table
-                        columns={columns}
-                        dataSource={claims}
-                        rowKey="id"
-                        pagination={false}
-                        size="middle"
-                        className="custom-claim-table"
-                    />
-                </div>
-            ) : (
-                <div className="py-12 flex flex-col items-center justify-center bg-gray-50/50 rounded-xl border-2 border-dashed border-gray-100">
-                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                        <WarningOutlined className="text-3xl text-gray-300" />
-                    </div>
-                    <Title level={5} className="mb-2">Chưa có khiếu nại nào cho đơn hàng này</Title>
-                    <Text className="text-gray-400 mb-6">Nếu bạn gặp vấn đề với sản phẩm hoặc kiện hàng, hãy tạo khiếu nại để được hỗ trợ.</Text>
-                    <Button type="primary" size="large" icon={<PlusOutlined />} className="px-8 h-11 rounded-lg">
-                        Tạo khiếu nại ngay
-                    </Button>
-                </div>
-            )}
-        </div>
+      <Card>
+        <Empty
+          image={<WarningOutlined style={{ color: token.colorTextTertiary, fontSize: 48 }} />}
+          description={
+            <Space direction="vertical" size={token.marginXS}>
+              <Title level={5} style={{ margin: 0 }}>
+                {t("complaint_tab.empty_claim_title")}
+              </Title>
+              <Text type="secondary">{t("complaint_tab.empty_claim_description")}</Text>
+            </Space>
+          }
+        >
+          <Link to={createHref}>
+            <Button type="primary" icon={<PlusOutlined />}>
+              {t("tickets.create")}
+            </Button>
+          </Link>
+        </Empty>
+      </Card>
     );
+  }
+
+  return (
+    <Space direction="vertical" size={token.margin} style={{ width: "100%" }}>
+      <Flex justify="space-between" align="center" gap={token.marginSM}>
+        <Title level={5} style={{ margin: 0 }}>
+          {t("ticket_add.list_claims")}{" "}
+          <Text type="secondary">({quantityFormat(data.length)})</Text>
+        </Title>
+        <Link to={createHref}>
+          <Button type="primary" ghost icon={<PlusOutlined />}>
+            {t("complaint_tab.create_complaint")}
+          </Button>
+        </Link>
+      </Flex>
+      <Table
+        rowKey="code"
+        columns={columns}
+        dataSource={data}
+        pagination={{
+          hideOnSinglePage: true,
+          pageSize: 10,
+        }}
+      />
+    </Space>
+  );
 };

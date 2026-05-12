@@ -27,7 +27,6 @@ import {
   DownOutlined,
   DownloadOutlined,
   InfoCircleOutlined,
-  PlusOutlined,
   QuestionCircleOutlined,
   SearchOutlined,
   UpOutlined,
@@ -366,9 +365,6 @@ export const OrdersStyle1 = () => {
               <Space>
                 <Button icon={<DownloadOutlined />}>
                   {t("common.export")}
-                </Button>
-                <Button type="primary" icon={<PlusOutlined />}>
-                  {t("common.create", { defaultValue: "Tạo mới" })}
                 </Button>
               </Space>
             </Flex>

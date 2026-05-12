@@ -279,18 +279,62 @@ export const onLogout = () => {
 
 export const moneyCeil = (value: number) => {
   if (typeof value === "number") {
-    return Math.ceil(value)
+    return Math.round(value)
   }
   return value
 }
 
-export const quantityFormat = (value: unknown, noNegative = undefined) => {
+export const quantityFormat = (value: unknown, noNegative?: boolean) => {
   if (value === null || value === undefined || value === "") return "---"
   //loại bỏ tất cả các ký tự ',' trong value
   const temp = value.toString().replace(/[,-]/g, "")
-  const result = `${numeral(parseFloat(temp)).format("0,0.[0000]")}`
+  let result = `${numeral(parseFloat(temp)).format("0,0.[0000]")}`
   if (noNegative) {
-    result.replace("-", "")
+    result = result.replace("-", "")
   }
   return result
+}
+
+const normalizeCurrencyCode = (unit?: string) => {
+  const currency = String(unit || "").trim()
+  const normalized = currency.toUpperCase()
+
+  if (["CNY", "RMB", "YUAN", "¥"].includes(normalized)) return "CNY"
+  if (["VND", "VNĐ", "D", "Đ", "₫"].includes(normalized)) return "VND"
+
+  return currency
+}
+
+const fallbackCurrencyUnit = (unit?: string) => {
+  const currency = normalizeCurrencyCode(unit)
+
+  if (currency === "CNY") return { prefix: "¥", suffix: "" }
+  if (currency === "VND" || !currency) return { prefix: "", suffix: " ₫" }
+
+  return { prefix: "", suffix: ` ${currency}` }
+}
+
+export const moneyFormat = (value: unknown, unit: string | undefined = undefined, noNegative?: boolean) => {
+  const currentProjectInfo = LocalStoreUtil.getJson("currentProjectInfo") || {}
+  const currencies = LocalStoreUtil.getJson("currencies") || []
+  const tenantConfig = currentProjectInfo.tenantConfig || {}
+  const defaultCurrency =
+    typeof tenantConfig.currency === "object"
+      ? tenantConfig.currency
+      : fallbackCurrencyUnit(tenantConfig.currency || "VND")
+
+  if (value === null || value === "" || value === undefined || Number.isNaN(Number(value))) return "---"
+
+  const currencyCode = normalizeCurrencyCode(unit)
+  const unitCurrency = unit
+    ? currencies.find((currency: any) => currency.code === unit || currency.code === currencyCode) ||
+      fallbackCurrencyUnit(currencyCode)
+    : defaultCurrency
+
+  return (
+    (!noNegative && parseFloat(String(value)) < 0 ? "-" : "") +
+    (unitCurrency.prefix || "") +
+    quantityFormat(value, true) +
+    (unitCurrency.suffix || "")
+  )
 }

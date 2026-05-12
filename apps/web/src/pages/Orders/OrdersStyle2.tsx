@@ -22,7 +22,6 @@ import {
 import {
   DownOutlined,
   DownloadOutlined,
-  PlusOutlined,
   SearchOutlined,
   UpOutlined,
 } from "@ant-design/icons";
@@ -325,9 +324,6 @@ export const OrdersStyle2 = () => {
               </Space>
               <Space>
                 <Button icon={<DownloadOutlined />}>{t("common.export")}</Button>
-                <Button type="primary" icon={<PlusOutlined />}>
-                  {t("common.create", { defaultValue: "Tạo mới" })}
-                </Button>
               </Space>
             </Flex>
           </Space>

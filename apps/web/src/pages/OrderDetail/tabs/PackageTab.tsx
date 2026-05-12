@@ -1,194 +1,363 @@
-import React from 'react';
-import { Table, Tag, Empty, Skeleton } from 'antd';
-import { RightOutlined, DownOutlined } from '@ant-design/icons';
-import dayjs from 'dayjs';
-import { useOrderPackagesQuery, usePackageMilestonesQuery, usePackageStatusesQuery } from '@repo/hooks';
+import { useMemo, useState } from "react";
+import type { Key } from "react";
+import {
+  Empty,
+  Popover,
+  Skeleton,
+  Space,
+  Spin,
+  Steps,
+  Table,
+  Tag,
+  Timeline,
+  Tooltip,
+  Typography,
+  theme,
+} from "antd";
+import {
+  DownOutlined,
+  Loading3QuartersOutlined,
+  RightOutlined,
+} from "@ant-design/icons";
+import dayjs from "dayjs";
+import { useTheme } from "@repo/theme-provider";
+import {
+  useOrderPackagesQuery,
+  usePackageIOHistoriesQuery,
+  usePackageMilestonesQuery,
+  usePackageStatusesQuery,
+} from "@repo/hooks";
+import { useTranslation } from "react-i18next";
 
 interface PackageTabProps {
-    orderCode: string;
+  orderCode: string;
 }
 
-const statusColors: Record<string, string> = {
-    'DELIVERING': 'orange',
-    'RECEIVED': 'blue',
-    'COMPLETED': 'green',
-    'CANCELLED': 'red',
-};
+const { Text, Link } = Typography;
 
-const PackageTimeline = ({ packageCode }: { packageCode: string }) => {
-    const { data: milestones, isLoading } = usePackageMilestonesQuery(packageCode);
+const isFiniteValue = (value: any) =>
+  value !== null &&
+  value !== undefined &&
+  value !== "" &&
+  Number.isFinite(Number(value));
 
-    if (isLoading) return <div className="p-8"><Skeleton active paragraph={{ rows: 1 }} /></div>;
-    if (!milestones) return <div className="p-6 text-center text-gray-400 bg-gray-50 rounded-lg">Không có dữ liệu hành trình</div>;
+const withUnit = (value: any, unit: string) =>
+  isFiniteValue(value) ? `${value} ${unit}` : "---";
 
-    const steps = [
-        { key: 'WAITING_FOR_DELIVERY', label: 'Chờ vận chuyển' },
-        { key: 'PUTAWAY', label: 'Kiện về kho' },
-        { key: 'TRANSPORTING', label: 'Vận chuyển' },
-        { key: 'READY_TO_DELIVERY', label: 'Sẵn sàng giao' },
-        { key: 'DELIVERY_REQUEST', label: 'Yêu cầu giao' },
-        { key: 'DELIVERING', label: 'Đang giao' },
-        { key: 'DELIVERED', label: 'Đã giao' },
-        { key: 'CUSTOMER_RECEIVED', label: 'Khách nhận' },
-    ];
+const statusColor = (status: any) => status?.color || "#898989";
 
-    const lastCompletedIndex = steps.reduce((last, step, index) => {
-        return milestones.some((m: any) => m.status === step.key) ? index : last;
-    }, -1);
+const PackageIOHistory = ({
+  packageCode,
+  active,
+}: {
+  packageCode: string;
+  active: boolean;
+}) => {
+  const { t } = useTranslation();
+  const { data = [], isLoading } = usePackageIOHistoriesQuery(
+    packageCode,
+    active,
+  );
 
+  if (isLoading) {
     return (
-        <div className="py-10 px-6 bg-white border border-blue-50/50 rounded-xl my-2 mx-4 shadow-sm">
-            <div className="flex items-start justify-between relative">
-                {/* Background Line */}
-                <div className="absolute top-[11px] left-[5%] right-[5%] h-[3px] bg-gray-100 z-0 rounded-full" />
-                
-                {/* Active Progress Line */}
-                {lastCompletedIndex !== -1 && (
-                    <div 
-                        className="absolute top-[11px] left-[5%] h-[3px] bg-blue-500 z-0 transition-all duration-700 rounded-full"
-                        style={{ width: `${(lastCompletedIndex / (steps.length - 1)) * 90}%` }}
-                    />
-                )}
-                
-                {steps.map((step, index) => {
-                    const milestone = milestones.find((m: any) => m.status === step.key);
-                    const isCompleted = !!milestone;
-                    const isLastCompleted = index === lastCompletedIndex;
-                    
-                    return (
-                        <div key={step.key} className="flex flex-col items-center relative z-10 flex-1 px-1">
-                            {/* Dot */}
-                            <div className={`
-                                w-[24px] h-[24px] rounded-full flex items-center justify-center transition-all duration-300
-                                ${isCompleted ? 'bg-blue-500 shadow-lg shadow-blue-200' : 'bg-white border-2 border-gray-200'}
-                                ${isLastCompleted ? 'ring-4 ring-blue-100 scale-110' : ''}
-                            `}>
-                                {isCompleted ? (
-                                    <div className="w-2 h-2 bg-white rounded-full" />
-                                ) : (
-                                    <div className="w-1.5 h-1.5 bg-gray-200 rounded-full" />
-                                )}
-                            </div>
-
-                            {/* Label & Time */}
-                            <div className="mt-4 text-center min-h-[60px]">
-                                <div className={`text-[12px] font-bold transition-colors duration-300 ${isCompleted ? 'text-blue-600' : 'text-gray-400'}`}>
-                                    {step.label}
-                                </div>
-                                {isCompleted ? (
-                                    <div className="mt-1.5">
-                                        <div className="text-[11px] font-semibold text-gray-800">
-                                            {dayjs(milestone.timestamp).format('HH:mm DD/MM')}
-                                        </div>
-                                        {milestone.handlingTime !== undefined && (
-                                            <div className="text-[10px] text-gray-500 mt-0.5 bg-gray-50 px-1.5 py-0.5 rounded-full inline-block border border-gray-100">
-                                                {milestone.handlingTime} ngày
-                                            </div>
-                                        )}
-                                    </div>
-                                ) : (
-                                    <div className="text-[10px] text-gray-300 mt-1 italic font-medium uppercase tracking-tight">Chưa tới</div>
-                                )}
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
-        </div>
+      <div style={{ padding: "16px 24px", textAlign: "center" }}>
+        <Spin indicator={<Loading3QuartersOutlined spin />} />
+      </div>
     );
+  }
+
+  if (!Array.isArray(data) || data.length === 0) {
+    return <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />;
+  }
+
+  return (
+    <Timeline
+      items={data.map((item: any, index: number) => ({
+        color: index === 0 ? "green" : "gray",
+        children: (
+          <Text>
+            {dayjs(item.createdAt).format("HH:mm DD/MM")} -{" "}
+            {t(
+              `package.${
+                item.statusWarehouse === "IN" ? "inWarehouse" : "outWarehouse"
+              }`,
+              { value: item?.warehouse?.mask || "---" },
+            )}
+          </Text>
+        ),
+      }))}
+    />
+  );
 };
 
-export const PackageTab: React.FC<PackageTabProps> = ({ orderCode }) => {
-    const { data: packages, isLoading } = useOrderPackagesQuery(orderCode);
-    const { data: statuses } = usePackageStatusesQuery();
+const StatusTag = ({
+  record,
+  status,
+  showPackageIoHistory,
+}: {
+  record: any;
+  status: any;
+  showPackageIoHistory: boolean;
+}) => {
+  const [open, setOpen] = useState(false);
+  const tag = (
+    <Tag
+      style={{
+        backgroundColor: statusColor(status),
+        borderColor: statusColor(status),
+        color: "white",
+        cursor: showPackageIoHistory ? "pointer" : "default",
+      }}
+    >
+      {status?.name || record.status || "---"}
+    </Tag>
+  );
 
-    if (isLoading) return <Skeleton active paragraph={{ rows: 6 }} />;
-    if (!packages || packages.length === 0) return <Empty description="Không có kiện hàng" />;
+  if (!showPackageIoHistory) return tag;
 
-    const columns = [
-        {
-            title: '#',
-            key: 'index',
-            width: 50,
-            render: (_: any, __: any, index: number) => index + 1,
-        },
-        {
-            title: 'Mã kiện',
-            dataIndex: 'code',
-            key: 'code',
-            render: (v: string) => <span className="font-semibold text-gray-900">{v}</span>,
-        },
-        {
-            title: 'Mã vận đơn',
-            dataIndex: 'trackingNumber',
-            key: 'trackingNumber',
-            render: (v: string) => <span className="text-gray-700">{v || '---'}</span>,
-        },
-        {
-            title: 'Cân nặng',
-            dataIndex: 'actualWeight',
-            key: 'actualWeight',
-            render: (v: number) => <span>{v} kg</span>,
-        },
-        {
-            title: 'Thông số',
-            key: 'specs',
-            render: (_: any, r: any) => (
-                <div className="text-xs text-gray-500 leading-relaxed">
-                    <div>Dài: {r.length || 0} cm</div>
-                    <div>Rộng: {r.width || 0} cm</div>
-                    <div>Cao: {r.height || 0} cm</div>
-                </div>
-            ),
-        },
-        {
-            title: 'Trạng thái',
-            dataIndex: 'status',
-            key: 'status',
-            render: (v: string) => {
-                const statusInfo = statuses?.find((s: any) => s.code === v);
-                return (
-                    <Tag 
-                        color={statusColors[v] || 'default'} 
-                        className="rounded-full px-4 border-none text-[11px] font-semibold"
-                    >
-                        {statusInfo?.name || v}
-                    </Tag>
-                );
-            },
-        },
-        {
-            title: 'Cập nhật',
-            dataIndex: 'lastStatusTime',
-            key: 'lastStatusTime',
-            align: 'right' as const,
-            render: (v: string) => (
-                <div className="text-xs text-gray-500">
-                    {v ? dayjs(v).format('HH:mm DD/MM') : '---'}
-                </div>
-            ),
-        },
+  return (
+    <Popover
+      trigger="click"
+      placement="left"
+      open={open}
+      onOpenChange={setOpen}
+      content={<PackageIOHistory packageCode={record.code} active={open} />}
+    >
+      {tag}
+    </Popover>
+  );
+};
+
+const MilestoneDescription = ({ milestones }: { milestones: any[] }) => {
+  const { t } = useTranslation();
+
+  if (!milestones.length) return <Text type="secondary">{t("orderDetail.undefined")}</Text>;
+
+  return (
+    <Space direction="vertical" size={0} align="center">
+      {milestones.map((item: any, index: number) => {
+        const handlingTime = item.handlingTime;
+        const dayLabel = Number(handlingTime) === 0 ? t("label.day") : t("label.days");
+
+        return (
+          <div key={`${item.status}-${item.timestamp}-${index}`} style={{ textAlign: "center" }}>
+            <Text strong={index === 0}>{dayjs(item.timestamp).format("HH:mm DD/MM")}</Text>
+            <br />
+            <Text strong={index === 0} type="secondary">
+              {handlingTime === null || handlingTime === undefined
+                ? `( ${t("orderDetail.undefined")} )`
+                : `( ${handlingTime} ${dayLabel} )`}
+            </Text>
+          </div>
+        );
+      })}
+    </Space>
+  );
+};
+
+const PackageTimeline = ({
+  record,
+  statuses,
+}: {
+  record: any;
+  statuses: any[];
+}) => {
+  const { t } = useTranslation();
+  const { token } = theme.useToken();
+  const { data: milestones = [], isLoading } = usePackageMilestonesQuery(
+    record.code,
+  );
+
+  const currentStatus = statuses.find((item: any) => item.code === record.status) || {};
+  const currentIndex = statuses.findIndex((item: any) => item.code === record.status);
+  const normalStatuses = statuses.filter((item: any) => !item.negativeEnd);
+
+  const timelineStatuses = useMemo(() => {
+    if (!currentStatus.negativeEnd) return normalStatuses;
+
+    const previousMilestones = [...milestones]
+      .filter((item: any) => item.status !== currentStatus.code)
+      .sort(
+        (a: any, b: any) =>
+          dayjs(b.timestamp).valueOf() - dayjs(a.timestamp).valueOf(),
+      );
+    const lastMilestone = previousMilestones[0];
+    const lastIndex = lastMilestone
+      ? statuses.findIndex((item: any) => item.code === lastMilestone.status)
+      : 0;
+
+    return [
+      ...statuses.slice(0, Math.max(lastIndex + 1, 1)).filter((item: any) => !item.negativeEnd),
+      currentStatus,
     ];
+  }, [currentStatus, milestones, normalStatuses, statuses]);
 
+  if (isLoading) {
     return (
-        <div className="package-tab-container px-2">
-            <Table
-                columns={columns}
-                dataSource={packages}
-                rowKey="id"
-                pagination={false}
-                expandable={{
-                    expandedRowRender: (record) => <PackageTimeline packageCode={record.code} />,
-                    expandIcon: ({ expanded, onExpand, record }) =>
-                        expanded ? (
-                            <DownOutlined className="cursor-pointer text-gray-400 mr-2" onClick={e => onExpand(record, e)} />
-                        ) : (
-                            <RightOutlined className="cursor-pointer text-gray-400 mr-2" onClick={e => onExpand(record, e)} />
-                        ),
-                }}
-                className="custom-package-table"
-                size="middle"
+      <div style={{ padding: token.padding }}>
+        <Skeleton active paragraph={{ rows: 1 }} />
+      </div>
+    );
+  }
+
+  if (!Array.isArray(statuses) || statuses.length === 0) {
+    return <Empty description={t("package_tab.empty_milestone")} />;
+  }
+
+  const activeIndex = currentStatus.negativeEnd
+    ? timelineStatuses.length - 1
+    : Math.max(currentIndex, 0);
+
+  return (
+    <div style={{ padding: `${token.paddingLG}px ${token.padding}px` }}>
+      <Steps
+        size="small"
+        progressDot
+        direction="horizontal"
+        current={activeIndex}
+        status={currentStatus.negativeEnd ? "error" : "process"}
+        items={timelineStatuses.map((status: any) => {
+          const statusMilestones = [...milestones]
+            .filter((item: any) => item.status === status.code)
+            .sort(
+              (a: any, b: any) =>
+                dayjs(b.timestamp).valueOf() - dayjs(a.timestamp).valueOf(),
+            );
+
+          return {
+            key: status.id || status.code,
+            title: status.name,
+            description: <MilestoneDescription milestones={statusMilestones} />,
+          };
+        })}
+      />
+    </div>
+  );
+};
+
+export const PackageTab = ({ orderCode }: PackageTabProps) => {
+  const { t } = useTranslation();
+  const { token } = theme.useToken();
+  const { tenantConfig } = useTheme();
+  const { data: packages = [], isLoading } = useOrderPackagesQuery(orderCode);
+  const { data: statuses = [] } = usePackageStatusesQuery();
+  const [expandedRowKeys, setExpandedRowKeys] = useState<Key[]>([]);
+
+  const generalConfig = tenantConfig?.tenantConfig?.generalConfig || {};
+  const showPackageIoHistory = Boolean(generalConfig.showPackageIoHistory);
+  const showPackageNote = Boolean(generalConfig.showPackageNote);
+
+  const columns = [
+    {
+      title: "#",
+      key: "index",
+      width: 64,
+      render: (_: any, record: any, index: number) => (
+        <Space direction="vertical" size={2}>
+          <Text>{index + 1}</Text>
+          {showPackageNote && record?.note ? (
+            <Tooltip title={record.note} color={token.colorPrimary}>
+              <Link>{t("delivery.note")}</Link>
+            </Tooltip>
+          ) : null}
+        </Space>
+      ),
+    },
+    {
+      title: t("package_tab.package_code"),
+      dataIndex: "code",
+      key: "code",
+      render: (value: string) => <Text strong>{value || "---"}</Text>,
+    },
+    {
+      title: t("package_tab.waybills"),
+      dataIndex: "trackingNumber",
+      key: "trackingNumber",
+      render: (value: string) => <Text strong>{value || "---"}</Text>,
+    },
+    {
+      title: t("package_tab.weight"),
+      dataIndex: "actualWeight",
+      key: "actualWeight",
+      render: (value: any) => <Text>{withUnit(value, "kg")}</Text>,
+    },
+    {
+      title: t("package.information"),
+      key: "information",
+      render: (_: any, record: any) => (
+        <Space direction="vertical" size={0}>
+          <Text>
+            {t("package.length")}: {withUnit(record.length, "cm")}
+          </Text>
+          <Text>
+            {t("package.width")}: {withUnit(record.width, "cm")}
+          </Text>
+          <Text>
+            {t("package.height")}: {withUnit(record.height, "cm")}
+          </Text>
+        </Space>
+      ),
+    },
+    {
+      title: t("package_tab.status"),
+      dataIndex: "status",
+      key: "status",
+      render: (value: string, record: any) => {
+        const status = statuses.find((item: any) => item.code === value);
+        return (
+          <StatusTag
+            record={record}
+            status={status}
+            showPackageIoHistory={showPackageIoHistory}
+          />
+        );
+      },
+    },
+    {
+      title: t("package_tab.update"),
+      dataIndex: "lastStatusTime",
+      key: "lastStatusTime",
+      render: (value: string) => (
+        <Text>{value ? dayjs(value).format("HH:mm DD/MM") : "---"}</Text>
+      ),
+    },
+  ];
+
+  if (isLoading) return <Skeleton active paragraph={{ rows: 6 }} />;
+
+  return (
+    <div style={{ padding: token.paddingXS }}>
+      <Table
+        rowKey="code"
+        columns={columns}
+        dataSource={packages}
+        pagination={{ hideOnSinglePage: true, pageSize: 100 }}
+        scroll={{ x: 760 }}
+        expandable={{
+          expandedRowKeys,
+          expandedRowRender: (record) => (
+            <PackageTimeline record={record} statuses={statuses} />
+          ),
+          expandIcon: ({ expanded, onExpand, record }) =>
+            expanded ? (
+              <DownOutlined onClick={(event) => onExpand(record, event)} />
+            ) : (
+              <RightOutlined onClick={(event) => onExpand(record, event)} />
+            ),
+          onExpand: (expanded, record) => {
+            setExpandedRowKeys(expanded ? [record.code] : []);
+          },
+        }}
+        locale={{
+          emptyText: (
+            <Empty
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+              description={t("message.empty")}
             />
-        </div>
-    );
+          ),
+        }}
+      />
+    </div>
+  );
 };

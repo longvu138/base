@@ -59,3 +59,14 @@ export const usePackageMilestonesQuery = (packageCode: string) => {
         enabled: !!packageCode,
     });
 };
+
+export const usePackageIOHistoriesQuery = (packageCode: string, enabled = true) => {
+    return useQuery({
+        queryKey: ['packages.io-histories', packageCode],
+        queryFn: async () => {
+            const res = await PackageApi.getPackageIOHistories(packageCode);
+            return res.data;
+        },
+        enabled: !!packageCode && enabled,
+    });
+};

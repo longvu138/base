@@ -1,85 +1,90 @@
-import React from 'react';
-import { Table, Empty, Skeleton } from 'antd';
-import { DatabaseOutlined } from '@ant-design/icons';
-import dayjs from 'dayjs';
-import relativeTime from 'dayjs/plugin/relativeTime';
-import 'dayjs/locale/vi';
-import { useOrderFinancialsQuery } from '@repo/hooks';
-
-dayjs.extend(relativeTime);
-dayjs.locale('vi');
-
+import { DatabaseOutlined } from "@ant-design/icons";
+import { Empty, Flex, Skeleton, Space, Table, Typography, theme } from "antd";
+import dayjs from "dayjs";
+import { useOrderFinancialsQuery } from "@repo/hooks";
+import { moneyFormat } from "@repo/util";
+import { useTranslation } from "react-i18next";
 
 interface TransactionTabProps {
-    orderCode: string;
+  orderCode: string;
 }
 
-export const TransactionTab: React.FC<TransactionTabProps> = ({ orderCode }) => {
-    const { data: financials, isLoading } = useOrderFinancialsQuery(orderCode);
+const { Text } = Typography;
 
-    if (isLoading) return <Skeleton active paragraph={{ rows: 6 }} />;
-    
-    const data = Array.isArray(financials) ? financials : (financials ? [financials] : []);
-    if (data.length === 0) return <Empty description="Không có giao dịch" />;
+const normalizeFinancials = (financials: any) =>
+  Array.isArray(financials) ? financials : financials ? [financials] : [];
 
-    const columns = [
-        {
-            title: 'Thời gian',
-            dataIndex: 'timestamp',
-            key: 'timestamp',
-            width: 180,
-            render: (v: string) => (
-                <div className="text-sm text-gray-900">
-                    {dayjs(v).format('HH:mm DD/MM/YYYY')}
-                </div>
-            ),
-        },
-        {
-            title: 'Giá trị',
-            dataIndex: 'amount',
-            key: 'amount',
-            width: 150,
-            render: (v: number) => (
-                <span className={`text-sm ${v < 0 ? 'text-red-500' : 'text-green-500'}`}>
-                    {v.toLocaleString('vi-VN')}₫
-                </span>
-            ),
-        },
-        {
-            title: 'Loại giao dịch',
-            dataIndex: ['type', 'name'],
-            key: 'type',
-            width: 180,
-            render: (v: string) => <span className="text-sm text-gray-900">{v || 'Giao dịch'}</span>,
-        },
-        {
-            title: 'Nội dung',
-            key: 'content',
-            render: (_: any, r: any) => (
-                <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-1.5 text-xs text-gray-400">
-                        <DatabaseOutlined className="text-[14px]" />
-                        <span>Mã: {r.txid}</span>
-                    </div>
-                    <div className="text-sm text-gray-900 font-medium">
-                        {r.memo || '---'}
-                    </div>
-                </div>
-            ),
-        },
-    ];
+export const TransactionTab = ({ orderCode }: TransactionTabProps) => {
+  const { t } = useTranslation();
+  const { token } = theme.useToken();
+  const { data: financials, isLoading } = useOrderFinancialsQuery(orderCode);
 
-    return (
-        <div className="transaction-tab-container px-2">
-            <Table
-                columns={columns}
-                dataSource={data}
-                rowKey="id"
-                pagination={false}
-                size="middle"
-                className="custom-transaction-table"
-                rowClassName="hover:bg-gray-50 transition-colors"
-            />
-        </div>
-    );
+  if (isLoading) return <Skeleton active paragraph={{ rows: 6 }} />;
+
+  const data = normalizeFinancials(financials).sort(
+    (a: any, b: any) =>
+      dayjs(b.timestamp).valueOf() - dayjs(a.timestamp).valueOf(),
+  );
+
+  const columns = [
+    {
+      title: t("financial_tab.time"),
+      key: "timestamp",
+      render: (_: any, record: any) => (
+        <Text>{record.timestamp ? dayjs(record.timestamp).format("HH:mm DD/MM/YYYY") : "---"}</Text>
+      ),
+    },
+    {
+      title: t("financial_tab.amount"),
+      dataIndex: "amount",
+      key: "amount",
+      render: (amount: number) => (
+        <Text style={{ color: Number(amount) >= 0 ? token.colorSuccess : token.colorError }}>
+          {Number(amount) >= 0 ? `+${moneyFormat(amount)}` : moneyFormat(amount)}
+        </Text>
+      ),
+    },
+    {
+      title: t("financial_tab.transaction_type"),
+      dataIndex: "type",
+      key: "type",
+      render: (type: any) => <Text>{type?.name || t("financial_tab.transaction")}</Text>,
+    },
+    {
+      title: t("financial_tab.content"),
+      key: "content",
+      render: (_: any, record: any) => (
+        <Space direction="vertical" size={2}>
+          <Flex align="center" gap={token.marginXXS}>
+            <DatabaseOutlined style={{ color: token.colorTextTertiary }} />
+            <Text type="secondary">
+              {t("financial_tab.code")}: {record.txid || "---"}
+            </Text>
+          </Flex>
+          <Text>{record.memo || "---"}</Text>
+        </Space>
+      ),
+    },
+  ];
+
+  return (
+    <Table
+      rowKey="id"
+      columns={columns}
+      dataSource={data}
+      pagination={{
+        hideOnSinglePage: true,
+        simple: true,
+        pageSize: 5,
+      }}
+      locale={{
+        emptyText: (
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description={t("financial_tab.empty_transaction")}
+          />
+        ),
+      }}
+    />
+  );
 };

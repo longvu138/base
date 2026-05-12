@@ -20,7 +20,7 @@ import {
   theme,
 } from "antd";
 import { CheckCircleOutlined, TruckOutlined } from "@ant-design/icons";
-import { formatCurrency, quantityFormat } from "@repo/util";
+import { moneyFormat, quantityFormat } from "@repo/util";
 import { useCreateDeliveryPage } from "./hooks/useCreateDeliveryPage";
 
 const getStatusName = (statuses: any[] = [], code?: string) =>
@@ -100,7 +100,7 @@ export const CreateDeliveryStyle1 = () => {
       dataIndex: "shippingFee",
       key: "shippingFee",
       render: (value: number) =>
-        value || value === 0 ? formatCurrency(Math.ceil(value || 0)) : "---",
+        value || value === 0 ? moneyFormat(value || 0) : "---",
     },
     {
       title: t("delivery.status"),
@@ -156,26 +156,26 @@ export const CreateDeliveryStyle1 = () => {
       title: t("delivery.order_amount"),
       dataIndex: "grandTotal",
       key: "grandTotal",
-      render: (value: number) => formatCurrency(Math.ceil(value || 0)),
+      render: (value: number) => moneyFormat(value || 0),
     },
     {
       title: t("delivery.paid_amount"),
       dataIndex: "totalPaid",
       key: "totalPaid",
-      render: (value: number) => formatCurrency(Math.ceil(value || 0)),
+      render: (value: number) => moneyFormat(value || 0),
     },
     {
       title: t("delivery.total_refund"),
       dataIndex: "totalRefund",
       key: "totalRefund",
-      render: (value: number) => formatCurrency(Math.ceil(value || 0)),
+      render: (value: number) => moneyFormat(value || 0),
     },
     {
       title: t("delivery.unpaid_amount"),
       dataIndex: "totalUnpaid",
       key: "totalUnpaid",
       render: (value: number, record: any) =>
-        formatCurrency(Math.ceil(record.isShipment ? record.needToPaid || 0 : value || 0)),
+        moneyFormat(record.isShipment ? record.needToPaid || 0 : value || 0),
     },
     {
       title: t("delivery.address"),
@@ -313,8 +313,8 @@ export const CreateDeliveryStyle1 = () => {
                     ? t("delivery.total_unpaid_amount")
                     : t("delivery.total_refund_amount")
                 }
-                value={Math.abs(Math.ceil(totalAmount))}
-                formatter={(value) => formatCurrency(Number(value || 0))}
+                value={Math.abs(totalAmount)}
+                formatter={(value) => moneyFormat(Number(value || 0))}
               />
             </Space>
             <Button

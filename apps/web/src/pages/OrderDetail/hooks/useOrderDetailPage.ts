@@ -5,6 +5,7 @@ import {
   useOrderStatusesQuery,
   useUpdateOrderMutation,
 } from "@repo/hooks";
+import { moneyFormat } from "@repo/util";
 
 const DISPLAY_EMPTY = "---";
 
@@ -26,7 +27,15 @@ export const displayMoney = (value: any) => {
     return DISPLAY_EMPTY;
   }
 
-  return `${Number(value).toLocaleString("vi-VN")} đ`;
+  return moneyFormat(value);
+};
+
+export const displayYuan = (value: any) => {
+  if (value === null || value === undefined || Number.isNaN(Number(value))) {
+    return DISPLAY_EMPTY;
+  }
+
+  return moneyFormat(value, "CNY");
 };
 
 export const displayPercent = (value: any) => {

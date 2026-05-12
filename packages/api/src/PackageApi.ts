@@ -16,4 +16,7 @@ export const PackageApi = {
     getPackageMilestones: (packageCode: string) => {
         return ApiClient.auth.get(`customer/packages/${packageCode}/milestones`);
     },
+    getPackageIOHistories: (packageCode: string) => {
+        return ApiClient.auth.get(`customer/packages/${packageCode}/io-histories?sort=createdAt:desc`);
+    },
 };

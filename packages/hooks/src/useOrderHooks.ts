@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { OrderApi } from '@repo/api';
 import { notification } from 'antd';
 
@@ -182,6 +182,33 @@ export const useOrderFinancialsQuery = (code: string) => {
     });
 };
 
+export const useOrderLogsInfiniteQuery = (code: string) => {
+    return useInfiniteQuery({
+        queryKey: ['orders.logs', code],
+        initialPageParam: 0,
+        queryFn: async ({ pageParam = 0 }) => {
+            const res = await OrderApi.getOrderLogs(code, Number(pageParam));
+            const metadata = {
+                pageCount: parseInt(res.headers['x-page-count'] || '0', 10),
+                page: parseInt(res.headers['x-page-number'] || String(pageParam), 10),
+                size: parseInt(res.headers['x-page-size'] || '25', 10),
+                total: parseInt(res.headers['x-total-count'] || '0', 10),
+            };
+
+            return {
+                data: res.data ?? [],
+                metadata,
+            };
+        },
+        getNextPageParam: (lastPage) => {
+            const nextPage = lastPage.metadata.page + 1;
+            return nextPage < lastPage.metadata.pageCount ? nextPage : undefined;
+        },
+        enabled: !!code,
+        retry: false,
+    });
+};
+
 export const useOrderMilestonesQuery = (code: string) => {
     return useQuery({
         queryKey: ['orders.milestones', code],
@@ -201,6 +228,30 @@ export const useOrderFeesQuery = (code: string) => {
             return res.data;
         },
         enabled: !!code,
+        retry: false,
+    });
+};
+
+export const useOrderCouponsQuery = (code: string) => {
+    return useQuery({
+        queryKey: ['orders.coupons', code],
+        queryFn: async () => {
+            const res = await OrderApi.getOrderCoupons(code);
+            return res.data ?? [];
+        },
+        enabled: !!code,
+        retry: false,
+    });
+};
+
+export const useOrderFeesConfigGroupQuery = (configGroupId?: string | number) => {
+    return useQuery({
+        queryKey: ['orders.fees_config_group', configGroupId],
+        queryFn: async () => {
+            const res = await OrderApi.getOrderFeesConfigGroup(configGroupId as string | number);
+            return res.data;
+        },
+        enabled: !!configGroupId,
         retry: false,
     });
 };

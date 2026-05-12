@@ -50,10 +50,23 @@ export const OrderApi = {
     getOrderFinancials: (code: string) => {
         return ApiClient.auth.get(`customer/orders/${code}/financial`);
     },
+    getOrderLogs: (code: string, page = 0) => {
+        return ApiClient.auth.get(`customer/orders/${code}/logs?sort=timestamp:desc&page=${page}&size=25`);
+    },
     getOrderMilestones: (code: string) => {
         return ApiClient.auth.get(`customer/orders/${code}/milestones?sort=timestamp:ASC`);
     },
     getOrderFees: (code: string) => {
         return ApiClient.auth.get(`customer/orders/${code}/fees`);
+    },
+    getOrderCoupons: (code: string) => {
+        return ApiClient.auth.get(`customer/orders/${code}/coupons`);
+    },
+    getOrderFeesConfigGroup: (configGroupId: string | number) => {
+        return ApiClient.auth.get(`categories/fees`, {
+            params: {
+                configGroupId,
+            },
+        });
     },
 };

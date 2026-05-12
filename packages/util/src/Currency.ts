@@ -1,3 +1,5 @@
+import { moneyFormat } from "./Common"
+
 export const currenciesLocaleMapping: { [k: string]: string } = {
   VND: "vi-VN",
   USD: "en-US",
@@ -32,6 +34,5 @@ export const formatNumberByLocale = (value: number, currency?: string) => {
  * Format số tiền sang định dạng VND: 1.234.567 ₫
  */
 export const formatCurrency = (amount: number, currency = "VND") => {
-  const locale = currenciesLocaleMapping[currency] ?? "vi-VN"
-  return new Intl.NumberFormat(locale, { style: "currency", currency }).format(amount)
+  return moneyFormat(amount, currency)
 }

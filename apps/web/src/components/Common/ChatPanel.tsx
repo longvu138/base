@@ -1,4 +1,4 @@
-import { useRef, useState, type KeyboardEvent } from "react";
+import { useMemo, useRef, useState, type KeyboardEvent } from "react";
 import {
   Avatar,
   Button,
@@ -25,9 +25,11 @@ import {
 } from "@ant-design/icons";
 import {
   useChatCommentsQuery,
+  useCreateChatCommentWithAttachmentsMutation,
   useCreateChatCommentMutation,
   useUploadChatAttachmentMutation,
 } from "@repo/hooks";
+import { useTheme } from "@repo/theme-provider";
 
 interface ChatPanelProps {
   /** Loại entity: 'orders' | 'shipments' | 'peerpayments' | ... */
@@ -36,6 +38,8 @@ interface ChatPanelProps {
   entityCode: string;
   /** Style dáng bo: 'square' (Style1) | 'round' (Style3) */
   rounded?: "square" | "round";
+  /** Ngày tạo entity để chọn đúng comment API theo tenant config. */
+  entityCreatedAt?: string;
 }
 
 const { Text, Paragraph } = Typography;
@@ -51,19 +55,50 @@ export const ChatPanel = ({
   entityType,
   entityCode,
   rounded = "square",
+  entityCreatedAt,
 }: ChatPanelProps) => {
   const { token } = theme.useToken();
+  const { tenantConfig } = useTheme();
   const [text, setText] = useState("");
   const [files, setFiles] = useState<{ file: File; preview: string }[]>([]);
   const inputKeyRef = useRef(0);
 
-  const { data: comments = [], isLoading } = useChatCommentsQuery(
+  const taiyiConfig = tenantConfig?.tenantConfig?.taiyiConfig || {};
+  const chatMode =
+    entityType === "orders" &&
+    taiyiConfig.enabled &&
+    entityCreatedAt &&
+    taiyiConfig.updateToNewCommentTime &&
+    new Date(entityCreatedAt).getTime() >
+      new Date(taiyiConfig.updateToNewCommentTime).getTime()
+      ? "posedon"
+      : "legacy";
+
+  const {
+    data: commentsData,
+    isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useChatCommentsQuery(
     entityType,
     entityCode,
+    chatMode,
+  );
+  const comments = useMemo(
+    () => commentsData?.pages.flatMap((page: any) => page.data) ?? [],
+    [commentsData],
   );
   const { mutateAsync: send } = useCreateChatCommentMutation(
     entityType,
     entityCode,
+    chatMode,
+  );
+  const { mutateAsync: sendWithAttachments } =
+    useCreateChatCommentWithAttachmentsMutation(
+      entityType,
+      entityCode,
+      chatMode,
   );
   const { mutateAsync: upload } = useUploadChatAttachmentMutation(
     entityType,
@@ -83,6 +118,16 @@ export const ChatPanel = ({
       let finalComment = trimmed;
 
       if (files.length > 0) {
+        if (chatMode === "legacy") {
+          await sendWithAttachments({
+            comment: trimmed,
+            files: files.map((item) => item.file),
+          });
+          setText("");
+          setFiles([]);
+          return;
+        }
+
         const uploadPromises = files.map(async ({ file }) => {
           const res = await upload(file);
           const data = res.data?.data || res.data || res;
@@ -97,7 +142,7 @@ export const ChatPanel = ({
         });
 
         const htmlTags = await Promise.all(uploadPromises);
-        finalComment = (trimmed ? `${trimmed}<br/>` : "") + htmlTags.join("");
+        finalComment = htmlTags.join("");
       }
 
       await send({ comment: finalComment });
@@ -324,6 +369,16 @@ export const ChatPanel = ({
             size={token.margin}
             style={{ width: "100%" }}
           >
+            {hasNextPage && (
+              <Button
+                block
+                size="small"
+                loading={isFetchingNextPage}
+                onClick={() => fetchNextPage()}
+              >
+                Xem thêm
+              </Button>
+            )}
             {comments.map((msg: any, index: number) => {
               if (import.meta.env.DEV && index === 0) {
                 console.log(
@@ -335,11 +390,19 @@ export const ChatPanel = ({
               const name =
                 msg.author?.fullname ||
                 msg.author?.fullName ||
+                msg.createdBy?.fullname ||
+                msg.createdBy?.fullName ||
                 msg.creator?.displayName ||
                 msg.creator?.username ||
                 "Hệ thống";
-              const avatar = msg.author?.avatar || msg.creator?.avatar;
-              const isStaff = !!msg.author?.staff;
+              const avatar = msg.author?.avatar || msg.createdBy?.avatar || msg.creator?.avatar;
+              const isStaff = Boolean(
+                msg.author?.staff ||
+                  msg.createdBy?.staff ||
+                  msg.creator?.staff ||
+                  msg.staff ||
+                  msg.senderType === "STAFF",
+              );
               const content = String(
                 msg.content ?? msg.message ?? msg.text ?? msg.comment ?? "",
               );
@@ -388,9 +451,16 @@ export const ChatPanel = ({
                         },
                       }}
                     >
-                      <Paragraph style={{ marginBottom: 0 }}>
-                        {content}
-                      </Paragraph>
+                      {/<[a-z][\s\S]*>/i.test(content) ? (
+                        <div
+                          style={{ wordBreak: "break-word" }}
+                          dangerouslySetInnerHTML={{ __html: content }}
+                        />
+                      ) : (
+                        <Paragraph style={{ marginBottom: 0 }}>
+                          {content}
+                        </Paragraph>
+                      )}
 
                       {msg.attachments && msg.attachments.length > 0 && (
                         <Space

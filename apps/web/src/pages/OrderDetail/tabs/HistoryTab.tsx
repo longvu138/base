@@ -1,75 +1,65 @@
-import React from 'react';
-import { Timeline, Empty, Skeleton } from 'antd';
-import { ClockCircleOutlined } from '@ant-design/icons';
-import dayjs from 'dayjs';
-import { useOrderMilestonesQuery, useOrderStatusesQuery } from '@repo/hooks';
-
+import { ClockCircleOutlined, Loading3QuartersOutlined } from "@ant-design/icons";
+import { Empty, Space, Spin, Timeline, Typography } from "antd";
+import dayjs from "dayjs";
+import { useOrderMilestonesQuery, useOrderStatusesQuery } from "@repo/hooks";
+import { useTranslation } from "react-i18next";
 
 interface HistoryTabProps {
-    orderCode: string;
+  orderCode: string;
 }
 
-const statusMap: Record<string, string> = {
-    'DELIVERING': 'Đang giao',
-    'PUTAWAY': 'Hàng về kho',
-    'SHIPPED': 'Người bán giao',
-    'PURCHASED': 'Đã mua hàng',
-    'PROCESSING': 'Đang xử lý',
-    'RECEIVED': 'Đã tiếp nhận',
-    'DEPOSITED': 'Đã đặt cọc',
-    'WAITING_FOR_DELIVERY': 'Chờ vận chuyển',
-    'COMPLETED': 'Hoàn thành',
-};
+const { Text } = Typography;
 
-export const HistoryTab: React.FC<HistoryTabProps> = ({ orderCode }) => {
-    const { data: milestones, isLoading } = useOrderMilestonesQuery(orderCode);
-    const { data: statusData } = useOrderStatusesQuery();
+export const HistoryTab = ({ orderCode }: HistoryTabProps) => {
+  const { t } = useTranslation();
+  const { data: milestones = [], isLoading } = useOrderMilestonesQuery(orderCode);
+  const { data: statuses = [] } = useOrderStatusesQuery();
 
-    if (isLoading) return <Skeleton active paragraph={{ rows: 8 }} />;
-    if (!milestones || milestones.length === 0) return <Empty description="Không có lịch sử" />;
-
-    // Sort milestones DESC to have latest at top for the red icon
-    const sortedMilestones = [...milestones].sort((a: any, b: any) => 
-        dayjs(b.timestamp).unix() - dayjs(a.timestamp).unix()
-    );
-
-    const getStatusName = (code: string) => {
-        const found = statusData?.find((s: any) => s.code === code);
-        return found?.name || statusMap[code] || code;
-    };
-
+  if (isLoading) {
     return (
-        <div className="history-tab-container py-8 px-4 max-w-[900px] mx-auto">
-            <Timeline mode="alternate">
-                {sortedMilestones.map((m: any, index: number) => {
-                    const isLatest = index === 0;
-                    const statusName = getStatusName(m.status);
-                    
-                    return (
-                        <Timeline.Item 
-                            key={m.id}
-                            dot={isLatest ? 
-                                <ClockCircleOutlined style={{ fontSize: '20px', color: '#ff4d4f' }} /> : 
-                                <div className="w-3 h-3 rounded-full border-2 border-green-500 bg-white" />
-                            }
-                        >
-                            <div className={`flex flex-col ${index % 2 === 0 ? 'items-start' : 'items-end'}`}>
-                                <div className="flex items-center gap-2">
-                                    <span className={`text-sm font-bold ${isLatest ? 'text-gray-900' : 'text-gray-500'}`}>
-                                        {statusName}:
-                                    </span>
-                                    <span className="text-sm font-bold text-gray-900">
-                                        {dayjs(m.timestamp).format('HH:mm DD/MM')}
-                                    </span>
-                                    <span className="text-sm text-gray-500 font-medium">
-                                        ({m.handlingTime !== null ? `${m.handlingTime} ngày` : 'Chưa xác định'})
-                                    </span>
-                                </div>
-                            </div>
-                        </Timeline.Item>
-                    );
-                })}
-            </Timeline>
-        </div>
+      <div style={{ padding: "24px 0", textAlign: "center" }}>
+        <Spin indicator={<Loading3QuartersOutlined spin style={{ fontSize: 24 }} />} />
+      </div>
     );
+  }
+
+  if (!Array.isArray(milestones) || milestones.length === 0) {
+    return (
+      <Empty
+        image={Empty.PRESENTED_IMAGE_SIMPLE}
+        description={t("history_tab.empty_history")}
+      />
+    );
+  }
+
+  const getStatusName = (code: string) => {
+    const status = statuses.find((item: any) => item.code === code);
+    return status?.name || code || "---";
+  };
+
+  const items = milestones.map((item: any, index: number) => {
+    const dayLabel = Number(item.handlingTime) > 1 ? t("label.days") : t("label.day");
+
+    return {
+      key: item.id || `${item.status}-${item.timestamp}-${index}`,
+      color: index === 0 ? "red" : "green",
+      dot:
+        index === 0 ? (
+          <ClockCircleOutlined style={{ fontSize: 24 }} />
+        ) : undefined,
+      children: (
+        <Space size={4} wrap>
+          <Text type="secondary">{getStatusName(item.status)}:</Text>
+          <Text strong>{dayjs(item.timestamp).format("HH:mm DD/MM")}</Text>
+          <Text strong>
+            {item.handlingTime === null || item.handlingTime === undefined
+              ? `(${t("orderDetail.undefined")})`
+              : `(${item.handlingTime} ${dayLabel})`}
+          </Text>
+        </Space>
+      ),
+    };
+  });
+
+  return <Timeline mode="alternate" items={items} />;
 };

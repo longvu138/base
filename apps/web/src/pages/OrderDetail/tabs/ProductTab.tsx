@@ -24,6 +24,8 @@ import {
 } from "@ant-design/icons";
 import { OrderApi } from "@repo/api";
 import { useAddWishlistItemMutation, useOrderProductsQuery } from "@repo/hooks";
+import { moneyFormat } from "@repo/util";
+import { useTranslation } from "react-i18next";
 
 interface ProductTabProps {
   orderCode: string;
@@ -42,15 +44,6 @@ const quantity = (value: any) => {
   return Number(value).toLocaleString("vi-VN");
 };
 
-const money = (value: any, currency = "đ") => {
-  if (value === null || value === undefined || value === "" || Number.isNaN(Number(value))) {
-    return "---";
-  }
-
-  const suffix = currency === "đ" || currency === "VND" ? "đ" : ` ${currency}`;
-  return `${Math.ceil(Number(value)).toLocaleString("vi-VN")}${suffix}`;
-};
-
 const productImage = (product: any) =>
   product.variantImage || product.image || product.thumb || product.thumbnail;
 
@@ -66,6 +59,7 @@ const propertyValues = (product: any) => {
 };
 
 export const ProductTab = ({ orderCode, order }: ProductTabProps) => {
+  const { t } = useTranslation();
   const { token } = theme.useToken();
   const { data: products, isLoading } = useOrderProductsQuery(orderCode);
   const addWishlistMutation = useAddWishlistItemMutation();
@@ -75,7 +69,7 @@ export const ProductTab = ({ orderCode, order }: ProductTabProps) => {
   const [exporting, setExporting] = useState(false);
 
   if (isLoading) return <Skeleton active paragraph={{ rows: 6 }} />;
-  if (!products || products.length === 0) return <Empty description="Không có sản phẩm" />;
+  if (!products || products.length === 0) return <Empty description={t("product_tab.empty_product")} />;
 
   const hasInspection = Array.isArray(order?.services)
     ? order.services.some((service: any) => service.code === "inspection")
@@ -101,10 +95,10 @@ export const ProductTab = ({ orderCode, order }: ProductTabProps) => {
       },
       {
         onSuccess: () => {
-          message.success("Đã lưu sản phẩm");
+          message.success(t("orderDetail.successfully_save"));
         },
         onError: () => {
-          message.error("Lưu sản phẩm thất bại");
+          message.error(t("orderDetail.product_err"));
         },
         onSettled: () => {
           setSavingProductId(null);
@@ -115,7 +109,7 @@ export const ProductTab = ({ orderCode, order }: ProductTabProps) => {
 
   const handleCopy = async (value: any) => {
     await navigator.clipboard.writeText(display(value));
-    message.success("Đã sao chép");
+    message.success(t("common.copied"));
   };
 
   const handleExport = async () => {
@@ -136,10 +130,10 @@ export const ProductTab = ({ orderCode, order }: ProductTabProps) => {
       window.URL.revokeObjectURL(url);
       setExportOpen(false);
       setExportSecret("");
-      message.success("Đang tải file export");
+      message.success(t("order.data_sent_email"));
     } catch (error) {
       console.error("Export order products failed:", error);
-      message.error("Không xuất được Excel");
+      message.error(t("product_tab.export_error"));
     } finally {
       setExporting(false);
     }
@@ -158,7 +152,7 @@ export const ProductTab = ({ orderCode, order }: ProductTabProps) => {
           }}
         >
           <Col span={10}>
-            <Text>{`Sản phẩm`}</Text>
+            <Text>{t("order.products")}</Text>
           </Col>
           <Col span={14}>
             <Row align="middle">
@@ -168,20 +162,20 @@ export const ProductTab = ({ orderCode, order }: ProductTabProps) => {
                     {quantity(totalQuantity)}/{quantity(purchasedQuantity)}
                     {hasInspection ? `/${quantity(receivedQuantity)}` : ""}
                   </Text>
-                  <Tooltip title="Số lượng đặt / mua / nhận">
+                  <Tooltip title={t("order.order_buy_receive")} color={token.colorPrimary}>
                     <QuestionCircleOutlined style={{ color: token.colorTextTertiary }} />
                   </Tooltip>
                 </Space>
               </Col>
               <Col span={6}>
-                <Text>Đơn giá</Text>
+                <Text>{t("order.sale_price")}</Text>
               </Col>
               <Col span={6}>
-                <Text>Tiền hàng</Text>
+                <Text>{t("order.total_price")}</Text>
               </Col>
               <Col span={6} style={{ textAlign: "right" }}>
                 <Button icon={<DownloadOutlined />} size="small" onClick={() => setExportOpen(true)}>
-                  Xuất Excel
+                  {t("button.csv")}
                 </Button>
               </Col>
             </Row>
@@ -192,7 +186,7 @@ export const ProductTab = ({ orderCode, order }: ProductTabProps) => {
         renderItem={(product: any) => {
         const id = product.id || product.code;
         const code = productCode(product);
-        const currency = product.currency?.code || product.currency || "CNY";
+        const currency = product.currency?.code || product.currency || "¥";
         const image = productImage(product);
         const name = product.name || product.originalName;
         const actualPrice = product.actualPrice ?? product.price;
@@ -279,23 +273,23 @@ export const ProductTab = ({ orderCode, order }: ProductTabProps) => {
                   </Col>
                   <Col span={6}>
                     <Space direction="vertical" size={0}>
-                      <Text strong>{money(exchangedActualPrice)}</Text>
+                      <Text strong>{moneyFormat(exchangedActualPrice)}</Text>
                       {product.noBargainPrice ? (
                         <Text type="secondary">
                           <Text delete type="secondary">
-                            {money(product.noBargainPrice, currency)}
+                            {moneyFormat(product.noBargainPrice, currency)}
                           </Text>{" "}
-                          / <Text strong>{money(actualPrice, currency)}</Text>
+                          / <Text strong>{moneyFormat(actualPrice, currency)}</Text>
                         </Text>
                       ) : (
-                        <Text type="secondary">{money(actualPrice, currency)}</Text>
+                        <Text type="secondary">{moneyFormat(actualPrice, currency)}</Text>
                       )}
                     </Space>
                   </Col>
                   <Col span={6}>
                     <Space direction="vertical" size={0}>
-                      <Text strong>{money(exchangedTotalAmount)}</Text>
-                      <Text type="secondary">{money(totalAmount, currency)}</Text>
+                      <Text strong>{moneyFormat(exchangedTotalAmount)}</Text>
+                      <Text type="secondary">{moneyFormat(totalAmount, currency)}</Text>
                     </Space>
                   </Col>
                   <Col span={6} style={{ textAlign: "right" }}>
@@ -305,7 +299,7 @@ export const ProductTab = ({ orderCode, order }: ProductTabProps) => {
                       loading={savingProductId === id}
                       onClick={() => handleSave(id)}
                     >
-                      Lưu
+                      {t("button.save")}
                     </Button>
                   </Col>
                 </Row>
@@ -313,14 +307,14 @@ export const ProductTab = ({ orderCode, order }: ProductTabProps) => {
                 <Row style={{ marginTop: token.marginMD }}>
                   <Col span={24}>
                     <Space size={4} align="start">
-                      <Link>Ghi chú cho sản phẩm:</Link>
+                      <Link>{t("order.remark")}:</Link>
                       <Text type="secondary">{display(product.remark)}</Text>
                     </Space>
                   </Col>
                   <Col span={24}>
                     <Space size={4}>
-                      <Text type="secondary">{product.note || "Ghi chú cá nhân cho sản phẩm này?"}</Text>
-                      <Tooltip title="Ghi chú riêng tư">
+                      <Text type="secondary">{product.note || t("order.note")}</Text>
+                      <Tooltip title={t("product_tab.personal_note_content")} color={token.colorPrimary}>
                         <QuestionCircleOutlined style={{ color: token.colorTextTertiary }} />
                       </Tooltip>
                     </Space>
@@ -333,16 +327,16 @@ export const ProductTab = ({ orderCode, order }: ProductTabProps) => {
         }}
       />
       <Modal
-        title="Xuất Excel sản phẩm"
+        title={t("product_tab.export_excel_title")}
         open={exportOpen}
-        okText="Xuất Excel"
-        cancelText="Hủy"
+        okText={t("button.csv")}
+        cancelText={t("button.cancel")}
         confirmLoading={exporting}
         onOk={handleExport}
         onCancel={() => setExportOpen(false)}
       >
         <Space direction="vertical" style={{ width: "100%" }}>
-          <Text type="secondary">Nhập mã PIN/secret để xuất danh sách sản phẩm.</Text>
+          <Text type="secondary">{t("product_tab.export_excel_pin")}</Text>
           <Input.Password
             value={exportSecret}
             onChange={(event) => setExportSecret(event.target.value)}
