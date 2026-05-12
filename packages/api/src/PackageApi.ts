@@ -13,4 +13,7 @@ export const PackageApi = {
     getParcelMilestones: (parcelCode: string) => {
         return ApiClient.auth.get(`customer/parcels/${parcelCode}/milestones`);
     },
+    getPackageMilestones: (packageCode: string) => {
+        return ApiClient.auth.get(`customer/packages/${packageCode}/milestones`);
+    },
 };

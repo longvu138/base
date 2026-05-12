@@ -39,3 +39,15 @@ export const useSolutionsQuery = (ticketTypes?: string[]) => {
         staleTime: Infinity,
     });
 };
+
+export const useOrderClaimsQuery = (orderCode: string) => {
+    return useQuery({
+        queryKey: ['claims.order', orderCode],
+        queryFn: async () => {
+            const res = await ClaimApi.getClaimsByOrder(orderCode);
+            return res.data;
+        },
+        enabled: !!orderCode,
+        retry: false,
+    });
+};

@@ -48,3 +48,14 @@ export const useParcelMilestonesQuery = (parcelCode: string) => {
         enabled: !!parcelCode,
     });
 };
+
+export const usePackageMilestonesQuery = (packageCode: string) => {
+    return useQuery({
+        queryKey: ['packages.milestones', packageCode],
+        queryFn: async () => {
+            const res = await PackageApi.getPackageMilestones(packageCode);
+            return res.data;
+        },
+        enabled: !!packageCode,
+    });
+};
