@@ -14,7 +14,7 @@
   --tenant-radius-antd: 8px;
   --tenant-bg-container: #ffffff;
   --tenant-bg-layout: #f0f2f5;
-  
+
   /* shadcn/ui variables - Light mode defaults */
   --background: 0 0% 100%;
   --foreground: 0 0% 9%;
@@ -76,14 +76,16 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
+    "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--tenant-bg-layout);
   color: var(--tenant-text-color);
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
 /* Utility class for layout background */
@@ -91,4 +93,3 @@ body {
   background-color: var(--tenant-bg-layout);
   transition: background-color 0.2s ease;
 }
-

@@ -1,17 +1,45 @@
-import { useRef, useState, type KeyboardEvent } from 'react';
-import { Spin } from 'antd';
-import { PaperClipOutlined, SendOutlined, MessageOutlined, FileOutlined, CloseCircleFilled } from '@ant-design/icons';
-import { useChatCommentsQuery, useCreateChatCommentMutation, useUploadChatAttachmentMutation } from '@repo/hooks';
-import './ChatPanel.css';
+import { useRef, useState, type KeyboardEvent } from "react";
+import {
+  Avatar,
+  Button,
+  Card,
+  Empty,
+  Flex,
+  Image,
+  Input,
+  Space,
+  Spin,
+  Tag,
+  Tooltip,
+  Typography,
+  Upload,
+  theme,
+} from "antd";
+import type { UploadProps } from "antd";
+import {
+  CloseCircleFilled,
+  FileOutlined,
+  MessageOutlined,
+  PaperClipOutlined,
+  SendOutlined,
+} from "@ant-design/icons";
+import {
+  useChatCommentsQuery,
+  useCreateChatCommentMutation,
+  useUploadChatAttachmentMutation,
+} from "@repo/hooks";
 
 interface ChatPanelProps {
-    /** Loại entity: 'orders' | 'shipments' | 'peerpayments' | ... */
-    entityType: string;
-    /** Mã entity: 'BG00W5F', ... */
-    entityCode: string;
-    /** Style dáng bo: 'square' (Style1) | 'round' (Style3) */
-    rounded?: 'square' | 'round';
+  /** Loại entity: 'orders' | 'shipments' | 'peerpayments' | ... */
+  entityType: string;
+  /** Mã entity: 'BG00W5F', ... */
+  entityCode: string;
+  /** Style dáng bo: 'square' (Style1) | 'round' (Style3) */
+  rounded?: "square" | "round";
 }
+
+const { Text, Paragraph } = Typography;
+const { TextArea } = Input;
 
 /**
  * ChatPanel — generic comment panel dùng cho mọi entity.
@@ -19,241 +47,401 @@ interface ChatPanelProps {
  *
  * API pattern: customer/{entityType}/{entityCode}/comments
  */
-export const ChatPanel = ({ entityType, entityCode, rounded = 'square' }: ChatPanelProps) => {
-    const [text, setText] = useState('');
-    const [files, setFiles] = useState<{ file: File; preview: string }[]>([]);
-    const fileInputRef = useRef<HTMLInputElement>(null);
+export const ChatPanel = ({
+  entityType,
+  entityCode,
+  rounded = "square",
+}: ChatPanelProps) => {
+  const { token } = theme.useToken();
+  const [text, setText] = useState("");
+  const [files, setFiles] = useState<{ file: File; preview: string }[]>([]);
+  const inputKeyRef = useRef(0);
 
-    const { data: comments = [], isLoading } = useChatCommentsQuery(entityType, entityCode);
-    const { mutateAsync: send } = useCreateChatCommentMutation(entityType, entityCode);
-    const { mutateAsync: upload } = useUploadChatAttachmentMutation(entityType, entityCode);
-    const [submitting, setSubmitting] = useState(false);
+  const { data: comments = [], isLoading } = useChatCommentsQuery(
+    entityType,
+    entityCode,
+  );
+  const { mutateAsync: send } = useCreateChatCommentMutation(
+    entityType,
+    entityCode,
+  );
+  const { mutateAsync: upload } = useUploadChatAttachmentMutation(
+    entityType,
+    entityCode,
+  );
+  const [submitting, setSubmitting] = useState(false);
 
+  const panelRadius =
+    rounded === "round" ? token.borderRadiusLG : token.borderRadius;
 
-    const handleSend = async () => {
-        const trimmed = text.trim();
-        if ((!trimmed && files.length === 0) || submitting) return;
+  const handleSend = async () => {
+    const trimmed = text.trim();
+    if ((!trimmed && files.length === 0) || submitting) return;
 
-        setSubmitting(true);
-        try {
-            let finalComment = trimmed;
+    setSubmitting(true);
+    try {
+      let finalComment = trimmed;
 
-            // Upload từng file và build mã HTML như code mẫu của bạn
-            if (files.length > 0) {
-                const uploadPromises = files.map(async ({ file }) => {
-                    const res = await upload(file);
-                    // Dựa trên response cấu trúc Gobiz (thường có data.location hoặc data.data.location)
-                    const data = res.data?.data || res.data || res;
-                    const location = data.location || '';
-                    const name = data.name || file.name;
-                    const mimeType = data.mimeType || file.type;
+      if (files.length > 0) {
+        const uploadPromises = files.map(async ({ file }) => {
+          const res = await upload(file);
+          const data = res.data?.data || res.data || res;
+          const location = data.location || "";
+          const name = data.name || file.name;
+          const mimeType = data.mimeType || file.type;
 
-                    if (mimeType.includes('image/')) {
-                        return `<img referrerPolicy="no-referrer" src="${location}" alt="${name}" style="max-width:100%; display:block; margin:8px 0;" />`;
-                    } else {
-                        return `<a target="_blank" href="${location}" style="display:block; margin:4px 0;"><i class="fa-solid fa-paperclip"></i> ${name}</a>`;
-                    }
-                });
+          if (mimeType.includes("image/")) {
+            return `<img referrerPolicy="no-referrer" src="${location}" alt="${name}" style="max-width:100%; display:block; margin:8px 0;" />`;
+          }
+          return `<a target="_blank" href="${location}" style="display:block; margin:4px 0;"><i class="fa-solid fa-paperclip"></i> ${name}</a>`;
+        });
 
-                const htmlTags = await Promise.all(uploadPromises);
-                finalComment = (trimmed ? trimmed + '<br/>' : '') + htmlTags.join('');
-            }
+        const htmlTags = await Promise.all(uploadPromises);
+        finalComment = (trimmed ? `${trimmed}<br/>` : "") + htmlTags.join("");
+      }
 
-            await send({ comment: finalComment });
-            setText('');
-            setFiles([]);
-        } catch (err) {
-            console.error('[ChatPanel] handleSend error:', err);
-        } finally {
-            setSubmitting(false);
-        }
-    };
+      await send({ comment: finalComment });
+      setText("");
+      setFiles([]);
+    } catch (err) {
+      console.error("[ChatPanel] handleSend error:", err);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files) {
-            const newFiles = Array.from(e.target.files);
-            newFiles.forEach(file => {
-                if (file.type.startsWith('image/')) {
-                    const reader = new FileReader();
-                    reader.onload = (ev) => {
-                        setFiles(prev => [...prev, { file, preview: ev.target?.result as string }]);
-                    };
-                    reader.readAsDataURL(file);
-                } else {
-                    setFiles(prev => [...prev, { file, preview: '' }]);
-                }
-            });
-        }
-        // Reset input value so same file can be selected again
-        if (fileInputRef.current) fileInputRef.current.value = '';
-    };
+  const addFile = (file: File) => {
+    if (file.type.startsWith("image/")) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setFiles((current) => [
+          ...current,
+          { file, preview: event.target?.result as string },
+        ]);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setFiles((current) => [...current, { file, preview: "" }]);
+    }
+  };
 
-    const removeFile = (index: number) => {
-        setFiles(prev => prev.filter((_, i) => i !== index));
-    };
+  const uploadProps: UploadProps = {
+    multiple: true,
+    showUploadList: false,
+    beforeUpload: (file) => {
+      addFile(file as File);
+      inputKeyRef.current += 1;
+      return false;
+    },
+  };
 
-    const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-            e.preventDefault();
-            handleSend();
-        }
-    };
+  const removeFile = (index: number) => {
+    setFiles((current) => current.filter((_, i) => i !== index));
+  };
 
-    const getInitial = (val: any) => {
-        const str = val != null ? String(val) : '?';
-        return str.charAt(0).toUpperCase() || '?';
-    };
+  const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
+      event.preventDefault();
+      handleSend();
+    }
+  };
 
-    const formatTime = (ts: any) => {
-        if (!ts) return '';
-        const d = new Date(typeof ts === 'number' ? ts : String(ts));
-        if (isNaN(d.getTime())) return String(ts);
-        return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')} ${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
-    };
+  const getInitial = (value: any) => {
+    const str = value != null ? String(value) : "?";
+    return str.charAt(0).toUpperCase() || "?";
+  };
 
-    const cls = rounded === 'round' ? 'chat-panel chat-panel--round' : 'chat-panel chat-panel--square';
-
-    return (
-        <div className={cls}>
-            {/* Header */}
-            <div className="chat-header">
-                <MessageOutlined className="chat-header-icon" />
-                <span className="chat-header-title">Ghi chú / Trao đổi</span>
-            </div>
-
-            {/* Input area — nằm trên cùng như thiết kế */}
-            <div className="chat-input-wrap">
-                <textarea
-                    value={text}
-                    onChange={e => setText(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    placeholder="Viết tin nhắn..."
-                    rows={3}
-                    className="chat-textarea"
-                    disabled={submitting}
-                />
-
-                <div className="chat-input-actions">
-                    <div className="chat-input-left">
-                        <input
-                            type="file"
-                            multiple
-                            ref={fileInputRef}
-                            style={{ display: 'none' }}
-                            onChange={handleFileChange}
-                        />
-                        <button
-                            className="chat-attach-btn"
-                            onClick={() => fileInputRef.current?.click()}
-                            disabled={submitting}
-                            title="Đính kèm file"
-                        >
-                            <PaperClipOutlined />
-                        </button>
-                    </div>
-                    <button
-                        onClick={handleSend}
-                        disabled={(!text.trim() && files.length === 0) || submitting}
-                        className="chat-send-btn"
-                    >
-                        {submitting ? <Spin size="small" /> : <SendOutlined />}
-                        <span>Gửi</span>
-                    </button>
-                </div>
-
-                {/* Selected Files List - Grid Layout (Nằm dưới nút bấm như screenshot) */}
-                {files.length > 0 && (
-                    <div className="chat-attachments-grid">
-                        {files.map((f, i) => (
-                            <div key={i} className="chat-file-thumb">
-                                <div className="chat-thumb-inner">
-                                    {f.preview ? (
-                                        <img src={f.preview} alt={f.file.name} className="chat-thumb-img" />
-                                    ) : (
-                                        <div className="chat-thumb-icon-box">
-                                            <FileOutlined />
-                                        </div>
-                                    )}
-                                    <div className="chat-thumb-remove" onClick={() => removeFile(i)}>
-                                        <CloseCircleFilled />
-                                    </div>
-                                </div>
-                                <span className="chat-thumb-name" title={f.file.name}>
-                                    {f.file.name}
-                                </span>
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </div>
-
-            {/* Messages */}
-            <div className="chat-messages">
-                {isLoading ? (
-                    <div className="chat-state"><Spin /></div>
-                ) : comments.length === 0 ? (
-                    <div className="chat-state chat-state--empty">Chưa có tin nhắn nào</div>
-                ) : (
-                    // Hiện tin nhắn mới nhất lên đầu (New -> Old)
-                    comments.map((msg: any, idx: number) => {
-                        // Log cấu trúc message trong dev để debug field name
-                        if (import.meta.env.DEV && idx === 0) {
-                            console.log('[ChatPanel] message sample:', JSON.stringify(msg, null, 2));
-                        }
-
-                        // Thử tất cả field phổ biến — gobiz API có thể dùng bất kỳ field nào
-                        const name = msg.author?.fullname || msg.author?.fullName || msg.creator?.displayName || msg.creator?.username || 'Hệ thống';
-                        const avatar = msg.author?.avatar || msg.creator?.avatar;
-
-                        const isStaff = !!msg.author?.staff;
-                        const msgCls = isStaff ? 'chat-msg chat-msg--other' : 'chat-msg chat-msg--mine';
-
-                        const content = String(msg.content ?? msg.message ?? msg.text ?? msg.comment ?? '');
-                        const time = msg.timestamp ?? msg.createdAt ?? '';
-                        return (
-                            <div key={msg.id ?? msg._id ?? idx} className={msgCls}>
-                                <div className="chat-avatar">
-                                    {avatar
-                                        ? <img src={avatar} alt={name} className="w-full h-full object-cover rounded-full" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                                        : <span>{getInitial(name)}</span>
-                                    }
-                                </div>
-                                <div className="chat-bubble-wrap">
-                                    <div className="chat-sender">
-                                        <span className="chat-sender-name">{name}</span>
-                                        {isStaff && <span className="chat-staff-badge">Staff</span>}
-                                        {time && <span className="chat-time">{formatTime(time)}</span>}
-                                    </div>
-                                    <div className="chat-bubble">
-                                        {content}
-                                        {/* Render attachments in message */}
-                                        {msg.attachments && msg.attachments.length > 0 && (
-                                            <div className="chat-msg-attachments">
-                                                {msg.attachments.map((att: any, attIdx: number) => {
-                                                    const url = att.url ?? att.uri ?? att.link;
-                                                    const fileName = att.name ?? att.fileName ?? att.originalName ?? `File ${attIdx + 1}`;
-                                                    return (
-                                                        <a
-                                                            key={att.id ?? attIdx}
-                                                            href={url}
-                                                            target="_blank"
-                                                            rel="noreferrer"
-                                                            className="chat-msg-file"
-                                                        >
-                                                            <FileOutlined />
-                                                            <span>{fileName}</span>
-                                                        </a>
-                                                    );
-                                                })}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    })
-                )}
-            </div>
-        </div>
+  const formatTime = (timestamp: any) => {
+    if (!timestamp) return "";
+    const date = new Date(
+      typeof timestamp === "number" ? timestamp : String(timestamp),
     );
+    if (Number.isNaN(date.getTime())) return String(timestamp);
+    return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")} ${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}`;
+  };
+
+  return (
+    <Card
+      variant="borderless"
+      style={{
+        height: "100%",
+        borderRadius: panelRadius,
+        overflow: "hidden",
+      }}
+      styles={{
+        body: {
+          height: "100%",
+          padding: 0,
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+          background: token.colorBgContainer,
+          borderRadius: panelRadius,
+        },
+      }}
+    >
+      <Flex
+        align="center"
+        gap={token.marginSM}
+        style={{
+          padding: `${token.paddingSM}px ${token.padding}px`,
+          borderBottom: `${token.lineWidth}px ${token.lineType} ${token.colorBorderSecondary}`,
+          background: token.colorPrimaryBg,
+        }}
+      >
+        <MessageOutlined style={{ color: token.colorPrimary }} />
+        <Text strong>Ghi chú / Trao đổi</Text>
+      </Flex>
+
+      <Space
+        direction="vertical"
+        size={token.marginSM}
+        style={{
+          padding: token.padding,
+          borderBottom: `${token.lineWidth}px ${token.lineType} ${token.colorBorderSecondary}`,
+          background: token.colorBgElevated,
+        }}
+      >
+        <TextArea
+          value={text}
+          onChange={(event) => setText(event.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Viết tin nhắn..."
+          rows={3}
+          disabled={submitting}
+        />
+
+        <Flex align="center" justify="space-between" gap={token.marginSM}>
+          <Upload key={inputKeyRef.current} {...uploadProps}>
+            <Tooltip title="Đính kèm file">
+              <Button icon={<PaperClipOutlined />} disabled={submitting} />
+            </Tooltip>
+          </Upload>
+
+          <Button
+            type="primary"
+            icon={submitting ? undefined : <SendOutlined />}
+            onClick={handleSend}
+            disabled={(!text.trim() && files.length === 0) || submitting}
+            loading={submitting}
+          >
+            Gửi
+          </Button>
+        </Flex>
+
+        {files.length > 0 && (
+          <Flex wrap="wrap" gap={token.marginSM}>
+            {files.map((item, index) => (
+              <Card
+                key={`${item.file.name}-${index}`}
+                size="small"
+                styles={{
+                  body: {
+                    width: 82,
+                    padding: token.paddingXXS,
+                    position: "relative",
+                  },
+                }}
+              >
+                {item.preview ? (
+                  <Image
+                    src={item.preview}
+                    alt={item.file.name}
+                    width={72}
+                    height={52}
+                    preview={false}
+                    style={{
+                      objectFit: "cover",
+                      borderRadius: token.borderRadiusSM,
+                    }}
+                  />
+                ) : (
+                  <Flex
+                    align="center"
+                    justify="center"
+                    style={{
+                      width: 72,
+                      height: 52,
+                      borderRadius: token.borderRadiusSM,
+                      background: token.colorFillTertiary,
+                    }}
+                  >
+                    <FileOutlined style={{ color: token.colorTextSecondary }} />
+                  </Flex>
+                )}
+
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<CloseCircleFilled />}
+                  onClick={() => removeFile(index)}
+                  style={{
+                    position: "absolute",
+                    top: -8,
+                    right: -8,
+                    color: token.colorError,
+                  }}
+                />
+                <Tooltip title={item.file.name}>
+                  <Text
+                    ellipsis
+                    style={{
+                      display: "block",
+                      width: 72,
+                      marginTop: token.marginXXS,
+                      fontSize: token.fontSizeSM,
+                    }}
+                  >
+                    {item.file.name}
+                  </Text>
+                </Tooltip>
+              </Card>
+            ))}
+          </Flex>
+        )}
+      </Space>
+
+      <div
+        style={{
+          flex: 1,
+          minHeight: 0,
+          overflowY: "auto",
+          padding: token.padding,
+          background: token.colorFillQuaternary,
+        }}
+      >
+        {isLoading ? (
+          <Flex align="center" justify="center" style={{ height: "100%" }}>
+            <Spin />
+          </Flex>
+        ) : comments.length === 0 ? (
+          <Flex align="center" justify="center" style={{ height: "100%" }}>
+            <Empty description="Chưa có tin nhắn nào" />
+          </Flex>
+        ) : (
+          <Space
+            direction="vertical"
+            size={token.margin}
+            style={{ width: "100%" }}
+          >
+            {comments.map((msg: any, index: number) => {
+              if (import.meta.env.DEV && index === 0) {
+                console.log(
+                  "[ChatPanel] message sample:",
+                  JSON.stringify(msg, null, 2),
+                );
+              }
+
+              const name =
+                msg.author?.fullname ||
+                msg.author?.fullName ||
+                msg.creator?.displayName ||
+                msg.creator?.username ||
+                "Hệ thống";
+              const avatar = msg.author?.avatar || msg.creator?.avatar;
+              const isStaff = !!msg.author?.staff;
+              const content = String(
+                msg.content ?? msg.message ?? msg.text ?? msg.comment ?? "",
+              );
+              const time = msg.timestamp ?? msg.createdAt ?? "";
+              const justify = isStaff ? "flex-start" : "flex-end";
+
+              return (
+                <Flex
+                  key={msg.id ?? msg._id ?? index}
+                  align="flex-start"
+                  justify={justify}
+                  gap={token.marginSM}
+                >
+                  {isStaff && (
+                    <Avatar
+                      src={avatar}
+                      style={{ background: token.colorPrimary }}
+                    >
+                      {!avatar && getInitial(name)}
+                    </Avatar>
+                  )}
+
+                  <div style={{ maxWidth: "78%", minWidth: 0 }}>
+                    <Flex
+                      align="center"
+                      justify={isStaff ? "flex-start" : "flex-end"}
+                      gap={token.marginXS}
+                      wrap="wrap"
+                      style={{ marginBottom: token.marginXXS }}
+                    >
+                      <Text strong>{name}</Text>
+                      {isStaff && <Tag color="blue">Staff</Tag>}
+                      {time && <Text type="secondary">{formatTime(time)}</Text>}
+                    </Flex>
+
+                    <Card
+                      size="small"
+                      styles={{
+                        body: {
+                          whiteSpace: "pre-wrap",
+                          wordBreak: "break-word",
+                          background: isStaff
+                            ? token.colorBgContainer
+                            : token.colorPrimaryBg,
+                          borderRadius: token.borderRadiusLG,
+                        },
+                      }}
+                    >
+                      <Paragraph style={{ marginBottom: 0 }}>
+                        {content}
+                      </Paragraph>
+
+                      {msg.attachments && msg.attachments.length > 0 && (
+                        <Space
+                          direction="vertical"
+                          size={token.marginXXS}
+                          style={{ width: "100%", marginTop: token.marginSM }}
+                        >
+                          {msg.attachments.map(
+                            (attachment: any, attIdx: number) => {
+                              const url =
+                                attachment.url ??
+                                attachment.uri ??
+                                attachment.link;
+                              const fileName =
+                                attachment.name ??
+                                attachment.fileName ??
+                                attachment.originalName ??
+                                `File ${attIdx + 1}`;
+                              return (
+                                <Button
+                                  key={attachment.id ?? attIdx}
+                                  href={url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  icon={<FileOutlined />}
+                                  block
+                                >
+                                  {fileName}
+                                </Button>
+                              );
+                            },
+                          )}
+                        </Space>
+                      )}
+                    </Card>
+                  </div>
+
+                  {!isStaff && (
+                    <Avatar
+                      src={avatar}
+                      style={{ background: token.colorSuccess }}
+                    >
+                      {!avatar && getInitial(name)}
+                    </Avatar>
+                  )}
+                </Flex>
+              );
+            })}
+          </Space>
+        )}
+      </div>
+    </Card>
+  );
 };
