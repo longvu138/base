@@ -49,6 +49,7 @@ const VARIANT_DEFAULTS: Record<string, VariantDefaults> = {
             profile: 'ProfileStyle2',
             address: 'AddressStyle2',
             faqs: 'FaqsStyle2',
+            notifications: 'NotificationsStyle2',
         },
         menu: {
             preset: 'base',
@@ -63,6 +64,7 @@ const VARIANT_DEFAULTS: Record<string, VariantDefaults> = {
         componentOverrides: {
             layout: 'SpecializedLayout',
             orders: 'OrdersCombined',
+            notifications: 'NotificationsStyle3',
         },
         menu: {
             preset: 'gobiz',

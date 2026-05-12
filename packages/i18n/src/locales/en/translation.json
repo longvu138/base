@@ -101,5 +101,11 @@
     "deposit": "Deposit",
     "new": "New",
     "statistics": "Spending statistics"
+  },
+  "notifications": {
+    "title": "Notification",
+    "mark_as_read_all": "Mark as read",
+    "all": "All",
+    "read_all": "Read all"
   }
 }

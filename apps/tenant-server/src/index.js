@@ -1,5 +1,5 @@
-const express = require('express');
-const cors = require('cors');
+const express = require("express");
+const cors = require("cors");
 
 const app = express();
 const port = 3003;
@@ -8,7 +8,7 @@ app.use(cors());
 app.use(express.json());
 
 function isPlainObject(value) {
-  return value && typeof value === 'object' && !Array.isArray(value);
+  return value && typeof value === "object" && !Array.isArray(value);
 }
 
 function deepMerge(base, override) {
@@ -27,50 +27,50 @@ function deepMerge(base, override) {
 }
 
 const VARIANT_NAMES = {
-  gd1: 'Giao diện Phổ thông',
-  gd2: 'Giao diện Hiện đại',
-  gd3: 'Giao diện Premium',
+  gd1: "Giao diện Phổ thông",
+  gd2: "Giao diện Hiện đại",
+  gd3: "Giao diện Premium",
 };
 
 const PLAN_PRESETS = {
   free: {
     tenantConfig: {
       themeConfig: {
-        uiLib: 'antd',
-        colorPrimary: '#1677ff',
-        colorBgLayout: '#f5f8ff',
-        colorBorder: '#d9d9d9',
+        uiLib: "antd",
+        colorPrimary: "#1677ff",
+        colorBgLayout: "#f5f8ff",
+        colorBorder: "#d9d9d9",
         borderRadius: 8,
-        colorBgLayoutDark: '#0d1b2a'
-      }
-    }
+        colorBgLayoutDark: "#0d1b2a",
+      },
+    },
   },
   paid: {
     tenantConfig: {
       themeConfig: {
-        uiLib: 'antd',
-        colorPrimary: '#722ed1',
-        colorBgLayout: '#f9f5ff',
-        colorBorder: '#c7b5eb',
+        uiLib: "antd",
+        colorPrimary: "#722ed1",
+        colorBgLayout: "#f9f5ff",
+        colorBorder: "#c7b5eb",
         borderRadius: 12,
-        colorBgLayoutDark: '#1a0f2e'
-      }
-    }
-  }
+        colorBgLayoutDark: "#1a0f2e",
+      },
+    },
+  },
 };
 
 /**
  * === ĐỊNH NGHĨA CÁC BIẾN MÀU (THEME VARIABLES) ===
  * Các biến màu dưới đây được cấu hình trong themeConfig để tuỳ biến giao diện (Ant Design) cho từng Tenant:
- * 
- * 1. colorPrimary: 
+ *
+ * 1. colorPrimary:
  *    - Là màu gì: Màu sắc chủ đạo (Primary color) đại diện cho thương hiệu.
  *    - Dùng ở đâu: Dùng cho các nút bấm chính (Primary Button), viền của Input/Select khi focus, màu chữ của đường link, trạng thái active của Menu/Tabs, và các thành phần nhấn mạnh (Call to Action).
- * 
+ *
  * 2. colorBgLayout:
  *    - Là màu gì: Màu nền tổng thể của Layout (áp dụng cho giao diện Sáng - Light mode).
  *    - Dùng ở đâu: Dùng làm màu nền nằm dưới các khối nội dung (Card/Panel), giúp tạo không gian phân cách và làm nổi bật các khối nội dung chính.
- * 
+ *
  * 3. colorBgLayoutDark:
  *    - Là màu gì: Màu nền tổng thể của Layout (áp dụng cho giao diện Tối - Dark mode).
  *    - Dùng ở đâu: Chức năng tương tự như colorBgLayout nhưng được sử dụng làm nền tổng thể khi ứng dụng chuyển sang chế độ Dark mode (thường là các màu tối sâu như đen, xanh đen).
@@ -80,92 +80,95 @@ const PLAN_PRESETS = {
  */
 const tenants = {
   baogam: {
-    name: 'Báo Gấm',
-    planCode: 'free',
-    variantCode: 'gd1',
+    name: "Báo Gấm",
+    planCode: "free",
+    variantCode: "gd1",
     override: {
       tenantConfig: {
         themeConfig: {
-          colorPrimary: '#1890ff'
-        }
-      }
-    }
+          colorPrimary: "#1890ff",
+        },
+      },
+    },
   },
   thien_long: {
-    name: 'Thiên Long Express',
-    planCode: 'free',
-    variantCode: 'gd1',
+    name: "Thiên Long Express",
+    planCode: "free",
+    variantCode: "gd1",
     override: {
       tenantConfig: {
         themeConfig: {
-          colorPrimary: '#ff4d4f',
-          colorBgLayout: '#fff1f0',
-          colorBgLayoutDark: '#2d0a0a',
-          borderRadius: 4
-        }
-      }
-    }
+          colorPrimary: "#ff4d4f",
+          colorBgLayout: "#fff1f0",
+          colorBgLayoutDark: "#2d0a0a",
+          borderRadius: 4,
+        },
+      },
+    },
   },
   free_sample_3: {
-    name: 'Free Tenant 3',
-    planCode: 'free',
-    variantCode: 'gd1',
+    name: "Free Tenant 3",
+    planCode: "free",
+    variantCode: "gd1",
     override: {
       tenantConfig: {
         themeConfig: {
-          colorPrimary: '#13c2c2',
-          colorBorder: '#36cfc9'
-        }
-      }
-    }
+          colorPrimary: "#13c2c2",
+          colorBorder: "#36cfc9",
+        },
+      },
+    },
   },
   gobiz: {
-    name: 'Gobiz Logistics',
-    planCode: 'paid',
-    variantCode: 'gd3',
+    name: "Gobiz Logistics",
+    planCode: "paid",
+    variantCode: "gd3",
     override: {
       tenantConfig: {
         themeConfig: {
-          colorPrimary: '#722ed1',
-          colorBorder: '#9254de'
-        }
-      }
-    }
+          colorPrimary: "#722ed1",
+          colorBorder: "#9254de",
+        },
+      },
+    },
   },
   tetetete: {
-    name: 'Te te nè Express',
-    planCode: 'paid',
-    variantCode: 'gd2',
+    name: "Te te nè Express",
+    planCode: "paid",
+    variantCode: "gd2",
     override: {
       tenantConfig: {
         themeConfig: {
-          colorPrimary: '#ff4d4f',
-          colorBgLayout: '#fff1f0',
-          colorBgLayoutDark: '#000000'
-        }
-      }
-    }
+          colorPrimary: "#ff4d4f",
+          colorBgLayout: "#fff1f0",
+          colorBgLayoutDark: "#000000",
+        },
+      },
+    },
   },
   thanhla: {
-    name: 'Thanhla Logistics',
-    planCode: 'paid',
-    variantCode: 'gd2',
+    name: "Thanhla Logistics",
+    planCode: "paid",
+    variantCode: "gd2",
     override: {
       tenantConfig: {
         themeConfig: {
-          colorPrimary: '#0ea5e9',
-          colorBorder: '#7dd3fc',
-          borderRadius: 10
-        }
-      }
-    }
-  }
+          colorPrimary: "#0ea5e9",
+          colorBorder: "#7dd3fc",
+          borderRadius: 10,
+        },
+      },
+    },
+  },
 };
 
 function resolveTenantConfig(tenantId) {
-  const fallbackId = 'baogam';
+  console.log(`Resolving tenant config for ${tenantId}`);
+  const fallbackId = "baogam";
   const tenant = tenants[tenantId] || tenants[fallbackId];
-  const variantCode = VARIANT_NAMES[tenant.variantCode] ? tenant.variantCode : 'gd1';
+  const variantCode = VARIANT_NAMES[tenant.variantCode]
+    ? tenant.variantCode
+    : "gd1";
   const plan = PLAN_PRESETS[tenant.planCode] || PLAN_PRESETS.free;
 
   const resolved = deepMerge(plan, tenant.override || {});
@@ -176,11 +179,11 @@ function resolveTenantConfig(tenantId) {
     tenant: resolvedId,
     name: tenant.name,
     variantCode,
-    ...resolved
+    ...resolved,
   };
 }
 
-app.get('/api/tenants/:id/config', (req, res) => {
+app.get("/api/tenants/:id/config", (req, res) => {
   const tenantId = req.params.id;
   res.json(resolveTenantConfig(tenantId));
 });

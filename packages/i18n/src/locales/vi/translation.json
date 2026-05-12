@@ -129,5 +129,11 @@
     "deposit": "Nạp tiền",
     "new": "Mới",
     "statistics": "Thống kê chi tiêu"
+  },
+  "notifications": {
+    "title": "Thông báo",
+    "mark_as_read_all": "Đánh dấu đọc tất cả",
+    "all": "Tất cả",
+    "read_all": "Xem tất cả"
   }
 }

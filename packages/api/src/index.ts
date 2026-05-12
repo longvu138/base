@@ -15,3 +15,4 @@ export * from './AddressApi';
 export * from './WishlistApi';
 export * from './FaqApi';
 export * from './TenantApi';
+export * from './NotificationApi';

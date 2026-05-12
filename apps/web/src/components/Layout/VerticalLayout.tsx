@@ -18,6 +18,7 @@ import { formatCurrency } from '@repo/util';
 import { useNavigation } from './Navigation';
 import { appConfig } from '@repo/config';
 import HeaderCartLink from './HeaderCartLink';
+import HeaderNotificationLink from './HeaderNotificationLink';
 
 
 const { Header, Sider, Content } = AntLayout;
@@ -123,6 +124,8 @@ export const VerticalLayout = () => {
                                 placeholder="Select Tenant"
                             />
                         )}
+
+                        <HeaderNotificationLink />
 
                         <HeaderCartLink />
 

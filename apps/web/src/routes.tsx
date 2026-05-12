@@ -19,6 +19,7 @@ import { Vouchers } from "./pages/Vouchers";
 import { Address } from "./pages/Address";
 import { Wishlist } from "./pages/Wishlist";
 import { Faqs } from "./pages/Faqs";
+import Notifications from "./pages/Notifications";
 
 import ThemeConfigurator from "./pages/ThemeConfigurator";
 
@@ -50,6 +51,7 @@ function AppRoutes() {
           <Route path="wishlist" element={<Wishlist />} />
 
           <Route path="faqs" element={<Faqs />} />
+          <Route path="notifications" element={<Notifications />} />
           <Route path="theme-configurator" element={<ThemeConfigurator />} />
 
           <Route index element={<Navigate to="/dashboard" replace />} />

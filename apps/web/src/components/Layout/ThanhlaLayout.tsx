@@ -15,6 +15,7 @@ import { useLogout, useCustomerProfile, useCustomerBalance } from '@repo/hooks';
 import { useNavigation } from './Navigation';
 import { appConfig } from '@repo/config';
 import HeaderCartLink from './HeaderCartLink';
+import HeaderNotificationLink from './HeaderNotificationLink';
 
 const { Header, Content, Footer } = AntLayout;
 
@@ -110,6 +111,8 @@ export const ThanhlaLayout: React.FC = () => {
                     )}
 
                     <ThemeSwitcher />
+
+                    <HeaderNotificationLink />
 
                     <HeaderCartLink />
 

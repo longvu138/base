@@ -5,7 +5,6 @@ import {
     LogoutOutlined,
     MenuFoldOutlined,
     MenuUnfoldOutlined,
-    BellOutlined,
     SolutionOutlined,
     WalletOutlined,
     LineChartOutlined
@@ -19,6 +18,7 @@ import { formatCurrency } from '@repo/util';
 import { useNavigation } from './Navigation';
 import { appConfig } from '@repo/config';
 import HeaderCartLink from './HeaderCartLink';
+import HeaderNotificationLink from './HeaderNotificationLink';
 
 
 const { Header, Sider, Content } = AntLayout;
@@ -127,7 +127,7 @@ const SpecializedLayout: React.FC = () => {
 
                         <ThemeSwitcher />
 
-                        <Button type="text" icon={<BellOutlined />} className="text-gray-400 hover:text-primary" />
+                        <HeaderNotificationLink />
 
                         <HeaderCartLink />
 
