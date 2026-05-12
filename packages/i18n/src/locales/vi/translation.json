@@ -119,5 +119,15 @@
       "created_at": "Ngày tạo",
       "shop": "Tên Shop"
     }
+  },
+  "header": {
+    "homepage": "Trang chủ",
+    "cart": "Giỏ hàng",
+    "product": "Sản phẩm",
+    "exchange": "Tỷ giá:",
+    "support": "Hỗ trợ",
+    "deposit": "Nạp tiền",
+    "new": "Mới",
+    "statistics": "Thống kê chi tiêu"
   }
 }

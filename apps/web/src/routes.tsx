@@ -1,62 +1,63 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
-import Layout from './components/Layout/index';
-import { Login } from './pages/Login';
-import { RegisterPage } from './pages/Register';
-import { Dashboard } from './pages/Dashboard';
-import { Orders } from './pages/Orders';
-import { OrderDetail } from './pages/OrderDetail';
-import { Shipments } from './pages/Shipments';
-import { ShipmentDetail } from './pages/ShipmentDetail';
-import { Transactions } from './pages/Transactions';
-import { DeliveryRequests } from './pages/DeliveryRequests';
-import { DeliveryNotes } from './pages/DeliveryNotes';
-import { Waybills } from './pages/Waybills';
-import Claims from './pages/Claims';
-import WithdrawalSlips from './pages/WithdrawalSlips';
-import { Packages } from './pages/Packages';
-import Profile from './pages/Profile';
-import { Vouchers } from './pages/Vouchers';
-import { Address } from './pages/Address';
-import { Wishlist } from './pages/Wishlist';
-import { Faqs } from './pages/Faqs';
-import ThemeConfigurator from './pages/ThemeConfigurator';
+import { Routes, Route, Navigate } from "react-router-dom";
+import Layout from "./components/Layout/index";
+import { Login } from "./pages/Login";
+import { RegisterPage } from "./pages/Register";
+import { Dashboard } from "./pages/Dashboard";
+import { Orders } from "./pages/Orders";
+import { OrderDetail } from "./pages/OrderDetail";
+import { Shipments } from "./pages/Shipments";
+import { ShipmentDetail } from "./pages/ShipmentDetail";
+import { Transactions } from "./pages/Transactions";
+import { DeliveryRequests } from "./pages/DeliveryRequests";
+import { DeliveryNotes } from "./pages/DeliveryNotes";
+import { Waybills } from "./pages/Waybills";
+import Claims from "./pages/Claims";
+import WithdrawalSlips from "./pages/WithdrawalSlips";
+import { Packages } from "./pages/Packages";
+import Profile from "./pages/Profile";
+import { Vouchers } from "./pages/Vouchers";
+import { Address } from "./pages/Address";
+import { Wishlist } from "./pages/Wishlist";
+import { Faqs } from "./pages/Faqs";
 
+import ThemeConfigurator from "./pages/ThemeConfigurator";
 
-import PrivateRoute from './components/PrivateRoute';
+import PrivateRoute from "./components/PrivateRoute";
 
 function AppRoutes() {
-    return (
-        <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<RegisterPage />} />
+  return (
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<RegisterPage />} />
 
-            <Route element={<PrivateRoute />}>
-                <Route path="/" element={<Layout />}>
-                    <Route path="dashboard" element={<Dashboard />} />
-                    <Route path="orders" element={<Orders />} />
-                    <Route path="orders/:code" element={<OrderDetail />} />
-                    <Route path="shipments" element={<Shipments />} />
-                    <Route path="shipments/:code" element={<ShipmentDetail />} />
-                    <Route path="transactions" element={<Transactions />} />
-                    <Route path="delivery-requests" element={<DeliveryRequests />} />
-                    <Route path="delivery-notes" element={<DeliveryNotes />} />
-                    <Route path="waybills" element={<Waybills />} />
-                    <Route path="claims" element={<Claims />} />
-                    <Route path="withdrawal-slips" element={<WithdrawalSlips />} />
-                    <Route path="packages" element={<Packages />} />
-                    <Route path="profile" element={<Profile />} />
-                    <Route path="vouchers" element={<Vouchers />} />
-                    <Route path="address" element={<Address />} />
-                    <Route path="wishlist" element={<Wishlist />} />
-                    <Route path="faqs" element={<Faqs />} />
-                    <Route path="theme-configurator" element={<ThemeConfigurator />} />
+      <Route element={<PrivateRoute />}>
+        <Route path="/" element={<Layout />}>
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="orders" element={<Orders />} />
+          <Route path="orders/:code" element={<OrderDetail />} />
+          <Route path="shipments" element={<Shipments />} />
+          <Route path="shipments/:code" element={<ShipmentDetail />} />
+          <Route path="transactions" element={<Transactions />} />
+          <Route path="delivery-requests" element={<DeliveryRequests />} />
+          <Route path="delivery-notes" element={<DeliveryNotes />} />
+          <Route path="waybills" element={<Waybills />} />
+          <Route path="claims" element={<Claims />} />
+          <Route path="withdrawal-slips" element={<WithdrawalSlips />} />
+          <Route path="packages" element={<Packages />} />
+          <Route path="profile" element={<Profile />} />
+          <Route path="vouchers" element={<Vouchers />} />
+          <Route path="address" element={<Address />} />
+          <Route path="wishlist" element={<Wishlist />} />
 
-                    <Route index element={<Navigate to="/dashboard" replace />} />
-                    <Route path="*" element={<Navigate to="/dashboard" replace />} />
-                </Route>
-            </Route>
-        </Routes>
-    );
+          <Route path="faqs" element={<Faqs />} />
+          <Route path="theme-configurator" element={<ThemeConfigurator />} />
+
+          <Route index element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        </Route>
+      </Route>
+    </Routes>
+  );
 }
 
 export default AppRoutes;

@@ -14,6 +14,7 @@ import { Languages } from 'lucide-react';
 import { useLogout, useCustomerProfile, useCustomerBalance } from '@repo/hooks';
 import { useNavigation } from './Navigation';
 import { appConfig } from '@repo/config';
+import HeaderCartLink from './HeaderCartLink';
 
 const { Header, Content, Footer } = AntLayout;
 
@@ -109,6 +110,8 @@ export const ThanhlaLayout: React.FC = () => {
                     )}
 
                     <ThemeSwitcher />
+
+                    <HeaderCartLink />
 
                     <Dropdown
                         menu={{

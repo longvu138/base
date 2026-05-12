@@ -36,3 +36,14 @@ export const useCustomerBalance = () => {
         refetchInterval: 60000, // Refetch balance every minute
     });
 };
+
+export const useTotalSkusInCart = () => {
+    return useQuery({
+        queryKey: ['customer.cart.statistics'],
+        queryFn: async () => {
+            const res = await CustomerApi.getTotalSkusInCart();
+            return res.data;
+        },
+        enabled: !!localStorage.getItem('access_token'),
+    });
+};

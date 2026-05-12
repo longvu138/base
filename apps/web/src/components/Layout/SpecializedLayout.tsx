@@ -18,6 +18,7 @@ import { useLogout, useCustomerProfile, useCustomerBalance } from '@repo/hooks';
 import { formatCurrency } from '@repo/util';
 import { useNavigation } from './Navigation';
 import { appConfig } from '@repo/config';
+import HeaderCartLink from './HeaderCartLink';
 
 
 const { Header, Sider, Content } = AntLayout;
@@ -127,6 +128,8 @@ const SpecializedLayout: React.FC = () => {
                         <ThemeSwitcher />
 
                         <Button type="text" icon={<BellOutlined />} className="text-gray-400 hover:text-primary" />
+
+                        <HeaderCartLink />
 
                         <Dropdown
                             menu={{

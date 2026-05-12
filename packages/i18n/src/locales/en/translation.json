@@ -91,5 +91,15 @@
       "apply": "Apply",
       "view_more": "View More"
     }
+  },
+  "header": {
+    "homepage": "Home",
+    "cart": "Cart",
+    "product": "Products",
+    "exchange": "Exchange:",
+    "support": "Support",
+    "deposit": "Deposit",
+    "new": "New",
+    "statistics": "Spending statistics"
   }
 }

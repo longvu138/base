@@ -17,6 +17,7 @@ import { useLogout, useCustomerProfile, useCustomerBalance } from '@repo/hooks';
 import { formatCurrency } from '@repo/util';
 import { useNavigation } from './Navigation';
 import { appConfig } from '@repo/config';
+import HeaderCartLink from './HeaderCartLink';
 
 
 const { Header, Sider, Content } = AntLayout;
@@ -122,6 +123,8 @@ export const VerticalLayout = () => {
                                 placeholder="Select Tenant"
                             />
                         )}
+
+                        <HeaderCartLink />
 
                         <Dropdown
                             menu={{
