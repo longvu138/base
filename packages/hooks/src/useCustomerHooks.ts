@@ -1,5 +1,5 @@
 import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { CustomerApi, NotificationApi } from '@repo/api';
+import { CategoryApi, CustomerApi, NotificationApi } from '@repo/api';
 
 const NOTIFICATION_PAGE_SIZE = 25;
 
@@ -27,6 +27,72 @@ export const useUpdateCustomerProfile = () => {
     });
 };
 
+export const useChangeCustomerPassword = () => {
+    return useMutation({
+        mutationFn: async (payload: any) => {
+            const res = await CustomerApi.changePassword(payload);
+            return res.data;
+        },
+    });
+};
+
+export const useChangeCustomerPin = () => {
+    return useMutation({
+        mutationFn: async (payload: any) => {
+            const res = await CustomerApi.changePin(payload);
+            return res.data;
+        },
+    });
+};
+
+export const useRecoverCustomerPin = () => {
+    return useMutation({
+        mutationFn: async (payload: any) => {
+            const res = await CustomerApi.recoverPin(payload);
+            return res.data;
+        },
+    });
+};
+
+export const useCustomerLevelsQuery = (enabled = true) => {
+    return useQuery({
+        queryKey: ['customer.levels'],
+        queryFn: async () => {
+            const res = await CustomerApi.getCustomerLevels();
+            return Array.isArray(res.data) ? res.data : [];
+        },
+        enabled: !!localStorage.getItem('access_token') && enabled,
+        retry: false,
+    });
+};
+
+export const useCustomerDiscountQuery = (enabled = true) => {
+    return useQuery({
+        queryKey: ['customer.discounts'],
+        queryFn: async () => {
+            const res = await CustomerApi.getCustomerDiscount();
+            return res.data || {};
+        },
+        enabled: !!localStorage.getItem('access_token') && enabled,
+        retry: false,
+    });
+};
+
+export const useFeesQuery = (enabled = true) => {
+    return useQuery({
+        queryKey: ['categories.fees'],
+        queryFn: async () => {
+            const res = await CategoryApi.getFees();
+            const fees = Array.isArray(res.data) ? res.data : [];
+            return fees
+                .filter((item: any) => !item?.additional)
+                .sort((a: any, b: any) => Number(a?.position || 0) - Number(b?.position || 0));
+        },
+        enabled: !!localStorage.getItem('access_token') && enabled,
+        retry: false,
+    });
+};
+
 export const useCustomerBalance = () => {
     return useQuery({
         queryKey: ['customer.balance'],
@@ -47,6 +113,68 @@ export const useTotalSkusInCart = () => {
             return res.data;
         },
         enabled: !!localStorage.getItem('access_token'),
+    });
+};
+
+export const useCartItemsQuery = (enabled = true) => {
+    return useQuery({
+        queryKey: ['customer.cart.items'],
+        queryFn: async () => {
+            const res = await CustomerApi.getCartItems();
+            return Array.isArray(res.data) ? res.data : [];
+        },
+        enabled: !!localStorage.getItem('access_token') && enabled,
+        retry: false,
+    });
+};
+
+export const useThirdPartyLoansQuery = (orderCodes: string, enabled = true) => {
+    return useQuery({
+        queryKey: ['customer.third_party_loans', orderCodes],
+        queryFn: async () => {
+            const res = await CustomerApi.getThirdPartyLoans(orderCodes);
+            return res.data;
+        },
+        enabled: !!localStorage.getItem('access_token') && enabled && !!orderCodes,
+        retry: false,
+    });
+};
+
+export const useCurrentExchangeRate = () => {
+    return useQuery({
+        queryKey: ['categories.exchange_rates.current'],
+        queryFn: async () => {
+            const res = await CategoryApi.getCurrentExchangeRate();
+            return res.data;
+        },
+        enabled: !!localStorage.getItem('access_token'),
+        staleTime: 5 * 60 * 1000,
+        retry: false,
+    });
+};
+
+export const useDepositQrQuery = (amount?: number | string, enabled = false) => {
+    return useQuery({
+        queryKey: ['customer.deposit.qr', amount],
+        queryFn: async () => {
+            const res = await CategoryApi.getDepositQr(amount as number | string);
+            return res.data;
+        },
+        enabled: !!localStorage.getItem('access_token') && enabled && amount !== undefined && amount !== null && amount !== '',
+        retry: false,
+    });
+};
+
+export const useNavigationMenus = () => {
+    return useQuery({
+        queryKey: ['categories.navigation_menus'],
+        queryFn: async () => {
+            const res = await CategoryApi.getNavigationMenus();
+            return Array.isArray(res.data) ? res.data : [];
+        },
+        enabled: !!localStorage.getItem('access_token'),
+        staleTime: 10 * 60 * 1000,
+        retry: false,
     });
 };
 

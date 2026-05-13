@@ -1,21 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Layout as AntLayout, Menu, Select, Dropdown, Avatar } from 'antd';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import {
-    LogoutOutlined,
-    SolutionOutlined,
-    WalletOutlined,
-    LineChartOutlined
-} from '@ant-design/icons';
 import { ThemeSwitcher } from '@repo/theme-provider';
 import { getTenantOptions, dispatchTenantChange } from '@repo/tenant-config';
-import { useLanguage } from '@repo/i18n';
+import { useLanguage, useTranslation } from '@repo/i18n';
 import { Languages } from 'lucide-react';
 import { useLogout, useCustomerProfile, useCustomerBalance } from '@repo/hooks';
 import { useNavigation } from './Navigation';
 import { appConfig } from '@repo/config';
 import HeaderCartLink from './HeaderCartLink';
 import HeaderNotificationLink from './HeaderNotificationLink';
+import HeaderGobizActions, { profileMenuItems } from './HeaderGobizActions';
+import DepositModal from '../DepositModal';
 
 const { Header, Content, Footer } = AntLayout;
 
@@ -27,6 +23,8 @@ export const ThanhlaLayout: React.FC = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { currentLanguage, availableLanguages, changeLanguage } = useLanguage();
+    const { t } = useTranslation();
+    const [isDepositModalOpen, setDepositModalOpen] = useState(false);
     const { data: profile } = useCustomerProfile();
     const { data: balanceData } = useCustomerBalance();
 
@@ -82,6 +80,8 @@ export const ThanhlaLayout: React.FC = () => {
 
                 {/* Right Actions */}
                 <div className="flex items-center gap-4 ml-4">
+                    <HeaderGobizActions />
+
                     <Select
                         value={currentLanguage.code}
                         onChange={changeLanguage}
@@ -118,33 +118,11 @@ export const ThanhlaLayout: React.FC = () => {
 
                     <Dropdown
                         menu={{
-                            items: [
-                                {
-                                    key: 'profile',
-                                    icon: <SolutionOutlined />,
-                                    label: <Link to="/profile">Thông tin cá nhân</Link>,
-                                },
-                                {
-                                    key: 'topup',
-                                    icon: <WalletOutlined />,
-                                    label: 'Nạp tiền',
-                                },
-                                {
-                                    key: 'spending',
-                                    icon: <LineChartOutlined />,
-                                    label: 'Thống kê chi tiêu',
-                                },
-                                {
-                                    type: 'divider',
-                                },
-                                {
-                                    key: 'logout',
-                                    icon: <LogoutOutlined />,
-                                    label: 'Đăng xuất',
-                                    danger: true,
-                                    onClick: handleLogout,
-                                },
-                            ],
+                            items: profileMenuItems({
+                                t,
+                                handleLogout,
+                                onDeposit: () => setDepositModalOpen(true),
+                            }),
                         }}
                         trigger={['click']}
                         placement="bottomRight"
@@ -182,6 +160,12 @@ export const ThanhlaLayout: React.FC = () => {
             <Footer className="text-center text-gray-400 bg-transparent pb-6">
                 Thanhla Logistics ©{new Date().getFullYear()} Created with Style 2
             </Footer>
+            {isDepositModalOpen && (
+                <DepositModal
+                    open={isDepositModalOpen}
+                    onClose={() => setDepositModalOpen(false)}
+                />
+            )}
         </AntLayout>
     );
 }

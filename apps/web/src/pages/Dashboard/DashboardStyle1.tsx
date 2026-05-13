@@ -6,7 +6,6 @@ import {
   Empty,
   Flex,
   Image,
-  Modal,
   Row,
   Space,
   Spin,
@@ -24,6 +23,7 @@ import {
 } from "@ant-design/icons";
 import { Link } from "react-router-dom";
 import { formatCurrency } from "@repo/util";
+import DepositModal from "../../components/DepositModal";
 import { useDashboardPage } from "./hooks/useDashboardPage";
 import type {
   DashboardProduct,
@@ -272,14 +272,12 @@ export const DashboardStyle1 = () => {
         </Card>
       </Space>
 
-      <Modal
-        title={t("header.deposit")}
-        open={isDepositModalOpen}
-        onCancel={() => setDepositModalOpen(false)}
-        footer={null}
-      >
-        <Empty description={t("common.no_data")} />
-      </Modal>
+      {isDepositModalOpen && (
+        <DepositModal
+          open={isDepositModalOpen}
+          onClose={() => setDepositModalOpen(false)}
+        />
+      )}
     </Spin>
   );
 };

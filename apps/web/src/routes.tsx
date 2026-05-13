@@ -13,6 +13,7 @@ import { CreateDelivery } from "./pages/CreateDelivery";
 import { DeliveryNotes } from "./pages/DeliveryNotes";
 import { Waybills } from "./pages/Waybills";
 import Claims from "./pages/Claims";
+import CreateClaim from "./pages/CreateClaim";
 import WithdrawalSlips from "./pages/WithdrawalSlips";
 import { Packages } from "./pages/Packages";
 import Profile from "./pages/Profile";
@@ -45,6 +46,7 @@ function AppRoutes() {
           <Route path="delivery-notes" element={<DeliveryNotes />} />
           <Route path="waybills" element={<Waybills />} />
           <Route path="claims" element={<Claims />} />
+          <Route path="tickets/create" element={<CreateClaim />} />
           <Route path="withdrawal-slips" element={<WithdrawalSlips />} />
           <Route path="packages" element={<Packages />} />
           <Route path="profile" element={<Profile />} />

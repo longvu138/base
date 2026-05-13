@@ -10,8 +10,31 @@ export const CustomerApi = {
     updateProfile: (payload: any) => {
         return ApiClient.auth.patch("customer/profile", payload);
     },
+    changePassword: (payload: any) => {
+        return ApiClient.auth.post("customer/profile/change_password", payload);
+    },
+    changePin: (payload: any) => {
+        return ApiClient.auth.post("customer/profile/change_pin", payload);
+    },
+    recoverPin: (payload: any) => {
+        return ApiClient.auth.post("customer/profile/recover_pin", payload);
+    },
+    getCustomerLevels: () => {
+        return ApiClient.auth.get("customer/customer_level");
+    },
+    getCustomerDiscount: () => {
+        return ApiClient.auth.get("customer/customer_discount");
+    },
     getTotalSkusInCart: () => {
         return ApiClient.auth.get("customer/cart/statistics");
+    },
+    getCartItems: () => {
+        return ApiClient.auth.get("customer/cart?page=0&size=9999&sort=modifiedAt:desc");
+    },
+    getThirdPartyLoans: (orderCodes: string) => {
+        return ApiClient.auth.get("customer/third-parties/shopkeeper/loans", {
+            params: { orderCodes },
+        });
     },
     register: (payload: any) => {
         return ApiClient.noAuth.post("api/customer/profile/register", payload);

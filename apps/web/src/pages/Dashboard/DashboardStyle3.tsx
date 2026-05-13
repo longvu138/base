@@ -22,6 +22,7 @@ import {
 } from "@ant-design/icons";
 import { Link } from "react-router-dom";
 import { formatCurrency } from "@repo/util";
+import DepositModal from "../../components/DepositModal";
 import { useDashboardPage } from "./hooks/useDashboardPage";
 import type { DashboardProduct } from "./hooks/useDashboardPage";
 
@@ -35,6 +36,8 @@ export const DashboardStyle3 = () => {
     suggestProducts,
     isLoading,
     isSuggestLoading,
+    isDepositModalOpen,
+    setDepositModalOpen,
     getOrderStatusStatistic,
   } = useDashboardPage();
 
@@ -67,7 +70,9 @@ export const DashboardStyle3 = () => {
                   {t("dashboard.viewDetails")}
                 </Button>
               </Link>
-              <Button type="primary">{t("header.deposit")}</Button>
+              <Button type="primary" onClick={() => setDepositModalOpen(true)}>
+                {t("header.deposit")}
+              </Button>
             </Space>
           </Flex>
         </Card>
@@ -164,6 +169,12 @@ export const DashboardStyle3 = () => {
           </Col>
         </Row>
       </Space>
+      {isDepositModalOpen && (
+        <DepositModal
+          open={isDepositModalOpen}
+          onClose={() => setDepositModalOpen(false)}
+        />
+      )}
     </Spin>
   );
 };

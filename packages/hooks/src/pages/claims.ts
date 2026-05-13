@@ -23,12 +23,15 @@ export const useClaimsLogic = ({ page, pageSize, filters }: UseClaimsLogicProps)
             sort: 'createdAt:desc',
             ...filters,
         };
-        // Convert arrays to comma strings for API
-        ['publicStates', 'ticketTypes', 'solutionCodes'].forEach(key => {
+        // Convert arrays to comma strings for API. Amphitrite uses these exact param names.
+        ['publicStates', 'solutionCode'].forEach(key => {
             if (Array.isArray(params[key])) {
                 params[key] = params[key].join(',');
             }
         });
+        if (Array.isArray(params.ticketType)) {
+            params.ticketType = params.ticketType[0];
+        }
         return params;
     }, [page, pageSize, filters]);
 

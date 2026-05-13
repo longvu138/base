@@ -41,6 +41,7 @@ const VARIANT_DEFAULTS: Record<string, VariantDefaults> = {
             packages: 'PackagesStyle2',
             transactions: 'TransactionsStyle2',
             deliveryRequests: 'DeliveryRequestsStyle2',
+            createClaim: 'CreateClaimStyle2',
             deliveryNotes: 'DeliveryNotesStyle2',
             withdrawalSlips: 'WithdrawalSlipsStyle2',
             vouchers: 'VouchersStyle2',
@@ -65,6 +66,7 @@ const VARIANT_DEFAULTS: Record<string, VariantDefaults> = {
             layout: 'SpecializedLayout',
             orders: 'OrdersCombined',
             notifications: 'NotificationsStyle3',
+            createClaim: 'CreateClaimStyle3',
         },
         menu: {
             preset: 'gobiz',

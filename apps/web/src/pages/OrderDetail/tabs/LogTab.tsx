@@ -1,4 +1,15 @@
-import { Button, Divider, Empty, List, Row, Skeleton, Space, Spin, Typography, theme } from "antd";
+import {
+  Button,
+  Divider,
+  Empty,
+  List,
+  Row,
+  Skeleton,
+  Space,
+  Spin,
+  Typography,
+  theme,
+} from "antd";
 import dayjs from "dayjs";
 import { useTranslation } from "react-i18next";
 import { useOrderLogsInfiniteQuery } from "@repo/hooks";
@@ -32,7 +43,12 @@ const quantity = (value: any) => {
 };
 
 const money = (value: any, currency?: any) => {
-  if (value === null || value === undefined || value === "" || Number.isNaN(Number(value))) {
+  if (
+    value === null ||
+    value === undefined ||
+    value === "" ||
+    Number.isNaN(Number(value))
+  ) {
     return emptyValue;
   }
 
@@ -41,11 +57,13 @@ const money = (value: any, currency?: any) => {
 
 const formatChangedValue = (value: any) => {
   if (value === null || value === undefined || value === "") return emptyValue;
-  if (typeof value === "object") return value.name || value.code || value.display || JSON.stringify(value);
+  if (typeof value === "object")
+    return value.name || value.code || value.display || JSON.stringify(value);
   return value;
 };
 
-const roleLabelKey = (role?: string) => (role === "STAFF" ? "shipment_log.staff" : "shipment_log.customer");
+const roleLabelKey = (role?: string) =>
+  role === "STAFF" ? "shipment_log.staff" : "shipment_log.customer";
 
 const parseLogItem = (item: any, order: any, t: any): LogContent[] => {
   const base = {
@@ -61,7 +79,13 @@ const parseLogItem = (item: any, order: any, t: any): LogContent[] => {
     case "ORDER_CREATE":
     case "ORDER_RECEIPT_CREATE":
     case "ORDER_RECEIPT_DELETE":
-      return [{ ...base, property: item.activity, value: data?.code || order?.code || item?.code }];
+      return [
+        {
+          ...base,
+          property: item.activity,
+          value: data?.code || order?.code || item?.code,
+        },
+      ];
 
     case "ORDER_PRODUCT_UPDATE":
       if (!Array.isArray(data)) return [];
@@ -102,8 +126,10 @@ const parseLogItem = (item: any, order: any, t: any): LogContent[] => {
           if (change?.property === "staffRemark") {
             return {
               ...common,
-              oldValue: change.oldValue?.toString().trim() || t("log_product.empty"),
-              newValue: change.newValue?.toString().trim() || t("log_product.empty"),
+              oldValue:
+                change.oldValue?.toString().trim() || t("log_product.empty"),
+              newValue:
+                change.newValue?.toString().trim() || t("log_product.empty"),
             };
           }
 
@@ -111,7 +137,9 @@ const parseLogItem = (item: any, order: any, t: any): LogContent[] => {
             return {
               ...common,
               property: "confirm",
-              confirm: change.newValue?.confirm ? t("log_order.agree") : t("log_order.reject"),
+              confirm: change.newValue?.confirm
+                ? t("log_order.agree")
+                : t("log_order.reject"),
               type:
                 change.newValue?.property === "actualPrice"
                   ? t("product_tab.sale_price", { defaultValue: "Đơn giá" })
@@ -151,8 +179,14 @@ const parseLogItem = (item: any, order: any, t: any): LogContent[] => {
           {
             ...base,
             property: change.property,
-            oldValue: change.oldValue === 0 ? t("shipment_log.free") : money(change.oldValue, orderCurrency),
-            newValue: change.newValue === 0 ? t("shipment_log.free") : money(change.newValue, orderCurrency),
+            oldValue:
+              change.oldValue === 0
+                ? t("shipment_log.free")
+                : money(change.oldValue, orderCurrency),
+            newValue:
+              change.newValue === 0
+                ? t("shipment_log.free")
+                : money(change.newValue, orderCurrency),
           },
         ];
       }
@@ -199,8 +233,12 @@ const parseLogItem = (item: any, order: any, t: any): LogContent[] => {
             change.property === "location"
               ? "ORDER_ADDRESS_UPDATE_LOCATION"
               : `ORDER_ADDRESS_UPDATE_${change.property}`,
-          oldValue: formatChangedValue(change.oldValue?.display || change.oldValue),
-          newValue: formatChangedValue(change.newValue?.display || change.newValue),
+          oldValue: formatChangedValue(
+            change.oldValue?.display || change.oldValue,
+          ),
+          newValue: formatChangedValue(
+            change.newValue?.display || change.newValue,
+          ),
         }));
 
     case "ORDER_STATUS_UPDATE": {
@@ -209,15 +247,19 @@ const parseLogItem = (item: any, order: any, t: any): LogContent[] => {
         {
           ...base,
           property: item.activity,
-          oldValue: change?.oldValue?.name || change?.oldValue?.code || emptyValue,
-          newValue: change?.newValue?.name || change?.newValue?.code || emptyValue,
+          oldValue:
+            change?.oldValue?.name || change?.oldValue?.code || emptyValue,
+          newValue:
+            change?.newValue?.name || change?.newValue?.code || emptyValue,
         },
       ];
     }
 
     case "ORDER_CANCELLED":
     case "ORDER_FEE_CALCULATE_ALL":
-      return [{ ...base, property: item.activity, name: data?.code || order?.code }];
+      return [
+        { ...base, property: item.activity, name: data?.code || order?.code },
+      ];
 
     case "ORDER_FEE_CREATED":
       return [
@@ -245,12 +287,17 @@ const parseLogItem = (item: any, order: any, t: any): LogContent[] => {
             };
           }
 
-          if (change.property === "free" && change.newValue !== change.oldValue) {
+          if (
+            change.property === "free" &&
+            change.newValue !== change.oldValue
+          ) {
             return {
               ...base,
               property: "ORDER_FEE_UPDATE_FREE",
               name,
-              value: change.newValue ? t("shipment_log.free") : t("shipment_log.cancel_free"),
+              value: change.newValue
+                ? t("shipment_log.free")
+                : t("shipment_log.cancel_free"),
             };
           }
 
@@ -272,7 +319,13 @@ const parseLogItem = (item: any, order: any, t: any): LogContent[] => {
     case "ORDER_PACKAGE_CREATE":
     case "ORDER_PACKAGE_DELETE":
     case "ORDER_TRACKING_DELETE":
-      return [{ ...base, property: item.activity, value: data?.code || data?.[0]?.code || emptyValue }];
+      return [
+        {
+          ...base,
+          property: item.activity,
+          value: data?.code || data?.[0]?.code || emptyValue,
+        },
+      ];
 
     case "ORDER_PACKAGE_UPDATE":
       if (!Array.isArray(data)) return [];
@@ -308,7 +361,9 @@ const parseLogItem = (item: any, order: any, t: any): LogContent[] => {
       if (!Array.isArray(data)) return [];
       return data.map((change: any) => ({
         ...base,
-        property: change?.newValue ? "ORDER_SERVICE_APPROVED_ADD" : "ORDER_SERVICE_APPROVED_REMOVE",
+        property: change?.newValue
+          ? "ORDER_SERVICE_APPROVED_ADD"
+          : "ORDER_SERVICE_APPROVED_REMOVE",
         service: reference?.name,
       }));
 
@@ -371,7 +426,9 @@ const parseLogItem = (item: any, order: any, t: any): LogContent[] => {
 };
 
 const parseLogs = (items: any[], order: any, t: any) =>
-  items.flatMap((item) => parseLogItem(item, order, t)).filter((item) => item.property);
+  items
+    .flatMap((item) => parseLogItem(item, order, t))
+    .filter((item) => item.property);
 
 const formatLogContent = (item: LogContent, t: any) => {
   const translated = t(`log_order.${item.property}`, {
@@ -379,7 +436,9 @@ const formatLogContent = (item: LogContent, t: any) => {
     defaultValue: item.property,
   });
 
-  return translated === item.property ? display(item.reason || item.value || item.name || item.property) : translated;
+  return translated === item.property
+    ? display(item.reason || item.value || item.name || item.property)
+    : translated;
 };
 
 export const LogTab = ({ order, orderCode }: LogTabProps) => {
@@ -408,7 +467,11 @@ export const LogTab = ({ order, orderCode }: LogTabProps) => {
       loadMore={
         logQuery.hasNextPage ? (
           <Row justify="center" style={{ paddingTop: 8 }}>
-            <Button type="link" loading={logQuery.isFetchingNextPage} onClick={() => logQuery.fetchNextPage()}>
+            <Button
+              type="link"
+              loading={logQuery.isFetchingNextPage}
+              onClick={() => logQuery.fetchNextPage()}
+            >
               {t("log_product.loading_more")}
             </Button>
           </Row>
@@ -422,11 +485,20 @@ export const LogTab = ({ order, orderCode }: LogTabProps) => {
               {t(roleLabelKey(item.role))}: <Text strong>{item.fullname}</Text>
             </Text>
             <div
-              style={{ color: token.colorText, fontSize: token.fontSize, whiteSpace: "pre-wrap", wordBreak: "break-word" }}
+              style={{
+                color: token.colorText,
+                fontSize: token.fontSize,
+                whiteSpace: "pre-wrap",
+                wordBreak: "break-word",
+              }}
               dangerouslySetInnerHTML={{ __html: formatLogContent(item, t) }}
             />
-            {item.storageDescription && <Text strong>{item.storageDescription}</Text>}
-            {index < logs.length - 1 && <Divider style={{ margin: "8px 0 0" }} />}
+            {item.storageDescription && (
+              <Text strong>{item.storageDescription}</Text>
+            )}
+            {index < logs.length - 1 && (
+              <Divider style={{ margin: "8px 0 0" }} />
+            )}
           </Space>
         </List.Item>
       )}

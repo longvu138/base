@@ -5,13 +5,10 @@ import {
     LogoutOutlined,
     MenuFoldOutlined,
     MenuUnfoldOutlined,
-    SolutionOutlined,
-    WalletOutlined,
-    LineChartOutlined
 } from '@ant-design/icons';
 import { ThemeSwitcher } from '@repo/theme-provider';
 import { getTenantOptions, dispatchTenantChange } from '@repo/tenant-config';
-import { useLanguage } from '@repo/i18n';
+import { useLanguage, useTranslation } from '@repo/i18n';
 import { Languages } from 'lucide-react';
 import { useLogout, useCustomerProfile, useCustomerBalance } from '@repo/hooks';
 import { formatCurrency } from '@repo/util';
@@ -19,6 +16,8 @@ import { useNavigation } from './Navigation';
 import { appConfig } from '@repo/config';
 import HeaderCartLink from './HeaderCartLink';
 import HeaderNotificationLink from './HeaderNotificationLink';
+import HeaderGobizActions, { profileMenuItems } from './HeaderGobizActions';
+import DepositModal from '../DepositModal';
 
 
 const { Header, Sider, Content } = AntLayout;
@@ -31,7 +30,9 @@ const SpecializedLayout: React.FC = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { currentLanguage, availableLanguages, changeLanguage } = useLanguage();
+    const { t } = useTranslation();
     const [collapsed, setCollapsed] = useState(false);
+    const [isDepositModalOpen, setDepositModalOpen] = useState(false);
     const { data: profile } = useCustomerProfile();
     const { data: balanceData } = useCustomerBalance();
     const { handleLogout } = useLogout({ onSuccess: () => navigate('/login') });
@@ -78,21 +79,28 @@ const SpecializedLayout: React.FC = () => {
                         danger
                         className="w-full flex items-center justify-center rounded-xl border-red-100 hover:bg-red-50"
                     >
-                        {!collapsed && 'Đăng xuất'}
+                        {!collapsed && t('login.logout_btn')}
                     </Button>
                 </div>
             </Sider>
 
             <AntLayout className="bg-transparent overflow-hidden">
                 <Header className="mt-4 mb-2 flex items-center justify-between bg-white dark:bg-[#141414] rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm transition-all h-16">
-                    <Button
-                        type="text"
-                        icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-                        onClick={() => setCollapsed(!collapsed)}
-                        className="text-lg dark:text-gray-400"
-                    />
+                    <div className="flex items-center min-w-0">
+                        <Button
+                            type="text"
+                            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+                            onClick={() => setCollapsed(!collapsed)}
+                            className="text-lg dark:text-gray-400"
+                        />
+                        <div className="ml-3 text-lg font-semibold text-gray-900 dark:text-gray-100 truncate">
+                            {menuItems.find(item => location.pathname === item.path || location.pathname.startsWith(item.path))?.label}
+                        </div>
+                    </div>
 
                     <div className="flex items-center gap-6">
+                        <HeaderGobizActions />
+
                         <Space className="flex">
                             <Select
                                 value={currentLanguage.code}
@@ -133,33 +141,11 @@ const SpecializedLayout: React.FC = () => {
 
                         <Dropdown
                             menu={{
-                                items: [
-                                    {
-                                        key: 'profile',
-                                        icon: <SolutionOutlined />,
-                                        label: <Link to="/profile">Thông tin cá nhân</Link>,
-                                    },
-                                    {
-                                        key: 'topup',
-                                        icon: <WalletOutlined />,
-                                        label: 'Nạp tiền',
-                                    },
-                                    {
-                                        key: 'spending',
-                                        icon: <LineChartOutlined />,
-                                        label: 'Thống kê chi tiêu',
-                                    },
-                                    {
-                                        type: 'divider',
-                                    },
-                                    {
-                                        key: 'logout',
-                                        icon: <LogoutOutlined />,
-                                        label: 'Đăng xuất',
-                                        danger: true,
-                                        onClick: handleLogout,
-                                    },
-                                ],
+                                items: profileMenuItems({
+                                    t,
+                                    handleLogout,
+                                    onDeposit: () => setDepositModalOpen(true),
+                                }),
                             }}
                             trigger={['click']}
                         >
@@ -198,6 +184,12 @@ const SpecializedLayout: React.FC = () => {
                     <Outlet />
                 </Content>
             </AntLayout>
+            {isDepositModalOpen && (
+                <DepositModal
+                    open={isDepositModalOpen}
+                    onClose={() => setDepositModalOpen(false)}
+                />
+            )}
         </AntLayout>
     );
 };

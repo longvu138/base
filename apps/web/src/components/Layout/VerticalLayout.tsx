@@ -1,17 +1,13 @@
 import { Layout as AntLayout, Menu, Select, Button, Dropdown, Avatar } from 'antd';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import {
-    LogoutOutlined,
     MenuFoldOutlined,
     MenuUnfoldOutlined,
-    SolutionOutlined,
-    WalletOutlined,
-    LineChartOutlined
 } from '@ant-design/icons';
 import { ThemeSwitcher } from '@repo/theme-provider';
 import { getTenantOptions, dispatchTenantChange } from '@repo/tenant-config';
 import { useState, useEffect } from 'react';
-import { useLanguage } from '@repo/i18n';
+import { useLanguage, useTranslation } from '@repo/i18n';
 import { Languages } from 'lucide-react';
 import { useLogout, useCustomerProfile, useCustomerBalance } from '@repo/hooks';
 import { formatCurrency } from '@repo/util';
@@ -19,6 +15,8 @@ import { useNavigation } from './Navigation';
 import { appConfig } from '@repo/config';
 import HeaderCartLink from './HeaderCartLink';
 import HeaderNotificationLink from './HeaderNotificationLink';
+import HeaderGobizActions, { profileMenuItems } from './HeaderGobizActions';
+import DepositModal from '../DepositModal';
 
 
 const { Header, Sider, Content } = AntLayout;
@@ -27,7 +25,9 @@ export const VerticalLayout = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { currentLanguage, availableLanguages, changeLanguage } = useLanguage();
+    const { t } = useTranslation();
     const [collapsed, setCollapsed] = useState(false);
+    const [isDepositModalOpen, setDepositModalOpen] = useState(false);
     const { data: profile } = useCustomerProfile();
     const { data: balanceData } = useCustomerBalance();
 
@@ -94,9 +94,14 @@ export const VerticalLayout = () => {
                             onClick={() => setCollapsed(!collapsed)}
                             className="w-10 h-10 flex items-center justify-center rounded-xl text-gray-500 hover:text-primary hover:bg-primary/10 transition-all"
                         />
+                        <span className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                            {activeMenu?.label}
+                        </span>
                     </div>
 
                     <div className="flex items-center gap-4">
+                        <HeaderGobizActions />
+
                         <Select
                             value={currentLanguage.code}
                             onChange={changeLanguage}
@@ -131,33 +136,11 @@ export const VerticalLayout = () => {
 
                         <Dropdown
                             menu={{
-                                items: [
-                                    {
-                                        key: 'profile',
-                                        icon: <SolutionOutlined />,
-                                        label: <Link to="/profile">Thông tin cá nhân</Link>,
-                                    },
-                                    {
-                                        key: 'topup',
-                                        icon: <WalletOutlined />,
-                                        label: 'Nạp tiền',
-                                    },
-                                    {
-                                        key: 'spending',
-                                        icon: <LineChartOutlined />,
-                                        label: 'Thống kê chi tiêu',
-                                    },
-                                    {
-                                        type: 'divider',
-                                    },
-                                    {
-                                        key: 'logout',
-                                        icon: <LogoutOutlined />,
-                                        label: 'Đăng xuất',
-                                        danger: true,
-                                        onClick: handleLogout,
-                                    },
-                                ],
+                                items: profileMenuItems({
+                                    t,
+                                    handleLogout,
+                                    onDeposit: () => setDepositModalOpen(true),
+                                }),
                             }}
                             trigger={['click']}
                         >
@@ -200,6 +183,12 @@ export const VerticalLayout = () => {
                     </div>
                 </Content>
             </AntLayout>
+            {isDepositModalOpen && (
+                <DepositModal
+                    open={isDepositModalOpen}
+                    onClose={() => setDepositModalOpen(false)}
+                />
+            )}
         </AntLayout>
     );
 }

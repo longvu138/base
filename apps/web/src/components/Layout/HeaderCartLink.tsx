@@ -2,12 +2,17 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "@repo/i18n";
 import { ShoppingCartOutlined } from "@ant-design/icons";
 import { useTotalSkusInCart } from "@repo/hooks";
+import { useTheme } from "@repo/theme-provider";
 
 export const HeaderCartLink = () => {
   const { t } = useTranslation();
+  const { tenantConfig } = useTheme();
   const { data: totalSkus } = useTotalSkusInCart();
+  const orderConfig = tenantConfig?.tenantConfig?.orderConfig || {};
 
   const quantity = totalSkus?.quantity || 0;
+
+  if (orderConfig.disable) return null;
 
   return (
     <Link

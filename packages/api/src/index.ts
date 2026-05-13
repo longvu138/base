@@ -4,6 +4,7 @@ export * from './ShipmentApi';
 export * from './TransactionApi';
 export * from './DeliveryRequestApi';
 export * from './ClaimApi';
+export * from './CategoryApi';
 export * from './WithdrawalSlipApi';
 export * from './CustomerApi';
 export * from './PackageApi';
