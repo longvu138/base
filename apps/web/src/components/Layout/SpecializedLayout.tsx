@@ -45,6 +45,11 @@ const SpecializedLayout: React.FC = () => {
     }, []);
 
     const menuItems = useNavigation();
+    const currentPath = `${location.pathname}${location.search}`;
+    const activeMenu = menuItems.find(item =>
+        currentPath === item.path ||
+        (!item.path.includes('?') && item.path !== '/' && location.pathname.startsWith(item.path))
+    );
     const antMenuItems = menuItems.map(item => ({
         key: item.path,
         icon: item.icon,
@@ -66,7 +71,7 @@ const SpecializedLayout: React.FC = () => {
                 </div>
                 <Menu
                     mode="inline"
-                    selectedKeys={[location.pathname]}
+                    selectedKeys={activeMenu ? [activeMenu.path] : []}
                     items={antMenuItems}
                     className="border-0 px-2 dark:!bg-[#141414]"
                     style={{ background: 'transparent' }}
@@ -94,7 +99,7 @@ const SpecializedLayout: React.FC = () => {
                             className="text-lg dark:text-gray-400"
                         />
                         <div className="ml-3 text-lg font-semibold text-gray-900 dark:text-gray-100 truncate">
-                            {menuItems.find(item => location.pathname === item.path || location.pathname.startsWith(item.path))?.label}
+                            {activeMenu?.label}
                         </div>
                     </div>
 

@@ -34,3 +34,14 @@ export const useDeleteWishlistItemMutation = (queryParams: any) => {
         },
     });
 };
+
+export const useUpdateWishlistItemMutation = (queryParams: any) => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, data }: { id: string | number; data: any }) =>
+            WishlistApi.updateWishlistItem(id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['wishlist.list', queryParams] });
+        },
+    });
+};

@@ -1,11 +1,9 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useState } from "react";
 import {
   Avatar,
   Button,
   Card,
   Col,
-  DatePicker,
-  Divider,
   Flex,
   Form,
   Input,
@@ -13,31 +11,38 @@ import {
   Modal,
   Progress,
   Row,
-  Select,
   Skeleton,
   Space,
-  Spin,
+  Statistic,
   Table,
   Tag,
-  Tooltip,
   Typography,
   theme,
 } from "antd";
 import {
-  CloseOutlined,
-  EditOutlined,
+  ArrowRightOutlined,
   InfoCircleOutlined,
-  KeyOutlined,
-  LockOutlined,
-  ReloadOutlined,
-  SaveOutlined,
+  TrophyOutlined,
   UserOutlined,
 } from "@ant-design/icons";
 import { Link, useLocation } from "react-router-dom";
-import { formatCurrency, moneyCeil, moneyFormat } from "@repo/util";
-import { useCustomerDiscountQuery, useCustomerLevelsQuery, useFeesQuery } from "@repo/hooks";
-import dayjs from "dayjs";
+import { moneyCeil, moneyFormat } from "@repo/util";
+import {
+  useCustomerDiscountQuery,
+  useCustomerLevelsQuery,
+  useFeesQuery,
+} from "@repo/hooks";
 import { useProfilePage } from "./hooks/useProfilePage";
+import { ProfileAccountInfo } from "./components/ProfileAccountInfo";
+import { ProfileAddressContent as ProfileAddressSection } from "./components/ProfileAddressContent";
+import { ProfileTransactionsContent } from "./components/ProfileTransactionsContent";
+import { ProfileNotificationSettingsContent } from "./components/ProfileNotificationSettingsContent";
+import { ProfileFaqsContent } from "./components/ProfileFaqsContent";
+import { ProfileVouchersContent } from "./components/ProfileVouchersContent";
+import { ProfileVipLevelsContent } from "./components/ProfileVipLevelsContent";
+import { ProfilePurchasingAccountContent } from "./components/ProfilePurchasingAccountContent";
+import { ProfileTelegramContent } from "./components/ProfileTelegramContent";
+import { ProfileSavedProductsContent } from "./components/ProfileSavedProductsContent";
 
 type ProfileGobizViewProps = {
   variant?: "classic" | "compact" | "summary";
@@ -45,9 +50,16 @@ type ProfileGobizViewProps = {
 
 const emptyText = "---";
 
-const displayDate = (value?: string) => (value ? dayjs(value).format("DD/MM/YYYY") : emptyText);
-
 const quantityFormat = (value?: number) => Number(value || 0).toLocaleString();
+
+const levelImageStyle = {
+  maxHeight: 76,
+  maxWidth: 76,
+  objectFit: "contain" as const,
+  filter: "drop-shadow(0 10px 16px rgba(0,0,0,0.14))",
+};
+
+const vipLevelCardMinHeight = 172;
 
 type ProfilePageLogic = ReturnType<typeof useProfilePage>;
 
@@ -61,205 +73,168 @@ const useProfileContext = () => {
   return context;
 };
 
-const ProfileSidebar = ({ compact = false }: { compact?: boolean }) => {
+const ProfileSidebar = () => {
   const { token } = theme.useToken();
   const location = useLocation();
-  const { t, user, menuItems } = useProfileContext();
-  const showReward = user.customerLevel?.name || user.rewardPoint > 0;
+  const { t, user, menuItems, showVipLevelBox, mode, setMode } =
+    useProfileContext();
+  const selectedKey =
+    mode === "address"
+      ? "/address"
+      : mode === "transactions"
+        ? "/transactions"
+        : mode === "notifications"
+          ? "/notifications"
+          : mode === "faqs"
+            ? "/faqs"
+            : mode === "vouchers"
+              ? "/vouchers"
+              : mode === "vip-levels"
+                ? "/profile/vip-levels"
+                : mode === "purchasing-account"
+                  ? "/profile/purchasing-account"
+                  : mode === "telegram"
+                    ? "/profile/telegram"
+                    : mode === "saved-products"
+                      ? "/profile/products"
+                      : location.pathname;
 
   return (
-    <Card styles={{ body: { padding: 0 } }}>
-      <Flex
-        vertical
-        align="center"
-        gap={token.marginXS}
-        style={{
-          padding: compact ? token.paddingLG : token.paddingXL,
-          borderBottom: `1px solid ${token.colorBorderSecondary}`,
-        }}
+    <Card
+      bordered={false}
+      styles={{
+        body: {
+          padding: `${token.paddingXL}px 0 ${token.paddingSM}px`,
+          position: "relative",
+        },
+      }}
+      style={{ boxShadow: token.boxShadowTertiary }}
+    >
+      <div className="flex items-center justify-center mb-4">
+        <Avatar
+          size={80}
+          src={user.avatar}
+          icon={<UserOutlined />}
+          style={{
+            background: token.colorFillSecondary,
+            border: `2px solid ${token.colorWhite}`,
+            boxShadow: token.boxShadowSecondary,
+          }}
+        />
+      </div>
+
+      <Space
+        direction="vertical"
+        size={token.marginXXS}
+        style={{ width: "100%" }}
       >
-        <Avatar size={compact ? 72 : 88} src={user.avatar} icon={<UserOutlined />} />
-        <Typography.Title level={5} style={{ margin: `${token.marginSM}px 0 0`, textAlign: "center" }}>
+        <Typography.Title
+          level={4}
+          style={{
+            margin: 0,
+            paddingInline: token.paddingMD,
+            textAlign: "center",
+            wordBreak: "break-word",
+          }}
+        >
           {user.fullname || user.username || emptyText}
         </Typography.Title>
-        <Typography.Text type="secondary">
+        <Typography.Paragraph
+          type="secondary"
+          style={{
+            marginBottom: showVipLevelBox ? token.marginXS : token.marginMD,
+            paddingInline: token.paddingMD,
+            textAlign: "center",
+            wordBreak: "break-word",
+          }}
+        >
           {[user.username, user.code].filter(Boolean).join(" | ") || emptyText}
-        </Typography.Text>
-        {showReward && (
-          <Tag color="gold" style={{ marginInlineEnd: 0 }}>
-            {user.customerLevel?.name || t("orderDetail.no_level_yet")} | {user.rewardPoint.toLocaleString()}{" "}
-            {t("customer_info.point_2")}
-          </Tag>
+        </Typography.Paragraph>
+        {showVipLevelBox && (
+          <Flex
+            justify="center"
+            style={{
+              marginBottom: token.marginMD,
+              paddingInline: token.paddingMD,
+            }}
+          >
+            <Tag
+              color="gold"
+              style={{
+                marginInlineEnd: 0,
+                whiteSpace: "normal",
+                textAlign: "center",
+              }}
+            >
+              {user.customerLevel?.name || t("orderDetail.no_level_yet")} |{" "}
+              {user.rewardPoint.toLocaleString()} {t("customer_info.point_2")}
+            </Tag>
+          </Flex>
         )}
-        {compact && (
-          <Typography.Text strong style={{ color: token.colorPrimary }}>
-            {formatCurrency(user.balance)}
-          </Typography.Text>
-        )}
-      </Flex>
+      </Space>
+
       <Menu
         mode="inline"
-        selectedKeys={[location.pathname]}
+        onClick={({ key }) => {
+          if (key === "/address") {
+            setMode("address");
+          } else if (key === "/transactions") {
+            setMode("transactions");
+          } else if (key === "/notifications") {
+            setMode("notifications");
+          } else if (key === "/faqs") {
+            setMode("faqs");
+          } else if (key === "/vouchers") {
+            setMode("vouchers");
+          } else if (key === "/profile/vip-levels") {
+            setMode("vip-levels");
+          } else if (key === "/profile/purchasing-account") {
+            setMode("purchasing-account");
+          } else if (key === "/profile/telegram") {
+            setMode("telegram");
+          } else if (key === "/profile/products") {
+            setMode("saved-products");
+          } else if (key === "/profile") {
+            setMode("profile");
+          }
+        }}
+        selectedKeys={[selectedKey]}
+        style={{ borderInlineEnd: 0 }}
         items={menuItems.map((item) => ({
           key: item.key,
           icon: item.icon,
-          label: <Link to={item.key}>{item.label}</Link>,
+          label: (
+            <span style={{ position: "relative", display: "block" }}>
+              {item.key === "/address" ||
+              item.key === "/transactions" ||
+              item.key === "/notifications" ||
+              item.key === "/faqs" ||
+              item.key === "/vouchers" ||
+              item.key === "/profile/vip-levels" ||
+              item.key === "/profile/purchasing-account" ||
+              item.key === "/profile/telegram" ||
+              item.key === "/profile/products" ? (
+                item.label
+              ) : (
+                <Link to={item.key}>{item.label}</Link>
+              )}
+              {selectedKey === item.key && (
+                <span
+                  style={{
+                    position: "absolute",
+                    top: -token.paddingXS,
+                    right: -token.paddingLG,
+                    bottom: -token.paddingXS,
+                    width: 3,
+                    background: token.colorPrimary,
+                  }}
+                />
+              )}
+            </span>
+          ),
         }))}
       />
     </Card>
-  );
-};
-
-const EditableField = ({
-  label,
-  name,
-  value,
-  type = "text",
-  required,
-  onSave,
-  onEmailSave,
-}: {
-  label: string;
-  name: string;
-  value?: string;
-  type?: "text" | "date" | "select" | "readonly";
-  required?: boolean;
-  onSave: (name: string, value: string) => Promise<void>;
-  onEmailSave: (value: string) => void;
-}) => {
-  const { token } = theme.useToken();
-  const { t } = useProfileContext();
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(value || "");
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    setDraft(value || "");
-  }, [value]);
-
-  const save = async () => {
-    const nextValue = draft?.trim?.() ?? draft;
-    if (required && !nextValue) return;
-    if (name === "email") {
-      onEmailSave(nextValue);
-      setEditing(false);
-      return;
-    }
-    setLoading(true);
-    try {
-      await onSave(name, nextValue);
-      setEditing(false);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const displayValue = () => {
-    if (type === "date") return displayDate(value);
-    if (type === "select") {
-      if (value === "male") return t("userProfile.male");
-      if (value === "female") return t("userProfile.female");
-    }
-    return value || emptyText;
-  };
-
-  return (
-    <Flex align="flex-start" gap={token.marginSM} style={{ minHeight: 34 }}>
-      <Typography.Text type="secondary" style={{ width: 150, flex: "0 0 150px" }}>
-        {label}:{required && <Typography.Text type="danger"> *</Typography.Text>}
-      </Typography.Text>
-      {editing ? (
-        <Flex gap={token.marginXS} style={{ width: "100%" }}>
-          {type === "date" ? (
-            <DatePicker
-              autoFocus
-              format="DD/MM/YYYY"
-              value={draft ? dayjs(draft) : null}
-              onChange={(date) => setDraft(date ? date.format("YYYY-MM-DD") : "")}
-              style={{ width: 220 }}
-            />
-          ) : type === "select" ? (
-            <Select
-              autoFocus
-              value={draft}
-              onChange={setDraft}
-              style={{ width: 220 }}
-              options={[
-                { label: emptyText, value: "" },
-                { label: t("userProfile.male"), value: "male" },
-                { label: t("userProfile.female"), value: "female" },
-              ]}
-            />
-          ) : (
-            <Input
-              autoFocus
-              value={draft}
-              onChange={(event) => setDraft(event.target.value)}
-              onPressEnter={save}
-              style={{ maxWidth: 360 }}
-            />
-          )}
-          <Button type="primary" icon={<SaveOutlined />} loading={loading} onMouseDown={(e) => e.preventDefault()} onClick={save} />
-          <Button
-            icon={<CloseOutlined />}
-            disabled={loading}
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={() => {
-              setDraft(value || "");
-              setEditing(false);
-            }}
-          />
-        </Flex>
-      ) : (
-        <Flex align="center" gap={token.marginXS} style={{ minWidth: 0 }}>
-          <Typography.Text strong>{displayValue()}</Typography.Text>
-          {type !== "readonly" && (
-            <Button type="link" size="small" icon={<EditOutlined />} onClick={() => setEditing(true)} />
-          )}
-        </Flex>
-      )}
-    </Flex>
-  );
-};
-
-const ProfileForm = () => {
-  const { token } = theme.useToken();
-  const { t, user, isSubmitting, updateField, requestEmailUpdate, setMode, setRecoverPinOpen } = useProfileContext();
-
-  return (
-    <Spin spinning={isSubmitting}>
-      <Space direction="vertical" size={token.marginMD} style={{ width: "100%" }}>
-        <Row gutter={[24, 14]}>
-          <Col xs={24} xl={12}>
-            <Space direction="vertical" size={token.marginSM} style={{ width: "100%" }}>
-              <EditableField label={t("customer_info.username")} name="username" value={user.username} type="readonly" onSave={updateField} onEmailSave={requestEmailUpdate} />
-              <EditableField label={t("customer_info.fullname")} name="fullname" value={user.fullname} required onSave={updateField} onEmailSave={requestEmailUpdate} />
-              <EditableField label={t("customer_info.date_of_birth")} name="dob" value={user.dob} type="date" onSave={updateField} onEmailSave={requestEmailUpdate} />
-              <EditableField label={t("customer_info.contact_address")} name="contactAddress" value={user.contactAddress} onSave={updateField} onEmailSave={requestEmailUpdate} />
-            </Space>
-          </Col>
-          <Col xs={24} xl={12}>
-            <Space direction="vertical" size={token.marginSM} style={{ width: "100%" }}>
-              <EditableField label={t("customer_info.email")} name="email" value={user.email} onSave={updateField} onEmailSave={requestEmailUpdate} />
-              <EditableField label={t("customer_info.gender")} name="gender" value={user.gender} type="select" onSave={updateField} onEmailSave={requestEmailUpdate} />
-              <EditableField label={t("customer_info.phone")} name="phone" value={user.phone} onSave={updateField} onEmailSave={requestEmailUpdate} />
-            </Space>
-          </Col>
-        </Row>
-        <Divider />
-        <Space wrap>
-          <Button icon={<LockOutlined />} onClick={() => setMode("password")}>
-            {t("customer_info.change_password")}
-          </Button>
-          <Button icon={<KeyOutlined />} onClick={() => setMode("pin")}>
-            {t("customer_info.change_pin")}
-          </Button>
-          <Button icon={<ReloadOutlined />} onClick={() => setRecoverPinOpen(true)}>
-            {t("forgot_pin.reset_pin")}
-          </Button>
-        </Space>
-      </Space>
-    </Spin>
   );
 };
 
@@ -267,20 +242,29 @@ const ProfileVipLevelBox = () => {
   const { token } = theme.useToken();
   const { t, user, showVipLevelBox } = useProfileContext();
   const [open, setOpen] = useState(false);
-  const { data: levels = [], isLoading: isLevelsLoading } = useCustomerLevelsQuery(showVipLevelBox);
-  const { data: discounts = {}, isLoading: isDiscountLoading } = useCustomerDiscountQuery(showVipLevelBox);
-  const { data: fees = [], isLoading: isFeesLoading } = useFeesQuery(showVipLevelBox);
+  const { data: levels = [], isLoading: isLevelsLoading } =
+    useCustomerLevelsQuery(showVipLevelBox);
+  const { data: discounts = {}, isLoading: isDiscountLoading } =
+    useCustomerDiscountQuery(showVipLevelBox);
+  const { data: fees = [], isLoading: isFeesLoading } =
+    useFeesQuery(showVipLevelBox);
 
   if (!showVipLevelBox) return null;
   if (isLevelsLoading) return <Skeleton active paragraph={{ rows: 2 }} />;
   if (!levels.length) return null;
 
   const currentLevel = user.customerLevel;
-  const currentIndex = currentLevel ? levels.findIndex((item: any) => item.id === currentLevel.id) : -1;
-  const nextLevel = levels[currentIndex + 1] || levels[0];
-  const highestLevel = currentLevel && !levels[currentIndex + 1];
+  const currentIndex = currentLevel
+    ? levels.findIndex((item: any) => item.id === currentLevel.id)
+    : -1;
+  const nextLevel =
+    levels[currentIndex + 1] || (!currentLevel ? levels[0] : undefined);
+  const highestLevel = !!currentLevel && !nextLevel;
   const progressPercent = nextLevel?.minPoint
-    ? Math.min((Number(user.rewardPoint || 0) * 100) / Number(nextLevel.minPoint || 1), 100)
+    ? Math.min(
+        (Number(user.rewardPoint || 0) * 100) / Number(nextLevel.minPoint || 1),
+        100,
+      )
     : 100;
 
   const discountRows = [
@@ -298,106 +282,213 @@ const ProfileVipLevelBox = () => {
     })),
   ];
 
-  const levelBoxAlign = highestLevel ? "center" : "flex-end";
   const rightLevel = highestLevel ? currentLevel : nextLevel;
+  const remainingPoint = nextLevel?.minPoint
+    ? Math.max(
+        Number(nextLevel.minPoint || 0) - Number(user.rewardPoint || 0),
+        0,
+      )
+    : 0;
+  const progressStatus = highestLevel ? "success" : "active";
+  const renderLevelMedal = (level: any, label: string, tag?: string) => (
+    <Card
+      size="small"
+      bordered={false}
+      styles={{ body: { padding: token.paddingMD } }}
+      style={{
+        height: "100%",
+        background: token.colorBgContainer,
+        boxShadow: token.boxShadowTertiary,
+      }}
+    >
+      <Flex
+        vertical
+        align="center"
+        justify="center"
+        gap={token.marginXS}
+        style={{ minHeight: vipLevelCardMinHeight }}
+      >
+        {tag && (
+          <Tag
+            color={tag === "current" ? "blue" : "gold"}
+            style={{ marginInlineEnd: 0 }}
+          >
+            {tag === "current" ? label : t("customer_info.max_level")}
+          </Tag>
+        )}
+        {level?.imageUrl ? (
+          <img src={level.imageUrl} alt="" style={levelImageStyle} />
+        ) : (
+          <Avatar
+            size={76}
+            icon={<TrophyOutlined />}
+            style={{
+              background: tag === "next" ? token.gold6 : token.colorPrimary,
+              color: token.colorWhite,
+            }}
+          />
+        )}
+        <Typography.Text strong style={{ textAlign: "center" }}>
+          {label}
+        </Typography.Text>
+      </Flex>
+    </Card>
+  );
 
   return (
     <>
-      <div
+      <Card
+        bordered={false}
+        styles={{ body: { padding: token.paddingLG } }}
         style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: levelBoxAlign,
-          backgroundColor: "#2e9aff",
-          padding: "10px 20px",
-          position: "relative",
-          minHeight: 122,
+          background: `linear-gradient(135deg, ${token.colorBgContainer} 0%, ${token.colorFillQuaternary} 58%, #fff7e6 100%)`,
+          overflow: "hidden",
+          boxShadow: token.boxShadowTertiary,
         }}
       >
-        <div style={{ marginRight: 10, textAlign: "center", color: token.colorWhite, width: 110 }}>
-          {currentLevel ? (
-            <>
-              {currentLevel.imageUrl ? (
-                <img
-                  src={currentLevel.imageUrl}
-                  alt=""
-                  style={{ maxHeight: 100, maxWidth: 100, objectFit: "contain" }}
-                />
-              ) : (
-                <Avatar size={80} icon={<UserOutlined />} />
-              )}
-              <div style={{ fontWeight: token.fontWeightStrong, marginTop: 5 }}>
-                {currentLevel.name}
-              </div>
-            </>
-          ) : (
-            <>
-              <Avatar size={80} icon={<UserOutlined />} />
-              <div style={{ fontWeight: token.fontWeightStrong, marginTop: 5 }}>
-                {t("orderDetail.no_level_yet")}
-              </div>
-            </>
-          )}
-        </div>
-
-        <div style={{ width: "50%", minWidth: 260 }}>
-          {highestLevel ? (
-            <div style={{ color: token.colorWhite, fontSize: token.fontSizeHeading3, textAlign: "center" }}>
-              <div>{t("customer_info.congratulation_on_highest_level")}</div>
-            </div>
-          ) : (
-            <>
-              <div style={{ color: token.colorWhite, fontSize: token.fontSizeHeading2 }}>
-                <span style={{ fontWeight: token.fontWeightStrong }}>
-                  {quantityFormat(user.rewardPoint)}
-                </span>{" "}
-                /{" "}
-                <span style={{ fontSize: token.fontSizeHeading4 }}>
-                  {quantityFormat(nextLevel?.minPoint)}
-                </span>
-                <Tooltip title={t("customer_info.updated_level")}>
-                  <InfoCircleOutlined style={{ marginLeft: 10, fontSize: token.fontSizeHeading4 }} />
-                </Tooltip>
-              </div>
-              <Progress
-                showInfo={false}
-                percent={progressPercent}
-                strokeColor={token.colorWhite}
-                trailColor="#0983c6"
-                style={{ marginBottom: 5 }}
-              />
-            </>
-          )}
-        </div>
-
-        <div style={{ marginLeft: 10, textAlign: "center", color: token.colorWhite, width: 110 }}>
-          {rightLevel?.imageUrl ? (
-            <img
-              src={rightLevel.imageUrl}
-              alt=""
-              style={{ maxHeight: 100, maxWidth: 100, objectFit: "contain" }}
-            />
-          ) : (
-            <Avatar size={80} icon={<UserOutlined />} />
-          )}
-          <div style={{ fontWeight: token.fontWeightStrong, marginTop: 5 }}>
-            {highestLevel ? t("customer_info.max_level") : nextLevel?.name}
-          </div>
-        </div>
-
-        <Typography.Link
-          onClick={() => setOpen(true)}
-          style={{
-            position: "absolute",
-            bottom: 10,
-            right: 20,
-            color: token.colorWhite,
-            textDecoration: "underline",
-          }}
+        <Flex
+          justify="space-between"
+          align="center"
+          wrap
+          gap={token.marginMD}
+          style={{ marginBottom: token.marginMD }}
         >
+          <Space size={token.marginSM}>
+            <Avatar
+              icon={<TrophyOutlined />}
+              style={{ background: token.gold6, color: token.colorWhite }}
+            />
+            <div>
+              <Typography.Title level={5} style={{ margin: 0 }}>
+                {currentLevel?.name || t("orderDetail.no_level_yet")}
+              </Typography.Title>
+              <Typography.Text type="secondary">
+                {t("customer_info.updated_level")}
+              </Typography.Text>
+            </div>
+          </Space>
+          <Button
+            type="primary"
+            ghost
+            icon={<InfoCircleOutlined />}
+            onClick={() => setOpen(true)}
+          >
             {t("customer_info.detail")}
-        </Typography.Link>
-      </div>
+          </Button>
+        </Flex>
+
+        <Row gutter={[token.marginMD, token.marginMD]} align="stretch">
+          <Col xs={24} md={6}>
+            {renderLevelMedal(
+              currentLevel,
+              currentLevel?.name || t("orderDetail.no_level_yet"),
+              "current",
+            )}
+          </Col>
+          <Col xs={24} md={12}>
+            <Card
+              size="small"
+              bordered={false}
+              styles={{
+                body: {
+                  alignItems: "center",
+                  display: "flex",
+                  minHeight: vipLevelCardMinHeight,
+                  padding: token.paddingLG,
+                  width: "100%",
+                },
+              }}
+              style={{ height: "100%", width: "100%" }}
+            >
+              <Space
+                direction="vertical"
+                size={token.marginSM}
+                style={{ width: "100%" }}
+              >
+                {highestLevel ? (
+                  <Flex vertical align="center" gap={token.marginXS}>
+                    <TrophyOutlined
+                      style={{
+                        color: token.gold6,
+                        fontSize: token.fontSizeHeading2,
+                      }}
+                    />
+                    <Typography.Title
+                      level={4}
+                      style={{ margin: 0, textAlign: "center" }}
+                    >
+                      {t("customer_info.congratulation_on_highest_level")}
+                    </Typography.Title>
+                    <Tag color="gold" style={{ marginInlineEnd: 0 }}>
+                      {t("customer_info.max_level")}
+                    </Tag>
+                  </Flex>
+                ) : (
+                  <>
+                    <Flex
+                      justify="space-between"
+                      align="start"
+                      wrap
+                      gap={token.marginSM}
+                    >
+                      <Statistic
+                        title={t("customer_info.point_2")}
+                        value={user.rewardPoint}
+                        formatter={(value) => quantityFormat(Number(value))}
+                      />
+                      <Space direction="vertical" size={0} align="end">
+                        <Typography.Text type="secondary">
+                          {nextLevel?.name || t("customer_info.max_level")}
+                        </Typography.Text>
+                        <Typography.Text strong>
+                          {quantityFormat(nextLevel?.minPoint)}
+                        </Typography.Text>
+                      </Space>
+                    </Flex>
+                    <Progress
+                      percent={progressPercent}
+                      status={progressStatus}
+                      strokeColor={token.gold6}
+                      format={() => `${Math.round(progressPercent)}%`}
+                    />
+                    <Flex
+                      justify="space-between"
+                      align="center"
+                      wrap
+                      gap={token.marginXS}
+                    >
+                      <Typography.Text type="secondary">
+                        {currentLevel?.name || t("orderDetail.no_level_yet")}
+                      </Typography.Text>
+                      <Space size={token.marginXS}>
+                        <Typography.Text type="secondary">
+                          {quantityFormat(remainingPoint)}{" "}
+                          {t("customer_info.point_2")}
+                        </Typography.Text>
+                        <ArrowRightOutlined
+                          style={{ color: token.colorTextTertiary }}
+                        />
+                        <Typography.Text strong>
+                          {nextLevel?.name}
+                        </Typography.Text>
+                      </Space>
+                    </Flex>
+                  </>
+                )}
+              </Space>
+            </Card>
+          </Col>
+          <Col xs={24} md={6}>
+            {renderLevelMedal(
+              rightLevel,
+              highestLevel
+                ? t("customer_info.max_level")
+                : nextLevel?.name || t("customer_info.max_level"),
+              highestLevel ? "next" : undefined,
+            )}
+          </Col>
+        </Row>
+      </Card>
 
       <Modal
         title={t("customer_info.level_preferential_detail")}
@@ -414,10 +505,22 @@ const ProfileVipLevelBox = () => {
           columns={[
             { title: "", dataIndex: "name" },
             ...(currentLevel
-              ? [{ title: currentLevel.name, dataIndex: "current", align: "right" as const }]
+              ? [
+                  {
+                    title: currentLevel.name,
+                    dataIndex: "current",
+                    align: "right" as const,
+                  },
+                ]
               : []),
             ...(nextLevel
-              ? [{ title: nextLevel.name, dataIndex: "next", align: "right" as const }]
+              ? [
+                  {
+                    title: nextLevel.name,
+                    dataIndex: "next",
+                    align: "right" as const,
+                  },
+                ]
               : []),
           ]}
         />
@@ -432,9 +535,15 @@ const getEmdLevelValue = (emdLevels: any[] = [], level: any) => {
   return emd ? `${emd.emdPercent}%` : emptyText;
 };
 
-const getDiscountValue = (discounts: any[] = [], level: any, feeCode?: string) => {
+const getDiscountValue = (
+  discounts: any[] = [],
+  level: any,
+  feeCode?: string,
+) => {
   if (!level || !feeCode) return emptyText;
-  const discount = discounts.find((item) => item.customerLevelId === level.id && item.feeCode === feeCode);
+  const discount = discounts.find(
+    (item) => item.customerLevelId === level.id && item.feeCode === feeCode,
+  );
   if (!discount) return emptyText;
   return discount.discountType === "PERCENT"
     ? `${quantityFormat(discount.discountValue)}%`
@@ -446,8 +555,17 @@ const PasswordForm = () => {
   const [form] = Form.useForm();
 
   return (
-    <Form form={form} layout="vertical" onFinish={submitPassword} style={{ maxWidth: 520 }}>
-      <Form.Item name="currentPassword" label={t("customer_info.current_pass")} rules={[{ required: true, message: t("customer_info.not_empty_pass") }]}>
+    <Form
+      form={form}
+      layout="vertical"
+      onFinish={submitPassword}
+      style={{ maxWidth: 520 }}
+    >
+      <Form.Item
+        name="currentPassword"
+        label={t("customer_info.current_pass")}
+        rules={[{ required: true, message: t("customer_info.not_empty_pass") }]}
+      >
         <Input.Password placeholder={t("customer_info.input_current_pass")} />
       </Form.Item>
       <Form.Item
@@ -455,7 +573,11 @@ const PasswordForm = () => {
         label={t("customer_info.new_pass")}
         rules={[
           { required: true, message: t("customer_info.not_empty_newPass") },
-          { min: 6, max: 32, message: t("customer_info.require_characters_length") },
+          {
+            min: 6,
+            max: 32,
+            message: t("customer_info.require_characters_length"),
+          },
         ]}
       >
         <Input.Password placeholder={t("customer_info.input_new_pass")} />
@@ -468,13 +590,18 @@ const PasswordForm = () => {
           { required: true, message: t("customer_info.please_retype_newPass") },
           ({ getFieldValue }) => ({
             validator(_, value) {
-              if (!value || getFieldValue("newPassword") === value) return Promise.resolve();
-              return Promise.reject(new Error(t("customer_info.not_match_pass")));
+              if (!value || getFieldValue("newPassword") === value)
+                return Promise.resolve();
+              return Promise.reject(
+                new Error(t("customer_info.not_match_pass")),
+              );
             },
           }),
         ]}
       >
-        <Input.Password placeholder={t("customer_info.please_retype_newPass")} />
+        <Input.Password
+          placeholder={t("customer_info.please_retype_newPass")}
+        />
       </Form.Item>
       <Space>
         <Button onClick={() => setMode("profile")}>{t("button.cancel")}</Button>
@@ -491,8 +618,17 @@ const PinForm = () => {
   const [form] = Form.useForm();
 
   return (
-    <Form form={form} layout="vertical" onFinish={submitPin} style={{ maxWidth: 520 }}>
-      <Form.Item name="currentPIN" label={t("customer_info.old_pin")} rules={[{ required: true, message: t("customer_info.input_old_pin") }]}>
+    <Form
+      form={form}
+      layout="vertical"
+      onFinish={submitPin}
+      style={{ maxWidth: 520 }}
+    >
+      <Form.Item
+        name="currentPIN"
+        label={t("customer_info.old_pin")}
+        rules={[{ required: true, message: t("customer_info.input_old_pin") }]}
+      >
         <Input.Password placeholder={t("customer_info.input_old_pin")} />
       </Form.Item>
       <Form.Item
@@ -514,8 +650,11 @@ const PinForm = () => {
           { required: true, message: t("customer_info.please_retype_pin") },
           ({ getFieldValue }) => ({
             validator(_, value) {
-              if (!value || getFieldValue("newPIN") === value) return Promise.resolve();
-              return Promise.reject(new Error(t("customer_info.not_match_pin")));
+              if (!value || getFieldValue("newPIN") === value)
+                return Promise.resolve();
+              return Promise.reject(
+                new Error(t("customer_info.not_match_pin")),
+              );
             },
           }),
         ]}
@@ -532,8 +671,21 @@ const PinForm = () => {
   );
 };
 
-const ProfileContent = () => {
-  const { t, mode } = useProfileContext();
+const ProfileContent = ({
+  variant,
+}: {
+  variant: "classic" | "compact" | "summary";
+}) => {
+  const {
+    t,
+    mode,
+    user,
+    isSubmitting,
+    updateField,
+    requestEmailUpdate,
+    setMode,
+    setRecoverPinOpen,
+  } = useProfileContext();
 
   if (mode === "password") {
     return (
@@ -551,15 +703,74 @@ const ProfileContent = () => {
     );
   }
 
+  if (mode === "address") {
+    return <ProfileAddressSection t={t} variant={variant} />;
+  }
+
+  if (mode === "transactions") {
+    return <ProfileTransactionsContent t={t} variant={variant} />;
+  }
+
+  if (mode === "notifications") {
+    return <ProfileNotificationSettingsContent t={t} />;
+  }
+
+  if (mode === "faqs") {
+    return <ProfileFaqsContent t={t} />;
+  }
+
+  if (mode === "vouchers") {
+    return <ProfileVouchersContent t={t} />;
+  }
+
+  if (mode === "vip-levels") {
+    return (
+      <Space direction="vertical" size="large" style={{ width: "100%" }}>
+        <ProfileVipLevelBox />
+        <ProfileVipLevelsContent t={t} />
+      </Space>
+    );
+  }
+
+  if (mode === "purchasing-account") {
+    return <ProfilePurchasingAccountContent t={t} />;
+  }
+
+  if (mode === "telegram") {
+    return <ProfileTelegramContent t={t} />;
+  }
+
+  if (mode === "saved-products") {
+    return <ProfileSavedProductsContent t={t} />;
+  }
+
   return (
     <Card title={t("customer_info.account_info")}>
-      <ProfileForm />
+      <ProfileAccountInfo
+        t={t}
+        user={user}
+        isSubmitting={isSubmitting}
+        variant={variant}
+        updateField={updateField}
+        requestEmailUpdate={requestEmailUpdate}
+        setMode={setMode}
+        setRecoverPinOpen={setRecoverPinOpen}
+      />
     </Card>
   );
 };
 
 const ProfileModals = () => {
-  const { t, emailConfirmOpen, setEmailConfirmOpen, recoverPinOpen, setRecoverPinOpen, confirmEmailUpdate, submitRecoverPin, isSubmitting } = useProfileContext();
+  const {
+    t,
+    emailConfirmOpen,
+    setEmailConfirmOpen,
+    recoverPinOpen,
+    setRecoverPinOpen,
+    confirmEmailUpdate,
+    submitRecoverPin,
+    isSubmitting,
+  } = useProfileContext();
   const [emailForm] = Form.useForm();
   const [recoverForm] = Form.useForm();
 
@@ -574,8 +785,16 @@ const ProfileModals = () => {
         okText={t("cartCheckout.confirm")}
         cancelText={t("button.cancel")}
       >
-        <Form form={emailForm} layout="vertical" onFinish={(values) => confirmEmailUpdate(values.password)}>
-          <Form.Item name="password" label={t("login.password")} rules={[{ required: true, message: t("login.password_error") }]}>
+        <Form
+          form={emailForm}
+          layout="vertical"
+          onFinish={(values) => confirmEmailUpdate(values.password)}
+        >
+          <Form.Item
+            name="password"
+            label={t("login.password")}
+            rules={[{ required: true, message: t("login.password_error") }]}
+          >
             <Input.Password autoFocus placeholder={t("login.password")} />
           </Form.Item>
         </Form>
@@ -589,8 +808,16 @@ const ProfileModals = () => {
         okText={t("cartCheckout.confirm")}
         cancelText={t("button.cancel")}
       >
-        <Form form={recoverForm} layout="vertical" onFinish={(values) => submitRecoverPin(values.password)}>
-          <Form.Item name="password" label={t("login.password")} rules={[{ required: true, message: t("login.password_error") }]}>
+        <Form
+          form={recoverForm}
+          layout="vertical"
+          onFinish={(values) => submitRecoverPin(values.password)}
+        >
+          <Form.Item
+            name="password"
+            label={t("login.password")}
+            rules={[{ required: true, message: t("login.password_error") }]}
+          >
             <Input.Password autoFocus placeholder={t("login.password")} />
           </Form.Item>
         </Form>
@@ -599,10 +826,12 @@ const ProfileModals = () => {
   );
 };
 
-export const ProfileGobizView = ({ variant = "classic" }: ProfileGobizViewProps) => {
+export const ProfileGobizView = ({
+  variant = "classic",
+}: ProfileGobizViewProps) => {
   const { token } = theme.useToken();
   const profilePage = useProfilePage();
-  const { t, user, isLoading } = profilePage;
+  const { t, isLoading, mode } = profilePage;
 
   if (isLoading) {
     return <Skeleton active avatar paragraph={{ rows: 10 }} />;
@@ -612,43 +841,32 @@ export const ProfileGobizView = ({ variant = "classic" }: ProfileGobizViewProps)
 
   return (
     <ProfilePageContext.Provider value={profilePage}>
-    <Space direction="vertical" size={token.marginLG} style={{ width: "100%" }}>
-      <Typography.Title level={4} style={{ margin: 0 }}>
-        {t("customer_info.personal_info")}
-      </Typography.Title>
-      {variant === "summary" && (
-        <Card>
-          <Flex align="center" justify="space-between" wrap gap={token.marginMD}>
-            <Space>
-              <Avatar size={64} src={user.avatar} icon={<UserOutlined />} />
-              <div>
-                <Typography.Title level={4} style={{ margin: 0 }}>
-                  {user.fullname || user.username || emptyText}
-                </Typography.Title>
-                <Typography.Text type="secondary">
-                  {[user.username, user.code].filter(Boolean).join(" | ") || emptyText}
-                </Typography.Text>
-              </div>
+      <Space
+        direction="vertical"
+        size={token.marginLG}
+        style={{ width: "100%" }}
+      >
+        <Typography.Title level={4} style={{ margin: 0 }}>
+          {t("customer_info.personal_info")}
+        </Typography.Title>
+
+        <Row gutter={[token.marginLG, token.marginLG]}>
+          <Col xs={24} lg={compact ? 7 : 6}>
+            <ProfileSidebar />
+          </Col>
+          <Col xs={24} lg={compact ? 17 : 18}>
+            <Space
+              direction="vertical"
+              size={token.marginLG}
+              style={{ width: "100%" }}
+            >
+              {mode === "profile" && <ProfileVipLevelBox />}
+              <ProfileContent variant={variant} />
             </Space>
-            <Typography.Text strong style={{ color: token.colorPrimary, fontSize: token.fontSizeHeading4 }}>
-              {formatCurrency(user.balance)}
-            </Typography.Text>
-          </Flex>
-        </Card>
-      )}
-      <Row gutter={[token.marginLG, token.marginLG]}>
-        <Col xs={24} lg={compact ? 7 : 6}>
-          <ProfileSidebar compact={compact} />
-        </Col>
-        <Col xs={24} lg={compact ? 17 : 18}>
-          <Space direction="vertical" size={token.marginLG} style={{ width: "100%" }}>
-          <ProfileVipLevelBox />
-          <ProfileContent />
-          </Space>
-        </Col>
-      </Row>
-      <ProfileModals />
-    </Space>
+          </Col>
+        </Row>
+        <ProfileModals />
+      </Space>
     </ProfilePageContext.Provider>
   );
 };

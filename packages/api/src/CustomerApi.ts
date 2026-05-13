@@ -22,6 +22,14 @@ export const CustomerApi = {
     getCustomerLevels: () => {
         return ApiClient.auth.get("customer/customer_level");
     },
+    getRewardPointTransactions: (params: any) => {
+        return ApiClient.auth.get("customer/reward_point/transaction", { params });
+    },
+    getPurchasingAccounts: () => {
+        return ApiClient.auth.get("customer/purchasing_accounts", {
+            params: { size: 200, sort: "createdAt:desc" },
+        });
+    },
     getCustomerDiscount: () => {
         return ApiClient.auth.get("customer/customer_discount");
     },

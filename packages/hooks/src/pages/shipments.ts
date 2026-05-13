@@ -20,14 +20,25 @@ export const useShipmentsLogic = ({ page, pageSize, filters }: UseShipmentsLogic
     const apiParams = useMemo(() => {
         const params: Record<string, any> = {
             page: page - 1,
-            pageSize,
-            ...filters
+            size: pageSize,
+            sort: 'createdAt:desc',
+            ...filters,
         };
 
         // Convert array types for API
         ['statuses', 'services'].forEach(key => {
             if (Array.isArray(params[key])) {
                 params[key] = params[key].join(',');
+            }
+        });
+
+        if (params.existsProduct === true) {
+            params.existsProduct = 'false';
+        }
+
+        Object.keys(params).forEach(key => {
+            if (params[key] === undefined || params[key] === null || params[key] === '') {
+                delete params[key];
             }
         });
 

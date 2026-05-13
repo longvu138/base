@@ -12,4 +12,6 @@ export const WishlistApi = {
         }),
     deleteWishlistItem: (id: string | number) =>
         ApiClient.auth.delete(`customer/wishlist/${id}`),
+    updateWishlistItem: (id: string | number, data: any) =>
+        ApiClient.auth.patch(`customer/wishlist/${id}`, data),
 };

@@ -64,7 +64,7 @@ const getNotificationLink = (item: NotificationItem) => {
     case "FINANCIAL_PAYMENT":
     case "FINANCIAL_CLAIM":
     case "FINANCIAL_DEPOSIT":
-      return "/transactions";
+      return "/profile?tab=transactions";
     case "DELIVERY_REQ_STATUS_UPDATE":
       return refData.deliveryRequest?.code
         ? `/delivery-requests?query=${refData.deliveryRequest.code}`

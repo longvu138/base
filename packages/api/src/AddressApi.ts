@@ -8,7 +8,7 @@ export const AddressApi = {
     createAddress: (data: any) =>
         ApiClient.auth.post(`customer/addresses`, data),
     updateAddress: (id: number, data: any) =>
-        ApiClient.auth.put(`customer/addresses/${id}`, data),
+        ApiClient.auth.patch(`customer/addresses/${id}`, data),
     deleteAddress: (id: number) =>
         ApiClient.auth.delete(`customer/addresses/${id}`),
 };

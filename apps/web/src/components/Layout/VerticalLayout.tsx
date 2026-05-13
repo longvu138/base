@@ -57,8 +57,10 @@ export const VerticalLayout = () => {
         label: <Link to={item.path}>{item.label}</Link>,
     }));
 
-    const activeMenu = menuItems.find(item => 
-        location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path))
+    const currentPath = `${location.pathname}${location.search}`;
+    const activeMenu = menuItems.find(item =>
+        currentPath === item.path ||
+        (!item.path.includes('?') && item.path !== '/' && location.pathname.startsWith(item.path))
     );
 
     return (

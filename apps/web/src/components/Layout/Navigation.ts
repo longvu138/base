@@ -3,7 +3,6 @@ import {
     HomeOutlined,
     ShoppingCartOutlined,
     WalletOutlined,
-    CarOutlined,
     InboxOutlined,
     FileProtectOutlined,
     CreditCardOutlined,
@@ -42,8 +41,8 @@ const BASE_MENU_ITEMS: MenuItem[] = [
     },
     {
         key: '/shipments',
-        icon: React.createElement(CarOutlined),
-        label: 'Vận chuyển',
+        icon: React.createElement(DeliveredProcedureOutlined),
+        label: 'Ký gửi',
         path: '/shipments',
     },
     {
@@ -56,7 +55,7 @@ const BASE_MENU_ITEMS: MenuItem[] = [
         key: '/transactions',
         icon: React.createElement(WalletOutlined),
         label: 'Giao dịch',
-        path: '/transactions',
+        path: '/profile?tab=transactions',
     },
     {
         key: '/claims',
@@ -92,25 +91,25 @@ const BASE_MENU_ITEMS: MenuItem[] = [
         key: '/vouchers',
         icon: React.createElement(GiftOutlined),
         label: 'Mã giảm giá',
-        path: '/vouchers',
+        path: '/profile?tab=vouchers',
     },
     {
         key: '/address',
         icon: React.createElement(EnvironmentOutlined),
         label: 'Địa chỉ nhận hàng',
-        path: '/address',
+        path: '/profile?tab=address',
     },
     {
         key: '/wishlist',
         icon: React.createElement(HeartOutlined),
         label: 'Sản phẩm đã lưu',
-        path: '/wishlist',
+        path: '/profile?tab=saved-products',
     },
     {
         key: '/faqs',
         icon: React.createElement(QuestionCircleOutlined),
         label: 'Hướng dẫn',
-        path: '/faqs',
+        path: '/profile?tab=faqs',
     },
 ];
 
@@ -134,8 +133,8 @@ const GOBIZ_MENU_ITEMS: MenuItem[] = [
     },
     {
         key: '/shipments',
-        icon: React.createElement(CarOutlined),
-        label: 'Vận chuyển',
+        icon: React.createElement(DeliveredProcedureOutlined),
+        label: 'Ký gửi',
         path: '/shipments',
     },
     {
@@ -149,7 +148,7 @@ const GOBIZ_MENU_ITEMS: MenuItem[] = [
         key: '/transactions',
         icon: React.createElement(WalletOutlined),
         label: 'Giao dịch',
-        path: '/transactions',
+        path: '/profile?tab=transactions',
     },
     {
         key: '/claims',
@@ -167,25 +166,25 @@ const GOBIZ_MENU_ITEMS: MenuItem[] = [
         key: '/vouchers',
         icon: React.createElement(GiftOutlined),
         label: 'Mã giảm giá',
-        path: '/vouchers',
+        path: '/profile?tab=vouchers',
     },
     {
         key: '/address',
         icon: React.createElement(EnvironmentOutlined),
         label: 'Địa chỉ nhận hàng',
-        path: '/address',
+        path: '/profile?tab=address',
     },
     {
         key: '/wishlist',
         icon: React.createElement(HeartOutlined),
         label: 'Sản phẩm đã lưu',
-        path: '/wishlist',
+        path: '/profile?tab=saved-products',
     },
     {
         key: '/faqs',
         icon: React.createElement(QuestionCircleOutlined),
         label: 'Hướng dẫn',
-        path: '/faqs',
+        path: '/profile?tab=faqs',
     },
 ];
 

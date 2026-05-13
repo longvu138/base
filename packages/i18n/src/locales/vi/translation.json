@@ -14,15 +14,39 @@
     "export": "Xuất",
     "import": "Nhập",
     "no_data": "Không có dữ liệu",
+    "all": "Tất cả",
     "copied": "Đã sao chép"
   },
   "button": {
     "save": "Lưu",
     "csv": "Xuất CSV",
     "cancel": "Hủy bỏ",
+    "agree": "Đồng ý",
     "back": "Quay lại",
+    "check": "Kiểm tra",
     "close": "Đóng",
-    "coupon": "Mã giảm giá"
+    "coupon": "Mã giảm giá",
+    "delete": "Xóa",
+    "detail": "Chi tiết",
+    "disagree": "Không đồng ý",
+    "edit": "Sửa"
+  },
+  "customerAddress": {
+    "address": "Địa chỉ",
+    "addressName": "Tên địa chỉ",
+    "default": "Mặc định",
+    "fullname": "Họ tên",
+    "new_address": "Thêm địa chỉ mới",
+    "phone": "Điện thoại",
+    "received_address_list": "Danh sách địa chỉ nhận hàng",
+    "receivingAddress": "Danh sách địa chỉ giao hàng",
+    "zipCode": "Mã bưu chính"
+  },
+  "coupon": {
+    "voucherCode": "Mã voucher",
+    "voucherRemaining": "Còn {{value}}",
+    "voucherCustomerLimit": "Giới hạn mỗi khách: {{value}}",
+    "voucherValidTo": "Có hiệu lực đến {{value}}"
   },
   "deposit": {
     "chooseReason": "Chọn yêu cầu",
@@ -52,18 +76,28 @@
     "total_price": "Tiền hàng",
     "remark": "Ghi chú cho sản phẩm",
     "note": "Ghi chú cá nhân cho sản phẩm này",
+    "note_keydown": "Nhấn Ctrl/Shift/Alt/Command + Enter để lưu ghi chú",
     "order_buy_receive": "Đặt/Mua/Nhận",
     "data_sent_email": "Hệ thống sẽ gửi file dữ liệu về e-mail của bạn, vui lòng kiểm tra sau ít phút.",
     "need_payment": "Cần thanh toán",
     "excess_cash": "Tiền thừa",
     "discountAmount": "Giảm giá từ NCC",
     "search": "Tìm kiếm",
-    "filter_refresh": "Làm mới"
+    "filter_refresh": "Làm mới",
+    "start": "Bắt đầu",
+    "finish": "Kết thúc"
   },
   "cartCheckout": {
     "provisional_cal": "Tạm tính",
     "lending_fee": "Phí ứng vốn",
-    "confirm": "Xác nhận"
+    "confirm": "Xác nhận",
+    "cancel": "Hủy",
+    "incorrect_pin": "Mã PIN không chính xác",
+    "please_input_pin": "Vui lòng nhập mã PIN",
+    "default_pin": "Mã PIN mặc định là mã PIN quý khách đã thiết lập."
+  },
+  "modal": {
+    "confirm_pin": "Xác nhận mã PIN"
   },
   "config_group": {
     "applied": "Áp dụng cố định",
@@ -77,6 +111,8 @@
     "days": "ngày"
   },
   "message": {
+    "delete_confirm": "Bạn có chắc chắn muốn xóa?",
+    "delete_success": "Xóa thành công",
     "empty": "Không có dữ liệu",
     "deleted_comment": "Comment đã bị xóa",
     "required": "Bắt buộc",
@@ -131,15 +167,47 @@
     "not_match_pin": "Mã PIN mới không khớp",
     "point_2": "điểm",
     "purchasingAccount": "Tài khoản mượn",
+    "address": "Địa chỉ",
+    "guide": "Hướng dẫn",
+    "voucher_list": "Danh sách voucher",
+    "lending_account": "Tài khoản cho mượn",
     "bifin": "Liên kết BiFin",
     "zalo": "Zalo",
     "your_address": "Địa chỉ của bạn",
     "transaction_history_old": "Lịch sử giao dịch (cũ)",
     "transaction_history": "Lịch sử giao dịch",
+    "transaction_history_list": "Danh sách lịch sử giao dịch",
+    "transaction_type": "Loại giao dịch",
+    "input_code": "Nhập mã đơn, mã giao dịch",
+    "time": "Thời gian",
+    "search": "Tìm kiếm",
     "accumulated_point": "Điểm tích lũy",
     "saved_product": "Sản phẩm đã lưu",
+    "saved_product_list": "Danh sách sản phẩm đã lưu",
+    "input_product": "Nhập tên sản phẩm",
+    "start_date": "Ngày bắt đầu",
+    "end_date": "Ngày kết thúc",
+    "saved_day": "Ngày lưu",
+    "note": "Ghi chú",
+    "price": "Giá",
     "frequently_asked_question": "Câu hỏi thường gặp",
     "coupon": "Mã giảm giá",
+    "listCoupon": "Ưu đãi của tôi",
+    "detailCoupon": "Chi tiết mã giảm giá",
+    "input_order_code": "Nhập mã đơn hàng",
+    "accumulated_history_list": "Danh sách lịch sử điểm tích lũy",
+    "content": "Nội dung",
+    "code": "Mã",
+    "order_code": "Mã đơn hàng",
+    "point_number": "Số điểm",
+    "fee": "Phí",
+    "point": "Điểm",
+    "purchasing_account": "Tài khoản cho mượn",
+    "purchasing_account_username": "Tên đăng nhập",
+    "purchasing_account_password": "Mật khẩu",
+    "telegram": "Telegram",
+    "telegramUsername": "Tên đăng nhập Telegram",
+    "buttonTelegram": "Kết nối Telegram",
     "deposit": "Đặt cọc",
     "updated_level": "Cấp độ được cập nhật theo điểm tích lũy của tài khoản",
     "detail": "Chi tiết",
@@ -152,8 +220,13 @@
     "female": "Nữ",
     "connect_application": "Kết nối ứng dụng",
     "telegram": "Telegram",
+    "connect_telegram": "Kết nối Telegram",
     "notification_config": "Cấu hình thông báo",
+    "notification_config_des": "Thiết lập kênh nhận thông báo cho từng nhóm sự kiện.",
     "mail_change_success_plain": "Yêu cầu thay đổi email sang {{newMail}} đã được gửi thành công."
+  },
+  "notificationSettings": {
+    "listStatusNoti": "Danh sách trạng thái nhận thông báo"
   },
   "forgot_pin": {
     "reset_pin": "Khôi phục mã PIN",
@@ -591,6 +664,11 @@
   },
   "shipments": {
     "title": "Danh sách Đơn ký gửi",
+    "consignment_title": "Ký gửi",
+    "consignment_subtitle": "Quản lý các yêu cầu ký gửi hàng hóa của bạn",
+    "list_title": "Danh sách Đơn ký gửi",
+    "total": "Tổng đơn ký gửi",
+    "empty_list": "Không tìm thấy yêu cầu ký gửi nào",
     "search_placeholder": "Nhập mã đơn...",
     "filters": {
       "status": "Trạng thái đơn",
@@ -605,14 +683,25 @@
       "period": "Khoảng",
       "from": "Từ",
       "to": "Đến",
-      "created_at": "Thời gian tạo"
+      "created_at": "Thời gian tạo",
+      "lack_product_info": "Thiếu thông tin sản phẩm"
     },
     "columns": {
       "code": "Mã đơn",
+      "reference": "Mã tham chiếu",
       "waybill": "Mã vận đơn",
+      "waybill_shop": "Vận đơn / Shop",
       "status": "Trạng thái",
       "created_at": "Ngày tạo",
-      "shop": "Tên Shop"
+      "shop": "Tên Shop",
+      "warehouse": "Kho nhận",
+      "quantity": "Số lượng",
+      "packages": "Kiện",
+      "weight": "Cân nặng",
+      "amounts": "Giá trị / Phí",
+      "total_value": "Giá trị",
+      "total_fee": "Phí",
+      "total_unpaid": "Còn thiếu"
     }
   },
   "header": {

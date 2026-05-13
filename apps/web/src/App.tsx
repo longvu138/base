@@ -1,4 +1,4 @@
-import { ConfigProvider, theme } from 'antd';
+import { App as AntdApp, ConfigProvider, theme } from 'antd';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
 import { useState, useEffect, useMemo } from 'react';
@@ -115,9 +115,11 @@ function AppContent() {
 
   return (
     <ConfigProvider theme={antdTheme}>
-      <BrowserRouter>
-        <AppRoutes />
-      </BrowserRouter>
+      <AntdApp>
+        <BrowserRouter>
+          <AppRoutes />
+        </BrowserRouter>
+      </AntdApp>
     </ConfigProvider>
   );
 }

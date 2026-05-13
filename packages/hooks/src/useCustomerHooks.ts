@@ -66,6 +66,32 @@ export const useCustomerLevelsQuery = (enabled = true) => {
     });
 };
 
+export const useRewardPointTransactionsQuery = (params: any) => {
+    return useQuery({
+        queryKey: ['customer.reward_point.transactions', params],
+        queryFn: async () => {
+            const res = await CustomerApi.getRewardPointTransactions(params);
+            return {
+                data: Array.isArray(res.data) ? res.data : [],
+                total: parseInt(res.headers['x-total-count'] || '0', 10),
+                pageSize: parseInt(res.headers['x-page-size'] || params?.size || '25', 10),
+                current: parseInt(res.headers['x-page-number'] || params?.page || '0', 10),
+            };
+        },
+        enabled: !!params,
+    });
+};
+
+export const usePurchasingAccountsQuery = () => {
+    return useQuery({
+        queryKey: ['customer.purchasing_accounts'],
+        queryFn: async () => {
+            const res = await CustomerApi.getPurchasingAccounts();
+            return Array.isArray(res.data) ? res.data : [];
+        },
+    });
+};
+
 export const useCustomerDiscountQuery = (enabled = true) => {
     return useQuery({
         queryKey: ['customer.discounts'],
@@ -231,6 +257,91 @@ export const useNotificationEventGroups = (enabled = false) => {
         },
         enabled: !!localStorage.getItem('access_token') && enabled,
         retry: false,
+    });
+};
+
+export const useNotificationChannelsQuery = (enabled = false) => {
+    return useQuery({
+        queryKey: ['customer.notifications.channels'],
+        queryFn: async () => {
+            const res = await NotificationApi.getChannels();
+            return Array.isArray(res.data) ? res.data : [];
+        },
+        enabled: !!localStorage.getItem('access_token') && enabled,
+        retry: false,
+    });
+};
+
+export const useNotificationEventsQuery = (enabled = false) => {
+    return useQuery({
+        queryKey: ['customer.notifications.events'],
+        queryFn: async () => {
+            const res = await NotificationApi.getEvents();
+            return Array.isArray(res.data) ? res.data : [];
+        },
+        enabled: !!localStorage.getItem('access_token') && enabled,
+        retry: false,
+    });
+};
+
+export const useNotificationEventSettingsQuery = (enabled = false) => {
+    return useQuery({
+        queryKey: ['customer.notifications.event_settings'],
+        queryFn: async () => {
+            const res = await NotificationApi.getEventSettings();
+            return Array.isArray(res.data) ? res.data : [];
+        },
+        enabled: !!localStorage.getItem('access_token') && enabled,
+        retry: false,
+    });
+};
+
+export const useNotificationSettingsQuery = (enabled = false) => {
+    return useQuery({
+        queryKey: ['customer.notifications.settings'],
+        queryFn: async () => {
+            const res = await NotificationApi.getNotificationSettings();
+            return Array.isArray(res.data) ? res.data : [];
+        },
+        enabled: !!localStorage.getItem('access_token') && enabled,
+        retry: false,
+    });
+};
+
+export const useUpdateNotificationSetting = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (data: Record<string, any>) => {
+            const res = await NotificationApi.updateNotificationSetting(data);
+            return res.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['customer.notifications.settings'] });
+        },
+    });
+};
+
+export const useUpdateNotificationSettingsBatch = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (data: Record<string, any>) => {
+            const res = await NotificationApi.updateNotificationSettingsBatch(data);
+            return res.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['customer.notifications.settings'] });
+        },
+    });
+};
+
+export const useConnectTelegramMutation = () => {
+    return useMutation({
+        mutationFn: async (telegramUsername: string) => {
+            const res = await NotificationApi.connectTelegram(telegramUsername);
+            return res.data;
+        },
     });
 };
 

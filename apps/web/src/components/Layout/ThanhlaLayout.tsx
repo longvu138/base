@@ -48,6 +48,11 @@ export const ThanhlaLayout: React.FC = () => {
     };
 
     const menuItems = useNavigation();
+    const currentPath = `${location.pathname}${location.search}`;
+    const activeMenu = menuItems.find(item =>
+        currentPath === item.path ||
+        (!item.path.includes('?') && item.path !== '/' && location.pathname.startsWith(item.path))
+    );
     const antMenuItems = menuItems.map(item => ({
         key: item.path,
         icon: item.icon,
@@ -72,7 +77,7 @@ export const ThanhlaLayout: React.FC = () => {
                     {/* Horizontal Menu */}
                     <Menu
                         mode="horizontal"
-                        selectedKeys={[location.pathname]}
+                        selectedKeys={activeMenu ? [activeMenu.path] : []}
                         items={antMenuItems}
                         className="flex-1 min-w-0 border-b-0 bg-transparent dark:!bg-[#141414] font-medium"
                     />

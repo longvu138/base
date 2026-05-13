@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { useState } from "react";
 import { Button, Dropdown, Space, Typography, theme } from "antd";
 import type { MenuProps } from "antd";
@@ -141,7 +142,6 @@ export const HeaderGobizActions = () => (
     <HeaderHomeLink />
     <HeaderSupportMenu />
     <HeaderExchangeRate />
-    <HeaderDepositButton />
   </>
 );
 
@@ -162,13 +162,13 @@ export const profileMenuItems = ({
   {
     key: "topup",
     icon: <WalletOutlined />,
-    label: onDeposit ? t("header.deposit") : <Link to="/transactions">{t("header.deposit")}</Link>,
+    label: onDeposit ? t("header.deposit") : <Link to="/profile?tab=transactions">{t("header.deposit")}</Link>,
     onClick: onDeposit,
   },
   {
     key: "spending",
     icon: <LineChartOutlined />,
-    label: <Link to="/transactions">{t("header.statistics")}</Link>,
+    label: <Link to="/profile?tab=transactions">{t("header.statistics")}</Link>,
   },
   { type: "divider" },
   {

@@ -7,7 +7,6 @@ import { Orders } from "./pages/Orders";
 import { OrderDetail } from "./pages/OrderDetail";
 import { Shipments } from "./pages/Shipments";
 import { ShipmentDetail } from "./pages/ShipmentDetail";
-import { Transactions } from "./pages/Transactions";
 import { DeliveryRequests } from "./pages/DeliveryRequests";
 import { CreateDelivery } from "./pages/CreateDelivery";
 import { DeliveryNotes } from "./pages/DeliveryNotes";
@@ -17,10 +16,6 @@ import CreateClaim from "./pages/CreateClaim";
 import WithdrawalSlips from "./pages/WithdrawalSlips";
 import { Packages } from "./pages/Packages";
 import Profile from "./pages/Profile";
-import { Vouchers } from "./pages/Vouchers";
-import { Address } from "./pages/Address";
-import { Wishlist } from "./pages/Wishlist";
-import { Faqs } from "./pages/Faqs";
 import Notifications from "./pages/Notifications";
 
 import ThemeConfigurator from "./pages/ThemeConfigurator";
@@ -40,7 +35,10 @@ function AppRoutes() {
           <Route path="orders/:code" element={<OrderDetail />} />
           <Route path="shipments" element={<Shipments />} />
           <Route path="shipments/:code" element={<ShipmentDetail />} />
-          <Route path="transactions" element={<Transactions />} />
+          <Route
+            path="transactions"
+            element={<Navigate to="/profile?tab=transactions" replace />}
+          />
           <Route path="delivery/create" element={<CreateDelivery />} />
           <Route path="delivery-requests" element={<DeliveryRequests />} />
           <Route path="delivery-notes" element={<DeliveryNotes />} />
@@ -50,11 +48,19 @@ function AppRoutes() {
           <Route path="withdrawal-slips" element={<WithdrawalSlips />} />
           <Route path="packages" element={<Packages />} />
           <Route path="profile" element={<Profile />} />
-          <Route path="vouchers" element={<Vouchers />} />
-          <Route path="address" element={<Address />} />
-          <Route path="wishlist" element={<Wishlist />} />
+          <Route
+            path="vouchers"
+            element={<Navigate to="/profile?tab=vouchers" replace />}
+          />
+          <Route
+            path="wishlist"
+            element={<Navigate to="/profile?tab=saved-products" replace />}
+          />
 
-          <Route path="faqs" element={<Faqs />} />
+          <Route
+            path="faqs"
+            element={<Navigate to="/profile?tab=faqs" replace />}
+          />
           <Route path="notifications" element={<Notifications />} />
           <Route path="theme-configurator" element={<ThemeConfigurator />} />
 
