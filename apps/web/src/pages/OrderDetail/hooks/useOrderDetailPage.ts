@@ -59,22 +59,25 @@ export const useOrderDetailPage = () => {
   const order = detailQuery.data;
 
   const statusInfo = useMemo(
-    () => statusesQuery.data?.find((status: any) => status.code === order?.status),
+    () =>
+      statusesQuery.data?.find((status: any) => status.code === order?.status),
     [order?.status, statusesQuery.data],
   );
 
   const services = useMemo(() => {
     if (!order?.services) return DISPLAY_EMPTY;
 
-    if (Array.isArray(order.services)) {
-      const serviceNames = order.services
-        .map((service: any) => (typeof service === "object" ? service.name : service))
+    if (Array.isArray(order?.services)) {
+      const serviceNames = order?.services
+        .map((service: any) =>
+          typeof service === "object" ? service.name : service,
+        )
         .filter(Boolean);
 
       return serviceNames.length > 0 ? serviceNames.join(", ") : DISPLAY_EMPTY;
     }
 
-    return displayValue(order.services);
+    return displayValue(order?.services);
   }, [order?.services]);
 
   const handleTabChange = (key: string) => {
@@ -83,7 +86,11 @@ export const useOrderDetailPage = () => {
     setSearchParams(nextParams, { replace: true });
   };
 
-  const handleUpdate = (field: string, value: string, originalValue?: string) => {
+  const handleUpdate = (
+    field: string,
+    value: string,
+    originalValue?: string,
+  ) => {
     if (!code || value === (originalValue || "")) return;
 
     updateMutation.mutate({
