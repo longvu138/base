@@ -51,7 +51,24 @@
     "days": "ngày"
   },
   "message": {
-    "empty": "Không có dữ liệu"
+    "empty": "Không có dữ liệu",
+    "deleted_comment": "Comment đã bị xóa"
+  },
+  "date": {
+    "recent": "Gần đây",
+    "minute": "phút",
+    "hour": "giờ"
+  },
+  "comment": {
+    "place_holder": "Ctrl + Enter để gửi",
+    "send": "Gửi"
+  },
+  "chat": {
+    "title": "Ghi chú / Trao đổi",
+    "attach_file": "Đính kèm file",
+    "empty": "Chưa có tin nhắn nào",
+    "system": "Hệ thống",
+    "file": "File"
   },
   "history_tab": {
     "history": "Lịch sử",

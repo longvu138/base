@@ -31,6 +31,14 @@ export const ChatApi = {
         });
     },
 
+    getAttachments: (entityType: string, entityCode: string, mode: ChatMode = 'legacy') => {
+        if (mode === 'posedon' && entityType === 'orders') {
+            return ApiClient.auth.get(`customer/comments/orders/${entityCode}/attachments`);
+        }
+
+        return Promise.resolve({ data: [] });
+    },
+
     createComment: (entityType: string, entityCode: string, payload: { comment: string }, mode: ChatMode = 'legacy') => {
         const content = payload.comment || '';
 

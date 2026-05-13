@@ -12,9 +12,18 @@ export const useChatCommentsQuery = (entityType: string, entityCode: string, mod
         queryKey: ['chat.comments', entityType, entityCode, mode],
         initialPageParam: 0,
         queryFn: async ({ pageParam = 0 }) => {
-            const res = await ChatApi.getComments(entityType, entityCode, { page: pageParam }, mode);
+            const [res, attachmentRes] = await Promise.all([
+                ChatApi.getComments(entityType, entityCode, { page: pageParam }, mode),
+                ChatApi.getAttachments(entityType, entityCode, mode),
+            ]);
+            const attachments = Array.isArray(attachmentRes.data) ? attachmentRes.data : [];
+            const data = Array.isArray(res.data) ? res.data : (res.data?.data ?? []);
+
             return {
-                data: Array.isArray(res.data) ? res.data : (res.data?.data ?? []),
+                data: data.map((item: any) => ({
+                    ...item,
+                    attachments: item.attachments ?? attachments.filter((attachment: any) => attachment?.messageId === item?.id),
+                })),
                 page: Number(res.headers?.['x-page-number'] ?? pageParam),
                 pageCount: Number(res.headers?.['x-page-count'] ?? 1),
                 size: Number(res.headers?.['x-page-size'] ?? 25),

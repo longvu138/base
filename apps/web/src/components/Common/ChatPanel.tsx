@@ -7,6 +7,7 @@ import {
   Flex,
   Image,
   Input,
+  Modal,
   Space,
   Spin,
   Tag,
@@ -18,9 +19,11 @@ import {
 import type { UploadProps } from "antd";
 import {
   CloseCircleFilled,
+  CrownFilled,
   FileOutlined,
   MessageOutlined,
   PaperClipOutlined,
+  PlayCircleOutlined,
   SendOutlined,
 } from "@ant-design/icons";
 import {
@@ -28,8 +31,10 @@ import {
   useCreateChatCommentWithAttachmentsMutation,
   useCreateChatCommentMutation,
   useUploadChatAttachmentMutation,
+  useCustomerProfile,
 } from "@repo/hooks";
 import { useTheme } from "@repo/theme-provider";
+import { useTranslation } from "react-i18next";
 
 interface ChatPanelProps {
   /** Loại entity: 'orders' | 'shipments' | 'peerpayments' | ... */
@@ -42,8 +47,25 @@ interface ChatPanelProps {
   entityCreatedAt?: string;
 }
 
-const { Text, Paragraph } = Typography;
+const { Text } = Typography;
 const { TextArea } = Input;
+
+const isImage = (mimeType?: string, url?: string) =>
+  String(mimeType || "").includes("image/") ||
+  /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(String(url || ""));
+
+const isVideo = (mimeType?: string, url?: string) =>
+  String(mimeType || "").includes("video/") ||
+  /\.(mp4|webm|ogg|mov|m4v)$/i.test(String(url || ""));
+
+const truncateFileName = (name: string, max = 18) =>
+  name.length > max ? `${name.slice(0, max - 3)}...` : name;
+
+const linkify = (value: string) =>
+  value.replace(
+    /(https?:\/\/[^\s<]+)/g,
+    '<a href="$1" target="_blank" rel="noreferrer">$1</a>',
+  );
 
 /**
  * ChatPanel — generic comment panel dùng cho mọi entity.
@@ -57,10 +79,13 @@ export const ChatPanel = ({
   rounded = "square",
   entityCreatedAt,
 }: ChatPanelProps) => {
+  const { t } = useTranslation();
   const { token } = theme.useToken();
   const { tenantConfig } = useTheme();
+  const { data: profile } = useCustomerProfile();
   const [text, setText] = useState("");
   const [files, setFiles] = useState<{ file: File; preview: string }[]>([]);
+  const [previewMedia, setPreviewMedia] = useState<any>(null);
   const inputKeyRef = useRef(0);
 
   const taiyiConfig = tenantConfig?.tenantConfig?.taiyiConfig || {};
@@ -135,8 +160,11 @@ export const ChatPanel = ({
           const name = data.name || file.name;
           const mimeType = data.mimeType || file.type;
 
-          if (mimeType.includes("image/")) {
-            return `<img referrerPolicy="no-referrer" src="${location}" alt="${name}" style="max-width:100%; display:block; margin:8px 0;" />`;
+          if (isImage(mimeType, location)) {
+            return `<img referrerpolicy="no-referrer" src="${location}" alt="${name}" style="max-width:100%; display:block; margin:8px 0;" />`;
+          }
+          if (isVideo(mimeType, location)) {
+            return `<video src="${location}" controls style="max-width:100%; display:block; margin:8px 0;"></video>`;
           }
           return `<a target="_blank" href="${location}" style="display:block; margin:4px 0;"><i class="fa-solid fa-paperclip"></i> ${name}</a>`;
         });
@@ -156,6 +184,8 @@ export const ChatPanel = ({
   };
 
   const addFile = (file: File) => {
+    if (files.length >= 10) return;
+
     if (file.type.startsWith("image/")) {
       const reader = new FileReader();
       reader.onload = (event) => {
@@ -205,6 +235,131 @@ export const ChatPanel = ({
     return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")} ${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}`;
   };
 
+  const formatTimeAgo = (timestamp: any) => {
+    if (!timestamp) return "";
+    const date = new Date(timestamp);
+    if (Number.isNaN(date.getTime())) return String(timestamp);
+
+    const diff = Date.now() - date.getTime();
+    const minutes = Math.ceil(diff / (60 * 1000));
+    const hours = Math.ceil(diff / (3600 * 1000));
+
+    if (diff <= 59 * 1000) return t("date.recent");
+    if (minutes <= 60) return `${minutes} ${t("date.minute")}`;
+    if (hours <= 24) return `${hours} ${t("date.hour")}`;
+    return formatTime(timestamp);
+  };
+
+  const getMessageMeta = (msg: any) => {
+    const authorUsername =
+      msg.author?.username || msg.createdBy?.username || msg.creator?.username;
+    const name =
+      msg.from?.card?.fn ||
+      msg.author?.fullname ||
+      msg.author?.fullName ||
+      msg.createdBy?.fullname ||
+      msg.createdBy?.fullName ||
+      msg.creator?.displayName ||
+      msg.creator?.username ||
+      t("chat.system");
+    const avatar =
+      msg.from?.card?.photo ||
+      msg.author?.avatar ||
+      msg.createdBy?.avatar ||
+      msg.creator?.avatar;
+    const isStaff = Boolean(
+      msg.author?.staff ||
+        msg.createdBy?.staff ||
+        msg.creator?.staff ||
+        msg.staff ||
+        msg.senderType === "STAFF",
+    );
+    const isTrustedCustomer = Boolean(
+      msg.from?.trusted?.customer ||
+        (profile?.username && authorUsername === profile.username && !isStaff),
+    );
+
+    return { name, avatar, isStaff, isTrustedCustomer };
+  };
+
+  const normalizeContent = (msg: any) => {
+    if (msg.recall) return t("message.deleted_comment");
+    return String(
+      msg.content?.plainText ??
+        msg.content ??
+        msg.message ??
+        msg.text ??
+        msg.comment ??
+        "",
+    );
+  };
+
+  const attachmentUrl = (attachment: any) =>
+    attachment.location || attachment.url || attachment.uri || attachment.link;
+
+  const renderAttachment = (attachment: any, index: number) => {
+    const url = attachmentUrl(attachment);
+    const fileName =
+      attachment.name ||
+      attachment.fileName ||
+      attachment.originalName ||
+      `${t("chat.file")} ${index + 1}`;
+    const mimeType = attachment.mimeType || attachment.type;
+    const image = isImage(mimeType, url);
+    const video = isVideo(mimeType, url);
+
+    if (image || video) {
+      return (
+        <div key={attachment.id ?? `${url}-${index}`} style={{ width: 76 }}>
+          <Button
+            onClick={() => setPreviewMedia({ ...attachment, url, fileName, image, video })}
+            style={{
+              width: 76,
+              height: 64,
+              padding: 0,
+              overflow: "hidden",
+              borderColor: token.colorBorder,
+            }}
+          >
+            {video ? (
+              <PlayCircleOutlined style={{ fontSize: 26, color: token.colorTextTertiary }} />
+            ) : (
+              <Image
+                src={url}
+                alt={fileName}
+                width={74}
+                height={62}
+                preview={false}
+                referrerPolicy="no-referrer"
+                style={{ objectFit: "cover" }}
+              />
+            )}
+          </Button>
+          <Tooltip title={fileName}>
+            <Text
+              type="secondary"
+              style={{ display: "block", textAlign: "center", fontSize: token.fontSizeSM }}
+            >
+              {truncateFileName(fileName, 12)}
+            </Text>
+          </Tooltip>
+        </div>
+      );
+    }
+
+    return (
+      <Button
+        key={attachment.id ?? `${url}-${index}`}
+        href={url}
+        target="_blank"
+        rel="noreferrer"
+        icon={<FileOutlined />}
+      >
+        {truncateFileName(fileName)}
+      </Button>
+    );
+  };
+
   return (
     <Card
       variant="borderless"
@@ -235,7 +390,7 @@ export const ChatPanel = ({
         }}
       >
         <MessageOutlined style={{ color: token.colorPrimary }} />
-        <Text strong>Ghi chú / Trao đổi</Text>
+        <Text strong>{t("chat.title")}</Text>
       </Flex>
 
       <Space
@@ -251,14 +406,14 @@ export const ChatPanel = ({
           value={text}
           onChange={(event) => setText(event.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Viết tin nhắn..."
+          placeholder={t("comment.place_holder")}
           rows={3}
           disabled={submitting}
         />
 
         <Flex align="center" justify="space-between" gap={token.marginSM}>
           <Upload key={inputKeyRef.current} {...uploadProps}>
-            <Tooltip title="Đính kèm file">
+            <Tooltip title={t("chat.attach_file")}>
               <Button icon={<PaperClipOutlined />} disabled={submitting} />
             </Tooltip>
           </Upload>
@@ -270,7 +425,7 @@ export const ChatPanel = ({
             disabled={(!text.trim() && files.length === 0) || submitting}
             loading={submitting}
           >
-            Gửi
+            {t("comment.send")}
           </Button>
         </Flex>
 
@@ -361,7 +516,7 @@ export const ChatPanel = ({
           </Flex>
         ) : comments.length === 0 ? (
           <Flex align="center" justify="center" style={{ height: "100%" }}>
-            <Empty description="Chưa có tin nhắn nào" />
+            <Empty description={t("chat.empty")} />
           </Flex>
         ) : (
           <Space
@@ -376,38 +531,18 @@ export const ChatPanel = ({
                 loading={isFetchingNextPage}
                 onClick={() => fetchNextPage()}
               >
-                Xem thêm
+                {t("orderDetail.show_more")}
               </Button>
             )}
             {comments.map((msg: any, index: number) => {
-              if (import.meta.env.DEV && index === 0) {
-                console.log(
-                  "[ChatPanel] message sample:",
-                  JSON.stringify(msg, null, 2),
-                );
-              }
-
-              const name =
-                msg.author?.fullname ||
-                msg.author?.fullName ||
-                msg.createdBy?.fullname ||
-                msg.createdBy?.fullName ||
-                msg.creator?.displayName ||
-                msg.creator?.username ||
-                "Hệ thống";
-              const avatar = msg.author?.avatar || msg.createdBy?.avatar || msg.creator?.avatar;
-              const isStaff = Boolean(
-                msg.author?.staff ||
-                  msg.createdBy?.staff ||
-                  msg.creator?.staff ||
-                  msg.staff ||
-                  msg.senderType === "STAFF",
-              );
-              const content = String(
-                msg.content ?? msg.message ?? msg.text ?? msg.comment ?? "",
-              );
-              const time = msg.timestamp ?? msg.createdAt ?? "";
+              const { name, avatar, isStaff, isTrustedCustomer } =
+                getMessageMeta(msg);
+              const content = normalizeContent(msg);
+              const time = msg.timestamp ?? msg.createdAt ?? msg.updatedAt ?? "";
               const justify = isStaff ? "flex-start" : "flex-end";
+              const attachments = Array.isArray(msg.attachments)
+                ? msg.attachments
+                : [];
 
               return (
                 <Flex
@@ -434,8 +569,11 @@ export const ChatPanel = ({
                       style={{ marginBottom: token.marginXXS }}
                     >
                       <Text strong>{name}</Text>
-                      {isStaff && <Tag color="blue">Staff</Tag>}
-                      {time && <Text type="secondary">{formatTime(time)}</Text>}
+                      {isTrustedCustomer && (
+                        <CrownFilled style={{ color: token.colorWarning }} />
+                      )}
+                      {isStaff && <Tag color="blue">{t("shipment_log.staff")}</Tag>}
+                      {time && <Text type="secondary">, {formatTimeAgo(time)}</Text>}
                     </Flex>
 
                     <Card
@@ -457,43 +595,20 @@ export const ChatPanel = ({
                           dangerouslySetInnerHTML={{ __html: content }}
                         />
                       ) : (
-                        <Paragraph style={{ marginBottom: 0 }}>
-                          {content}
-                        </Paragraph>
+                        <div
+                          style={{ marginBottom: 0, wordBreak: "break-word" }}
+                          dangerouslySetInnerHTML={{ __html: linkify(content) }}
+                        />
                       )}
 
-                      {msg.attachments && msg.attachments.length > 0 && (
-                        <Space
-                          direction="vertical"
-                          size={token.marginXXS}
-                          style={{ width: "100%", marginTop: token.marginSM }}
+                      {attachments.length > 0 && (
+                        <Flex
+                          wrap="wrap"
+                          gap={token.marginXS}
+                          style={{ marginTop: token.marginSM }}
                         >
-                          {msg.attachments.map(
-                            (attachment: any, attIdx: number) => {
-                              const url =
-                                attachment.url ??
-                                attachment.uri ??
-                                attachment.link;
-                              const fileName =
-                                attachment.name ??
-                                attachment.fileName ??
-                                attachment.originalName ??
-                                `File ${attIdx + 1}`;
-                              return (
-                                <Button
-                                  key={attachment.id ?? attIdx}
-                                  href={url}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  icon={<FileOutlined />}
-                                  block
-                                >
-                                  {fileName}
-                                </Button>
-                              );
-                            },
-                          )}
-                        </Space>
+                          {attachments.map(renderAttachment)}
+                        </Flex>
                       )}
                     </Card>
                   </div>
@@ -512,6 +627,32 @@ export const ChatPanel = ({
           </Space>
         )}
       </div>
+      <Modal
+        open={!!previewMedia}
+        footer={null}
+        width={760}
+        title={previewMedia?.fileName}
+        onCancel={() => setPreviewMedia(null)}
+      >
+        {previewMedia?.video ? (
+          <video
+            width="100%"
+            height={500}
+            controls
+            src={previewMedia.url}
+          >
+            {previewMedia.fileName}
+          </video>
+        ) : previewMedia?.image ? (
+          <Image
+            src={previewMedia.url}
+            alt={previewMedia.fileName}
+            width="100%"
+            preview={false}
+            referrerPolicy="no-referrer"
+          />
+        ) : null}
+      </Modal>
     </Card>
   );
 };

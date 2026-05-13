@@ -51,7 +51,24 @@
     "days": "days"
   },
   "message": {
-    "empty": "No data"
+    "empty": "No data",
+    "deleted_comment": "Deleted comment"
+  },
+  "date": {
+    "recent": "Recent",
+    "minute": "minute",
+    "hour": "hour"
+  },
+  "comment": {
+    "place_holder": "Ctrl + Enter to send...",
+    "send": "Send"
+  },
+  "chat": {
+    "title": "Notes / Discussion",
+    "attach_file": "Attach file",
+    "empty": "No messages yet",
+    "system": "System",
+    "file": "File"
   },
   "history_tab": {
     "history": "History",
