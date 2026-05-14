@@ -138,7 +138,11 @@ export const OrderDetailStyle1 = () => {
     return (
       <Card>
         <Empty
-          image={<ShoppingCartOutlined style={{ color: token.colorTextTertiary, fontSize: 48 }} />}
+          image={
+            <ShoppingCartOutlined
+              style={{ color: token.colorTextTertiary, fontSize: 48 }}
+            />
+          }
           description={t("orderDetail.not_found")}
         >
           <Button type="primary" onClick={() => navigate("/orders")}>
@@ -149,12 +153,17 @@ export const OrderDetailStyle1 = () => {
     );
   }
 
-  const merchantName = order.merchantName || order.merchantCode || order.shopName || order.shop?.name;
+  const merchantName =
+    order.merchantName ||
+    order.merchantCode ||
+    order.shopName ||
+    order.shop?.name;
   const marketplaceImage = order.marketplace?.image;
   const customerCode = order.refCustomerCode || order.customerCode || "";
   const customerOrderCode = order.refOrderCode || order.customerOrderCode || "";
   const needPay = order.totalUnpaid ?? order.grandTotal;
-  const baseAddress = order.address || order.shippingAddress || order.deliveryAddress;
+  const baseAddress =
+    order.address || order.shippingAddress || order.deliveryAddress;
   const receiptAddress = order.receiptAddress;
   const exchangeRate = order.exchangeRate
     ? `¥1 = ${Number(order.exchangeRate).toLocaleString("vi-VN")} ₫`
@@ -164,12 +173,19 @@ export const OrderDetailStyle1 = () => {
   const metricRow1 = [
     {
       label: t("orderDetail.member"),
-      value: order.customerGroup?.name || order.customerLevel?.name || order.customer?.username || "---",
+      value:
+        order.customerGroup?.name ||
+        order.customerLevel?.name ||
+        order.customer?.username ||
+        "---",
       span: 5,
     },
     {
       label: t("orderDetail.deposit_rate"),
-      value: order.emdPercent != null ? `${order.emdPercent}%` : displayPercent(order.depositRate),
+      value:
+        order.emdPercent != null
+          ? `${order.emdPercent}%`
+          : displayPercent(order.depositRate),
       span: 5,
     },
     {
@@ -205,12 +221,16 @@ export const OrderDetailStyle1 = () => {
       value: exchangeRate,
       span: 5,
     },
-    ...(order.exchangedDiscountAmount || order.discountAmount || order.supplierDiscount
+    ...(order.exchangedDiscountAmount ||
+    order.discountAmount ||
+    order.supplierDiscount
       ? [
           {
             label: t("orderDetail.supplier_discount"),
             value: `${displayMoney(order.exchangedDiscountAmount || order.supplierDiscount)}${
-              order.discountAmount ? ` (${displayYuan(order.discountAmount)})` : ""
+              order.discountAmount
+                ? ` (${displayYuan(order.discountAmount)})`
+                : ""
             }`,
             span: 5,
           },
@@ -236,7 +256,9 @@ export const OrderDetailStyle1 = () => {
     {
       key: "fees",
       label: t("orderDetail.financial"),
-      children: <FeeTab orderCode={code} order={order} statusInfo={statusInfo} />,
+      children: (
+        <FeeTab orderCode={code} order={order} statusInfo={statusInfo} />
+      ),
     },
     ...(order.contractWithShopkeeper
       ? [
@@ -245,7 +267,11 @@ export const OrderDetailStyle1 = () => {
             label: t("orderDetail.credit"),
             children: (
               <Empty
-                image={<BankOutlined style={{ color: token.colorTextTertiary, fontSize: 36 }} />}
+                image={
+                  <BankOutlined
+                    style={{ color: token.colorTextTertiary, fontSize: 36 }}
+                  />
+                }
                 description={t("orderDetail.empty_credit")}
               />
             ),
@@ -283,8 +309,17 @@ export const OrderDetailStyle1 = () => {
     <Layout style={{ background: "transparent" }}>
       <Row gutter={[token.marginLG, token.marginLG]} align="top">
         <Col xs={24} xl={17}>
-          <Space direction="vertical" size={token.marginMD} style={{ width: "100%" }}>
-            <Flex justify="space-between" align="center" wrap="wrap" gap={token.marginSM}>
+          <Space
+            direction="vertical"
+            size={token.marginMD}
+            style={{ width: "100%" }}
+          >
+            <Flex
+              justify="space-between"
+              align="center"
+              wrap="wrap"
+              gap={token.marginSM}
+            >
               <Link to="/orders">
                 <Space>
                   <ArrowLeftOutlined />
@@ -304,7 +339,9 @@ export const OrderDetailStyle1 = () => {
                 description={
                   <Text>
                     {t("orderDetail.delivery_notice_1")}{" "}
-                    <Link to="/delivery/create">{t("orderDetail.delivery_notice_2")}</Link>{" "}
+                    <Link to="/delivery/create">
+                      {t("orderDetail.delivery_notice_2")}
+                    </Link>{" "}
                     {t("orderDetail.delivery_notice_3")}
                   </Text>
                 }
@@ -336,19 +373,38 @@ export const OrderDetailStyle1 = () => {
                       </Space>
                     </Space>
 
-                    <Space direction="vertical" size={4} style={{ minWidth: 0 }}>
+                    <Space
+                      direction="vertical"
+                      size={4}
+                      style={{ minWidth: 0 }}
+                    >
                       <Space size={token.marginXS} wrap={false}>
                         <Text type="secondary">
-                          {t("order_detail.fee_total", { defaultValue: t("orderDetail.total_cost") })}:
+                          {t("orderDetail.total_cost")}:
                         </Text>
-                        <Text strong style={{ fontSize: token.fontSizeLG, whiteSpace: "nowrap" }}>
+                        <Text
+                          strong
+                          style={{
+                            fontSize: token.fontSizeLG,
+                            whiteSpace: "nowrap",
+                          }}
+                        >
                           {displayMoney(order.grandTotal)}
                         </Text>
                       </Space>
                       <Space size={token.marginXS}>
-                        {marketplaceImage && <Avatar shape="square" size={14} src={marketplaceImage} />}
+                        {marketplaceImage && (
+                          <Avatar
+                            shape="square"
+                            size={14}
+                            src={marketplaceImage}
+                          />
+                        )}
                         <Text type="secondary">{t("orderDetail.seller")}:</Text>
-                        <Tooltip title={merchantName} color={token.colorPrimary}>
+                        <Tooltip
+                          title={merchantName}
+                          color={token.colorPrimary}
+                        >
                           <Text strong ellipsis style={{ maxWidth: 280 }}>
                             {displayValue(merchantName)}
                           </Text>
@@ -384,7 +440,10 @@ export const OrderDetailStyle1 = () => {
                       </Col>
                     ))}
                   </Row>
-                  <Row gutter={[token.marginSM, token.marginMD]} style={{ marginTop: token.marginMD }}>
+                  <Row
+                    gutter={[token.marginSM, token.marginMD]}
+                    style={{ marginTop: token.marginMD }}
+                  >
                     {metricRow2.map((item) => (
                       <Col key={item.label} xs={12} md={8} xl={item.span}>
                         <Text type="secondary">{item.label}</Text>
@@ -402,7 +461,9 @@ export const OrderDetailStyle1 = () => {
                           <Divider />
                           <InfoLine label={t("orderDetail.bifin")}>
                             <Text strong style={{ color: token.colorPrimary }}>
-                              {displayMoney(order.bifin ?? order.bifInAmount ?? 0)}
+                              {displayMoney(
+                                order.bifin ?? order.bifInAmount ?? 0,
+                              )}
                             </Text>
                           </InfoLine>
                         </>
@@ -442,7 +503,11 @@ export const OrderDetailStyle1 = () => {
                   )}
 
                   <Divider />
-                  <Space direction="vertical" size={token.marginSM} style={{ width: "100%" }}>
+                  <Space
+                    direction="vertical"
+                    size={token.marginSM}
+                    style={{ width: "100%" }}
+                  >
                     {order.remark && (
                       <InfoLine label={t("orderDetail.note_order")}>
                         <Text>{order.remark}</Text>
@@ -453,7 +518,8 @@ export const OrderDetailStyle1 = () => {
                         editable={{
                           text: order.note || "",
                           tooltip: t("orderDetail.edit_note"),
-                          onChange: (value) => handleUpdate("note", value, order.note || ""),
+                          onChange: (value) =>
+                            handleUpdate("note", value, order.note || ""),
                         }}
                         disabled={isUpdating}
                         style={editableTextStyle}
@@ -466,7 +532,12 @@ export const OrderDetailStyle1 = () => {
                         editable={{
                           text: customerCode,
                           tooltip: t("orderDetail.edit_ref_customer_code"),
-                          onChange: (value) => handleUpdate("refCustomerCode", value, customerCode),
+                          onChange: (value) =>
+                            handleUpdate(
+                              "refCustomerCode",
+                              value,
+                              customerCode,
+                            ),
                         }}
                         disabled={isUpdating}
                         style={editableTextStyle}
@@ -479,7 +550,12 @@ export const OrderDetailStyle1 = () => {
                         editable={{
                           text: customerOrderCode,
                           tooltip: t("orderDetail.edit_ref_order_code"),
-                          onChange: (value) => handleUpdate("refOrderCode", value, customerOrderCode),
+                          onChange: (value) =>
+                            handleUpdate(
+                              "refOrderCode",
+                              value,
+                              customerOrderCode,
+                            ),
                         }}
                         disabled={isUpdating}
                         style={editableTextStyle}
@@ -498,13 +574,19 @@ export const OrderDetailStyle1 = () => {
                   icon={isExpand ? <ShrinkOutlined /> : <ArrowsAltOutlined />}
                   onClick={() => setIsExpand((current) => !current)}
                 >
-                  {isExpand ? t("orderDetail.collapse") : t("orderDetail.show_more")}
+                  {isExpand
+                    ? t("orderDetail.collapse")
+                    : t("orderDetail.show_more")}
                 </Button>
               </Flex>
             </Card>
 
             <Card styles={{ body: { paddingTop: 0 } }}>
-              <Tabs activeKey={activeTab} onChange={handleTabChange} items={tabItems} />
+              <Tabs
+                activeKey={activeTab}
+                onChange={handleTabChange}
+                items={tabItems}
+              />
             </Card>
           </Space>
         </Col>
