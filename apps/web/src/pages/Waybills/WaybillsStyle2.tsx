@@ -1,142 +1,98 @@
-import { Form, Input, DatePicker, Table, Tag, Empty, Card } from 'antd';
-import { FilterPanel, TableComponent, StatusFilter, Pagination } from '@repo/ui';
-import dayjs from 'dayjs';
-import { useWaybillsPage } from './hooks/useWaybillsPage';
+import { Button, Card, Drawer, Flex, Form, Input, Space, Tag, Typography, theme } from "antd";
+import { DownloadOutlined, FilterOutlined, PlusOutlined, SearchOutlined } from "@ant-design/icons";
+import { quantityFormat } from "@repo/util";
+import { useState } from "react";
+import { useWaybillsPage } from "./hooks/useWaybillsPage";
+import {
+  WaybillCreateModal,
+  WaybillExportModal,
+  WaybillFilterActions,
+  WaybillFilterFields,
+  WaybillListCard,
+} from "./WaybillsShared";
 
-const { RangePicker } = DatePicker;
-
-/**
- * WaybillsStyle2 — Giao diện cho Thanhla (gd2)
- * Phong cách Modern Card.
- */
 export const WaybillsStyle2 = () => {
-    const {
-        form, page, pageSize, setPage, setPageSize,
-        listData, isWaybillsLoading, statusData, statusOptions,
-        handleSearch, handleReset
-    } = useWaybillsPage();
+  const { token } = theme.useToken();
+  const [filterOpen, setFilterOpen] = useState(false);
+  const page = useWaybillsPage();
+  const total = page.listData?.total || 0;
 
-    const getStatusColor = (code: string) => {
-        const found = statusData?.find(s => s.code === code);
-        return found?.color || 'default';
-    };
-
-    const columns = [
-        {
-            title: 'Mã vận đơn',
-            dataIndex: 'code',
-            key: 'code',
-            render: (text: string) => <span className="font-bold text-primary">{text || '—'}</span>,
-        },
-        {
-            title: 'Mã đơn hàng',
-            dataIndex: 'orderCode',
-            key: 'orderCode',
-            render: (text: string) => <span className="text-gray-700">{text || '—'}</span>,
-        },
-        {
-            title: 'Đối tác vận chuyển',
-            dataIndex: 'carrierName',
-            key: 'carrierName',
-            render: (text: string) => <span className="text-gray-600">{text || '—'}</span>,
-        },
-        {
-            title: 'Trạng thái',
-            dataIndex: 'status',
-            key: 'status',
-            render: (status: string) => (
-                <Tag color={getStatusColor(status)}>
-                    {statusData?.find(s => s.code === status)?.name || status || '—'}
-                </Tag>
-            ),
-        },
-        {
-            title: 'Thời gian nhận',
-            dataIndex: 'receivedTime',
-            key: 'receivedTime',
-            render: (t: string) => (
-                <span className="text-gray-500 text-sm">
-                    {t ? dayjs(t).format('HH:mm DD/MM/YYYY') : '—'}
-                </span>
-            ),
-        },
-        {
-            title: 'Ngày tạo',
-            dataIndex: 'createdAt',
-            key: 'createdAt',
-            render: (t: string) => (
-                <span className="text-gray-500 text-sm">
-                    {t ? dayjs(t).format('HH:mm DD/MM/YYYY') : '—'}
-                </span>
-            ),
-        },
-    ];
-
-
-    return (
-        <div className="min-h-screen bg-layout">
-            <Card className="mb-6 shadow-sm">
-                <FilterPanel
-                    form={form}
-                    onSearch={handleSearch}
-                    onReset={handleReset}
-                    searchText="Tìm kiếm"
-                    resetText="Đặt lại"
-                    primaryContent={
-                        <>
-                            <Form.Item name="statuses" noStyle>
-                                <StatusFilter options={statusOptions} label="Trạng thái:" />
-                            </Form.Item>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 mt-6 border-t border-border">
-                                <Form.Item name="query" label="Mã vận đơn">
-                                    <Input placeholder="Nhập mã vận đơn" className="h-10" />
-                                </Form.Item>
-                                <Form.Item name="receivedTimeRange" label="Thời gian nhận" className="md:col-span-2">
-                                    <RangePicker
-                                        className="w-full h-10"
-                                        showTime
-                                        format="DD/MM/YYYY HH:mm"
-                                        placeholder={['Từ ngày', 'Đến ngày']}
-                                    />
-                                </Form.Item>
-                            </div>
-                        </>
-                    }
+  return (
+    <Space direction="vertical" size="large" style={{ width: "100%" }}>
+      <Card>
+        <Flex justify="space-between" align="center" gap={token.marginMD} wrap>
+          <Space size="small" align="center">
+            <Typography.Title level={3} style={{ margin: 0 }}>
+              Vận đơn
+            </Typography.Title>
+            <Tag color="blue">{quantityFormat(total)}</Tag>
+          </Space>
+          <Space wrap>
+            <Form form={page.form} component={false}>
+              <Form.Item name="query" noStyle>
+                <Input
+                  allowClear
+                  prefix={<SearchOutlined />}
+                  placeholder="Nhập mã vận đơn"
+                  style={{ width: 320 }}
+                  onPressEnter={page.handleSearch}
                 />
-            </Card>
-
-            <TableComponent
-                title="Danh sách mã vận đơn"
-                totalCount={listData?.total}
-                loading={isWaybillsLoading}
-                showEmpty={!isWaybillsLoading && listData?.data?.length === 0}
-                emptyText={<Empty description="Không tìm thấy mã vận đơn nào" />}
+              </Form.Item>
+            </Form>
+            <Button type="primary" onClick={page.handleSearch}>
+              {page.t("order.search")}
+            </Button>
+            <Button
+              icon={<FilterOutlined />}
+              onClick={() => {
+                page.syncFiltersToForm();
+                setFilterOpen(true);
+              }}
             >
-                <Table
-                    columns={columns}
-                    dataSource={listData?.data || []}
-                    pagination={false}
-                    rowKey="id"
-                    size="middle"
-                    locale={{
-                        emptyText: (
-                            <div className="py-12">
-                                <Empty description="Không tìm thấy mã vận đơn nào" />
-                            </div>
-                        ),
-                    }}
-                />
-            </TableComponent>
+              {page.t("common.filter")}
+            </Button>
+            <Button icon={<DownloadOutlined />} onClick={page.handleExportOpen}>
+              {page.t("common.export")}
+            </Button>
+            <Button type="primary" ghost icon={<PlusOutlined />} onClick={page.handleCreateOpen}>
+              Tạo vận đơn
+            </Button>
+          </Space>
+        </Flex>
+      </Card>
 
-            <Pagination
-                current={page}
-                pageSize={pageSize}
-                total={listData?.total || 0}
-                onChange={(p, s) => {
-                    setPage(p);
-                    if (s !== pageSize) setPageSize(s);
-                }}
-            />
-        </div>
-    );
+      <WaybillListCard page={page} />
+
+      <Drawer
+        title={page.t("common.filter")}
+        open={filterOpen}
+        width={960}
+        onClose={() => setFilterOpen(false)}
+        extra={
+          <Space>
+            <Button onClick={page.handleReset}>{page.t("order.filter_refresh")}</Button>
+            <Button
+              type="primary"
+              onClick={() => {
+                page.handleSearch();
+                setFilterOpen(false);
+              }}
+            >
+              {page.t("order.search")}
+            </Button>
+          </Space>
+        }
+      >
+        <Form form={page.form} layout="vertical">
+          <WaybillFilterFields page={page} />
+          <WaybillFilterActions page={page} />
+        </Form>
+      </Drawer>
+
+      <WaybillCreateModal page={page} />
+      <WaybillExportModal page={page} />
+    </Space>
+  );
 };
+
+export default WaybillsStyle2;

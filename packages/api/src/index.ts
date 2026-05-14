@@ -10,6 +10,7 @@ export * from './CustomerApi';
 export * from './PackageApi';
 export * from './DeliveryNoteApi';
 export * from './WaybillApi';
+export * from './LieferscheineApi';
 export * from './VoucherApi';
 export * from './ChatApi';
 export * from './AddressApi';

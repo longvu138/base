@@ -7,6 +7,7 @@ import {
     FileProtectOutlined,
     CreditCardOutlined,
     DeliveredProcedureOutlined,
+    FileDoneOutlined,
     FileTextOutlined,
     TagsOutlined,
     GiftOutlined,
@@ -46,10 +47,10 @@ const BASE_MENU_ITEMS: MenuItem[] = [
         path: '/shipments',
     },
     {
-        key: '/delivery-requests',
+        key: '/delivery',
         icon: React.createElement(InboxOutlined),
         label: 'Yêu cầu giao',
-        path: '/delivery-requests',
+        path: '/delivery',
     },
     {
         key: '/transactions',
@@ -74,6 +75,12 @@ const BASE_MENU_ITEMS: MenuItem[] = [
         icon: React.createElement(FileTextOutlined),
         label: 'Phiếu xuất',
         path: '/delivery-notes',
+    },
+    {
+        key: '/lieferscheine',
+        icon: React.createElement(FileDoneOutlined),
+        label: 'Phiếu giao',
+        path: '/lieferscheine',
     },
     {
         key: '/waybills',
@@ -115,7 +122,7 @@ const BASE_MENU_ITEMS: MenuItem[] = [
 
 /**
  * Menu riêng cho Gobiz (gd3):
- * - Gom /packages + /delivery-requests + /delivery-notes → "Quản lý giao hàng"
+ * - Gom /packages + /delivery + /delivery-notes → "Quản lý giao hàng"
  * - Gom /transactions + /withdrawal-slips → "Giao dịch"
  */
 const GOBIZ_MENU_ITEMS: MenuItem[] = [
@@ -161,6 +168,12 @@ const GOBIZ_MENU_ITEMS: MenuItem[] = [
         icon: React.createElement(TagsOutlined),
         label: 'Mã vận đơn',
         path: '/waybills',
+    },
+    {
+        key: '/lieferscheine',
+        icon: React.createElement(FileDoneOutlined),
+        label: 'Phiếu giao',
+        path: '/lieferscheine',
     },
     {
         key: '/vouchers',

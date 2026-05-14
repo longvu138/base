@@ -2,6 +2,8 @@ import { Spin, Empty } from 'antd';
 import { CheckOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import {
+    usePackageMilestonesQuery,
+    usePackageStatusesQuery,
     useParcelStatusesQuery,
     useParcelMilestonesQuery,
 } from '@repo/hooks';
@@ -10,12 +12,26 @@ import './ParcelMilestoneSteps.css';
 const NEGATIVE_CODES = new Set(['MIA', 'INACTIVE', 'RETURN']);
 
 interface Props {
-    parcelCode: string;
+    parcelCode?: string;
+    packageCode?: string;
+    isShipment?: boolean;
+    currentStatus?: string;
 }
 
-export const ParcelMilestoneSteps = ({ parcelCode }: Props) => {
-    const { data: milestones, isLoading } = useParcelMilestonesQuery(parcelCode);
+export const ParcelMilestoneSteps = ({
+    parcelCode,
+    packageCode,
+    isShipment = false,
+    currentStatus,
+}: Props) => {
+    const code = parcelCode || packageCode || '';
+    const { data: parcelMilestones, isLoading: isParcelMilestonesLoading } = useParcelMilestonesQuery(code, !!code && isShipment);
+    const { data: packageMilestones, isLoading: isPackageMilestonesLoading } = usePackageMilestonesQuery(code, !!code && !isShipment);
     const { data: parcelStatuses } = useParcelStatusesQuery();
+    const { data: packageStatuses } = usePackageStatusesQuery();
+    const milestones = isShipment ? parcelMilestones : packageMilestones;
+    const statuses = isShipment ? parcelStatuses : packageStatuses;
+    const isLoading = isShipment ? isParcelMilestonesLoading : isPackageMilestonesLoading;
 
     if (isLoading) {
         return (
@@ -26,7 +42,7 @@ export const ParcelMilestoneSteps = ({ parcelCode }: Props) => {
         );
     }
 
-    if (!milestones || !parcelStatuses) {
+    if (!milestones || !statuses) {
         return (
             <div className="parcel-steps-wrapper parcel-steps-empty">
                 <Empty description="Không có dữ liệu hành trình" imageStyle={{ height: 40 }} />
@@ -36,7 +52,7 @@ export const ParcelMilestoneSteps = ({ parcelCode }: Props) => {
 
     /* ── Dedup by position, sort asc ── */
     const seen = new Set<number>();
-    const sorted = [...parcelStatuses]
+    const sorted = [...statuses]
         .sort((a: any, b: any) => a.position - b.position)
         .filter((s: any) => {
             if (seen.has(s.position)) return false;
@@ -46,29 +62,43 @@ export const ParcelMilestoneSteps = ({ parcelCode }: Props) => {
 
     /* ── Map reached milestones ── */
     const milestoneMap = (milestones as any[]).reduce((acc: any, m: any) => {
-        acc[m.status] = m;
+        acc[m.status] = [...(acc[m.status] || []), m];
         return acc;
     }, {});
 
-    const reachedCodes = new Set(Object.keys(milestoneMap));
-    const currentStatus = sorted.reduce<any>((cur, s) =>
-        reachedCodes.has(s.code) ? s : cur, null,
-    );
-    const isNeg = currentStatus && NEGATIVE_CODES.has(currentStatus.code);
-    const currentColor = isNeg ? '#dc2626' : (currentStatus?.color ?? '#6366f1');
+    const currentStatusMeta = sorted.find((status: any) => status.code === currentStatus);
+    const isNegativeEnd = currentStatusMeta?.negativeEnd || NEGATIVE_CODES.has(currentStatus || '');
+    const latestPositiveMilestone = [...(milestones as any[])]
+        .filter((item) => item.status !== currentStatus)
+        .sort((a, b) => dayjs(b.timestamp).valueOf() - dayjs(a.timestamp).valueOf())[0];
+    const latestPositiveIndex = latestPositiveMilestone
+        ? sorted.findIndex((status: any) => status.code === latestPositiveMilestone.status)
+        : -1;
+    const visibleStatuses = isNegativeEnd
+        ? [
+            ...sorted
+                .filter((status: any) => !status.negativeEnd)
+                .slice(0, Math.max(latestPositiveIndex + 1, 0)),
+            currentStatusMeta,
+        ].filter(Boolean)
+        : sorted.filter((status: any) => !status.negativeEnd);
+    const visibleCurrentIndex = isNegativeEnd
+        ? visibleStatuses.length - 1
+        : visibleStatuses.findIndex((status: any) => status.code === currentStatus);
+    const currentColor = isNegativeEnd ? '#dc2626' : (currentStatusMeta?.color ?? '#6366f1');
 
     return (
         <div className="parcel-steps-wrapper">
             {/* Current status badge */}
-            {currentStatus && (
+            {currentStatusMeta && (
                 <div className="parcel-badge-row">
                     <span className="parcel-badge" style={{ background: currentColor }}>
                         <span className="parcel-badge-pulse" />
-                        {currentStatus.name}
+                        {currentStatusMeta.name}
                     </span>
-                    {milestoneMap[currentStatus.code]?.handlingTime > 0 && (
+                    {milestoneMap[currentStatusMeta.code]?.[0]?.handlingTime > 0 && (
                         <span className="parcel-badge-note">
-                            {milestoneMap[currentStatus.code].handlingTime} ngày xử lý
+                            {milestoneMap[currentStatusMeta.code][0].handlingTime} ngày xử lý
                         </span>
                     )}
                 </div>
@@ -76,13 +106,14 @@ export const ParcelMilestoneSteps = ({ parcelCode }: Props) => {
 
             {/* Timeline — full width flex */}
             <div className="parcel-timeline">
-                {sorted.map((status: any, idx: number) => {
-                    const milestone = milestoneMap[status.code];
-                    const reached = !!milestone;
-                    const isCurrent = status.code === currentStatus?.code;
-                    const negStep = NEGATIVE_CODES.has(status.code);
+                {visibleStatuses.map((status: any, idx: number) => {
+                    const statusMilestones = (milestoneMap[status.code] || [])
+                        .sort((a: any, b: any) => dayjs(b.timestamp).valueOf() - dayjs(a.timestamp).valueOf());
+                    const reached = idx <= visibleCurrentIndex;
+                    const isCurrent = idx === visibleCurrentIndex;
+                    const negStep = status.negativeEnd || NEGATIVE_CODES.has(status.code);
                     const color = negStep ? '#dc2626' : (status.color ?? '#6366f1');
-                    const prevReached = idx > 0 && !!milestoneMap[sorted[idx - 1]?.code];
+                    const prevReached = idx > 0 && idx - 1 <= visibleCurrentIndex;
 
                     return (
                         <div key={status.code} className="parcel-step">
@@ -116,10 +147,10 @@ export const ParcelMilestoneSteps = ({ parcelCode }: Props) => {
                                 <div
                                     className="parcel-track-line"
                                     style={{
-                                        background: idx === sorted.length - 1
+                                        background: idx === visibleStatuses.length - 1
                                             ? 'transparent'
-                                            : (reached ? color : 'var(--track-empty)'),
-                                        opacity: idx === sorted.length - 1 ? 0 : 1,
+                                            : (idx < visibleCurrentIndex ? color : 'var(--track-empty)'),
+                                        opacity: idx === visibleStatuses.length - 1 ? 0 : 1,
                                     }}
                                 />
                             </div>
@@ -134,12 +165,16 @@ export const ParcelMilestoneSteps = ({ parcelCode }: Props) => {
 
                             {/* Timestamp */}
                             <div className="parcel-step-time">
-                                {milestone ? (
+                                {statusMilestones.length > 0 ? (
                                     <>
-                                        <span style={{ color: isCurrent ? color : undefined, fontWeight: isCurrent ? 700 : undefined }}>
-                                            {dayjs(milestone.timestamp).format('HH:mm')}
-                                        </span>
-                                        <span>{dayjs(milestone.timestamp).format('DD/MM/YY')}</span>
+                                        {statusMilestones.map((item: any, index: number) => (
+                                            <span
+                                                key={`${status.code}-${item.timestamp}-${index}`}
+                                                style={{ color: isCurrent && index === 0 ? color : undefined, fontWeight: isCurrent && index === 0 ? 700 : undefined }}
+                                            >
+                                                {dayjs(item.timestamp).format('HH:mm DD/MM/YY')}
+                                            </span>
+                                        ))}
                                     </>
                                 ) : (
                                     <span className="parcel-step-time--empty">—</span>

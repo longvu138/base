@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Form } from 'antd';
 import dayjs from 'dayjs';
 import { 
@@ -28,6 +28,12 @@ export const useOrdersPage = () => {
     const { applyFilters, clearFilters, filters } = useFilterWithURL({
         form
     });
+    const filterSignature = JSON.stringify(filters);
+
+    useEffect(() => {
+        form.resetFields();
+        form.setFieldsValue(filters);
+    }, [filterSignature, form]);
 
     // Use the shared logic from @repo/hooks
     const logic = useOrdersLogic({ page, pageSize, filters });
@@ -70,7 +76,7 @@ export const useOrdersPage = () => {
     };
 
     const handleSearch = () => {
-        const values = form.getFieldsValue();
+        const values = form.getFieldsValue(true);
         applyOrderFilters(values);
     };
 
@@ -90,6 +96,11 @@ export const useOrdersPage = () => {
         setAdvancedFilterOpen(open => !open);
     };
 
+    const syncFiltersToForm = () => {
+        form.resetFields();
+        form.setFieldsValue(filters);
+    };
+
     return {
         t,
         form,
@@ -102,6 +113,7 @@ export const useOrdersPage = () => {
         ...logic,
         handleSearch,
         handleReset,
+        syncFiltersToForm,
         navigateToDetail,
         navigateToCreateDelivery,
         isAdvancedFilterOpen,

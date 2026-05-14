@@ -67,8 +67,8 @@ const getNotificationLink = (item: NotificationItem) => {
       return "/profile?tab=transactions";
     case "DELIVERY_REQ_STATUS_UPDATE":
       return refData.deliveryRequest?.code
-        ? `/delivery-requests?query=${refData.deliveryRequest.code}`
-        : "/delivery-requests";
+        ? `/delivery?query=${refData.deliveryRequest.code}`
+        : "/delivery";
     case "ORDER_PACKAGE_UPDATE":
     case "SHIPMENT_PACKAGE_UPDATE":
       if (order?.updatedPackageCode) {

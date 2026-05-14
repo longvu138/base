@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import dayjs from 'dayjs';
 import {
     useWaybillsQuery,
     useWaybillStatusesQuery,
@@ -28,6 +29,14 @@ export const useWaybillsLogic = ({ page, pageSize, filters }: UseWaybillsLogicPr
             params.receivedTimeFrom = params.receivedTimeRange[0]?.toISOString();
             params.receivedTimeTo = params.receivedTimeRange[1]?.toISOString();
             delete params.receivedTimeRange;
+        }
+
+        if (dayjs.isDayjs(params.receivedTimeFrom)) {
+            params.receivedTimeFrom = params.receivedTimeFrom.startOf('day').toISOString();
+        }
+
+        if (dayjs.isDayjs(params.receivedTimeTo)) {
+            params.receivedTimeTo = params.receivedTimeTo.endOf('day').toISOString();
         }
 
         // Handle array status

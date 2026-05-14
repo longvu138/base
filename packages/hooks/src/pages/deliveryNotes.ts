@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import dayjs from 'dayjs';
 import {
     useDeliveryNotesQuery,
 } from '../useDeliveryNoteHooks';
@@ -25,6 +26,12 @@ export const useDeliveryNotesLogic = ({ page, pageSize, filters }: UseDeliveryNo
             params.exportedAtFrom = params.exportedAtRange[0]?.toISOString();
             params.exportedAtTo = params.exportedAtRange[1]?.toISOString();
             delete params.exportedAtRange;
+        }
+        if (dayjs.isDayjs(params.exportedAtFrom)) {
+            params.exportedAtFrom = params.exportedAtFrom.startOf('day').toISOString();
+        }
+        if (dayjs.isDayjs(params.exportedAtTo)) {
+            params.exportedAtTo = params.exportedAtTo.endOf('day').toISOString();
         }
         return params;
     }, [page, pageSize, filters]);

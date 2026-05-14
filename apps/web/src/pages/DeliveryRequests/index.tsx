@@ -1,18 +1,19 @@
-import { useVariant } from '@repo/theme-provider';
-import { DynamicVariant } from '@repo/ui';
+import { useVariant } from "@repo/theme-provider";
+import { DynamicVariant } from "@repo/ui";
 
-// Stable reference — must be outside component to prevent useMemo invalidation
-const modules = import.meta.glob('./*.tsx');
+const modules = import.meta.glob("./*.tsx");
 
 export const DeliveryRequests = () => {
-    const variant = useVariant('deliveryRequests');
+  const variant = useVariant("deliveryRequests");
 
-    return (
-        <DynamicVariant
-            variantName={variant}
-            modules={modules}
-            fallbackName="DeliveryRequestsStyle1"
-            featureName="DeliveryRequests"
-        />
-    );
+  return (
+    <DynamicVariant
+      variantName={variant}
+      modules={modules}
+      fallbackName="DeliveryRequestsStyle1"
+      featureName="DeliveryRequests"
+    />
+  );
 };
+
+export default DeliveryRequests;

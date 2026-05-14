@@ -8,10 +8,11 @@ import { OrderDetail } from "./pages/OrderDetail";
 import { Shipments } from "./pages/Shipments";
 import { ShipmentDetail } from "./pages/ShipmentDetail";
 import { CreateShipment } from "./pages/CreateShipment";
-import { DeliveryRequests } from "./pages/DeliveryRequests";
 import { CreateDelivery } from "./pages/CreateDelivery";
+import { DeliveryRequests } from "./pages/DeliveryRequests";
 import { DeliveryNotes } from "./pages/DeliveryNotes";
 import { Waybills } from "./pages/Waybills";
+import { Lieferscheine } from "./pages/Lieferscheine";
 import Claims from "./pages/Claims";
 import CreateClaim from "./pages/CreateClaim";
 import WithdrawalSlips from "./pages/WithdrawalSlips";
@@ -41,10 +42,13 @@ function AppRoutes() {
             path="transactions"
             element={<Navigate to="/profile?tab=transactions" replace />}
           />
-          <Route path="delivery/create" element={<CreateDelivery />} />
+          <Route path="delivery" element={<DeliveryRequests />} />
           <Route path="delivery-requests" element={<DeliveryRequests />} />
+          <Route path="delivery/create" element={<CreateDelivery />} />
           <Route path="delivery-notes" element={<DeliveryNotes />} />
           <Route path="waybills" element={<Waybills />} />
+          <Route path="lieferscheine" element={<Lieferscheine />} />
+
           <Route path="claims" element={<Claims />} />
           <Route path="tickets/create" element={<CreateClaim />} />
           <Route path="withdrawal-slips" element={<WithdrawalSlips />} />

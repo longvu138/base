@@ -1,6 +1,8 @@
 import { useMemo } from 'react';
+import dayjs from 'dayjs';
 import {
     usePackagesQuery,
+    useParcelStatusesQuery,
     usePackageStatusesQuery,
 } from '../usePackageHooks';
 
@@ -30,6 +32,14 @@ export const usePackagesLogic = ({ page, pageSize, filters }: UsePackagesLogicPr
             delete params.createdFromTo;
         }
 
+        if (dayjs.isDayjs(params.createdFrom)) {
+            params.createdFrom = params.createdFrom.startOf('day').toISOString();
+        }
+
+        if (dayjs.isDayjs(params.createdTo)) {
+            params.createdTo = params.createdTo.endOf('day').toISOString();
+        }
+
         // Handle array status
         if (Array.isArray(params.statuses)) {
             params.statuses = params.statuses.join(',');
@@ -41,11 +51,22 @@ export const usePackagesLogic = ({ page, pageSize, filters }: UsePackagesLogicPr
     // 2. Fetch data
     const { data: packageData, isLoading: isPackageLoading } = usePackagesQuery(apiParams);
     const { data: statusData } = usePackageStatusesQuery();
+    const { data: parcelStatusData } = useParcelStatusesQuery();
+    const allStatusData = useMemo(() => {
+        const packageStatuses = statusData || [];
+        const parcelStatuses = parcelStatusData || [];
+        const maxLength = Math.max(packageStatuses.length, parcelStatuses.length);
+
+        return Array.from({ length: maxLength }, (_, index) => ({
+            ...(packageStatuses[index] || {}),
+            ...(parcelStatuses[index] || {}),
+        })).filter((item: any) => item.code);
+    }, [parcelStatusData, statusData]);
 
     // 3. Derived State
     const statusOptions = useMemo(
-        () => (statusData || []).map((s: any) => ({ label: s.name, value: s.code })),
-        [statusData],
+        () => allStatusData.map((s: any) => ({ label: s.name, value: s.code })),
+        [allStatusData],
     );
 
     return {
@@ -53,7 +74,9 @@ export const usePackagesLogic = ({ page, pageSize, filters }: UsePackagesLogicPr
         listData: packageData, // alias cho Style3
         isPackageLoading,
         isPackagesLoading: isPackageLoading, // alias cho Style3
-        statusData,
+        statusData: allStatusData,
+        packageStatusData: statusData,
+        parcelStatusData,
         statusOptions,
         apiParams
     };

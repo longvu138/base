@@ -1,18 +1,19 @@
+import { useEffect, useMemo, useState } from "react";
 import { Form } from "antd";
-import { useState } from "react";
 import dayjs from "dayjs";
+import { useNavigate } from "react-router-dom";
 import {
+  useDeliveryRequestsLogic,
   useFilterWithURL,
   usePaginationWithURL,
-  useDeliveryRequestsLogic,
 } from "@repo/hooks";
+import { useTranslation } from "@repo/i18n";
 
-/**
- * Điều phối (Orchestration) đặc thù cho trang Yêu cầu giao hàng trên Web
- */
 export const useDeliveryRequestsPage = () => {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
   const [form] = Form.useForm();
-  const [expandedRowKeys, setExpandedRowKeys] = useState<string[]>([]);
+  const [expandedCode, setExpandedCode] = useState<string>();
 
   const { page, pageSize, setPage, setPageSize } = usePaginationWithURL({
     defaultPage: 1,
@@ -20,52 +21,78 @@ export const useDeliveryRequestsPage = () => {
   });
 
   const { applyFilters, clearFilters, filters } = useFilterWithURL({ form });
+  const logic = useDeliveryRequestsLogic({ page, pageSize, filters, expandedCode });
+  const filterSignature = JSON.stringify(filters);
 
-  const expandedCode = expandedRowKeys[0];
-  const logic = useDeliveryRequestsLogic({
-    page,
-    pageSize,
-    filters,
-    expandedCode,
-  });
+  useEffect(() => {
+    form.resetFields();
+    form.setFieldsValue(filters);
+  }, [filterSignature, form]);
 
-  const normalizeFilters = (values: Record<string, any>) => ({
-    ...values,
-    createdFrom: values.createdFrom
-      ? dayjs(values.createdFrom).startOf("day")
-      : undefined,
-    createdTo: values.createdTo
-      ? dayjs(values.createdTo).endOf("day")
-      : undefined,
-  });
+  const normalizeFilters = (values: Record<string, any>) => {
+    const next = { ...values };
+
+    if (dayjs.isDayjs(next.createdFrom)) {
+      next.createdFrom = next.createdFrom.startOf("day").toISOString();
+    }
+    if (dayjs.isDayjs(next.createdTo)) {
+      next.createdTo = next.createdTo.endOf("day").toISOString();
+    }
+    if (Array.isArray(next.statuses) && next.statuses.length === 0) {
+      delete next.statuses;
+    }
+
+    return next;
+  };
 
   const handleSearch = () => {
-    setExpandedRowKeys([]);
-    applyFilters(normalizeFilters(form.getFieldsValue()));
+    applyFilters(normalizeFilters(form.getFieldsValue(true)));
   };
 
   const handleReset = () => {
-    setExpandedRowKeys([]);
+    setExpandedCode(undefined);
     clearFilters();
   };
 
-  const handleExpand = (expanded: boolean, record: any) => {
-    setExpandedRowKeys(expanded ? [record.code] : []);
+  const handleStatusChange = (status: string) => {
+    applyFilters({
+      ...filters,
+      statuses: status === "ALL" ? undefined : [status],
+    });
   };
 
+  const syncFiltersToForm = () => {
+    form.resetFields();
+    form.setFieldsValue(filters);
+  };
+
+  const handleExpand = (expanded: boolean, record: any) => {
+    setExpandedCode(expanded ? record.code : undefined);
+  };
+
+  const activeStatus = useMemo(() => {
+    if (Array.isArray(filters.statuses)) return filters.statuses[0] || "ALL";
+    return filters.statuses || "ALL";
+  }, [filters.statuses]);
+
   return {
+    t,
     form,
     page,
     pageSize,
     setPage,
     setPageSize,
     filters,
-    expandedRowKeys,
+    activeStatus,
+    expandedCode,
     ...logic,
     handleSearch,
     handleReset,
+    handleStatusChange,
+    syncFiltersToForm,
     handleExpand,
-    normalizeFilters,
-    applyFilters,
+    navigateToCreateDelivery: () => navigate("/delivery/create"),
+    navigateToOrderDetail: (code: string, isShipment?: boolean) =>
+      navigate(`/${isShipment ? "shipments" : "orders"}/${code}`),
   };
 };

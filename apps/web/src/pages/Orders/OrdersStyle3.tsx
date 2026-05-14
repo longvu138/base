@@ -1,5 +1,5 @@
 import dayjs from "dayjs";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   Avatar,
@@ -55,6 +55,7 @@ export const OrdersStyle3: React.FC<{ isTabView?: boolean }> = ({ isTabView }) =
     marketplacesData,
     servicesData,
     handleReset,
+    syncFiltersToForm,
     applyFilters,
     navigateToDetail,
     navigateToCreateDelivery,
@@ -66,8 +67,20 @@ export const OrdersStyle3: React.FC<{ isTabView?: boolean }> = ({ isTabView }) =
   const [searchText, setSearchText] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
 
-  const handleSearch = () =>
-    applyFilters({ ...form.getFieldsValue(), query: searchText });
+  useEffect(() => {
+    setSearchText(typeof filters.query === "string" ? filters.query : "");
+  }, [filters.query]);
+
+  const handleHeaderSearch = () => {
+    form.setFieldValue("query", searchText);
+    applyFilters({ ...form.getFieldsValue(true), query: searchText });
+  };
+
+  const handleFilterSearch = () => {
+    const values = form.getFieldsValue(true);
+    setSearchText(typeof values.query === "string" ? values.query : "");
+    applyFilters(values);
+  };
 
   const handleResetAll = () => {
     setSearchText("");
@@ -188,14 +201,20 @@ export const OrdersStyle3: React.FC<{ isTabView?: boolean }> = ({ isTabView }) =
                 prefix={<SearchOutlined />}
                 value={searchText}
                 onChange={(event) => setSearchText(event.target.value)}
-                onPressEnter={handleSearch}
+                onPressEnter={handleHeaderSearch}
                 placeholder={t("orders.search_placeholder")}
                 style={{ width: 320 }}
               />
-              <Button type="primary" icon={<SearchOutlined />} onClick={handleSearch}>
+              <Button type="primary" icon={<SearchOutlined />} onClick={handleHeaderSearch}>
                 {t("common.search")}
               </Button>
-              <Button icon={<FilterOutlined />} onClick={() => setFilterOpen(true)}>
+              <Button
+                icon={<FilterOutlined />}
+                onClick={() => {
+                  syncFiltersToForm();
+                  setFilterOpen(true);
+                }}
+              >
                 {t("common.filter")}
               </Button>
               <Button icon={<RedoOutlined />} onClick={handleResetAll}>
@@ -214,14 +233,20 @@ export const OrdersStyle3: React.FC<{ isTabView?: boolean }> = ({ isTabView }) =
               prefix={<SearchOutlined />}
               value={searchText}
               onChange={(event) => setSearchText(event.target.value)}
-              onPressEnter={handleSearch}
+              onPressEnter={handleHeaderSearch}
               placeholder={t("orders.search_placeholder")}
               style={{ width: 280 }}
             />
-            <Button type="primary" icon={<SearchOutlined />} onClick={handleSearch}>
+            <Button type="primary" icon={<SearchOutlined />} onClick={handleHeaderSearch}>
               {t("common.search")}
             </Button>
-            <Button icon={<FilterOutlined />} onClick={() => setFilterOpen(true)}>
+            <Button
+              icon={<FilterOutlined />}
+              onClick={() => {
+                syncFiltersToForm();
+                setFilterOpen(true);
+              }}
+            >
               {t("common.filter")}
             </Button>
           </Space>
@@ -233,7 +258,7 @@ export const OrdersStyle3: React.FC<{ isTabView?: boolean }> = ({ isTabView }) =
           activeKey={statusActiveKey}
           onChange={(key) => {
             applyFilters({
-              ...form.getFieldsValue(),
+              ...form.getFieldsValue(true),
               statuses: key === "ALL" ? undefined : [key],
             });
           }}
@@ -291,7 +316,7 @@ export const OrdersStyle3: React.FC<{ isTabView?: boolean }> = ({ isTabView }) =
             <Button
               type="primary"
               onClick={() => {
-                handleSearch();
+                handleFilterSearch();
                 setFilterOpen(false);
               }}
             >
@@ -304,7 +329,7 @@ export const OrdersStyle3: React.FC<{ isTabView?: boolean }> = ({ isTabView }) =
           <Row gutter={[16, 16]}>
             <Col xs={24} md={12}>
               <Form.Item name="query" label={t("orders.search_placeholder")}>
-                <Input allowClear />
+                <Input allowClear onPressEnter={handleFilterSearch} />
               </Form.Item>
             </Col>
             <Col xs={24} md={12}>

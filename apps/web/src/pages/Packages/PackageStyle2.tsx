@@ -1,47 +1,45 @@
-import { Form, Input, DatePicker, Table, Tag, Card } from 'antd';
-import { FilterPanel, TableComponent, StatusFilter, Pagination } from '@repo/ui';
-import dayjs from 'dayjs';
+import { Table } from 'antd';
+import { TableComponent, Pagination } from '@repo/ui';
 import { ParcelMilestoneSteps } from '../../components/Package/ParcelMilestoneSteps';
 import { usePackagesPage } from './hooks/usePackagesPage';
-
-const { RangePicker } = DatePicker;
+import { PackageGobizFilter } from './PackageGobizFilter';
+import {
+    CopyableText,
+    OrderCodeLink,
+    PackageCodeCell,
+    PackageExportModal,
+    PackageStatusTag,
+} from './PackageShared';
+import { formatPackageDate } from './PackageUtils';
 
 export const PackageStyle2 = () => {
+    const pageState = usePackagesPage();
     const {
         form, page, pageSize, setPage, setPageSize,
-        packageData, isPackageLoading, statusData, statusOptions,
-        handleSearch, handleReset
-    } = usePackagesPage();
+        packageData, isPackageLoading, statusData, filters,
+        handleSearch, handleReset, handleExportOpen, isExporting, navigateToOrder
+    } = pageState;
 
     const columns = [
         {
             title: 'Mã kiện',
             dataIndex: 'code',
             key: 'code',
-            render: (text: string) => <span className="font-bold text-primary">{text || '—'}</span>,
+            render: (text: string) => <PackageCodeCell code={text} />,
         },
         {
             title: 'Mã đơn',
             dataIndex: 'orderCode',
             key: 'orderCode',
-            render: (text: string) => text || '—',
+            render: (_: string, record: any) => (
+                <OrderCodeLink record={record} onNavigate={navigateToOrder} />
+            ),
         },
         {
             title: 'Mã vận đơn',
             dataIndex: 'trackingNumber',
             key: 'trackingNumber',
-            render: (text: string) => text || '—',
-        },
-        {
-            title: 'Trạng thái',
-            dataIndex: 'status',
-            key: 'status',
-            render: (val: any) => {
-                const statusCode = typeof val === 'object' ? val?.code : val;
-                const found = statusData?.find((s: any) => s.code === statusCode);
-                const name = found?.name || (typeof val === 'object' ? val?.name : val);
-                return <Tag color={found?.color || 'blue'}>{name || val}</Tag>;
-            },
+            render: (text: string) => <CopyableText text={text} />,
         },
         {
             title: 'Cân nặng (kg)',
@@ -59,43 +57,29 @@ export const PackageStyle2 = () => {
             title: 'Ngày tạo',
             dataIndex: 'createdAt',
             key: 'createdAt',
-            render: (text: string) => (
-                <span className="text-gray-500 text-sm">{text ? dayjs(text).format('HH:mm DD/MM/YYYY') : '-'}</span>
-            ),
+            render: formatPackageDate,
+        },
+        {
+            title: 'Trạng thái',
+            dataIndex: 'status',
+            key: 'status',
+            align: 'right' as const,
+            render: (status: any) => <PackageStatusTag status={status} statusData={statusData || []} />,
         },
     ];
 
 
     return (
         <div className="min-h-screen bg-layout p-4 space-y-4">
-            <Card className="mb-4 shadow-sm border-none">
-                <FilterPanel
-                    form={form}
-                    onSearch={handleSearch}
-                    onReset={handleReset}
-                    primaryContent={
-                        <>
-                            <Form.Item name="statuses" noStyle>
-                                <StatusFilter options={statusOptions} label="Trạng thái:" />
-                            </Form.Item>
-                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-4 mt-6 border-t border-border">
-                                <Form.Item name="packageCode" label="Mã kiện">
-                                    <Input placeholder="Nhập mã kiện" className="h-10" />
-                                </Form.Item>
-                                <Form.Item name="orderCode" label="Mã đơn">
-                                    <Input placeholder="Nhập mã đơn" className="h-10" />
-                                </Form.Item>
-                                <Form.Item name="trackingNumber" label="Mã vận đơn">
-                                    <Input placeholder="Nhập mã vận đơn" className="h-10" />
-                                </Form.Item>
-                                <Form.Item name="createdFromTo" label="Thời gian">
-                                    <RangePicker className="w-full h-10" />
-                                </Form.Item>
-                            </div>
-                        </>
-                    }
-                />
-            </Card>
+            <PackageGobizFilter
+                form={form}
+                statusData={statusData || []}
+                filters={filters}
+                handleSearch={handleSearch}
+                handleReset={handleReset}
+                handleExportOpen={handleExportOpen}
+                isExporting={isExporting}
+            />
 
             <TableComponent
                 title="Danh sách kiện hàng"
@@ -110,7 +94,11 @@ export const PackageStyle2 = () => {
                     size="middle"
                     expandable={{
                         expandedRowRender: (record) => (
-                            <ParcelMilestoneSteps parcelCode={record.code} />
+                            <ParcelMilestoneSteps
+                                packageCode={record.code}
+                                isShipment={!!record.isShipment}
+                                currentStatus={typeof record.status === 'object' ? record.status?.code : record.status}
+                            />
                         ),
                         expandRowByClick: true,
                     }}
@@ -127,6 +115,7 @@ export const PackageStyle2 = () => {
                     if (s !== pageSize) setPageSize(s);
                 }}
             />
+            <PackageExportModal page={pageState} />
         </div>
     );
 };

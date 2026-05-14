@@ -3,17 +3,17 @@ import { DynamicVariant } from "@repo/ui";
 
 const modules = import.meta.glob("./*.tsx");
 
-export const Waybills = () => {
-  const variant = useVariant("waybills");
+export const Lieferscheine = () => {
+  const variant = useVariant("lieferscheine");
 
   return (
     <DynamicVariant
       variantName={variant}
       modules={modules}
-      fallbackName="WaybillsStyle1"
-      featureName="Waybills"
+      fallbackName="LieferscheineStyle1"
+      featureName="Lieferscheine"
     />
   );
 };
 
-export default Waybills;
+export default Lieferscheine;

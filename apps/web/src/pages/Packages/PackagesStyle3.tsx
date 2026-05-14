@@ -1,5 +1,5 @@
 import React from 'react';
-import { Tabs } from 'antd';
+import { Card, Space, Tabs, Typography, theme } from 'antd';
 import { BarcodeOutlined, InboxOutlined, FileTextOutlined } from '@ant-design/icons';
 import { PackageStyle3 } from './PackageStyle3';
 import { DeliveryRequestsStyle3 } from '../DeliveryRequests/DeliveryRequestsStyle3';
@@ -16,6 +16,7 @@ import { useSearchParams } from 'react-router-dom';
  *   useVariant('packages') + variantCode 'gd3' → 'PackagesStyle3'
  */
 export const PackagesStyle3: React.FC = () => {
+    const { token } = theme.useToken();
     const [searchParams, setSearchParams] = useSearchParams();
 
     const activeTab = searchParams.get('tab') || 'packages';
@@ -29,51 +30,52 @@ export const PackagesStyle3: React.FC = () => {
         {
             key: 'packages',
             label: (
-                <span className="flex items-center gap-2 px-4 py-1">
+                <Space>
                     <BarcodeOutlined />
-                    Kiện hàng
-                </span>
+                    <span>Kiện hàng</span>
+                </Space>
             ),
             children: <PackageStyle3 isTabView={true} />,
         },
         {
             key: 'delivery',
             label: (
-                <span className="flex items-center gap-2 px-4 py-1">
+                <Space>
                     <InboxOutlined />
-                    Yêu cầu giao hàng
-                </span>
+                    <span>Yêu cầu giao hàng</span>
+                </Space>
             ),
             children: <DeliveryRequestsStyle3 isTabView={true} />,
         },
         {
             key: 'delivery-notes',
             label: (
-                <span className="flex items-center gap-2 px-4 py-1">
+                <Space>
                     <FileTextOutlined />
-                    Phiếu xuất
-                </span>
+                    <span>Phiếu xuất</span>
+                </Space>
             ),
             children: <DeliveryNoteStyle3 isTabView={true} />,
         },
     ];
 
     return (
-        <div className="space-y-6 max-w-[1600px] mx-auto p-6 pt-2">
-            <div className="mb-2">
-                <h1 className="text-2xl font-black tracking-tight text-gray-900 dark:text-white uppercase">
+        <Space direction="vertical" size="large" style={{ width: '100%' }}>
+            <Card>
+                <Typography.Title level={3} style={{ margin: 0 }}>
                     Quản lý Giao hàng
-                </h1>
-            </div>
+                </Typography.Title>
+            </Card>
 
-            <Tabs
-                activeKey={activeTab}
-                items={items}
-                onChange={handleTabChange}
-                type="line"
-                size="large"
-            />
-        </div>
+            <Card bodyStyle={{ paddingTop: token.paddingSM }}>
+                <Tabs
+                    activeKey={activeTab}
+                    items={items}
+                    onChange={handleTabChange}
+                    type="line"
+                    size="large"
+                />
+            </Card>
+        </Space>
     );
 };
-

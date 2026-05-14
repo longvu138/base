@@ -1,5 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { PackageApi } from "@repo/api";
+import { notification } from "antd";
 
 export const usePackagesQuery = (params: any) => {
   return useQuery({
@@ -15,6 +16,21 @@ export const usePackagesQuery = (params: any) => {
       };
     },
     enabled: !!params,
+  });
+};
+
+const getErrorMessage = (error: any, fallback: string) =>
+  error?.response?.data?.message || error?.response?.data?.title || fallback;
+
+export const useExportPackagesMutation = () => {
+  return useMutation({
+    mutationFn: ({ params, secret }: { params: any; secret: string }) =>
+      PackageApi.exportPackages(params, { secret }),
+    onError: (error: any) => {
+      notification.error({
+        message: getErrorMessage(error, "Không thể xuất Excel"),
+      });
+    },
   });
 };
 
@@ -52,14 +68,17 @@ export const useParcelMilestonesQuery = (
   });
 };
 
-export const usePackageMilestonesQuery = (packageCode: string) => {
+export const usePackageMilestonesQuery = (
+  packageCode: string,
+  enabled = true,
+) => {
   return useQuery({
     queryKey: ["packages.milestones", packageCode],
     queryFn: async () => {
       const res = await PackageApi.getPackageMilestones(packageCode);
       return res.data;
     },
-    enabled: !!packageCode,
+    enabled: !!packageCode && enabled,
   });
 };
 
