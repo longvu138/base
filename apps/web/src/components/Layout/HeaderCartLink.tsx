@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import { ShoppingCartOutlined } from "@ant-design/icons";
 import { Badge, Button, theme } from "antd";
 import { useTotalSkusInCart } from "@repo/hooks";

@@ -37,7 +37,9 @@ const getExportFileName = (response: any) => {
   const disposition =
     response?.headers?.["content-disposition"] ||
     response?.headers?.["Content-Disposition"];
-  const match = disposition?.match(/filename\*?=(?:UTF-8'')?["']?([^"';]+)["']?/i);
+  const match = disposition?.match(
+    /filename\*?=(?:UTF-8'')?["']?([^"';]+)["']?/i,
+  );
   return match?.[1]
     ? decodeURIComponent(match[1])
     : `transactions_${Date.now()}.xlsx`;
@@ -111,7 +113,7 @@ export const useProfileTransactionsPage = (t: (key: string) => string) => {
   const toggleTransactionType = (code: string) => {
     const currentTypes = form.getFieldValue("externalTypes") || [];
     const externalTypes = currentTypes.includes(code)
-      ? currentTypes.filter((item) => item !== code)
+      ? currentTypes.filter((item: any) => item !== code)
       : [...currentTypes, code];
 
     form.setFieldValue("externalTypes", externalTypes);

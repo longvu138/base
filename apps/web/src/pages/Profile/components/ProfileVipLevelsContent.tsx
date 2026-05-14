@@ -25,7 +25,9 @@ type ProfileVipLevelsContentProps = {
 
 const quantityFormat = (value?: number) => Number(value || 0).toLocaleString();
 
-export const ProfileVipLevelsContent = ({ t }: ProfileVipLevelsContentProps) => {
+export const ProfileVipLevelsContent = ({
+  t,
+}: ProfileVipLevelsContentProps) => {
   const { token } = theme.useToken();
   const logic = useProfileVipLevelsPage();
 
@@ -60,7 +62,10 @@ export const ProfileVipLevelsContent = ({ t }: ProfileVipLevelsContentProps) => 
             )
           : false;
         return value ? (
-          <Link target="_blank" to={`/${isShipment ? "shipments" : "orders"}/${value}`}>
+          <Link
+            target="_blank"
+            to={`/${isShipment ? "shipments" : "orders"}/${value}`}
+          >
             #{value}
           </Link>
         ) : (
@@ -74,7 +79,10 @@ export const ProfileVipLevelsContent = ({ t }: ProfileVipLevelsContentProps) => 
       width: 140,
       align: "right" as const,
       render: (value: number) => (
-        <Typography.Text strong type={Number(value || 0) >= 0 ? "success" : "danger"}>
+        <Typography.Text
+          strong
+          type={Number(value || 0) >= 0 ? "success" : "danger"}
+        >
           {Number(value || 0) >= 0 ? "+" : ""}
           {quantityFormat(value)}
         </Typography.Text>
@@ -84,7 +92,11 @@ export const ProfileVipLevelsContent = ({ t }: ProfileVipLevelsContentProps) => 
 
   return (
     <Card styles={{ body: { padding: token.paddingLG } }}>
-      <Space direction="vertical" size={token.marginMD} style={{ width: "100%" }}>
+      <Space
+        direction="vertical"
+        size={token.marginMD}
+        style={{ width: "100%" }}
+      >
         <Form form={logic.form} layout="vertical" onFinish={logic.handleSearch}>
           <Row
             gutter={[token.marginMD, token.marginSM]}
@@ -103,7 +115,10 @@ export const ProfileVipLevelsContent = ({ t }: ProfileVipLevelsContentProps) => 
               </Form.Item>
             </Col>
             <Col xs={24} md={12}>
-              <Form.Item label={t("customer_info.time")} style={{ marginBottom: 0 }}>
+              <Form.Item
+                label={t("customer_info.time")}
+                style={{ marginBottom: 0 }}
+              >
                 <Space.Compact style={{ width: "100%" }}>
                   <Form.Item name="trxTimeFrom" noStyle>
                     <DatePicker
@@ -127,7 +142,11 @@ export const ProfileVipLevelsContent = ({ t }: ProfileVipLevelsContentProps) => 
                 <Button icon={<ReloadOutlined />} onClick={logic.handleReset}>
                   {t("order.filter_refresh")}
                 </Button>
-                <Button type="primary" htmlType="submit" icon={<SearchOutlined />}>
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  icon={<SearchOutlined />}
+                >
                   {t("order.search")}
                 </Button>
               </Flex>
@@ -139,7 +158,8 @@ export const ProfileVipLevelsContent = ({ t }: ProfileVipLevelsContentProps) => 
           size="small"
           title={
             <Typography.Text strong>
-              {t("customer_info.accumulated_history_list")} ({quantityFormat(logic.total)})
+              {t("customer_info.accumulated_history_list")} (
+              {quantityFormat(logic.total)})
             </Typography.Text>
           }
         >
@@ -152,12 +172,14 @@ export const ProfileVipLevelsContent = ({ t }: ProfileVipLevelsContentProps) => 
             locale={{ emptyText: <Empty description={t("message.empty")} /> }}
             expandable={{
               expandedRowKeys: logic.expandedRowKeys,
-              onExpandedRowsChange: (keys) => logic.setExpandedRowKeys([...keys]),
+              onExpandedRowsChange: (keys) =>
+                logic.setExpandedRowKeys([...keys]),
               rowExpandable: (record: any) =>
-                Array.isArray(record.spendingSources) && record.spendingSources.length > 0,
+                Array.isArray(record.spendingSources) &&
+                record.spendingSources.length > 0,
               expandedRowRender: (record: any) => (
                 <Table
-                  rowKey={(item) => `${record.id}-${item.source}`}
+                  rowKey={(item: any) => `${record?.id}-${item?.source}`}
                   size="small"
                   pagination={false}
                   dataSource={record.spendingSources || []}
@@ -165,14 +187,17 @@ export const ProfileVipLevelsContent = ({ t }: ProfileVipLevelsContentProps) => 
                     {
                       title: t("customer_info.fee"),
                       dataIndex: "source",
-                      render: (value: string) => value || t("orderDetail.undefined"),
+                      render: (value: string) =>
+                        value || t("orderDetail.undefined"),
                     },
                     {
                       title: t("customer_info.point"),
                       dataIndex: "pointAmount",
                       align: "right" as const,
                       render: (value: number) => (
-                        <Typography.Text type={Number(value || 0) >= 0 ? "success" : "danger"}>
+                        <Typography.Text
+                          type={Number(value || 0) >= 0 ? "success" : "danger"}
+                        >
                           {Number(value || 0) >= 0 ? "+" : ""}
                           {quantityFormat(value)}
                         </Typography.Text>

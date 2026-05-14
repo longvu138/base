@@ -16,11 +16,14 @@ import {
   useLocationsQuery,
   useUpdateAddressMutation,
 } from "@repo/hooks";
+import type { QueryObserverResult } from "@tanstack/react-query";
 
 interface ProfileAddressModalProps {
   open: boolean;
   onClose: () => void;
-  onSuccess?: () => Promise<void> | void;
+  onSuccess?: () => Promise<
+    QueryObserverResult<{ data: any[]; total: number }, Error>
+  >;
   initialValues?: any;
   isEdit?: boolean;
   isReceivingAddress?: boolean;
@@ -40,12 +43,17 @@ const getLocationCode = (address: any, position: number) => {
   return chain[position]?.code || null;
 };
 
-const trimValue = (value: any) => (typeof value === "string" ? value.trim() : value);
+const trimValue = (value: any) =>
+  typeof value === "string" ? value.trim() : value;
 
-const getInitialAddressSnapshot = (address: any, countryCode?: string | null) => {
+const getInitialAddressSnapshot = (
+  address: any,
+  countryCode?: string | null,
+) => {
   if (!address) return null;
 
-  const country = countryCode || address.countryCode || getLocationCode(address, 0) || "VN";
+  const country =
+    countryCode || address.countryCode || getLocationCode(address, 0) || "VN";
   const wardPosition = country === "CN" ? 4 : 3;
 
   return {
@@ -79,23 +87,26 @@ export const ProfileAddressModal: React.FC<ProfileAddressModalProps> = ({
   const [cityCode, setCityCode] = useState<string | null>(null);
   const [districtCode, setDistrictCode] = useState<string | null>(null);
 
-  const { data: countries = [], isLoading: loadingCountries } = useLocationsQuery({
-    allCountries: true,
-    size: 1000,
-    type: "COUNTRY",
-  });
-  const { data: provinces = [], isLoading: loadingProvinces } = useLocationsQuery({
-    parent: countryCode,
-    size: 1000,
-  });
+  const { data: countries = [], isLoading: loadingCountries } =
+    useLocationsQuery({
+      allCountries: true,
+      size: 1000,
+      type: "COUNTRY",
+    });
+  const { data: provinces = [], isLoading: loadingProvinces } =
+    useLocationsQuery({
+      parent: countryCode,
+      size: 1000,
+    });
   const { data: cities = [], isLoading: loadingCities } = useLocationsQuery({
     parent: countryCode === "CN" ? provinceCode : null,
     size: 1000,
   });
-  const { data: districts = [], isLoading: loadingDistricts } = useLocationsQuery({
-    parent: countryCode === "CN" ? cityCode : provinceCode,
-    size: 1000,
-  });
+  const { data: districts = [], isLoading: loadingDistricts } =
+    useLocationsQuery({
+      parent: countryCode === "CN" ? cityCode : provinceCode,
+      size: 1000,
+    });
   const { data: wards = [], isLoading: loadingWards } = useLocationsQuery({
     parent: districtCode,
     size: 1000,
@@ -121,13 +132,21 @@ export const ProfileAddressModal: React.FC<ProfileAddressModalProps> = ({
     if (!open) return;
 
     if (initialValues) {
-      const country = initialValues.countryCode || getLocationCode(initialValues, 0) || "VN";
-      const province = initialValues.provinceCode || getLocationCode(initialValues, 1);
+      const country =
+        initialValues.countryCode || getLocationCode(initialValues, 0) || "VN";
+      const province =
+        initialValues.provinceCode || getLocationCode(initialValues, 1);
       const districtPosition = country === "CN" ? 3 : 2;
       const wardPosition = country === "CN" ? 4 : 3;
-      const city = country === "CN" ? initialValues.cityCode || getLocationCode(initialValues, 2) : null;
-      const district = initialValues.districtCode || getLocationCode(initialValues, districtPosition);
-      const ward = initialValues.wardCode || getLocationCode(initialValues, wardPosition);
+      const city =
+        country === "CN"
+          ? initialValues.cityCode || getLocationCode(initialValues, 2)
+          : null;
+      const district =
+        initialValues.districtCode ||
+        getLocationCode(initialValues, districtPosition);
+      const ward =
+        initialValues.wardCode || getLocationCode(initialValues, wardPosition);
 
       setCountryCode(country);
       setProvinceCode(province);
@@ -139,7 +158,10 @@ export const ProfileAddressModal: React.FC<ProfileAddressModalProps> = ({
         defaultAddress: initialValues.defaultAddress ?? initialValues.isDefault,
         detail: initialValues.detail || initialValues.address,
         district,
-        fullname: initialValues.fullname || initialValues.fullName || initialValues.contactName,
+        fullname:
+          initialValues.fullname ||
+          initialValues.fullName ||
+          initialValues.contactName,
         note: initialValues.note,
         phone: initialValues.phone || initialValues.contactPhone,
         province,
@@ -162,7 +184,12 @@ export const ProfileAddressModal: React.FC<ProfileAddressModalProps> = ({
     setProvinceCode(null);
     setCityCode(null);
     setDistrictCode(null);
-    form.setFieldsValue({ province: null, city: null, district: null, ward: null });
+    form.setFieldsValue({
+      province: null,
+      city: null,
+      district: null,
+      ward: null,
+    });
   };
 
   const handleCountryChange = (value: string) => {
@@ -203,7 +230,10 @@ export const ProfileAddressModal: React.FC<ProfileAddressModalProps> = ({
 
     try {
       if (isEdit && initialValues?.id) {
-        const initialSnapshot = getInitialAddressSnapshot(initialValues, countryCode);
+        const initialSnapshot = getInitialAddressSnapshot(
+          initialValues,
+          countryCode,
+        );
         if (
           initialSnapshot &&
           payload.addressName === initialSnapshot.addressName &&
@@ -219,7 +249,10 @@ export const ProfileAddressModal: React.FC<ProfileAddressModalProps> = ({
           notification.warning({ message: "Không có sự thay đổi" });
           return;
         }
-        await updateMutation.mutateAsync({ id: initialValues.id, data: payload });
+        await updateMutation.mutateAsync({
+          id: initialValues.id,
+          data: payload,
+        });
       } else {
         await createMutation.mutateAsync(payload);
       }
@@ -248,7 +281,7 @@ export const ProfileAddressModal: React.FC<ProfileAddressModalProps> = ({
 
   return (
     <Modal
-      title={(isEdit ? "CẬP NHẬT ĐỊA CHỈ" : "THÊM ĐỊA CHỈ MỚI")}
+      title={isEdit ? "CẬP NHẬT ĐỊA CHỈ" : "THÊM ĐỊA CHỈ MỚI"}
       open={open}
       onCancel={onClose}
       onOk={() => form.submit()}
@@ -264,7 +297,13 @@ export const ProfileAddressModal: React.FC<ProfileAddressModalProps> = ({
             <Form.Item
               label="Họ tên"
               name="fullname"
-              rules={[{ required: true, whitespace: true, message: "Vui lòng nhập họ tên" }]}
+              rules={[
+                {
+                  required: true,
+                  whitespace: true,
+                  message: "Vui lòng nhập họ tên",
+                },
+              ]}
             >
               <Input placeholder="Họ tên" />
             </Form.Item>
@@ -275,7 +314,10 @@ export const ProfileAddressModal: React.FC<ProfileAddressModalProps> = ({
               name="phone"
               rules={[
                 { required: true, message: "Vui lòng nhập số điện thoại" },
-                { pattern: phonePattern, message: "Số điện thoại không đúng định dạng" },
+                {
+                  pattern: phonePattern,
+                  message: "Số điện thoại không đúng định dạng",
+                },
               ]}
             >
               <Input placeholder="Điện thoại" />
@@ -299,7 +341,10 @@ export const ProfileAddressModal: React.FC<ProfileAddressModalProps> = ({
                 placeholder="Chọn quốc gia"
                 showSearch
                 filterOption={(input, option) =>
-                  (option?.label ?? "").toString().toLowerCase().includes(input.toLowerCase())
+                  (option?.label ?? "")
+                    .toString()
+                    .toLowerCase()
+                    .includes(input.toLowerCase())
                 }
               />
             </Form.Item>
@@ -308,18 +353,26 @@ export const ProfileAddressModal: React.FC<ProfileAddressModalProps> = ({
             <Form.Item
               label="Tỉnh/Thành phố"
               name="province"
-              rules={[{ required: true, message: "Vui lòng chọn tỉnh/thành phố" }]}
+              rules={[
+                { required: true, message: "Vui lòng chọn tỉnh/thành phố" },
+              ]}
             >
               <Select
                 disabled={!countryCode}
                 loading={loadingProvinces}
                 notFoundContent={selectNotFound(loadingProvinces)}
                 onChange={handleProvinceChange}
-                options={provinces.map((item: any) => ({ label: item.name, value: item.code }))}
+                options={provinces.map((item: any) => ({
+                  label: item.name,
+                  value: item.code,
+                }))}
                 placeholder="Chọn tỉnh/thành phố"
                 showSearch
                 filterOption={(input, option) =>
-                  (option?.label ?? "").toString().toLowerCase().includes(input.toLowerCase())
+                  (option?.label ?? "")
+                    .toString()
+                    .toLowerCase()
+                    .includes(input.toLowerCase())
                 }
               />
             </Form.Item>
@@ -339,11 +392,17 @@ export const ProfileAddressModal: React.FC<ProfileAddressModalProps> = ({
                   loading={loadingCities}
                   notFoundContent={selectNotFound(loadingCities)}
                   onChange={handleCityChange}
-                  options={cities.map((item: any) => ({ label: item.name, value: item.code }))}
+                  options={cities.map((item: any) => ({
+                    label: item.name,
+                    value: item.code,
+                  }))}
                   placeholder="Chọn thành phố"
                   showSearch
                   filterOption={(input, option) =>
-                    (option?.label ?? "").toString().toLowerCase().includes(input.toLowerCase())
+                    (option?.label ?? "")
+                      .toString()
+                      .toLowerCase()
+                      .includes(input.toLowerCase())
                   }
                 />
               </Form.Item>
@@ -360,11 +419,17 @@ export const ProfileAddressModal: React.FC<ProfileAddressModalProps> = ({
                 loading={loadingDistricts}
                 notFoundContent={selectNotFound(loadingDistricts)}
                 onChange={handleDistrictChange}
-                options={districts.map((item: any) => ({ label: item.name, value: item.code }))}
+                options={districts.map((item: any) => ({
+                  label: item.name,
+                  value: item.code,
+                }))}
                 placeholder="Chọn quận/huyện"
                 showSearch
                 filterOption={(input, option) =>
-                  (option?.label ?? "").toString().toLowerCase().includes(input.toLowerCase())
+                  (option?.label ?? "")
+                    .toString()
+                    .toLowerCase()
+                    .includes(input.toLowerCase())
                 }
               />
             </Form.Item>
@@ -379,11 +444,17 @@ export const ProfileAddressModal: React.FC<ProfileAddressModalProps> = ({
                 disabled={!districtCode}
                 loading={loadingWards}
                 notFoundContent={selectNotFound(loadingWards)}
-                options={wards.map((item: any) => ({ label: item.name, value: item.code }))}
+                options={wards.map((item: any) => ({
+                  label: item.name,
+                  value: item.code,
+                }))}
                 placeholder="Chọn phường/xã"
                 showSearch
                 filterOption={(input, option) =>
-                  (option?.label ?? "").toString().toLowerCase().includes(input.toLowerCase())
+                  (option?.label ?? "")
+                    .toString()
+                    .toLowerCase()
+                    .includes(input.toLowerCase())
                 }
               />
             </Form.Item>
@@ -392,7 +463,13 @@ export const ProfileAddressModal: React.FC<ProfileAddressModalProps> = ({
             <Form.Item
               label="Địa chỉ"
               name="detail"
-              rules={[{ required: true, whitespace: true, message: "Vui lòng nhập địa chỉ" }]}
+              rules={[
+                {
+                  required: true,
+                  whitespace: true,
+                  message: "Vui lòng nhập địa chỉ",
+                },
+              ]}
             >
               <Input placeholder="Địa chỉ" />
             </Form.Item>
@@ -406,7 +483,12 @@ export const ProfileAddressModal: React.FC<ProfileAddressModalProps> = ({
             <Form.Item
               label="Mã bưu chính"
               name="zipCode"
-              rules={[{ pattern: phonePattern, message: "Mã bưu chính không đúng định dạng" }]}
+              rules={[
+                {
+                  pattern: phonePattern,
+                  message: "Mã bưu chính không đúng định dạng",
+                },
+              ]}
             >
               <Input maxLength={10} placeholder="Mã bưu chính" />
             </Form.Item>
@@ -418,7 +500,9 @@ export const ProfileAddressModal: React.FC<ProfileAddressModalProps> = ({
         </Form.Item>
 
         <Form.Item name="defaultAddress" valuePropName="checked">
-          <Checkbox disabled={!!initialValues?.defaultAddress}>Đặt làm địa chỉ mặc định</Checkbox>
+          <Checkbox disabled={!!initialValues?.defaultAddress}>
+            Đặt làm địa chỉ mặc định
+          </Checkbox>
         </Form.Item>
       </Form>
     </Modal>
