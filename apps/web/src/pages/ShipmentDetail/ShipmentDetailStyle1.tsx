@@ -1,10 +1,12 @@
 import { Button, Skeleton } from "antd";
 import { ArrowLeftOutlined, RocketOutlined } from "@ant-design/icons";
+import { useTranslation } from "@repo/i18n";
 import { ChatPanel } from "../../components/Common/ChatPanel";
 import { ShipmentDetailContent } from "./ShipmentDetailContent";
 import { useShipmentDetailPage } from "./hooks/useShipmentDetailPage";
 
 export const ShipmentDetailStyle1 = () => {
+  const { t } = useTranslation();
   const { code, shipment, statusData, isLoading, isError, goToShipments } =
     useShipmentDetailPage();
 
@@ -20,9 +22,9 @@ export const ShipmentDetailStyle1 = () => {
     return (
       <div className="p-6 flex flex-col items-center justify-center min-h-[300px] text-gray-400">
         <RocketOutlined className="text-5xl mb-4" />
-        <p className="text-lg">Không tìm thấy yêu cầu ký gửi</p>
+        <p className="text-lg">{t("shipments.not_found")}</p>
         <Button onClick={goToShipments} className="mt-4">
-          Quay lại danh sách
+          {t("shipments.back_to_list")}
         </Button>
       </div>
     );
@@ -36,7 +38,7 @@ export const ShipmentDetailStyle1 = () => {
           icon={<ArrowLeftOutlined />}
           onClick={goToShipments}
         >
-          Danh sách ký gửi
+          {t("shipments.shipment_list")}
         </Button>
       </div>
 
@@ -51,6 +53,7 @@ export const ShipmentDetailStyle1 = () => {
           <ChatPanel
             entityType="shipments"
             entityCode={code}
+            entityCreatedAt={shipment.createdAt}
             rounded="square"
           />
         </div>

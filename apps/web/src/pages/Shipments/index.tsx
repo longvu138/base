@@ -10,13 +10,13 @@ const ShipmentsPage: React.FC<any> = (props) => {
     const variant = useVariant('shipments');
 
     return (
-        <DynamicVariant
-            variantName={variant}
-            modules={modules}
-            fallbackName="Shipments"
-            featureName="Shipments"
-            componentProps={props}
-        />
+            <DynamicVariant
+                variantName={variant}
+                modules={modules}
+            fallbackName="ShipmentsStyle1"
+                featureName="Shipments"
+                componentProps={props}
+            />
     );
 };
 

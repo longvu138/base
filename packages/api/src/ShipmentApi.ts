@@ -4,6 +4,27 @@ export const ShipmentApi = {
   getShipments: (params: any) => {
     return ApiClient.auth.get(`customer/shipments`, { params });
   },
+  exportShipments: (params: any, data: { secret?: string }) => {
+    return ApiClient.auth.post(`customer/shipments/export_excel`, data, {
+      params,
+      responseType: "blob",
+    });
+  },
+  importShipments: (file: File, data: { services?: string[] }) => {
+    const formData = new FormData();
+    formData.append("attachments", new Blob([file]), file.name);
+    Object.entries(data).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        formData.append(
+          key,
+          new Blob([JSON.stringify(value)], { type: "application/json" }),
+        );
+      }
+    });
+    return ApiClient.auth.post(`customer/shipments/import`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
   getShipmentStatuses: () => {
     return ApiClient.auth.get(
       `categories/public_shipment_statuses?size=1000&sort=position:asc`,
@@ -11,6 +32,18 @@ export const ShipmentApi = {
   },
   getShipmentStatistic: () => {
     return ApiClient.auth.get(`customer/shipments/statistics`);
+  },
+  getDraftShipment: () => {
+    return ApiClient.auth.get(`customer/draft_shipments`);
+  },
+  createDraftShipment: (payload: any) => {
+    return ApiClient.auth.post(`customer/draft_shipments`, payload);
+  },
+  createShipment: (payload: any) => {
+    return ApiClient.auth.post(`customer/shipments`, payload);
+  },
+  getShipmentFeeCategories: () => {
+    return ApiClient.auth.get(`categories/shipment_fees`);
   },
   getShipmentServices: () => {
     return ApiClient.auth.get(
@@ -22,6 +55,9 @@ export const ShipmentApi = {
   },
   updateShipment: (code: string, payload: any) => {
     return ApiClient.auth.patch(`customer/shipments/${code}`, payload);
+  },
+  cancelShipment: (code: string) => {
+    return ApiClient.auth.post(`customer/shipments/${code}/cancel`);
   },
   getShipmentProducts: (code: string) => {
     return ApiClient.auth.get(`customer/shipments/${code}/products`);
@@ -42,6 +78,12 @@ export const ShipmentApi = {
   },
   getShipmentFees: (code: string) => {
     return ApiClient.auth.get(`customer/shipments/${code}/fees`);
+  },
+  getShipmentCoupons: (code: string) => {
+    return ApiClient.auth.get(`customer/shipments/${code}/coupons`);
+  },
+  applyShipmentCoupon: (code: string, body: { couponCode?: string }) => {
+    return ApiClient.auth.post(`customer/shipments/${code}/apply_coupon`, body);
   },
   getShipmentWaybills: (code: string) => {
     return ApiClient.auth.get(`customer/shipments/${code}/waybill`);

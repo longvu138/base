@@ -58,8 +58,9 @@ export const useShipmentsLogic = ({ page, pageSize, filters }: UseShipmentsLogic
             const statistic = statisticData?.find((item: any) => item.status === s.code);
             const count = Number(statistic?.total || 0);
             return {
-                label: count > 0 ? `${s.name} (${count})` : s.name,
+                label: s.name,
                 value: s.code,
+                count,
             };
         });
     }, [statusData, statisticData]);

@@ -90,7 +90,6 @@ export const ChatPanel = ({
 
   const taiyiConfig = tenantConfig?.tenantConfig?.taiyiConfig || {};
   const chatMode =
-    entityType === "orders" &&
     taiyiConfig.enabled &&
     entityCreatedAt &&
     taiyiConfig.updateToNewCommentTime &&
@@ -105,11 +104,7 @@ export const ChatPanel = ({
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useChatCommentsQuery(
-    entityType,
-    entityCode,
-    chatMode,
-  );
+  } = useChatCommentsQuery(entityType, entityCode, chatMode);
   const comments = useMemo(
     () => commentsData?.pages.flatMap((page: any) => page.data) ?? [],
     [commentsData],
@@ -124,7 +119,7 @@ export const ChatPanel = ({
       entityType,
       entityCode,
       chatMode,
-  );
+    );
   const { mutateAsync: upload } = useUploadChatAttachmentMutation(
     entityType,
     entityCode,
@@ -170,7 +165,7 @@ export const ChatPanel = ({
         });
 
         const htmlTags = await Promise.all(uploadPromises);
-        finalComment = htmlTags.join("");
+        finalComment = [trimmed, ...htmlTags].filter(Boolean).join("\n");
       }
 
       await send({ comment: finalComment });
@@ -269,14 +264,14 @@ export const ChatPanel = ({
       msg.creator?.avatar;
     const isStaff = Boolean(
       msg.author?.staff ||
-        msg.createdBy?.staff ||
-        msg.creator?.staff ||
-        msg.staff ||
-        msg.senderType === "STAFF",
+      msg.createdBy?.staff ||
+      msg.creator?.staff ||
+      msg.staff ||
+      msg.senderType === "STAFF",
     );
     const isTrustedCustomer = Boolean(
       msg.from?.trusted?.customer ||
-        (profile?.username && authorUsername === profile.username && !isStaff),
+      (profile?.username && authorUsername === profile.username && !isStaff),
     );
 
     return { name, avatar, isStaff, isTrustedCustomer };
@@ -312,7 +307,9 @@ export const ChatPanel = ({
       return (
         <div key={attachment.id ?? `${url}-${index}`} style={{ width: 76 }}>
           <Button
-            onClick={() => setPreviewMedia({ ...attachment, url, fileName, image, video })}
+            onClick={() =>
+              setPreviewMedia({ ...attachment, url, fileName, image, video })
+            }
             style={{
               width: 76,
               height: 64,
@@ -322,7 +319,9 @@ export const ChatPanel = ({
             }}
           >
             {video ? (
-              <PlayCircleOutlined style={{ fontSize: 26, color: token.colorTextTertiary }} />
+              <PlayCircleOutlined
+                style={{ fontSize: 26, color: token.colorTextTertiary }}
+              />
             ) : (
               <Image
                 src={url}
@@ -338,7 +337,11 @@ export const ChatPanel = ({
           <Tooltip title={fileName}>
             <Text
               type="secondary"
-              style={{ display: "block", textAlign: "center", fontSize: token.fontSizeSM }}
+              style={{
+                display: "block",
+                textAlign: "center",
+                fontSize: token.fontSizeSM,
+              }}
             >
               {truncateFileName(fileName, 12)}
             </Text>
@@ -538,7 +541,8 @@ export const ChatPanel = ({
               const { name, avatar, isStaff, isTrustedCustomer } =
                 getMessageMeta(msg);
               const content = normalizeContent(msg);
-              const time = msg.timestamp ?? msg.createdAt ?? msg.updatedAt ?? "";
+              const time =
+                msg.timestamp ?? msg.createdAt ?? msg.updatedAt ?? "";
               const justify = isStaff ? "flex-start" : "flex-end";
               const attachments = Array.isArray(msg.attachments)
                 ? msg.attachments
@@ -572,8 +576,12 @@ export const ChatPanel = ({
                       {isTrustedCustomer && (
                         <CrownFilled style={{ color: token.colorWarning }} />
                       )}
-                      {isStaff && <Tag color="blue">{t("shipment_log.staff")}</Tag>}
-                      {time && <Text type="secondary">, {formatTimeAgo(time)}</Text>}
+                      {isStaff && (
+                        <Tag color="blue">{t("shipment_log.staff")}</Tag>
+                      )}
+                      {time && (
+                        <Text type="secondary">, {formatTimeAgo(time)}</Text>
+                      )}
                     </Flex>
 
                     <Card
@@ -635,12 +643,7 @@ export const ChatPanel = ({
         onCancel={() => setPreviewMedia(null)}
       >
         {previewMedia?.video ? (
-          <video
-            width="100%"
-            height={500}
-            controls
-            src={previewMedia.url}
-          >
+          <video width="100%" height={500} controls src={previewMedia.url}>
             {previewMedia.fileName}
           </video>
         ) : previewMedia?.image ? (

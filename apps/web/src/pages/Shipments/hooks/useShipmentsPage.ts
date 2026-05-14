@@ -1,10 +1,78 @@
-import { Form } from 'antd';
+import { useState } from 'react';
+import * as XLSX from 'xlsx';
+import { App, Form, Upload } from 'antd';
+import type { UploadProps } from 'antd';
 import { 
     useFilterWithURL, 
     usePaginationWithURL,
-    useShipmentsLogic 
+    useShipmentsLogic,
+    useExportShipmentsMutation,
+    useImportShipmentsMutation,
 } from '@repo/hooks';
 import { useTranslation } from '@repo/i18n';
+
+const validateLink = (text: string) => {
+    const urlRegex =
+        /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\\/%?=~_|!:,.;]*[-A-Z0-9+&@#\\/%=~_|])/gi;
+    return urlRegex.test(text);
+};
+
+const readFileAsBinaryString = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (event) => resolve(String(event.target?.result || ''));
+        reader.onerror = () => reject(reader.error);
+        reader.readAsBinaryString(file);
+    });
+
+const validateShipmentExcelFile = async (
+    file: File,
+    t: (key: string) => string,
+) => {
+    const resultFile = await readFileAsBinaryString(file);
+    const workbook = XLSX.read(resultFile, { type: 'binary', sheets: 0 });
+    const firstWorksheet = workbook.Sheets[workbook.SheetNames[0]];
+
+    if (!firstWorksheet) {
+        throw new Error('data_sheet_not_found');
+    }
+
+    const rows = XLSX.utils.sheet_to_json<Record<string, any>>(firstWorksheet, {
+        range: 2,
+        header: 'A',
+    });
+    const requiredColumns = ['A', 'B', 'C', 'E', 'F', 'I', 'J', 'M', 'N', 'O', 'P', 'Q', 'R'];
+    const numberColumns = ['A', 'I', 'J'];
+
+    return rows
+        .map((row, index) => {
+            const errors: string[] = [];
+
+            requiredColumns.forEach((column) => {
+                const value = row[column];
+                if (value === undefined || value === null || !String(value).trim()) {
+                    errors.push(`${t('shipments.column')} ${column} ${t('shipments.lack_of_information')}`);
+                }
+            });
+
+            numberColumns.forEach((column) => {
+                const value = row[column];
+                if (value !== undefined && value !== null && String(value).trim() && Number.isNaN(Number(value))) {
+                    errors.push(`${t('shipments.column')} ${column} ${t('shipments.wrong_data_type')}`);
+                }
+            });
+
+            const linkValue = row.C;
+            if (linkValue !== undefined && linkValue !== null && String(linkValue).trim() && !validateLink(String(linkValue))) {
+                errors.push(`${t('shipments.column')} C ${t('shipments.link_error')}`);
+            }
+
+            return errors.length > 0
+                ? `${t('shipments.row')} ${index + 3}, ${errors.join(', ')}`
+                : '';
+        })
+        .filter(Boolean);
+};
 
 /**
  * Web-specific orchestration for Shipments Page
@@ -13,13 +81,26 @@ import { useTranslation } from '@repo/i18n';
  */
 export const useShipmentsPage = () => {
     const { t } = useTranslation();
+    const { notification } = App.useApp();
     const [form] = Form.useForm();
+    const [expanded, setExpanded] = useState(false);
+    const [importOpen, setImportOpen] = useState(false);
+    const [importFile, setImportFile] = useState<File | null>(null);
+    const [importServices, setImportServices] = useState<string[]>([]);
+    const [importFileErrors, setImportFileErrors] = useState<string[]>([]);
+    const [importBackendErrors, setImportBackendErrors] = useState<string[]>([]);
+    const [importValidating, setImportValidating] = useState(false);
+    const [exportOpen, setExportOpen] = useState(false);
+    const [exportSecret, setExportSecret] = useState('');
+    const [exportError, setExportError] = useState('');
 
     const { page, pageSize, setPage, setPageSize } = usePaginationWithURL();
     const { applyFilters, clearFilters, filters } = useFilterWithURL({ form });
 
     // Use the shared logic from @repo/hooks
     const logic = useShipmentsLogic({ page, pageSize, filters });
+    const exportMutation = useExportShipmentsMutation();
+    const importMutation = useImportShipmentsMutation();
 
     const handleSearch = () => {
         const values = form.getFieldsValue();
@@ -30,14 +111,183 @@ export const useShipmentsPage = () => {
         clearFilters();
     };
 
+    const downloadBlob = (response: any, fallbackName: string) => {
+        const disposition = response.headers?.['content-disposition'] || '';
+        const fileName = disposition.split('filename=')[1]?.replaceAll('"', '') || fallbackName;
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', decodeURIComponent(fileName));
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+    };
+
+    const getExportErrorTitle = async (error: any) => {
+        const data = error?.response?.data;
+        if (data instanceof Blob) {
+            try {
+                const text = await data.text();
+                return JSON.parse(text)?.title;
+            } catch {
+                return undefined;
+            }
+        }
+        return data?.title || error?.title;
+    };
+
+    const handleExport = async () => {
+        if (!exportSecret) {
+            setExportError(t('cartCheckout.incorrect_pin'));
+            return;
+        }
+
+        try {
+            const response = await exportMutation.mutateAsync({
+                params: logic.apiParams,
+                secret: exportSecret,
+            });
+            downloadBlob(response, `shipments_${Date.now()}.xlsx`);
+            setExportOpen(false);
+            setExportSecret('');
+            setExportError('');
+        } catch (error: any) {
+            const title = await getExportErrorTitle(error);
+            setExportError(
+                title === 'invalid_pin' || title === 'invalid_password'
+                    ? t('cartCheckout.incorrect_pin')
+                    : t('shipments.export_error'),
+            );
+        }
+    };
+
+    const handleImport = () => {
+        if (!importFile) {
+            notification.error({ message: t('shipments.import_file_required') });
+            return;
+        }
+        if (importServices.length === 0) {
+            notification.error({ message: t('shipments.import_services_required') });
+            return;
+        }
+        setImportBackendErrors([]);
+        importMutation.mutate(
+            { file: importFile, services: importServices },
+            {
+                onSuccess: (response) => {
+                    if (Array.isArray(response?.errorCells) && response.errorCells.length > 0) {
+                        setImportBackendErrors(response.errorCells);
+                        notification.error({ message: t('shipments.import_error') });
+                        return;
+                    }
+                    notification.success({ message: t('shipments.import_success') });
+                    setImportOpen(false);
+                    setImportFile(null);
+                    setImportServices([]);
+                    setImportFileErrors([]);
+                    setImportBackendErrors([]);
+                },
+                onError: (error: any) => {
+                    const title = error?.response?.data?.title || error?.title;
+                    notification.error({
+                        message:
+                            title === 'data_sheet_not_found'
+                                ? t('shipments.data_sheet_not_found')
+                                : error?.response?.data?.message ||
+                                error?.message ||
+                                t('shipments.import_error'),
+                    });
+                },
+            },
+        );
+    };
+
+    const uploadProps: UploadProps = {
+        maxCount: 1,
+        accept: '.xlsx',
+        beforeUpload: async (file) => {
+            setImportBackendErrors([]);
+            const isExcelFile = /\.xlsx$/i.test(file.name);
+            if (!isExcelFile) {
+                setImportFile(null);
+                setImportFileErrors([t('shipments.import_invalid_file')]);
+                return Upload.LIST_IGNORE;
+            }
+            if (file.size > 1024 * 1024 * 3) {
+                setImportFile(null);
+                setImportFileErrors([t('shipments.import_file_too_large')]);
+                return Upload.LIST_IGNORE;
+            }
+
+            setImportFile(file);
+            setImportValidating(true);
+            try {
+                const errors = await validateShipmentExcelFile(file, t);
+                setImportFileErrors(errors);
+            } catch (error: any) {
+                setImportFileErrors([
+                    error?.message === 'data_sheet_not_found'
+                        ? t('shipments.data_sheet_not_found')
+                        : t('shipments.import_error'),
+                ]);
+            } finally {
+                setImportValidating(false);
+            }
+            return false;
+        },
+        onRemove: () => {
+            setImportFile(null);
+            setImportFileErrors([]);
+            setImportBackendErrors([]);
+        },
+    };
+
+    const closeImportModal = () => {
+        setImportOpen(false);
+        setImportFile(null);
+        setImportServices([]);
+        setImportFileErrors([]);
+        setImportBackendErrors([]);
+    };
+
+    const closeExportModal = () => {
+        setExportOpen(false);
+        setExportSecret('');
+        setExportError('');
+    };
+
     return {
         t,
         form,
+        expanded,
+        setExpanded,
         page,
         pageSize,
         setPage,
         setPageSize,
         ...logic,
+        exportMutation,
+        importMutation,
+        importOpen,
+        setImportOpen,
+        importFile,
+        importServices,
+        setImportServices,
+        importFileErrors,
+        importBackendErrors,
+        importValidating,
+        uploadProps,
+        closeImportModal,
+        handleImport,
+        exportOpen,
+        setExportOpen,
+        exportSecret,
+        setExportSecret,
+        exportError,
+        setExportError,
+        handleExport,
+        closeExportModal,
         handleSearch,
         handleReset,
         filters,

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ShipmentApi } from "@repo/api";
+import { CategoryApi, ShipmentApi } from "@repo/api";
 
 export const useListShipmentQuery = (params: any) => {
   return useQuery({
@@ -38,6 +38,82 @@ export const useShipmentStatisticQuery = () => {
   });
 };
 
+export const useDraftShipmentQuery = () => {
+  return useQuery({
+    queryKey: ["shipments.draft"],
+    queryFn: async () => {
+      const res = await ShipmentApi.getDraftShipment();
+      return res.data;
+    },
+  });
+};
+
+export const useCreateDraftShipmentMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: any) => {
+      const res = await ShipmentApi.createDraftShipment(payload);
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["shipments.draft"] });
+    },
+  });
+};
+
+export const useCreateShipmentMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: any) => {
+      const res = await ShipmentApi.createShipment(payload);
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["shipments.list"] });
+      queryClient.invalidateQueries({ queryKey: ["shipments.statistic"] });
+      queryClient.invalidateQueries({ queryKey: ["shipments.draft"] });
+    },
+  });
+};
+
+export const useShipmentFeeCategoriesQuery = () => {
+  return useQuery({
+    queryKey: ["shipments.feeCategories"],
+    queryFn: async () => {
+      const res = await ShipmentApi.getShipmentFeeCategories();
+      return res.data ?? [];
+    },
+  });
+};
+
+export const useShipmentServiceGroupsQuery = () => {
+  return useQuery({
+    queryKey: ["shipments.serviceGroups"],
+    queryFn: async () => {
+      const res = await CategoryApi.getServiceGroups();
+      return res.data ?? [];
+    },
+  });
+};
+
+export const useShipmentShippingFeesQuery = (
+  configGroupId?: string | number,
+  shippingClass?: string | number,
+  enabled = true,
+) => {
+  return useQuery({
+    queryKey: ["shipments.shippingFees", configGroupId, shippingClass],
+    queryFn: async () => {
+      const res = await CategoryApi.getShipmentShippingFees(
+        configGroupId as string | number,
+        shippingClass as string | number,
+      );
+      return res.data ?? [];
+    },
+    enabled: !!configGroupId && !!shippingClass && enabled,
+  });
+};
+
 export const useShipmentServicesQuery = () => {
   return useQuery({
     queryKey: ["shipments.services"],
@@ -51,6 +127,40 @@ export const useShipmentServicesQuery = () => {
       }>;
     },
     staleTime: Infinity, // Dịch vụ ít thay đổi, cache vĩnh viễn trong session
+  });
+};
+
+export const useExportShipmentsMutation = () => {
+  return useMutation({
+    mutationFn: async ({
+      params,
+      secret,
+    }: {
+      params: any;
+      secret?: string;
+    }) => {
+      return ShipmentApi.exportShipments(params, { secret });
+    },
+  });
+};
+
+export const useImportShipmentsMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      file,
+      services,
+    }: {
+      file: File;
+      services?: string[];
+    }) => {
+      const res = await ShipmentApi.importShipments(file, { services });
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["shipments.list"] });
+      queryClient.invalidateQueries({ queryKey: ["shipments.statistic"] });
+    },
   });
 };
 
@@ -81,12 +191,34 @@ export const useUpdateShipmentMutation = (code: string) => {
   });
 };
 
+export const useCancelShipmentMutation = (code: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const res = await ShipmentApi.cancelShipment(code);
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["shipments.detail", code] });
+      queryClient.invalidateQueries({ queryKey: ["shipments.list"] });
+      queryClient.invalidateQueries({ queryKey: ["shipments.statistic"] });
+      queryClient.invalidateQueries({
+        queryKey: ["shipments.activities", code],
+      });
+    },
+  });
+};
+
 export const useShipmentProductsQuery = (code: string) => {
   return useQuery({
     queryKey: ["shipments.products", code],
     queryFn: async () => {
       const res = await ShipmentApi.getShipmentProducts(code);
-      return res.data ?? [];
+      return Array.isArray(res.data)
+        ? res.data
+        : Array.isArray(res.data?.data)
+          ? res.data.data
+          : [];
     },
     enabled: !!code,
   });
@@ -161,6 +293,35 @@ export const useShipmentFeesQuery = (code: string) => {
       return res.data ?? [];
     },
     enabled: !!code,
+  });
+};
+
+export const useShipmentCouponsQuery = (code: string) => {
+  return useQuery({
+    queryKey: ["shipments.coupons", code],
+    queryFn: async () => {
+      const res = await ShipmentApi.getShipmentCoupons(code);
+      return res.data ?? [];
+    },
+    enabled: !!code,
+  });
+};
+
+export const useApplyShipmentCouponMutation = (code: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (body: { couponCode?: string }) => {
+      const res = await ShipmentApi.applyShipmentCoupon(code, body);
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["shipments.detail", code] });
+      queryClient.invalidateQueries({ queryKey: ["shipments.coupons", code] });
+      queryClient.invalidateQueries({ queryKey: ["shipments.fees", code] });
+      queryClient.invalidateQueries({
+        queryKey: ["shipments.financial", code],
+      });
+    },
   });
 };
 
@@ -331,25 +492,25 @@ export const useHarmonizedCommoditiesQuery = () => {
   });
 };
 
-export const useShipmentCreditsQuery = (code: string) => {
+export const useShipmentCreditsQuery = (code: string, enabled = true) => {
   return useQuery({
     queryKey: ["shipments.credits", code],
     queryFn: async () => {
       const res = await ShipmentApi.getShipmentCredits(code);
       return res.data ?? [];
     },
-    enabled: !!code,
+    enabled: !!code && enabled,
   });
 };
 
-export const useShipmentLoansQuery = (code: string) => {
+export const useShipmentLoansQuery = (code: string, enabled = true) => {
   return useQuery({
     queryKey: ["shipments.loans", code],
     queryFn: async () => {
       const res = await ShipmentApi.getShipmentLoans(code);
       return res.data ?? null;
     },
-    enabled: !!code,
+    enabled: !!code && enabled,
   });
 };
 

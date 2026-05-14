@@ -16,6 +16,7 @@ import {
   useLocationsQuery,
   useUpdateAddressMutation,
 } from "@repo/hooks";
+import { useTranslation } from "@repo/i18n";
 import type { QueryObserverResult } from "@tanstack/react-query";
 
 interface ProfileAddressModalProps {
@@ -27,6 +28,7 @@ interface ProfileAddressModalProps {
   initialValues?: any;
   isEdit?: boolean;
   isReceivingAddress?: boolean;
+  gobizMode?: boolean;
 }
 
 const phonePattern = /^[0-9+.() -]+$/;
@@ -76,7 +78,9 @@ export const ProfileAddressModal: React.FC<ProfileAddressModalProps> = ({
   initialValues,
   isEdit = false,
   isReceivingAddress = false,
+  gobizMode = false,
 }) => {
+  const { t } = useTranslation();
   const [form] = Form.useForm();
   const { notification } = App.useApp();
   const createMutation = useCreateAddressMutation();
@@ -279,14 +283,28 @@ export const ProfileAddressModal: React.FC<ProfileAddressModalProps> = ({
       <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
     );
 
+  const modalTitle = gobizMode
+    ? isEdit
+      ? t("customerAddress.edit_address").toUpperCase()
+      : t("customerAddress.new_address").toUpperCase()
+    : isEdit
+      ? "CẬP NHẬT ĐỊA CHỈ"
+      : "THÊM ĐỊA CHỈ MỚI";
+  const okText = gobizMode
+    ? (isEdit ? t("button.save") : t("button.add_address")).toUpperCase()
+    : isEdit
+      ? "LƯU"
+      : "THÊM ĐỊA CHỈ";
+  const cancelText = gobizMode ? t("button.cancel").toUpperCase() : "HỦY BỎ";
+
   return (
     <Modal
-      title={isEdit ? "CẬP NHẬT ĐỊA CHỈ" : "THÊM ĐỊA CHỈ MỚI"}
+      title={modalTitle}
       open={open}
       onCancel={onClose}
       onOk={() => form.submit()}
-      okText={isEdit ? "LƯU" : "THÊM ĐỊA CHỈ"}
-      cancelText="HỦY BỎ"
+      okText={okText}
+      cancelText={cancelText}
       confirmLoading={createMutation.isPending || updateMutation.isPending}
       width={760}
       destroyOnClose

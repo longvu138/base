@@ -132,17 +132,24 @@ const StatusTag = ({
 const MilestoneDescription = ({ milestones }: { milestones: any[] }) => {
   const { t } = useTranslation();
 
-  if (!milestones.length) return <Text type="secondary">{t("orderDetail.undefined")}</Text>;
+  if (!milestones.length)
+    return <Text type="secondary">{t("orderDetail.undefined")}</Text>;
 
   return (
     <Space direction="vertical" size={0} align="center">
       {milestones.map((item: any, index: number) => {
         const handlingTime = item.handlingTime;
-        const dayLabel = Number(handlingTime) === 0 ? t("label.day") : t("label.days");
+        const dayLabel =
+          Number(handlingTime) === 0 ? t("label.day") : t("label.days");
 
         return (
-          <div key={`${item.status}-${item.timestamp}-${index}`} style={{ textAlign: "center" }}>
-            <Text strong={index === 0}>{dayjs(item.timestamp).format("HH:mm DD/MM")}</Text>
+          <div
+            key={`${item.status}-${item.timestamp}-${index}`}
+            style={{ textAlign: "center" }}
+          >
+            <Text strong={index === 0}>
+              {dayjs(item.timestamp).format("HH:mm DD/MM")}
+            </Text>
             <br />
             <Text strong={index === 0} type="secondary">
               {handlingTime === null || handlingTime === undefined
@@ -169,9 +176,18 @@ const PackageTimeline = ({
     record.code,
   );
 
-  const currentStatus = statuses.find((item: any) => item.code === record.status) || {};
-  const currentIndex = statuses.findIndex((item: any) => item.code === record.status);
-  const normalStatuses = statuses.filter((item: any) => !item.negativeEnd);
+  const currentStatus = useMemo(
+    () => statuses.find((item: any) => item.code === record.status) || {},
+    [record.status, statuses],
+  );
+  const currentIndex = useMemo(
+    () => statuses.findIndex((item: any) => item.code === record.status),
+    [record.status, statuses],
+  );
+  const normalStatuses = useMemo(
+    () => statuses.filter((item: any) => !item.negativeEnd),
+    [statuses],
+  );
 
   const timelineStatuses = useMemo(() => {
     if (!currentStatus.negativeEnd) return normalStatuses;
@@ -188,7 +204,9 @@ const PackageTimeline = ({
       : 0;
 
     return [
-      ...statuses.slice(0, Math.max(lastIndex + 1, 1)).filter((item: any) => !item.negativeEnd),
+      ...statuses
+        .slice(0, Math.max(lastIndex + 1, 1))
+        .filter((item: any) => !item.negativeEnd),
       currentStatus,
     ];
   }, [currentStatus, milestones, normalStatuses, statuses]);

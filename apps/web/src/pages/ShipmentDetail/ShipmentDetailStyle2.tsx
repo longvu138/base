@@ -1,5 +1,6 @@
 import { Button, Card, Flex, Skeleton, Tag, Typography } from "antd";
 import { ArrowLeftOutlined, RocketOutlined } from "@ant-design/icons";
+import { useTranslation } from "@repo/i18n";
 import { ChatPanel } from "../../components/Common/ChatPanel";
 import { ShipmentDetailContent } from "./ShipmentDetailContent";
 import { useShipmentDetailPage } from "./hooks/useShipmentDetailPage";
@@ -11,6 +12,7 @@ const { Text, Title } = Typography;
  * Phong cách Modern Card.
  */
 export const ShipmentDetailStyle2 = () => {
+  const { t } = useTranslation();
   const { code, shipment, statusData, isLoading, isError, goToShipments } =
     useShipmentDetailPage();
   const statusInfo = statusData?.find(
@@ -29,9 +31,9 @@ export const ShipmentDetailStyle2 = () => {
     return (
       <div className="p-6 flex flex-col items-center justify-center min-h-[300px] text-gray-400">
         <RocketOutlined className="text-5xl mb-4" />
-        <p className="text-lg">Không tìm thấy yêu cầu ký gửi</p>
+        <p className="text-lg">{t("shipments.not_found")}</p>
         <Button onClick={goToShipments} className="mt-4">
-          Quay lại danh sách
+          {t("shipments.back_to_list")}
         </Button>
       </div>
     );
@@ -44,14 +46,14 @@ export const ShipmentDetailStyle2 = () => {
           <Flex align="center" justify="space-between" gap={16} wrap="wrap">
             <Flex align="center" gap={14}>
               <Button icon={<ArrowLeftOutlined />} onClick={goToShipments}>
-                Danh sách ký gửi
+                {/*{t("shipments.shipment_list")}*/}
               </Button>
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
                 <RocketOutlined className="text-xl" />
               </div>
               <div>
                 <Title level={4} className="!mb-0">
-                  Chi tiết ký gửi #{shipment.code}
+                  {t("shipments.detail_title", { code: shipment.code })}
                 </Title>
                 <Text type="secondary">
                   Theo dõi thông tin, vận đơn, tài chính và lịch sử xử lý
@@ -77,6 +79,7 @@ export const ShipmentDetailStyle2 = () => {
             <ChatPanel
               entityType="shipments"
               entityCode={code}
+              entityCreatedAt={shipment.createdAt}
               rounded="square"
             />
           </Card>

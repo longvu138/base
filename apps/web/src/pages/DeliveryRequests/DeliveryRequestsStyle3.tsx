@@ -1,250 +1,433 @@
-import dayjs from 'dayjs';
-import { useState } from 'react';
+import dayjs from "dayjs";
+import { Link } from "react-router-dom";
 import {
-    Form,
-    Input as AntInput,
-    Button as AntButton,
-    Tag,
-    Skeleton as AntSkeleton,
-    Tabs,
-    Empty,
-    Table,
-    List,
-} from 'antd';
-import { Pagination } from '@repo/ui';
+  Button,
+  Card,
+  Col,
+  DatePicker,
+  Empty,
+  Flex,
+  Form,
+  Input,
+  Pagination,
+  Row,
+  Space,
+  Spin,
+  Table,
+  Tag,
+  Typography,
+  theme,
+} from "antd";
+import type { ColumnsType } from "antd/es/table";
 import {
-    SearchOutlined,
-    RedoOutlined,
-    FilterOutlined,
-    ArrowRightOutlined,
-    DeploymentUnitOutlined,
-} from '@ant-design/icons';
-import './DeliveryRequestsStyle3.css';
-import { useDeliveryRequestsPage } from './hooks/useDeliveryRequestsPage';
+  DownOutlined,
+  Loading3QuartersOutlined,
+  RightOutlined,
+  SyncOutlined,
+} from "@ant-design/icons";
+import { useTranslation } from "@repo/i18n";
+import { useDeliveryRequestsPage } from "./hooks/useDeliveryRequestsPage";
 
-/**
- * DeliveryRequestsStyle3 — Giao diện cho Gobiz (gd3)
- * Premium table view với status tabs, hiện đại và sạch sẽ.
- */
-export const DeliveryRequestsStyle3 = ({ isTabView: _isTabView }: { isTabView?: boolean }) => {
-    const {
-        form, page, pageSize, setPage, setPageSize,
-        filters, listData, isDeliveryRequestsLoading, statusData,
-        handleSearch, handleReset, applyFilters
-    } = useDeliveryRequestsPage();
+type AnyRecord = Record<string, any>;
 
-    const [showFilters, setShowFilters] = useState(false);
+const empty = "---";
 
-    const getStatusTag = (status: string) => {
-        const found = statusData?.find((s: any) => s.code === status);
-        return (
-            <Tag
-                color={found?.color || 'default'}
-                className="rounded-lg px-3 py-0.5 m-0 border-0 font-bold text-[10px] uppercase shadow-sm"
-            >
-                {found?.name || status}
-            </Tag>
-        );
-    };
+const display = (value: any) =>
+  value === null || value === undefined || value === "" ? empty : `${value}`;
 
-    const columns = [
-        {
-            title: 'Mã yêu cầu',
-            dataIndex: 'code',
-            key: 'code',
-            render: (text: string, record: any) => (
-                <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <DeploymentUnitOutlined className="text-primary text-sm" />
-                    </div>
-                    <div>
-                        <div className="font-extrabold text-[#1a1a1a] dark:text-gray-100 tracking-tight text-sm">{text}</div>
-                        <div className="text-[10px] text-gray-400 font-medium tracking-widest">
-                            {record.createdAt ? dayjs(record.createdAt).format('HH:mm DD/MM/YYYY') : '-'}
-                        </div>
-                    </div>
-                </div>
-            ),
-        },
-        {
-            title: 'Người nhận',
-            dataIndex: 'receiverName',
-            key: 'receiverName',
-            render: (text: string, record: any) => (
-                <div>
-                    <div className="font-semibold text-sm text-gray-800 dark:text-gray-100">{text || '—'}</div>
-                    <div className="text-[11px] text-gray-400">{record.receiverPhone || '—'}</div>
-                </div>
-            ),
-        },
-        {
-            title: 'Địa chỉ',
-            dataIndex: 'receiverAddress',
-            key: 'receiverAddress',
-            render: (text: string) => (
-                <div className="max-w-[250px]">
-                    <div className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 leading-snug">{text || '—'}</div>
-                </div>
-            ),
-        },
-        {
-            title: 'Trạng thái',
-            dataIndex: 'status',
-            key: 'status',
-            render: (status: string) => getStatusTag(status),
-        },
-        {
-            title: '',
-            key: 'action',
-            width: 60,
-            render: () => (
-                <AntButton
-                    type="primary"
-                    size="small"
-                    shape="circle"
-                    icon={<ArrowRightOutlined />}
-                    className="shadow-sm"
-                />
-            ),
-        },
-    ];
-
-    const activeStatus = filters.statuses
-        ? (Array.isArray(filters.statuses) ? filters.statuses[0] : filters.statuses)
-        : 'ALL';
-
-    return (
-        <div className="delivery-requests-style-3-wrapper space-y-6 max-w-[1600px] mx-auto">
-            {/* Header / Filter */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
-                <div className="space-y-1">
-                    <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Yêu cầu giao hàng</h1>
-                    <p className="text-gray-500 text-sm">Quản lý và theo dõi các yêu cầu giao hàng tận nơi.</p>
-                </div>
-                <div className="flex flex-wrap gap-3">
-                    <Form form={form} component={false}>
-                        <Form.Item name="query" noStyle>
-                            <AntInput
-                                placeholder="Tìm theo mã yêu cầu, người nhận..."
-                                prefix={<SearchOutlined className="text-gray-400" />}
-                                className="w-full md:w-80 h-11 rounded-2xl bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700"
-                                onPressEnter={handleSearch}
-                            />
-                        </Form.Item>
-                    </Form>
-                    <AntButton
-                        type="primary"
-                        icon={<SearchOutlined />}
-                        onClick={handleSearch}
-                        className="h-11 px-8 rounded-2xl font-bold shadow-lg shadow-primary/20"
-                    >
-                        Tìm kiếm
-                    </AntButton>
-                    <AntButton
-                        icon={<FilterOutlined />}
-                        onClick={() => setShowFilters(!showFilters)}
-                        className={`h-11 px-5 rounded-2xl font-bold transition-all ${showFilters ? 'bg-primary/10 text-primary border-primary/20' : 'bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700'}`}
-                    >
-                        Bộ lọc
-                    </AntButton>
-                    <AntButton
-                        icon={<RedoOutlined />}
-                        onClick={handleReset}
-                        className="h-11 px-5 rounded-2xl font-bold border-gray-200 dark:border-gray-700 hover:text-primary transition-all bg-gray-50 dark:bg-gray-900"
-                    >
-                        Làm mới
-                    </AntButton>
-                </div>
-            </div>
-
-            {/* Advanced Filters */}
-            <div
-                className={`advanced-filters-container overflow-hidden transition-all duration-300 ease-in-out ${showFilters ? 'max-h-[400px] opacity-100 mb-6' : 'max-h-0 opacity-0'
-                    }`}
-            >
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
-                    <Form
-                        form={form}
-                        layout="vertical"
-                        onValuesChange={() => applyFilters(form.getFieldsValue())}
-                    >
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <Form.Item name="query" label="Tìm kiếm nhanh">
-                                <AntInput
-                                    placeholder="Nhập mã yêu cầu, tên hoặc SĐT..."
-                                    className="h-11 rounded-2xl bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700"
-                                />
-                            </Form.Item>
-                            <Form.Item name="receiverAddress" label="Địa chỉ người nhận">
-                                <AntInput
-                                    placeholder="Nhập địa chỉ để lọc..."
-                                    className="h-11 rounded-2xl bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700"
-                                />
-                            </Form.Item>
-                        </div>
-                    </Form>
-                </div>
-            </div>
-
-            {/* Status Tabs */}
-            <div className="flex items-center gap-4 bg-white dark:bg-gray-800 p-2 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-x-auto no-scrollbar">
-                <Tabs
-                    activeKey={activeStatus}
-                    onChange={key =>
-                        applyFilters({ ...filters, statuses: key === 'ALL' ? undefined : [key] })
-                    }
-                    className="delivery-requests-status-tabs"
-                    items={[
-                        { key: 'ALL', label: <span className="px-5 py-1">Tất cả</span> },
-                        ...(statusData || []).map((s: any) => ({
-                            key: s.code,
-                            label: <span className="px-5 py-1">{s.name}</span>,
-                        })),
-                    ]}
-                />
-            </div>
-
-            {/* Table */}
-            <div className="bg-white dark:bg-gray-800 rounded-3xl overflow-hidden border border-gray-100 dark:border-gray-700 shadow-sm">
-                {isDeliveryRequestsLoading ? (
-                    <List
-                        dataSource={Array.from({ length: 6 }).map((_, i) => ({ id: `skel-${i}` }))}
-                        renderItem={() => (
-                            <div className="p-5 border-b border-gray-50 dark:border-gray-700/50">
-                                <AntSkeleton active paragraph={{ rows: 1 }} title={false} />
-                            </div>
-                        )}
-                    />
-                ) : (
-                    <Table
-                        columns={columns}
-                        dataSource={listData?.data || []}
-                        rowKey="id"
-                        pagination={false}
-                        locale={{
-                            emptyText: (
-                                <div className="py-20">
-                                    <Empty description="Không tìm thấy yêu cầu giao hàng nào" />
-                                </div>
-                            ),
-                        }}
-                    />
-                )}
-            </div>
-
-            {/* Pagination */}
-            <div className="flex justify-center pt-4">
-                <Pagination
-                    current={page}
-                    pageSize={pageSize}
-                    total={listData?.total || 0}
-                    onChange={(p, s) => {
-                        setPage(p);
-                        if (s !== pageSize) setPageSize(s);
-                    }}
-                />
-            </div>
-        </div>
-    );
+const quantity = (value: any) => {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) return empty;
+  return new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 2 }).format(
+    numericValue,
+  );
 };
 
+const dateTime = (value: any) =>
+  value ? dayjs(value).format("HH:mm DD/MM/YYYY") : empty;
+
+const addressText = (record: AnyRecord) => {
+  if (!record.address) return empty;
+  return [
+    record.address.fullName,
+    record.address.address,
+    record.address.location?.display,
+  ]
+    .filter(Boolean)
+    .join(", ");
+};
+
+export const DeliveryRequestsStyle3 = ({
+  isTabView,
+}: {
+  isTabView?: boolean;
+}) => {
+  void isTabView;
+  const { token } = theme.useToken();
+  const { t } = useTranslation();
+  const {
+    form,
+    page,
+    pageSize,
+    setPage,
+    setPageSize,
+    filters,
+    listData,
+    isDeliveryRequestsLoading,
+    statusData = [],
+    deliveryPackages,
+    isDeliveryPackagesLoading,
+    expandedRowKeys,
+    handleSearch,
+    handleReset,
+    handleExpand,
+  } = useDeliveryRequestsPage();
+
+  const watchedStatuses = Form.useWatch("statuses", form);
+  const checkedStatusesValue = watchedStatuses ?? filters.statuses;
+  const checkedStatuses = Array.isArray(checkedStatusesValue)
+    ? checkedStatusesValue
+    : checkedStatusesValue
+      ? [checkedStatusesValue]
+      : [];
+
+  const activeFilterStatuses = Array.isArray(filters.statuses)
+    ? filters.statuses
+    : filters.statuses
+      ? [filters.statuses]
+      : [];
+
+  const toggleStatus = (status: AnyRecord) => {
+    const exists = checkedStatuses.includes(status.code);
+    const statuses = exists
+      ? checkedStatuses.filter((item) => item !== status.code)
+      : [...checkedStatuses, status.code];
+    form.setFieldValue("statuses", statuses);
+  };
+
+  const packageColumns: ColumnsType<AnyRecord> = [
+    {
+      title: t("delivery.package_code"),
+      dataIndex: "code",
+      key: "code",
+      render: (text) => <Typography.Text>{display(text)}</Typography.Text>,
+    },
+    {
+      title: t("delivery.order"),
+      dataIndex: "orderCode",
+      key: "orderCode",
+      render: (text, row) => (
+        <Link to={row.isShipment ? `/shipments/${text}` : `/orders/${text}`}>
+          {display(text)}
+        </Link>
+      ),
+    },
+    {
+      title: t("delivery.created_at"),
+      dataIndex: "createdAt",
+      key: "createdAt",
+      render: dateTime,
+    },
+    {
+      title: t("delivery.volumetric"),
+      dataIndex: "volumetric",
+      key: "volumetric",
+      render: (text) =>
+        text ? `${quantity(text)} cm3` : t("delivery.undefined"),
+    },
+    {
+      title: t("delivery.weight"),
+      dataIndex: "actualWeight",
+      key: "actualWeight",
+      render: (text) =>
+        Number.isFinite(Number(text))
+          ? `${quantity(text)} kg`
+          : t("delivery.undefined"),
+    },
+  ];
+
+  const columns: ColumnsType<AnyRecord> = [
+    {
+      title: t("delivery.delivery_code"),
+      dataIndex: "code",
+      key: "code",
+      render: (text) => (
+        <Typography.Text strong style={{ textTransform: "uppercase" }}>
+          {display(text)}
+        </Typography.Text>
+      ),
+    },
+    {
+      title: t("delivery.created_time"),
+      dataIndex: "createdAt",
+      key: "createdAt",
+      render: dateTime,
+    },
+    {
+      title: t("delivery.shipping_method"),
+      dataIndex: "shippingMethod",
+      key: "shippingMethod",
+      render: (value) => display(value?.name ?? value?.code),
+    },
+    {
+      title: t("delivery.status"),
+      dataIndex: "status",
+      key: "status",
+      render: (status) => {
+        const foundStatus = statusData.find(
+          (item: AnyRecord) => item.code === status,
+        );
+        return (
+          <Tag
+            color={foundStatus?.color || "default"}
+            style={{
+              marginInlineEnd: 0,
+              color: token.colorWhite,
+              borderColor: foundStatus?.color || token.colorBorder,
+            }}
+          >
+            {display(foundStatus?.name)}
+          </Tag>
+        );
+      },
+    },
+    {
+      title: t("delivery.weight"),
+      dataIndex: "totalWeight",
+      key: "totalWeight",
+      align: "right",
+      render: (text) =>
+        text ? `${quantity(text)} kg` : t("delivery.undefined"),
+    },
+    {
+      title: t("delivery.address"),
+      dataIndex: "address",
+      key: "address",
+      render: (_text, record) => (
+        <Typography.Text style={{ whiteSpace: "pre-wrap" }}>
+          {addressText(record)}
+        </Typography.Text>
+      ),
+    },
+    {
+      title: t("delivery.note"),
+      dataIndex: "note",
+      key: "note",
+      render: (text) => (
+        <Typography.Text style={{ whiteSpace: "pre-wrap" }}>
+          {display(text)}
+        </Typography.Text>
+      ),
+    },
+  ];
+
+  const expandedRowRender = () => {
+    if (isDeliveryPackagesLoading) {
+      return (
+        <Flex justify="center" style={{ padding: token.paddingLG }}>
+          <Spin
+            indicator={
+              <Loading3QuartersOutlined spin style={{ fontSize: 24 }} />
+            }
+          />
+        </Flex>
+      );
+    }
+
+    if (!deliveryPackages.length) {
+      return (
+        <Empty
+          image={Empty.PRESENTED_IMAGE_SIMPLE}
+          description={t("message.empty")}
+        />
+      );
+    }
+
+    return (
+      <Table
+        rowKey="id"
+        columns={packageColumns}
+        dataSource={deliveryPackages}
+        pagination={{
+          hideOnSinglePage: true,
+          current: 1,
+          total: deliveryPackages.length,
+          pageSize: deliveryPackages.length,
+        }}
+      />
+    );
+  };
+
+  return (
+    <Space direction="vertical" size={token.marginLG} style={{ width: "100%" }}>
+      <Card styles={{ body: { padding: token.paddingLG } }}>
+        <Form form={form} layout="vertical">
+          <Space
+            direction="vertical"
+            size={token.marginMD}
+            style={{ width: "100%" }}
+          >
+            <Row
+              gutter={[token.marginMD, token.marginMD]}
+              style={{
+                borderBottom: `1px dotted ${token.colorBorder}`,
+                paddingBottom: token.paddingMD,
+              }}
+            >
+              <Col flex="120px">
+                <Typography.Text>{t("delivery.status")}:</Typography.Text>
+              </Col>
+              <Col flex="auto">
+                <Space size={[token.marginXS, token.marginXS]} wrap>
+                  {statusData.map((item: AnyRecord) => {
+                    const checked = checkedStatuses.includes(item.code);
+                    const active = activeFilterStatuses.includes(item.code);
+                    return (
+                      <Tag.CheckableTag
+                        key={item.code}
+                        checked={checked}
+                        onChange={() => toggleStatus(item)}
+                        style={{
+                          paddingInline: token.paddingSM,
+                          border: `1px solid ${active || checked ? token.colorPrimary : token.colorBorder}`,
+                          borderRadius: token.borderRadiusSM,
+                          background: checked
+                            ? token.colorPrimary
+                            : token.colorBgContainer,
+                        }}
+                      >
+                        <Typography.Text
+                          style={{
+                            color: checked ? token.colorWhite : token.colorText,
+                          }}
+                        >
+                          {item.name}
+                        </Typography.Text>
+                      </Tag.CheckableTag>
+                    );
+                  })}
+                </Space>
+              </Col>
+            </Row>
+
+            <Row gutter={token.marginLG}>
+              <Col xs={24} md={12}>
+                <Form.Item name="query" label={t("delivery.search_code")}>
+                  <Input
+                    onPressEnter={handleSearch}
+                    placeholder={t("delivery.search_code")}
+                  />
+                </Form.Item>
+              </Col>
+              <Col xs={24} md={12}>
+                <Typography.Text>{t("delivery.created_time")}:</Typography.Text>
+                <Row
+                  gutter={token.marginMD}
+                  style={{ marginTop: token.marginXS }}
+                >
+                  <Col span={12}>
+                    <Form.Item name="createdFrom" noStyle>
+                      <DatePicker
+                        format="DD/MM/YYYY"
+                        placeholder={t("delivery.start_date")}
+                        style={{ width: "100%" }}
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item name="createdTo" noStyle>
+                      <DatePicker
+                        format="DD/MM/YYYY"
+                        placeholder={t("delivery.end_date")}
+                        style={{ width: "100%" }}
+                      />
+                    </Form.Item>
+                  </Col>
+                </Row>
+              </Col>
+            </Row>
+
+            <Flex justify="flex-end" align="center" gap={token.marginMD}>
+              <Typography.Link type="secondary" onClick={handleReset}>
+                <SyncOutlined style={{ marginInlineEnd: token.marginXS }} />
+                {t("order.filter_refresh")}
+              </Typography.Link>
+              <Button
+                type="primary"
+                style={{ minWidth: 200 }}
+                onClick={handleSearch}
+              >
+                {t("order.search")}
+              </Button>
+            </Flex>
+          </Space>
+        </Form>
+      </Card>
+
+      <Card
+        styles={{
+          body: { padding: 0 },
+        }}
+      >
+        <Flex
+          justify="space-between"
+          align="center"
+          style={{
+            padding: token.paddingLG,
+            borderBottom: `1px solid ${token.colorBorderSecondary}`,
+          }}
+        >
+          <Typography.Title level={4} style={{ margin: 0 }}>
+            {t("delivery.list_title")}{" "}
+            {listData ? `(${quantity(listData.total)})` : ""}
+          </Typography.Title>
+          <Link to="/delivery/create">
+            <Button type="primary">{t("delivery.create_title")}</Button>
+          </Link>
+        </Flex>
+
+        <div style={{ padding: token.paddingLG }}>
+          <Table
+            rowKey={(record) => record.code}
+            columns={columns}
+            dataSource={listData?.data || []}
+            loading={isDeliveryRequestsLoading}
+            expandable={{
+              expandedRowKeys,
+              expandedRowRender,
+              onExpand: handleExpand,
+              expandIcon: ({ expanded, onExpand, record }) =>
+                expanded ? (
+                  <DownOutlined onClick={(event) => onExpand(record, event)} />
+                ) : (
+                  <RightOutlined onClick={(event) => onExpand(record, event)} />
+                ),
+            }}
+            pagination={false}
+            locale={{
+              emptyText: (
+                <Empty
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                  description={t("message.empty")}
+                />
+              ),
+            }}
+          />
+        </div>
+      </Card>
+
+      <Flex justify="center">
+        <Pagination
+          current={page}
+          pageSize={pageSize}
+          total={listData?.total || 0}
+          hideOnSinglePage
+          onChange={(nextPage, nextPageSize) => {
+            setPage(nextPage);
+            if (nextPageSize !== pageSize) setPageSize(nextPageSize);
+          }}
+        />
+      </Flex>
+    </Space>
+  );
+};

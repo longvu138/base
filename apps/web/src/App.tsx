@@ -1,21 +1,25 @@
-import { App as AntdApp, ConfigProvider, theme } from 'antd';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { BrowserRouter } from 'react-router-dom';
-import { useState, useEffect, useMemo } from 'react';
-import { webAntdTheme, webDarkAntdTheme } from '@repo/antd-config';
-import { ThemeProvider, useTheme } from '@repo/theme-provider';
+import { App as AntdApp, ConfigProvider, theme } from "antd";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter } from "react-router-dom";
+import { useState, useEffect, useMemo } from "react";
+import { webAntdTheme, webDarkAntdTheme } from "@repo/antd-config";
+import { ThemeProvider, useTheme } from "@repo/theme-provider";
 import {
   applyTenantConfig,
   updateTenantCSSVariables,
   type FullTenantResponse,
   type SimpleTenantConfig,
-} from '@repo/tenant-config';
-import AppRoutes from './routes';
-import { appConfig } from '@repo/config';
+} from "@repo/tenant-config";
+import AppRoutes from "./routes";
+import { appConfig } from "@repo/config";
 
 const queryClient = new QueryClient({
   defaultOptions: {
-    queries: { refetchOnWindowFocus: false, retry: 1, staleTime: 5 * 60 * 1000 },
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+      staleTime: 5 * 60 * 1000,
+    },
   },
 });
 
@@ -24,9 +28,9 @@ const queryClient = new QueryClient({
  * Ensures the app always renders with a sensible baseline theme.
  */
 const FALLBACK_TENANT_CONFIG: FullTenantResponse = {
-  id: 'fallback',
-  name: 'Default',
-  variantCode: 'gd1',
+  id: "fallback",
+  name: "Default",
+  variantCode: "gd1",
   tenantConfig: {
     themeConfig: {} as SimpleTenantConfig,
   },
@@ -37,7 +41,9 @@ const FALLBACK_TENANT_CONFIG: FullTenantResponse = {
  * Returns merged result as a FullTenantResponse.
  */
 async function fetchAppData(tenantKey: string): Promise<FullTenantResponse> {
-  const tenantRes = await fetch(`${appConfig.be}/api/tenants/${tenantKey}/config`);
+  const tenantRes = await fetch(
+    `${appConfig.be}/api/tenants/${tenantKey}/config`,
+  );
 
   if (!tenantRes.ok) {
     throw new Error(`Backend error: tenant=${tenantRes.status}`);
@@ -55,38 +61,52 @@ function AppContent() {
   } = useTheme();
   console.log("appConfig.be", appConfig.be);
 
-  const isDark = themeMode === 'dark';
+  const isDark = themeMode === "dark";
 
   const [selectedTenantId, setSelectedTenantId] = useState<string>(
-    () => (typeof window !== 'undefined' && localStorage.getItem('selected-tenant')) || 'baogam'
+    () =>
+      (typeof window !== "undefined" &&
+        localStorage.getItem("selected-tenant")) ||
+      "baogam",
   );
 
   // Listen for tenant changes dispatched by the tenant selector UI
   useEffect(() => {
-    const handleTenantChange = (e: Event) => setSelectedTenantId((e as CustomEvent).detail);
-    window.addEventListener('app:tenant-changed', handleTenantChange);
-    return () => window.removeEventListener('app:tenant-changed', handleTenantChange);
+    const handleTenantChange = (e: Event) =>
+      setSelectedTenantId((e as CustomEvent).detail);
+    window.addEventListener("app:tenant-changed", handleTenantChange);
+    return () =>
+      window.removeEventListener("app:tenant-changed", handleTenantChange);
   }, []);
 
   // Fetch tenant config whenever the selected tenant changes
   useEffect(() => {
     fetchAppData(selectedTenantId)
-      .then(data => {
+      .then((data) => {
         setGlobalTenantConfig(data);
-        localStorage.setItem('full-tenant-data', JSON.stringify(data));
+        localStorage.setItem("full-tenant-data", JSON.stringify(data));
+        localStorage.setItem("currentProjectInfo", JSON.stringify(data));
 
         const uiLib = data.tenantConfig?.themeConfig?.uiLib;
         if (uiLib) setUiLib(uiLib);
       })
-      .catch(err => {
+      .catch((err) => {
         // API failed — apply fallback so the app still renders correctly
-        console.warn('[Tenant] Failed to load config, using fallback:', err.message);
+        console.warn(
+          "[Tenant] Failed to load config, using fallback:",
+          err.message,
+        );
 
         // Try to restore last known-good config from localStorage
-        const cached = localStorage.getItem('full-tenant-data');
+        const cached = localStorage.getItem("full-tenant-data");
         if (cached) {
           try {
-            setGlobalTenantConfig(JSON.parse(cached));
+            const cachedTenantConfig = JSON.parse(cached);
+            setGlobalTenantConfig(cachedTenantConfig);
+            localStorage.setItem(
+              "currentProjectInfo",
+              JSON.stringify(cachedTenantConfig),
+            );
             return;
           } catch {
             // cached data is corrupt — ignore and use hardcoded fallback

@@ -1,9 +1,11 @@
-import { Fragment } from "react";
-import type { ReactNode } from "react";
+import { Fragment, useMemo, useState } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import dayjs from "dayjs";
 import { Link } from "react-router-dom";
+import { moneyCeil, moneyFormat } from "@repo/util";
 import {
   Alert,
+  Avatar,
   Button,
   Card,
   Col,
@@ -11,34 +13,47 @@ import {
   Empty,
   Flex,
   Form,
-  Image,
   Input,
   InputNumber,
   List,
   Modal,
+  Popover,
   Popconfirm,
   Row,
   Select,
+  Skeleton,
   Space,
   Spin,
+  Steps,
   Table,
   Tabs,
   Tag,
   Timeline,
+  Tooltip,
   Typography,
+  theme,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
+import { useTranslation } from "@repo/i18n";
 import {
   ClockCircleOutlined,
   CloseOutlined,
+  DollarOutlined,
   DownOutlined,
+  InfoCircleOutlined,
   EditOutlined,
+  EnvironmentOutlined,
   PlayCircleOutlined,
   QuestionCircleOutlined,
   RocketOutlined,
   SaveOutlined,
+  ShopOutlined,
   ShrinkOutlined,
 } from "@ant-design/icons";
+import {
+  useParcelMilestonesQuery,
+  useShipmentShippingFeesQuery,
+} from "@repo/hooks";
 import {
   useShipmentDetailContent,
   type AnyRecord,
@@ -50,6 +65,7 @@ interface ShipmentDetailContentProps {
 }
 
 const empty = "---";
+const productPageSize = 25;
 const { TextArea } = Input;
 const { Text } = Typography;
 
@@ -77,17 +93,11 @@ const quantity = (value: any): string => {
   );
 };
 
-const money = (value: any, currency = "VND", signed = false): string => {
-  if (value === null || value === undefined || value === "") return empty;
-  const numericValue = Number(value);
-  if (Number.isNaN(numericValue)) return empty;
-  const formatted = new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency,
-    maximumFractionDigits: 0,
-  }).format(Math.ceil(Math.abs(numericValue)));
-  return signed && numericValue < 0 ? `-${formatted}` : formatted;
-};
+const money = (value: any, currency?: string, noNegative?: boolean): string =>
+  moneyFormat(value, currency, noNegative);
+
+const feeMoney = (value: any, noNegative?: boolean): string =>
+  moneyFormat(moneyCeil(value), undefined, noNegative);
 
 const dateTime = (value: any): string =>
   value ? dayjs(value).format("HH:mm DD/MM/YYYY") : empty;
@@ -125,29 +135,222 @@ const formatAddress = (address: AnyRecord | undefined, receipt = false) => {
     .join(" / ");
 };
 
-const feeText = (item: AnyRecord, currency: string) => {
-  if (item.free) {
-    return `${money(item.actualAmount, currency)}  Miễn phí`;
+const logValue = (value: any): string => {
+  if (Array.isArray(value)) return value.map(logValue).join(", ");
+  if (typeof value === "object" && value !== null) {
+    return display(
+      value.name ?? value.displayName ?? value.display ?? value.code,
+    );
   }
-  if (item.manual && item.provisionalAmount !== null) {
-    return `${money(item.provisionalAmount, currency)}  ${money(item.actualAmount, currency)}`;
-  }
-  return money(item.actualAmount, currency);
+  return display(value);
 };
 
-const activityText = (item: AnyRecord) => {
-  const data = Array.isArray(item.data) ? item.data[0] : item.data;
+const activityText = (
+  item: AnyRecord,
+  t: (key: string, data?: any) => string,
+) => {
+  const data = Array.isArray(item.data) ? item.data[0] : (item.data ?? {});
+  const property = item.property ?? data.property ?? item.activity ?? item.type;
+  const logData = {
+    ...item,
+    ...data,
+    property,
+    oldValue: logValue(data.oldValue ?? item.oldValue),
+    newValue: logValue(data.newValue ?? item.newValue),
+    value: logValue(data.value ?? item.value),
+    addValue: logValue(data.addValue ?? item.addValue),
+    removeValue: logValue(data.removeValue ?? item.removeValue),
+    name: logValue(data.name ?? item.name),
+    code: logValue(data.code ?? item.code),
+    amount: logValue(data.amount ?? item.amount),
+    reason: logValue(data.reason ?? item.reason),
+    content: logValue(data.content ?? item.content ?? item.memo),
+    service: logValue(data.service ?? item.service),
+    productName: logValue(data.productName ?? item.productName),
+  };
+
+  if (property) {
+    const key = `shipment_log.${property}`;
+    const translated = t(key, logData);
+    if (translated !== key) return translated;
+  }
+
   if (item.memo) return item.memo;
-  if (data?.oldValue !== undefined || data?.newValue !== undefined) {
-    return `${display(data.property)}: ${display(data.oldValue?.name ?? data.oldValue)} -> ${display(data.newValue?.name ?? data.newValue)}`;
+  if (data.oldValue !== undefined || data.newValue !== undefined) {
+    return `${display(data.property)}: ${logData.oldValue} -> ${logData.newValue}`;
   }
   return display(item.activity ?? item.type);
+};
+
+const MilestoneDescription = ({ milestones }: { milestones: AnyRecord[] }) => {
+  const { t } = useTranslation();
+
+  if (milestones.length === 0) {
+    return (
+      <Text type="secondary">{t("shipments.undefined_handling_time")}</Text>
+    );
+  }
+
+  return (
+    <Space direction="vertical" size={0} align="center">
+      {milestones.map((item, index) => {
+        const handlingTime = item.handlingTime;
+        const dayLabel =
+          Number(handlingTime) === 0 ? t("label.day") : t("label.days");
+
+        return (
+          <div
+            key={`${item.status}-${item.timestamp}-${index}`}
+            style={{ textAlign: "center" }}
+          >
+            <Text strong={index === 0}>{shortDateTime(item.timestamp)}</Text>
+            <br />
+            <Text strong={index === 0} type="secondary">
+              {handlingTime === null || handlingTime === undefined
+                ? `( ${t("shipments.undefined_handling_time")} )`
+                : `( ${handlingTime} ${dayLabel} )`}
+            </Text>
+          </div>
+        );
+      })}
+    </Space>
+  );
+};
+
+const ParcelTimeline = ({
+  parcel,
+  statuses,
+  active,
+}: {
+  parcel: AnyRecord;
+  statuses: AnyRecord[];
+  active: boolean;
+}) => {
+  const { t } = useTranslation();
+  const { token } = theme.useToken();
+  const { data: milestones = [], isLoading } = useParcelMilestonesQuery(
+    parcel.code,
+    active,
+  );
+
+  const orderedStatuses = useMemo(
+    () => sortByPosition(asArray(statuses)),
+    [statuses],
+  );
+  const currentStatus = useMemo(
+    () => orderedStatuses.find((item) => item.code === parcel.status) || {},
+    [orderedStatuses, parcel.status],
+  );
+  const currentIndex = useMemo(
+    () => orderedStatuses.findIndex((item) => item.code === parcel.status),
+    [orderedStatuses, parcel.status],
+  );
+  const normalStatuses = useMemo(
+    () => orderedStatuses.filter((item) => !item.negativeEnd),
+    [orderedStatuses],
+  );
+
+  const timelineStatuses = useMemo(() => {
+    if (!currentStatus.negativeEnd) return normalStatuses;
+
+    const previousMilestones = asArray(milestones)
+      .filter((item) => item.status !== currentStatus.code)
+      .sort(
+        (a, b) => dayjs(b.timestamp).valueOf() - dayjs(a.timestamp).valueOf(),
+      );
+    const lastMilestone = previousMilestones[0];
+    const lastIndex = lastMilestone
+      ? orderedStatuses.findIndex((item) => item.code === lastMilestone.status)
+      : 0;
+
+    return [
+      ...orderedStatuses
+        .slice(0, Math.max(lastIndex + 1, 1))
+        .filter((item) => !item.negativeEnd),
+      currentStatus,
+    ];
+  }, [currentStatus, milestones, normalStatuses, orderedStatuses]);
+
+  if (isLoading) {
+    return (
+      <div style={{ padding: token.padding }}>
+        <Skeleton active paragraph={{ rows: 1 }} />
+      </div>
+    );
+  }
+
+  if (orderedStatuses.length === 0) {
+    return <Empty description={t("package_tab.empty_milestone")} />;
+  }
+
+  const activeIndex = currentStatus.negativeEnd
+    ? timelineStatuses.length - 1
+    : Math.max(currentIndex, 0);
+
+  return (
+    <div style={{ padding: `${token.paddingMD}px ${token.padding}px` }}>
+      <Steps
+        size="small"
+        progressDot
+        direction="vertical"
+        current={activeIndex}
+        status={currentStatus.negativeEnd ? "error" : "process"}
+        items={timelineStatuses.map((status) => {
+          const statusMilestones = asArray(milestones)
+            .filter((item) => item.status === status.code)
+            .sort(
+              (a, b) =>
+                dayjs(b.timestamp).valueOf() - dayjs(a.timestamp).valueOf(),
+            );
+
+          return {
+            key: status.id || status.code,
+            title: status.name,
+            description: <MilestoneDescription milestones={statusMilestones} />,
+          };
+        })}
+      />
+    </div>
+  );
+};
+
+const ParcelTimelinePopover = ({
+  parcel,
+  statuses,
+}: {
+  parcel: AnyRecord;
+  statuses: AnyRecord[];
+}) => {
+  const { t } = useTranslation();
+  const { token } = theme.useToken();
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Popover
+      trigger="hover"
+      placement="right"
+      open={open}
+      onOpenChange={setOpen}
+      mouseEnterDelay={0.1}
+      content={
+        <div style={{ width: "max-content", maxWidth: "80vw" }}>
+          <ParcelTimeline parcel={parcel} statuses={statuses} active={open} />
+        </div>
+      }
+    >
+      <Typography.Link style={{ color: token.colorPrimary, cursor: "pointer" }}>
+        {t("button.detail")}
+      </Typography.Link>
+    </Popover>
+  );
 };
 
 export const ShipmentDetailContent = ({
   shipment,
   statusData,
 }: ShipmentDetailContentProps) => {
+  const { token } = theme.useToken();
+  const { t } = useTranslation();
   const detail = useShipmentDetailContent({ shipment, statusData });
   const {
     isExpand,
@@ -167,12 +370,34 @@ export const ShipmentDetailContent = ({
     setIsCreatingWaybill,
     waybillCodeDraft,
     setWaybillCodeDraft,
+    isProductExpanded,
+    setIsProductExpanded,
+    expandedWaybillKeys,
+    setExpandedWaybillKeys,
+    claimModalOpen,
+    setClaimModalOpen,
+    collectModalOpen,
+    setCollectModalOpen,
+    feeTableConfig,
+    setFeeTableConfig,
+    couponModalOpen,
+    couponCode,
+    changeCouponCode,
+    couponValidMessage,
+    couponValidTo,
+    couponValid,
+    checkVoucher,
+    applyShipmentCoupon,
+    cancelShipment,
+    activeTab,
+    handleTabChange,
     currency,
     statusInfo,
     shipmentWaybillThreshold,
     productRows,
+    visibleProductRows,
     parcelRows,
-    activityRows,
+    shipmentLogRows,
     hsCode,
     receiptText,
     services,
@@ -184,8 +409,12 @@ export const ShipmentDetailContent = ({
     waybillRows,
     parcelStatuses,
     fees,
+    shipmentFees,
     financial,
+    financialClaim,
+    financialCollect,
     claims,
+    coupons,
     milestones,
     originalReceipts,
     hsList,
@@ -196,6 +425,8 @@ export const ShipmentDetailContent = ({
     isParcelsLoading,
     isFeesLoading,
     isFinancialLoading,
+    isFinancialClaimLoading,
+    isFinancialCollectLoading,
     isClaimsLoading,
     isMilestonesLoading,
     isActivitiesLoading,
@@ -208,6 +439,7 @@ export const ShipmentDetailContent = ({
     startEdit,
     cancelEdit,
     saveShipmentField,
+    cancelShipmentOrder,
     addReceipt,
     removeReceipt,
     openProductModal,
@@ -217,7 +449,55 @@ export const ShipmentDetailContent = ({
     removeProduct,
     submitWaybill,
     removeWaybill,
+    openCouponModal,
+    closeCouponModal,
+    checkCouponCode,
+    submitCouponCode,
   } = detail;
+
+  const styles: Record<string, CSSProperties> = {
+    inlineActions: {
+      display: "inline-flex",
+      alignItems: "center",
+      gap: token.marginXS,
+    },
+    inlineEdit: {
+      display: "inline-flex",
+      alignItems: "flex-start",
+      gap: token.marginXS,
+      width: "100%",
+      maxWidth: 520,
+    },
+    iconPrimary: {
+      color: token.colorPrimary,
+      cursor: "pointer",
+    },
+    iconMuted: {
+      color: token.colorTextQuaternary,
+      cursor: "pointer",
+    },
+    muted: {
+      color: token.colorTextSecondary,
+      fontSize: token.fontSizeSM,
+    },
+    strong: {
+      color: token.colorText,
+      fontWeight: token.fontWeightStrong,
+    },
+    preWrap: {
+      whiteSpace: "pre-wrap",
+      wordBreak: "break-word",
+    },
+    linkButton: {
+      padding: 0,
+    },
+    fullWidth: {
+      width: "100%",
+    },
+    right: {
+      textAlign: "right",
+    },
+  };
 
   const renderNumberEditor = (
     field: string,
@@ -228,13 +508,13 @@ export const ShipmentDetailContent = ({
   ) => {
     if (editingField === field) {
       return (
-        <span className="inline-flex max-w-[260px] items-center gap-2">
+        <span style={{ ...styles.inlineActions, maxWidth: 260 }}>
           <InputNumber
             min={0}
             precision={0}
             value={draftValue}
             placeholder={placeholder}
-            className="w-full"
+            style={styles.fullWidth}
             formatter={(inputValue) =>
               `${inputValue ?? ""}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
             }
@@ -247,25 +527,22 @@ export const ShipmentDetailContent = ({
             }
           />
           <SaveOutlined
-            className="cursor-pointer text-primary"
+            style={styles.iconPrimary}
             onMouseDown={() =>
               saveShipmentField(field, draftValue === "" ? null : draftValue)
             }
           />
-          <CloseOutlined
-            className="cursor-pointer text-gray-400"
-            onClick={cancelEdit}
-          />
+          <CloseOutlined style={styles.iconMuted} onClick={cancelEdit} />
         </span>
       );
     }
 
     return (
-      <span className="inline-flex items-center gap-2">
+      <span style={styles.inlineActions}>
         <span>{displayValue}</span>
         {canEdit && (
           <EditOutlined
-            className="cursor-pointer text-primary"
+            style={styles.iconPrimary}
             onClick={() => startEdit(field, value)}
           />
         )}
@@ -305,14 +582,14 @@ export const ShipmentDetailContent = ({
       );
 
       return (
-        <span className="inline-flex w-full max-w-[520px] items-start gap-2">
-          <span className="min-w-0 flex-1">{input}</span>
+        <span style={styles.inlineEdit}>
+          <span style={{ flex: 1, minWidth: 0 }}>{input}</span>
           <SaveOutlined
-            className="mt-2 cursor-pointer text-primary"
+            style={{ ...styles.iconPrimary, marginTop: token.marginXS }}
             onMouseDown={() => saveShipmentField(field, draftValue ?? "")}
           />
           <CloseOutlined
-            className="mt-2 cursor-pointer text-gray-400"
+            style={{ ...styles.iconMuted, marginTop: token.marginXS }}
             onClick={cancelEdit}
           />
         </span>
@@ -320,27 +597,97 @@ export const ShipmentDetailContent = ({
     }
 
     return (
-      <span className="inline-flex min-w-0 items-center gap-2">
-        <span className="whitespace-pre-wrap break-words">
-          {display(value)}
-        </span>
+      <span style={{ ...styles.inlineActions, minWidth: 0 }}>
+        <span style={styles.preWrap}>{display(value)}</span>
         <EditOutlined
-          className="flex-none cursor-pointer text-primary"
+          style={styles.iconPrimary}
           onClick={() => startEdit(field, value ?? "")}
         />
       </span>
     );
   };
 
+  const renderPersonalNote = () => {
+    if (editingField === "note") {
+      return (
+        <Space direction="vertical" size={4} style={styles.fullWidth}>
+          <TextArea
+            value={draftValue ?? ""}
+            maxLength={1000}
+            autoSize={{ minRows: 1, maxRows: 3 }}
+            placeholder={t("shipments.personal_note_for_order")}
+            onChange={(event) => setDraftValue(event.target.value)}
+            onPressEnter={(event) => {
+              if (
+                event.ctrlKey ||
+                event.metaKey ||
+                event.shiftKey ||
+                event.altKey
+              ) {
+                event.preventDefault();
+                saveShipmentField("note", draftValue ?? "");
+              }
+            }}
+          />
+          <Flex justify="space-between" align="center" gap={token.marginXS}>
+            <Text type="secondary">{t("shipments.note_keydown")}</Text>
+            <Space size={token.marginXS}>
+              <Button
+                size="small"
+                type="primary"
+                icon={<SaveOutlined />}
+                onMouseDown={() => saveShipmentField("note", draftValue ?? "")}
+              >
+                {t("common.save")}
+              </Button>
+              <Button
+                size="small"
+                icon={<CloseOutlined />}
+                onClick={cancelEdit}
+              >
+                {t("common.cancel")}
+              </Button>
+            </Space>
+          </Flex>
+        </Space>
+      );
+    }
+
+    if (shipment.note) {
+      return (
+        <span style={{ ...styles.inlineActions, minWidth: 0 }}>
+          <span style={styles.preWrap}>{shipment.note}</span>
+          <EditOutlined
+            style={styles.iconPrimary}
+            onClick={() => startEdit("note", shipment.note ?? "")}
+          />
+        </span>
+      );
+    }
+
+    return (
+      <Typography.Link onClick={() => startEdit("note", "")}>
+        <Space size={token.marginXS}>
+          <span>{t("shipments.personal_note_for_order")}</span>
+          <Tooltip title={t("shipments.personal_note_content")}>
+            <QuestionCircleOutlined
+              style={{ color: token.colorTextTertiary }}
+            />
+          </Tooltip>
+        </Space>
+      </Typography.Link>
+    );
+  };
+
   const renderHsCodeEditor = () => {
     if (editingField === "hsCode") {
       return (
-        <span className="inline-flex max-w-[320px] items-center gap-2">
+        <span style={{ ...styles.inlineActions, maxWidth: 320 }}>
           <Select
             showSearch
             value={draftValue ?? undefined}
-            className="min-w-[240px]"
-            placeholder="HS Code"
+            style={{ minWidth: 240 }}
+            placeholder={t("shipments.hsCode")}
             optionFilterProp="label"
             options={asArray(hsList).map((item) => ({
               value: item.code,
@@ -348,20 +695,17 @@ export const ShipmentDetailContent = ({
             }))}
             onChange={(nextValue) => saveShipmentField("hsCode", nextValue)}
           />
-          <CloseOutlined
-            className="cursor-pointer text-gray-400"
-            onClick={cancelEdit}
-          />
+          <CloseOutlined style={styles.iconMuted} onClick={cancelEdit} />
         </span>
       );
     }
 
     return (
-      <span className="inline-flex items-center gap-2">
+      <span style={styles.inlineActions}>
         <span>{display(hsCode?.name)}</span>
         {!statusInfo?.negativeEnd && (
           <EditOutlined
-            className="cursor-pointer text-primary"
+            style={styles.iconPrimary}
             onClick={() => startEdit("hsCode", shipment.hsCode)}
           />
         )}
@@ -377,10 +721,10 @@ export const ShipmentDetailContent = ({
         if (index === 0 && waybillRows.some((item) => item.code === null)) {
           return {
             children: isCreatingWaybill ? (
-              <span className="inline-flex items-center gap-2">
+              <span style={styles.inlineActions}>
                 <Input
                   value={waybillCodeDraft}
-                  className="w-[180px]"
+                  style={{ width: 180 }}
                   placeholder="Mã vận đơn"
                   onChange={(event) =>
                     setWaybillCodeDraft(
@@ -417,7 +761,7 @@ export const ShipmentDetailContent = ({
               <Button
                 type="link"
                 icon={<PlayCircleOutlined />}
-                className="p-0"
+                style={styles.linkButton}
                 onClick={() => setIsCreatingWaybill(true)}
               >
                 Tạo mã vận đơn
@@ -469,7 +813,7 @@ export const ShipmentDetailContent = ({
             cancelText="Không"
             onConfirm={() => removeWaybill(row.code)}
           >
-            <Button type="link" className="p-0">
+            <Button type="link" style={styles.linkButton}>
               Xóa
             </Button>
           </Popconfirm>
@@ -484,8 +828,14 @@ export const ShipmentDetailContent = ({
       dataIndex: "code",
       render: (text, row) => (
         <div>
-          <div className="uppercase">{display(text)}</div>
-          {row.note && <div className="text-primary underline">Ghi chú</div>}
+          <Typography.Text style={{ textTransform: "uppercase" }}>
+            {display(text)}
+          </Typography.Text>
+          {row.note && (
+            <Typography.Text style={{ color: token.colorPrimary }}>
+              Ghi chú
+            </Typography.Text>
+          )}
         </div>
       ),
     },
@@ -506,7 +856,7 @@ export const ShipmentDetailContent = ({
       title: "Thông tin",
       dataIndex: "information",
       render: (_, row) => (
-        <div className="whitespace-nowrap">
+        <div style={{ whiteSpace: "nowrap" }}>
           <div>
             Chiều dài:{" "}
             {Number.isFinite(Number(row.length)) ? `${row.length} cm` : empty}
@@ -545,97 +895,195 @@ export const ShipmentDetailContent = ({
       title: "",
       dataIndex: "action",
       align: "right",
-      render: () => <span className="text-primary">Chi tiết</span>,
+      render: (_text, row) => (
+        <ParcelTimelinePopover
+          parcel={row}
+          statuses={asArray(parcelStatuses)}
+        />
+      ),
     },
   ];
 
   const financeColumns: ColumnsType<AnyRecord> = [
     {
-      title: "Thời gian",
+      title: t("financial_tab.time"),
       dataIndex: "timestamp",
-      render: (text) => dateTime(text),
+      className: "_financial-time",
+      render: (text) => <Typography.Text>{dateTime(text)}</Typography.Text>,
     },
     {
-      title: "Giá trị",
+      title: t("financial_tab.amount"),
       dataIndex: "amount",
-      render: (text) => money(text, currency, true),
+      className: "_financial-amount",
+      render: (amount) => (
+        <Typography.Text
+          style={{
+            color: Number(amount) < 0 ? token.colorError : token.colorSuccess,
+          }}
+        >
+          {feeMoney(amount)}
+        </Typography.Text>
+      ),
     },
     {
-      title: "Loại giao dịch",
+      title: t("financial_tab.transaction_type"),
       dataIndex: "type",
+      className: "_financial-type",
       render: (type) => display(type?.name ?? type),
     },
     {
-      title: "Nội dung",
+      title: t("financial_tab.content"),
       dataIndex: "memo",
+      className: "_financial-memo",
       render: (memo, record) => (
         <div>
-          <div className="text-xs text-gray-500">
-            Mã giao dịch : {display(record.txid)}
-          </div>
+          <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+            {t("shipments.title_transaction_code")} : {display(record.txid)}
+          </Typography.Text>
           <div>{display(memo)}</div>
         </div>
       ),
     },
   ];
 
+  const financialClaimColumns: ColumnsType<AnyRecord> = [
+    {
+      title: t("fee_tab.refunded_name"),
+      dataIndex: "reason",
+      render: (text) => display(text),
+    },
+    {
+      title: t("fee_tab.createdAt"),
+      dataIndex: "createdAt",
+      render: (text) => dateTime(text),
+    },
+    {
+      title: t("fee_tab.claim_type"),
+      dataIndex: "financialAccount",
+      render: (value) => display(value?.name),
+    },
+    {
+      title: t("fee_tab.amount"),
+      dataIndex: "amount",
+      align: "right",
+      render: (text) => feeMoney(text),
+    },
+    {
+      title: t("fee_tab.reason"),
+      dataIndex: "memo",
+      render: (text) => (
+        <Typography.Text style={styles.preWrap}>
+          {display(text)}
+        </Typography.Text>
+      ),
+    },
+  ];
+
+  const financialCollectColumns: ColumnsType<AnyRecord> = [
+    {
+      title: t("fee_tab.createdAt"),
+      dataIndex: "createdAt",
+      render: (text) => dateTime(text),
+    },
+    {
+      title: t("fee_tab.refundType"),
+      dataIndex: "financialAccount",
+      render: (value) => display(value?.name),
+    },
+    {
+      title: t("fee_tab.amount"),
+      dataIndex: "amount",
+      align: "right",
+      render: (text) => feeMoney(text),
+    },
+    {
+      title: t("fee_tab.reason"),
+      dataIndex: "memo",
+      render: (text) => (
+        <Typography.Text style={styles.preWrap}>
+          {text && `${text}`.trim() ? `${text}`.trim() : empty}
+        </Typography.Text>
+      ),
+    },
+  ];
+
   const claimColumns: ColumnsType<AnyRecord> = [
     {
-      title: "Mã khiếu nại",
+      title: t("complaint_tab.complaint_code"),
       dataIndex: "code",
+      key: "code",
       render: (text, record) => (
-        <Link to={`/tickets/${record.code}`} className="text-primary">
+        <Link
+          to={`/tickets/${record.code}`}
+          style={{ color: token.colorPrimary }}
+        >
           #{display(text)}
         </Link>
       ),
     },
     {
-      title: "Tên khiếu nại",
+      title: t("complaint_tab.complaint_name"),
       dataIndex: "name",
+      key: "name",
       render: (text, record) => (
-        <Link to={`/tickets/${record.code}`} className="text-primary">
+        <Link
+          to={`/tickets/${record.code}`}
+          style={{ color: token.colorPrimary }}
+        >
           {display(text)}
         </Link>
       ),
     },
     {
-      title: "Thời gian",
+      title: t("complaint_tab.time"),
       dataIndex: "createdAt",
+      key: "createdAt",
       render: (text) => shortDateTime(text),
     },
     {
-      title: "Trạng thái",
+      title: t("complaint_tab.status"),
       dataIndex: "state",
+      key: "state",
       render: (_text, record) =>
         record.publicStateNewView ? (
           <Flex align="center" gap={6}>
             <span
-              className="inline-block h-2 w-2 flex-none rounded-full"
               style={{
+                display: "inline-block",
+                width: 8,
+                height: 8,
+                flex: "none",
+                borderRadius: "50%",
                 backgroundColor: record.publicStateNewView.color || "#FFC107",
               }}
             />
             {record.publicStateNewView.name}
-            {record.archived && " (Đã đóng)"}
+            {record.archived && ` (${t("complaint_tab.closed")})`}
           </Flex>
         ) : (
           ""
         ),
     },
     {
-      title: "Hoàn tiền",
+      title: t("complaint_tab.refund"),
       dataIndex: "totalRefund",
+      key: "totalRefund",
       render: (text) => (
-        <span className="font-semibold text-green-600">{money(text)}</span>
+        <Typography.Text strong style={{ color: token.colorSuccess }}>
+          {feeMoney(text)}
+        </Typography.Text>
       ),
     },
     {
       title: "",
       dataIndex: "action",
-      className: "hidden-md",
+      key: "action",
       render: (_text, record) => (
-        <Link to={`/tickets/${record.code}`} className="text-primary">
-          Chi tiết
+        <Link
+          to={`/tickets/${record.code}`}
+          style={{ color: token.colorPrimary }}
+        >
+          {t("complaint_tab.detail")}
         </Link>
       ),
     },
@@ -646,7 +1094,9 @@ export const ShipmentDetailContent = ({
       title: "Mã",
       dataIndex: "loanId",
       render: (text) => (
-        <span className="font-semibold text-primary">#{display(text)}</span>
+        <Typography.Text strong style={{ color: token.colorPrimary }}>
+          #{display(text)}
+        </Typography.Text>
       ),
     },
     {
@@ -669,14 +1119,23 @@ export const ShipmentDetailContent = ({
   ];
 
   return (
-    <div className="flex-1 min-w-0 space-y-4">
+    <Space direction="vertical" size="middle" style={styles.fullWidth}>
       {shipment.deliveryNotice && (
         <Alert
-          message={<span className="font-semibold">Thông báo</span>}
+          style={{ marginBottom: token.marginLG }}
+          message={
+            <Typography.Text strong style={{ fontSize: token.fontSizeLG }}>
+              {t("order.notification")}
+            </Typography.Text>
+          }
           description={
-            <span>
-              Đơn hàng đã có thông báo giao hàng. Vui lòng tạo yêu cầu giao.
-            </span>
+            <Typography.Text>
+              {t("orderDetail.delivery_notice_1")}{" "}
+              <Link to="/delivery/create">
+                {t("orderDetail.delivery_notice_2")}
+              </Link>{" "}
+              {t("orderDetail.delivery_notice_3")}
+            </Typography.Text>
           }
           type="success"
           showIcon
@@ -685,97 +1144,136 @@ export const ShipmentDetailContent = ({
 
       {showPackageAlert && (
         <Alert
-          message={<span className="font-semibold">Thông báo</span>}
-          description={`Giá trị hàng vượt ngưỡng ${money(taxFreeThreshHold)}, số kiện miễn thuế dự kiến ${freePackages}`}
+          style={{ marginBottom: token.marginLG }}
+          message={
+            <Typography.Text strong style={{ fontSize: token.fontSizeLG }}>
+              {t("order.notification")}
+            </Typography.Text>
+          }
+          description={
+            <Typography.Text>
+              {t("message.freePackagesAlert", {
+                taxFreeThreshHold: money(taxFreeThreshHold),
+                freePackages,
+              })}
+            </Typography.Text>
+          }
           type="warning"
           showIcon
         />
       )}
 
-      <Card className="">
+      <Card>
         <Row align="middle" gutter={[16, 16]}>
           <Col xs={24} lg={8}>
             <Flex align="center" gap={12}>
-              <div className="flex h-11 w-11 items-center justify-center rounded border bg-gray-50">
-                <RocketOutlined className="text-2xl text-gray-400" />
-              </div>
-              <div>
-                <div className="font-semibold text-gray-900 dark:text-gray-100">
+              <Avatar
+                shape="square"
+                size={44}
+                icon={<RocketOutlined />}
+                style={{
+                  background: token.colorBgContainerDisabled,
+                  color: token.colorTextQuaternary,
+                }}
+              />
+              <Space direction="vertical" size={4}>
+                <Typography.Text strong>
                   #{display(shipment.code)}
-                </div>
-                <Tag color={statusInfo?.color || "default"} className="mt-1">
+                </Typography.Text>
+                <Tag
+                  color={statusInfo?.color || "default"}
+                  style={{ margin: 0 }}
+                >
                   {display(statusInfo?.name)}
                 </Tag>
-              </div>
+              </Space>
             </Flex>
           </Col>
 
-          <Col xs={24} lg={8} className="space-y-1">
-            <InfoLine
-              label="Tổng chi phí"
-              value={money(shipment.totalFee)}
-              strong
-            />
-            <InfoLine
-              label="Tổng tiền hàng"
-              value={money(shipment.totalValue, currency)}
-              strong
-            />
+          <Col xs={24} lg={8}>
+            <Space direction="vertical" size={4}>
+              <InfoLine
+                label={t("shipments.totalFee")}
+                value={money(shipment.totalFee)}
+                strong
+              />
+              <InfoLine
+                label={t("shipments.totalValue")}
+                value={money(shipment.totalValue, currency)}
+                strong
+              />
+            </Space>
           </Col>
 
           <Col xs={24} lg={8}>
             <Flex justify="end" gap={8}>
-              {statusInfo?.confirmable && <Button>Xác nhận đã nhận</Button>}
-              {statusInfo?.cancellable && <Button danger>Hủy đơn</Button>}
+              {statusInfo?.confirmable && (
+                <Button>{t("shipments.bt_received")}</Button>
+              )}
+              {statusInfo?.cancellable && (
+                <Popconfirm
+                  title={t("orderDetail.confirm_question")}
+                  okText={t("button.yes")}
+                  cancelText={t("button.no")}
+                  onConfirm={cancelShipmentOrder}
+                >
+                  <Button danger loading={cancelShipment.isPending}>
+                    {t("orderDetail.cancel_order")}
+                  </Button>
+                </Popconfirm>
+              )}
             </Flex>
           </Col>
         </Row>
 
         {isExpand && (
           <Fragment>
-            <Divider className="my-4" />
+            <Divider />
             <Row gutter={[16, 16]}>
               <Col xs={24} md={6}>
                 <InfoBlock
-                  label="Cân nặng tính phí"
+                  label={t("orderDetail.costing_weight")}
                   value={
                     shipment.actualWeight
                       ? `${quantity(shipment.actualWeight)} kg`
-                      : "Không xác định"
+                      : t("orderDetail.undefined")
                   }
                 />
               </Col>
               <Col xs={24} md={6}>
                 <InfoBlock
-                  label="Thể tích"
+                  label={t("orderDetail.volume")}
                   value={
                     shipment.volumetric
                       ? `${quantity(shipment.volumetric)} cm3`
-                      : "Không xác định"
+                      : t("orderDetail.undefined")
                   }
                 />
               </Col>
               <Col xs={24} md={6}>
                 <InfoBlock
-                  label="Giá trị hàng hóa"
+                  label={t("shipments.declareValue")}
                   value={renderNumberEditor(
                     "declareValue",
                     shipment.declareValue,
                     money(shipment.declareValue),
                     !!statusInfo?.updatable,
-                    "Giá trị hàng hóa",
+                    t("shipments.declareValue"),
                   )}
                 />
               </Col>
               <Col xs={24} md={6}>
-                <InfoBlock label="HS Code" value={renderHsCodeEditor()} />
+                <InfoBlock
+                  label={t("shipments.hsCode")}
+                  value={renderHsCodeEditor()}
+                />
               </Col>
             </Row>
 
             {totalNeedPay > 0 && (
               <Fragment>
-                <Divider className="my-4" />
-                <div className="space-y-2">
+                <Divider />
+                <Space direction="vertical" size={8}>
                   {shipment.contractWithShopkeeper && (
                     <InfoLine
                       label="BiFin"
@@ -788,51 +1286,51 @@ export const ShipmentDetailContent = ({
                     />
                   )}
                   <InfoLine
-                    label="Số tiền cần thanh toán"
+                    label={t("orderDetail.total_need_payment")}
                     value={money(totalNeedPay, undefined, true)}
                     accent
                   />
-                </div>
+                </Space>
               </Fragment>
             )}
 
-            <Divider className="my-4" />
+            <Divider />
             <InfoLine
-              label="Số kiện dự kiến"
+              label={t("shipments.expectedPackages")}
               value={renderNumberEditor(
                 "expectedPackages",
                 shipment.expectedPackages,
                 quantity(shipment.expectedPackages),
                 !!statusInfo?.updatable,
-                "Số kiện dự kiến",
+                t("shipments.expectedPackages"),
               )}
             />
 
             {shipment.peerPaymentCode && (
               <Fragment>
-                <Divider className="my-4" />
+                <Divider />
                 <InfoLine
-                  label="Mã yêu cầu thanh toán"
+                  label={t("shipments.peerPaymentCode")}
                   value={display(shipment.peerPaymentCode)}
                 />
               </Fragment>
             )}
 
-            <Divider className="my-4" />
+            <Divider />
             <InfoLine
-              label="Số kiện thực tế"
+              label={t("shipments.actualPackages")}
               value={quantity(shipment.actualPackages)}
             />
 
-            <Divider className="my-4" />
+            <Divider />
             <InfoLine
-              label="Hóa đơn gốc"
+              label={t("shipments.originalReceipts")}
               value={
-                <span className="inline-flex items-center gap-2">
+                <span style={styles.inlineActions}>
                   <span>{receiptText || empty}</span>
                   {statusInfo?.updatable && (
                     <EditOutlined
-                      className="cursor-pointer text-primary"
+                      style={styles.iconPrimary}
                       onClick={() => setOriginalReceiptModalOpen(true)}
                     />
                   )}
@@ -841,20 +1339,26 @@ export const ShipmentDetailContent = ({
               alignStart
             />
 
-            <Divider className="my-4" />
+            <Divider />
             <div>
-              <span className="text-sm text-gray-500">Dịch vụ: </span>
+              <Typography.Text type="secondary">
+                {t("orderDetail.service")}:{" "}
+              </Typography.Text>
               {services.length > 0
                 ? services.map((service, index) => (
                     <Fragment key={service.code ?? service.name ?? index}>
                       <span
-                        className={
-                          service.approved === false
-                            ? "text-sm line-through"
-                            : service.approved === null
-                              ? "text-sm text-yellow-500"
-                              : "text-sm text-gray-900 dark:text-gray-100"
-                        }
+                        style={{
+                          color:
+                            service.approved === null
+                              ? token.colorWarning
+                              : token.colorText,
+                          textDecoration:
+                            service.approved === false
+                              ? "line-through"
+                              : "none",
+                          fontSize: token.fontSizeSM,
+                        }}
                       >
                         {service.name}
                       </span>
@@ -866,135 +1370,178 @@ export const ShipmentDetailContent = ({
 
             {shipment.receivingWarehouse?.displayName && (
               <Fragment>
-                <Divider className="my-4" />
+                <Divider />
                 <InfoLine
-                  label="Kho nhận"
+                  label={t("shipments.receivingWarehouseDisplayName")}
                   value={shipment.receivingWarehouse.displayName}
                 />
               </Fragment>
             )}
 
-            <Divider className="my-4" />
+            <Divider />
             <InfoLine
               label={
                 shipment.receiptAddress
-                  ? "Địa chỉ nhận hàng"
-                  : "Địa chỉ giao hàng"
+                  ? t("orderDetail.delivery_receiptAddress")
+                  : t("orderDetail.delivery_address")
               }
               value={formatAddress(shipment.address)}
             />
 
             {shipment.receiptAddress && (
               <Fragment>
-                <Divider className="my-4" />
+                <Divider />
                 <InfoLine
-                  label="Địa chỉ giao hàng"
+                  label={t("orderDetail.delivery_address")}
                   value={formatAddress(shipment.receiptAddress, true)}
                 />
               </Fragment>
             )}
 
-            <Divider className="my-4" />
+            <Divider />
             <InfoLine
-              label="Mã đơn ký gửi tham chiếu"
+              label={t("shipments.refShipmentCode")}
               value={renderTextEditor(
                 "refShipmentCode",
                 shipment.refShipmentCode,
-                "Mã đơn ký gửi tham chiếu",
+                t("shipments.refShipmentCode"),
               )}
             />
 
-            <Divider className="my-4" />
+            <Divider />
             <InfoLine
-              label="Mã đơn hàng khách"
+              label={t("shipments.refCustomerCode")}
               value={renderTextEditor(
                 "refCustomerCode",
                 shipment.refCustomerCode,
-                "Mã đơn hàng khách",
+                t("shipments.refCustomerCode"),
               )}
             />
 
-            <Divider className="my-4" />
-            <div className="space-y-2">
+            <Divider />
+            <Space direction="vertical" size={8} style={styles.fullWidth}>
               {shipment.remark && (
-                <InfoLine label="Ghi chú đơn hàng" value={shipment.remark} />
+                <InfoLine
+                  label={t("orderDetail.note_order")}
+                  value={shipment.remark}
+                />
               )}
-              <InfoLine
-                label="Ghi chú cá nhân cho đơn hàng"
-                value={renderTextEditor(
-                  "note",
-                  shipment.note,
-                  "Ghi chú cá nhân cho đơn hàng",
-                  true,
-                )}
-              />
-            </div>
+              {editingField === "note" || shipment.note ? (
+                <InfoLine
+                  label={t("shipments.personal_note_for_order")}
+                  value={renderPersonalNote()}
+                  alignStart
+                />
+              ) : (
+                renderPersonalNote()
+              )}
+            </Space>
 
             {shipment.receivingWarehouse?.address && (
-              <div className="mt-4 flex gap-3">
-                <span className="flex-none text-sm text-gray-500">
-                  Kho nhận hàng:
-                </span>
-                <div className="w-full">
-                  <div className="whitespace-pre-wrap rounded border bg-white p-2 text-sm text-gray-900">
+              <Flex
+                gap={token.marginSM}
+                align="flex-start"
+                style={{ marginTop: token.marginMD }}
+              >
+                <Typography.Text type="secondary" className="whitespace-nowrap">
+                  {t("shipments.receivingWarehouse")}:
+                </Typography.Text>
+                <Space direction="vertical" size={4} style={styles.fullWidth}>
+                  <Typography.Paragraph
+                    copyable={{
+                      text: shipment.receivingWarehouse.address.trim(),
+                    }}
+                    style={{ ...styles.preWrap, marginBottom: 0 }}
+                  >
                     {shipment.receivingWarehouse.address.trim()}
-                  </div>
-                  <div className="pt-1 text-sm text-gray-600">
-                    Lưu ý kho nhận hàng
-                  </div>
-                </div>
-              </div>
+                  </Typography.Paragraph>
+                  <Typography.Text type="secondary">
+                    {t("shipments.receivingWarehouse_note")}
+                  </Typography.Text>
+                </Space>
+              </Flex>
             )}
           </Fragment>
         )}
       </Card>
 
-      <Card className="text-center" styles={{ body: { padding: 8 } }}>
+      <Card styles={{ body: { padding: 8, textAlign: "center" } }}>
         <Button
           type="text"
           icon={isExpand ? <ShrinkOutlined /> : <DownOutlined />}
           onClick={() => setIsExpand((value) => !value)}
         >
-          {isExpand ? <>Thu gọn</> : <>Xem thêm</>}
+          {isExpand ? t("orderDetail.collapse") : t("orderDetail.show_more")}
         </Button>
       </Card>
 
       <Card styles={{ body: { paddingTop: 8 } }}>
         <Tabs
-          defaultActiveKey="WAYBILLS"
+          activeKey={activeTab}
+          defaultActiveKey={activeTab}
+          onChange={handleTabChange}
           items={[
             {
               key: "PRODUCT",
-              label: "Sản phẩm",
+              label: t("order.products"),
               children: (
                 <Spin spinning={isProductsLoading}>
                   <List
-                    dataSource={productRows}
+                    dataSource={visibleProductRows}
                     header={
                       <Card
                         size="small"
-                        className="mb-3 bg-gray-50"
-                        styles={{ body: { padding: "8px 12px" } }}
+                        style={{
+                          marginBottom: token.marginSM,
+                          borderRadius: 0,
+                        }}
+                        styles={{
+                          body: {
+                            padding: `${token.paddingXXS}px ${token.padding}px`,
+                            background: token.colorFillAlter,
+                          },
+                        }}
                       >
                         <Row align="middle">
-                          <Col span={10}>
-                            <Text>Sản phẩm</Text>
+                          <Col
+                            span={10}
+                            style={{ paddingTop: token.paddingXXS }}
+                          >
+                            <Text>{t("order.products")}</Text>
                           </Col>
                           <Col span={14}>
-                            <Row align="middle">
-                              <Col span={6} className="text-right">
-                                HS Code
+                            <Row align="middle" gutter={0}>
+                              <Col
+                                span={6}
+                                style={{
+                                  ...styles.right,
+                                  paddingTop: token.paddingXXS,
+                                }}
+                              >
+                                {t("shipments.hsCode")}
                               </Col>
-                              <Col span={6} className="text-right">
-                                Số lượng
+                              <Col
+                                span={6}
+                                style={{
+                                  ...styles.right,
+                                  paddingTop: token.paddingXXS,
+                                }}
+                              >
+                                {t("order.quantity")}
                               </Col>
-                              <Col span={6} className="text-right">
-                                Đơn giá
+                              <Col
+                                span={6}
+                                style={{
+                                  ...styles.right,
+                                  paddingTop: token.paddingXXS,
+                                }}
+                              >
+                                {t("order.sale_price")}
                               </Col>
-                              <Col span={6} className="text-right">
+                              <Col span={6} style={styles.right}>
                                 {statusInfo?.productUpdatable && (
                                   <Button onClick={() => openProductModal()}>
-                                    Thêm sản phẩm
+                                    {t("button.add_products")}
                                   </Button>
                                 )}
                               </Col>
@@ -1004,53 +1551,99 @@ export const ShipmentDetailContent = ({
                       </Card>
                     }
                     renderItem={(item) => (
-                      <List.Item className="mb-3 rounded border border-gray-200 bg-gray-50 p-4">
+                      <List.Item
+                        style={{
+                          marginBottom: token.marginSM,
+                          padding: token.paddingMD,
+                          border: `${token.lineWidth}px ${token.lineType} ${token.colorBorderSecondary}`,
+                          borderRadius: 0,
+                          background: token.colorFillAlter,
+                        }}
+                      >
                         <Col span={10}>
-                          <Flex align="flex-start" gap={10}>
-                            {item.productImage ? (
-                              <Image
-                                src={item.productImage}
-                                alt={display(item.name)}
-                                width={44}
-                                height={44}
-                                preview={false}
-                                className="rounded object-cover"
-                              />
-                            ) : (
-                              <RocketOutlined
-                                className="text-gray-400"
-                                style={{ fontSize: 30 }}
-                              />
-                            )}
-                            <Space direction="vertical" size={2}>
-                              <Text className="text-xs">
+                          <Flex align="flex-start" gap={token.marginSM}>
+                            <Space
+                              direction="vertical"
+                              size={token.marginXXS}
+                              style={{ width: 54, flex: "none" }}
+                            >
+                              {item.productImage ? (
+                                <Avatar
+                                  shape="square"
+                                  size={44}
+                                  src={item.productImage}
+                                />
+                              ) : (
+                                <Flex
+                                  align="center"
+                                  justify="center"
+                                  style={{
+                                    width: 44,
+                                    height: 44,
+                                    color: token.colorTextQuaternary,
+                                  }}
+                                >
+                                  <RocketOutlined style={{ fontSize: 30 }} />
+                                </Flex>
+                              )}
+                              <Text
+                                style={{
+                                  display: "block",
+                                  wordBreak: "break-word",
+                                  fontSize: token.fontSizeSM,
+                                }}
+                              >
                                 #{stripProductCode(item.code)}
                               </Text>
+                            </Space>
+                            <Space direction="vertical" size={2}>
                               {item.productUrl ? (
                                 <Typography.Link
                                   target="_blank"
                                   href={item.productUrl}
-                                  className="break-words font-semibold"
+                                  strong
+                                  style={{ wordBreak: "break-word" }}
                                 >
                                   {item.name || empty}
                                 </Typography.Link>
                               ) : (
-                                <Text strong className="break-words">
+                                <Text
+                                  strong
+                                  style={{ wordBreak: "break-word" }}
+                                >
                                   {item.name || empty}
                                 </Text>
                               )}
-                              <Text type="secondary" className="break-words">
+                              <Text
+                                type="secondary"
+                                style={{ wordBreak: "break-word" }}
+                              >
                                 {item.translatedName || empty}
                               </Text>
                               {getVariantText(item) && (
-                                <Text type="secondary" className="break-words">
+                                <Text
+                                  type="secondary"
+                                  style={{ wordBreak: "break-word" }}
+                                >
                                   {getVariantText(item)}
                                 </Text>
                               )}
-                              <Text type="secondary" className="break-words">
+                              <Text
+                                type="secondary"
+                                style={{ wordBreak: "break-word" }}
+                              >
+                                <ShopOutlined
+                                  style={{ marginRight: token.marginXXS }}
+                                />
                                 {item.merchantName || empty}
                               </Text>
-                              <Text type="secondary" className="break-words">
+                              <Text
+                                type="secondary"
+                                style={{ wordBreak: "break-word" }}
+                              >
+                                <EnvironmentOutlined
+                                  style={{ marginRight: token.marginXXS }}
+                                />
                                 {item.merchantContact || empty}
                               </Text>
                             </Space>
@@ -1058,7 +1651,7 @@ export const ShipmentDetailContent = ({
                         </Col>
                         <Col span={14}>
                           <Row>
-                            <Col span={6} className="text-right">
+                            <Col span={6} style={styles.right}>
                               <Text strong>
                                 {display(
                                   asArray(hsList).find(
@@ -1067,10 +1660,10 @@ export const ShipmentDetailContent = ({
                                 )}
                               </Text>
                             </Col>
-                            <Col span={6} className="text-right">
+                            <Col span={6} style={styles.right}>
                               <Text strong>{quantity(item.quantity)}</Text>
                             </Col>
-                            <Col span={6} className="text-right">
+                            <Col span={6} style={styles.right}>
                               <Text strong>
                                 {money(item.unitPrice, currency)}
                               </Text>
@@ -1080,20 +1673,23 @@ export const ShipmentDetailContent = ({
                                 <Flex justify="end" align="center">
                                   <Button
                                     type="link"
-                                    className="p-0"
+                                    style={styles.linkButton}
                                     onClick={() => openProductModal(item)}
                                   >
-                                    Sửa
+                                    {t("button.edit")}
                                   </Button>
-                                  <Divider type="vertical" />
+                                  <Text type="secondary">|</Text>
                                   <Popconfirm
-                                    title="Bạn có chắc muốn xóa?"
+                                    title={t("message.delete_confirm")}
                                     onConfirm={() => removeProduct(item.code)}
-                                    okText="Có"
-                                    cancelText="Không"
+                                    okText={t("button.yes")}
+                                    cancelText={t("button.no")}
                                   >
-                                    <Button type="link" className="p-0">
-                                      Xóa
+                                    <Button
+                                      type="link"
+                                      style={styles.linkButton}
+                                    >
+                                      {t("button.delete")}
                                     </Button>
                                   </Popconfirm>
                                 </Flex>
@@ -1104,15 +1700,31 @@ export const ShipmentDetailContent = ({
                       </List.Item>
                     )}
                     locale={{
-                      emptyText: <Empty description="Không có dữ liệu" />,
+                      emptyText: <Empty description={t("common.no_data")} />,
                     }}
                   />
+                  {productRows.length > productPageSize && (
+                    <Flex
+                      justify="center"
+                      style={{ marginTop: token.marginSM }}
+                    >
+                      <Button
+                        onClick={() =>
+                          setIsProductExpanded((current) => !current)
+                        }
+                      >
+                        {isProductExpanded
+                          ? t("button.collapse")
+                          : t("button.loadmore")}
+                      </Button>
+                    </Flex>
+                  )}
                 </Spin>
               ),
             },
             {
-              key: "WAYBILLS",
-              label: "Mã vận đơn",
+              key: "SHIPPING",
+              label: t("shipments.shipping"),
               children: (
                 <Spin spinning={isWaybillsLoading || isParcelsLoading}>
                   <Table
@@ -1121,10 +1733,20 @@ export const ShipmentDetailContent = ({
                     rowKey={(row, index) => row.code ?? `waybill-${index}`}
                     pagination={{ hideOnSinglePage: true, pageSize: 9999 }}
                     expandable={{
+                      expandedRowKeys: expandedWaybillKeys,
+                      onExpand: (expanded, record) => {
+                        setExpandedWaybillKeys(
+                          expanded && record.code !== null ? [record.code] : [],
+                        );
+                      },
+                      rowExpandable: (record) => record.code !== null,
                       expandedRowRender: (row) => (
                         <Table
                           columns={parcelColumns}
-                          dataSource={getParcelsForWaybill(row, parcelRows)}
+                          dataSource={sortNewest(
+                            getParcelsForWaybill(row, parcelRows),
+                            "modifiedAt",
+                          )}
                           rowKey={(parcel, index) =>
                             parcel.code ?? `parcel-${index}`
                           }
@@ -1155,12 +1777,30 @@ export const ShipmentDetailContent = ({
                     label: "Tín dụng",
                     children: (
                       <Spin spinning={isCreditsLoading || isLoansLoading}>
-                        <div className="px-4 pb-4">
-                          <div className="mb-3 rounded-md bg-blue-50 p-3">
-                            <div className="mb-3 font-semibold">
+                        <Space
+                          direction="vertical"
+                          size="middle"
+                          style={{
+                            ...styles.fullWidth,
+                            padding: `0 ${token.paddingMD}px ${token.paddingMD}px`,
+                          }}
+                        >
+                          <Card
+                            size="small"
+                            style={{ background: token.colorInfoBg }}
+                          >
+                            <Typography.Text strong>
                               Thông tin BiFin
-                            </div>
-                            <div className="max-w-xl space-y-3">
+                            </Typography.Text>
+                            <Space
+                              direction="vertical"
+                              size="middle"
+                              style={{
+                                ...styles.fullWidth,
+                                maxWidth: 576,
+                                marginTop: token.marginSM,
+                              }}
+                            >
                               <CreditInfo
                                 label="Trạng thái"
                                 value={display(loans?.status)}
@@ -1189,15 +1829,15 @@ export const ShipmentDetailContent = ({
                                 label="Tổng cần thanh toán"
                                 value={money(loans?.totalAmountPay)}
                               />
-                            </div>
-                          </div>
+                            </Space>
+                          </Card>
                           <Table
                             columns={creditColumns}
                             dataSource={asArray(credits)}
                             pagination={false}
                             rowKey={(row, index) => row.id ?? `credit-${index}`}
                           />
-                        </div>
+                        </Space>
                       </Spin>
                     ),
                   },
@@ -1205,109 +1845,183 @@ export const ShipmentDetailContent = ({
               : []),
             {
               key: "FEES",
-              label: "Tài chính",
+              label: t("fee_tab.finance"),
               children: (
-                <Spin spinning={isFeesLoading}>
-                  <Row gutter={[16, 16]}>
+                <Spin
+                  spinning={
+                    isFeesLoading ||
+                    isFinancialClaimLoading ||
+                    isFinancialCollectLoading
+                  }
+                >
+                  <Row gutter={[token.marginLG, token.marginLG]}>
                     <Col xs={24} lg={16}>
-                      <Space direction="vertical" size={16} className="w-full">
+                      <Space
+                        direction="vertical"
+                        size={token.marginLG}
+                        style={styles.fullWidth}
+                      >
                         <FeeGroup
-                          title="Phí dịch vụ"
+                          title={t("fee_tab.service_fee")}
                           rows={sortByPosition(asArray(fees)).filter(
                             (item) =>
                               item.type &&
                               !item.type.shipping &&
                               !item.type.additional,
                           )}
-                          currency={currency}
+                          shipmentFees={asArray(shipmentFees)}
+                          order={shipment}
+                          onOpenFeeTable={setFeeTableConfig}
                         />
                         <FeeGroup
-                          title="Phí vận chuyển"
+                          title={t("fee_tab.transport_fee")}
                           rows={sortByPosition(asArray(fees)).filter(
                             (item) =>
                               item.type &&
                               item.type.shipping &&
                               !item.type.additional,
                           )}
-                          currency={currency}
+                          shipmentFees={asArray(shipmentFees)}
+                          order={shipment}
+                          onOpenFeeTable={setFeeTableConfig}
                         />
                         <FeeGroup
-                          title="Phụ phí"
+                          title={t("fee_tab.surcharge")}
                           rows={sortByPosition(asArray(fees)).filter(
                             (item) =>
                               item.type &&
                               !item.type.shipping &&
                               item.type.additional,
                           )}
-                          currency={currency}
+                          shipmentFees={asArray(shipmentFees)}
+                          order={shipment}
+                          onOpenFeeTable={setFeeTableConfig}
                         />
+                        {asArray(fees).length === 0 && (
+                          <Empty description={t("fee_tab.empty_fee")} />
+                        )}
                       </Space>
                     </Col>
                     <Col xs={24} lg={8}>
-                      <Space direction="vertical" size={8} className="w-full">
-                        <Text strong className="uppercase">
-                          Tài chính đơn
-                        </Text>
+                      <Space
+                        direction="vertical"
+                        size={token.marginSM}
+                        style={styles.fullWidth}
+                      >
+                        <Typography.Title
+                          level={5}
+                          style={{
+                            margin: 0,
+                            textTransform: "uppercase",
+                            fontSize: token.fontSize,
+                          }}
+                        >
+                          {t("fee_tab.order_finance")}
+                        </Typography.Title>
                         <Card
-                          className="bg-blue-600 text-white"
-                          styles={{ body: { padding: 12 } }}
+                          bordered={false}
+                          styles={{
+                            body: {
+                              background: token.colorPrimary,
+                              borderRadius: token.borderRadius,
+                              color: token.colorWhite,
+                              padding: `${token.paddingSM}px ${token.padding}px`,
+                            },
+                          }}
                         >
                           <Space
                             direction="vertical"
-                            size={8}
-                            className="w-full"
+                            size={0}
+                            style={styles.fullWidth}
                           >
                             <FinanceLine
-                              label="Giá trị hàng hóa"
-                              value={money(shipment.declareValue)}
+                              label={t("shipments.declareValue")}
+                              value={feeMoney(shipment.declareValue)}
                             />
                             <FinanceLine
-                              label="Tổng chi phí"
-                              value={money(shipment.totalFee)}
+                              label={t("shipments.totalFee")}
+                              value={feeMoney(shipment.totalFee)}
                             />
-                            {shipment.totalCoupon > 0 && (
+                            {asArray(coupons).length > 0 && (
                               <FinanceLine
-                                label="Mã giảm giá"
-                                value={`-${money(shipment.totalCoupon)}`}
+                                label={
+                                  <Tooltip
+                                    color={token.colorPrimary}
+                                    title={
+                                      <Space direction="vertical" size={2}>
+                                        {asArray(coupons).map(
+                                          (coupon, index) => (
+                                            <Typography.Text
+                                              key={
+                                                coupon.code ?? `coupon-${index}`
+                                              }
+                                              style={{
+                                                color: token.colorWhite,
+                                              }}
+                                            >
+                                              {[coupon.code, coupon.description]
+                                                .filter(Boolean)
+                                                .join(" - ")}
+                                            </Typography.Text>
+                                          ),
+                                        )}
+                                      </Space>
+                                    }
+                                  >
+                                    <Space size={token.marginXXS}>
+                                      <span>{t("button.coupon")}</span>
+                                      <InfoCircleOutlined />
+                                    </Space>
+                                  </Tooltip>
+                                }
+                                value={`-${feeMoney(shipment.totalCoupon)}`}
                               />
                             )}
                             <FinanceLine
-                              label="Đã thanh toán"
-                              value={money(shipment.totalPaid)}
+                              label={t("fee_tab.paid")}
+                              value={feeMoney(shipment.totalPaid)}
                             />
                             <FinanceLine
-                              label="Dịch vụ trả lại"
-                              value={money(shipment.totalRefund)}
+                              label={t("fee_tab.refunded_service")}
+                              value={feeMoney(shipment.totalRefund)}
                             />
                             {!statusInfo?.negativeEnd && (
                               <FinanceLine
                                 label={
                                   shipment.totalUnpaid >= 0
-                                    ? "Cần thanh toán"
-                                    : "Tiền thừa"
+                                    ? t("order.need_payment")
+                                    : t("order.excess_cash")
                                 }
-                                value={money(
-                                  shipment.totalUnpaid,
-                                  undefined,
-                                  true,
-                                )}
+                                value={feeMoney(shipment.totalUnpaid, true)}
                               />
                             )}
                             {shipment.totalClaim && (
                               <>
-                                <Divider className="my-2 bg-blue-300" />
+                                <Divider
+                                  style={{
+                                    margin: `${token.marginXS}px 0`,
+                                    borderColor: "rgba(255,255,255,0.35)",
+                                  }}
+                                />
                                 <FinanceLine
-                                  label="Khiếu nại đã hoàn"
-                                  value={`${money(shipment.totalClaim)} / Chi tiết`}
+                                  label={t("fee_tab.claimed_refund")}
+                                  value={feeMoney(shipment.totalClaim)}
+                                  onDetail={() => setClaimModalOpen(true)}
                                 />
                               </>
                             )}
                             {shipment.totalCollect && (
                               <>
-                                <Divider className="my-2 bg-blue-300" />
+                                <Divider
+                                  style={{
+                                    margin: `${token.marginXS}px 0`,
+                                    borderColor: "rgba(255,255,255,0.35)",
+                                  }}
+                                />
                                 <FinanceLine
-                                  label="Truy thu"
-                                  value={`${money(shipment.totalCollect, undefined, true)} / Chi tiết`}
+                                  label={t("fee_tab.collect_refund")}
+                                  value={feeMoney(shipment.totalCollect, true)}
+                                  onDetail={() => setCollectModalOpen(true)}
                                 />
                               </>
                             )}
@@ -1315,7 +2029,9 @@ export const ShipmentDetailContent = ({
                         </Card>
                         {statusInfo?.couponEnabled && (
                           <Flex justify="end">
-                            <Button type="link">Mã giảm giá</Button>
+                            <Button type="link" onClick={openCouponModal}>
+                              {t("button.coupon")}
+                            </Button>
                           </Flex>
                         )}
                       </Space>
@@ -1326,20 +2042,21 @@ export const ShipmentDetailContent = ({
             },
             {
               key: "FINANCE",
-              label: "Giao dịch",
+              label: t("financial_tab.transaction"),
               children: (
                 <Spin spinning={isFinancialLoading}>
-                  <Table
-                    columns={financeColumns}
-                    dataSource={asArray(financial)}
-                    rowKey={(row, index) =>
-                      row.id ?? row.txid ?? `finance-${index}`
-                    }
-                    pagination={false}
-                    locale={{
-                      emptyText: <Empty description="Không có dữ liệu" />,
-                    }}
-                  />
+                  {asArray(financial).length > 0 ? (
+                    <Table
+                      columns={financeColumns}
+                      dataSource={asArray(financial)}
+                      rowKey={(row, index) =>
+                        row.id ?? row.txid ?? `finance-${index}`
+                      }
+                      pagination={false}
+                    />
+                  ) : (
+                    <Empty description={t("financial_tab.empty_transaction")} />
+                  )}
                 </Spin>
               ),
             },
@@ -1347,28 +2064,33 @@ export const ShipmentDetailContent = ({
               key: "TICKETS",
               label: (
                 <span>
-                  Khiếu nại
+                  {t("complaint_tab.complaint")}
                   {claims.length > 0 ? ` (${quantity(claims.length)})` : ""}
                 </span>
               ),
               children: (
                 <Spin spinning={isClaimsLoading}>
-                  <div className="p-2">
+                  <div style={{ padding: token.paddingXS }}>
                     {claims.length > 0 ? (
                       <Fragment>
                         <Flex
                           justify="space-between"
                           align="center"
-                          className="mb-3 border-b border-gray-200 pb-3"
+                          style={{
+                            marginBottom: token.marginSM,
+                            paddingBottom: token.paddingSM,
+                            borderBottom: `${token.lineWidth}px ${token.lineType} ${token.colorBorderSecondary}`,
+                          }}
                         >
                           <Text strong>
-                            Danh sách khiếu nại ({quantity(claims.length)})
+                            {t("ticket_add.list_claims")} (
+                            {quantity(claims.length)})
                           </Text>
                           <Link
                             to={`/tickets/create?orderCode=${shipment.code}&isShipment=true`}
                           >
                             <Button type="primary" ghost size="small">
-                              Tạo khiếu nại
+                              {t("complaint_tab.create_complaint")}
                             </Button>
                           </Link>
                         </Flex>
@@ -1382,14 +2104,19 @@ export const ShipmentDetailContent = ({
                     ) : (
                       <Row>
                         <Col span={10}>
-                          <Empty description={false} />
+                          <Empty
+                            image={Empty.PRESENTED_IMAGE_SIMPLE}
+                            description={false}
+                          />
                         </Col>
                         <Col span={14}>
-                          <Flex align="center" className="h-full">
+                          <Flex align="center" style={{ height: "100%" }}>
                             <Link
                               to={`/tickets/create?orderCode=${shipment.code}&isShipment=true`}
                             >
-                              <Button type="primary">Tạo khiếu nại</Button>
+                              <Button type="primary">
+                                {t("tickets.create")}
+                              </Button>
                             </Link>
                           </Flex>
                         </Col>
@@ -1401,36 +2128,53 @@ export const ShipmentDetailContent = ({
             },
             {
               key: "HISTORY",
-              label: "Lịch sử",
+              label: t("history_tab.history"),
               children: (
                 <Spin spinning={isMilestonesLoading}>
-                  <Timeline mode="alternate" className="px-4 pb-4">
+                  <Timeline
+                    mode="alternate"
+                    style={{
+                      padding: `0 ${token.paddingMD}px ${token.paddingMD}px`,
+                    }}
+                  >
                     {asArray(milestones).map((item, index) => {
                       const foundStatus = statusData?.find(
                         (status) => status.code === item.status,
                       );
                       const day =
-                        Number(item.handlingTime) > 1 ? "ngày" : "ngày";
+                        Number(item.handlingTime) > 1
+                          ? t("label.days")
+                          : t("label.day");
                       return (
                         <Timeline.Item
                           key={item.id ?? `${item.status}-${index}`}
                           color={index === 0 ? "red" : "green"}
                           dot={
                             index === 0 ? (
-                              <ClockCircleOutlined className="text-2xl" />
+                              <ClockCircleOutlined style={{ fontSize: 24 }} />
                             ) : undefined
                           }
                         >
-                          <span className="pr-1 text-gray-500">
+                          <span
+                            style={{
+                              color: token.colorTextSecondary,
+                              paddingRight: 4,
+                            }}
+                          >
                             {display(foundStatus?.name)}:
                           </span>
-                          <span className="pr-1 font-semibold">
+                          <span
+                            style={{
+                              fontWeight: token.fontWeightStrong,
+                              paddingRight: 4,
+                            }}
+                          >
                             {shortDateTime(item.timestamp)}
                           </span>
-                          <span className="font-semibold">
+                          <span style={{ fontWeight: token.fontWeightStrong }}>
                             (
                             {item.handlingTime === null
-                              ? "Không xác định"
+                              ? t("orderDetail.undefined")
                               : `${item.handlingTime} ${day}`}
                             )
                           </span>
@@ -1443,36 +2187,70 @@ export const ShipmentDetailContent = ({
             },
             {
               key: "LOG",
-              label: "Log",
+              label: t("shipment_tab.log"),
               children: (
                 <Spin spinning={isActivitiesLoading}>
-                  <div className="px-5 pb-4">
-                    {activityRows.length > 0 ? (
-                      activityRows.map((item, index) => (
-                        <div key={item.id ?? `log-${index}`}>
+                  <div
+                    style={{
+                      padding: `0 ${token.paddingLG}px ${token.paddingMD}px`,
+                    }}
+                  >
+                    <List
+                      itemLayout="horizontal"
+                      dataSource={shipmentLogRows}
+                      locale={{
+                        emptyText: (
+                          <Empty description={t("orderDetail.empty_log")} />
+                        ),
+                      }}
+                      renderItem={(item, index) => (
+                        <List.Item
+                          key={item.id ?? `log-${index}`}
+                          style={{
+                            display: "block",
+                            padding: 0,
+                            borderBlockEnd: 0,
+                          }}
+                        >
                           <div
-                            className={`text-sm text-gray-500 ${index !== 0 ? "mt-3" : ""}`}
+                            style={{
+                              color: token.colorTextSecondary,
+                              fontSize: token.fontSizeSM,
+                              marginTop: index !== 0 ? token.marginSM : 0,
+                            }}
                           >
-                            <span>{shortDateTime(item.timestamp)}</span>,
-                            <span className="pl-1">
+                            <span>{dateTime(item.timestamp)}</span>,
+                            <span style={{ paddingLeft: 4 }}>
                               {item.role === "CUSTOMER"
-                                ? "Khách hàng"
-                                : "Nhân viên"}
+                                ? t("shipment_log.customer")
+                                : t("shipment_log.staff")}
                               :
                             </span>
-                            <span className="pl-1 font-semibold text-gray-900">
-                              {display(item.actor?.fullname)}
+                            <span
+                              style={{
+                                paddingLeft: 4,
+                                fontWeight: token.fontWeightStrong,
+                                color: token.colorText,
+                              }}
+                            >
+                              {display(item.fullname ?? item.actor?.fullname)}
                             </span>
                           </div>
-                          <div className="whitespace-pre-wrap text-base">
-                            {activityText(item)}
-                          </div>
-                          <Divider className="my-3" />
-                        </div>
-                      ))
-                    ) : (
-                      <Empty description="Không có dữ liệu" />
-                    )}
+                          <div
+                            style={{
+                              whiteSpace: "pre-wrap",
+                              fontSize: token.fontSizeLG,
+                            }}
+                            dangerouslySetInnerHTML={{
+                              __html: activityText(item, t),
+                            }}
+                          />
+                          <Divider
+                            style={{ margin: `${token.marginSM}px 0` }}
+                          />
+                        </List.Item>
+                      )}
+                    />
                   </div>
                 </Spin>
               ),
@@ -1480,6 +2258,108 @@ export const ShipmentDetailContent = ({
           ]}
         />
       </Card>
+
+      <Modal
+        title={t("coupon.modalTitle")}
+        open={couponModalOpen}
+        footer={null}
+        width={600}
+        onCancel={closeCouponModal}
+      >
+        <Space
+          direction="vertical"
+          size={token.marginMD}
+          style={styles.fullWidth}
+        >
+          <Typography.Text>{t("coupon.inputVoucher")}</Typography.Text>
+          <Input.Search
+            value={couponCode}
+            placeholder={t("message.enter_coupon")}
+            enterButton={t("button.check")}
+            loading={checkVoucher.isPending}
+            onChange={(event) => changeCouponCode(event.target.value)}
+            onSearch={checkCouponCode}
+          />
+          {couponValidTo && (
+            <Alert
+              type="success"
+              showIcon
+              message={t("coupon.voucherValidTo", {
+                value: dateTime(couponValidTo),
+              })}
+            />
+          )}
+          {couponValidMessage && (
+            <Alert
+              type={couponValid ? "success" : "error"}
+              showIcon
+              message={couponValidMessage}
+            />
+          )}
+          <Flex justify="end" gap={token.marginSM}>
+            <Button onClick={closeCouponModal}>{t("button.cancel")}</Button>
+            <Button
+              type="primary"
+              disabled={!couponValid}
+              loading={applyShipmentCoupon.isPending}
+              onClick={submitCouponCode}
+            >
+              {t("button.use")}
+            </Button>
+          </Flex>
+        </Space>
+      </Modal>
+
+      <Modal
+        title={t("fee_tab.refunded_list")}
+        open={claimModalOpen}
+        footer={null}
+        width={980}
+        onCancel={() => setClaimModalOpen(false)}
+      >
+        <Table
+          columns={financialClaimColumns}
+          dataSource={sortNewest(asArray(financialClaim), "createdAt")}
+          rowKey={(row, index) => row.id ?? `financial-claim-${index}`}
+          pagination={{ hideOnSinglePage: true, pageSize: 25 }}
+          locale={{
+            emptyText: <Empty description={t("fee_tab.empty_detail")} />,
+          }}
+        />
+      </Modal>
+
+      <Modal
+        title={t("fee_tab.retrospectiveList")}
+        open={collectModalOpen}
+        footer={null}
+        width={700}
+        onCancel={() => setCollectModalOpen(false)}
+      >
+        <Table
+          bordered
+          columns={financialCollectColumns}
+          dataSource={sortNewest(asArray(financialCollect), "createdAt")}
+          rowKey={(row, index) => row.id ?? `financial-collect-${index}`}
+          pagination={{ hideOnSinglePage: true, pageSize: 25 }}
+          locale={{
+            emptyText: <Empty description={t("fee_tab.empty_detail")} />,
+          }}
+        />
+      </Modal>
+
+      <Modal
+        title={t("config_group.feeTable")}
+        open={!!feeTableConfig}
+        width={1100}
+        okText={t("button.close")}
+        cancelButtonProps={{ style: { display: "none" } }}
+        onOk={() => setFeeTableConfig(null)}
+        onCancel={() => setFeeTableConfig(null)}
+      >
+        {feeTableConfig && (
+          <FeeTableContent feeConfig={feeTableConfig} order={shipment} />
+        )}
+      </Modal>
 
       <Modal
         title={
@@ -1510,47 +2390,51 @@ export const ShipmentDetailContent = ({
             />
           </ProductField>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <ProductField
-              label="Số lượng"
-              required
-              error={productErrors.quantity}
-            >
-              <InputNumber
-                className="w-full"
-                min={0}
-                precision={0}
-                value={productDraft.quantity}
-                formatter={(value) =>
-                  `${value ?? ""}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                }
-                parser={(value) =>
-                  (value || "").replace(/\$\s?|(,*)/g, "") as any
-                }
-                onChange={(value) => updateProductDraft("quantity", value)}
-                onPressEnter={submitProduct}
-              />
-            </ProductField>
-            <ProductField
-              label="Đơn giá"
-              required
-              error={productErrors.unitPrice}
-            >
-              <InputNumber
-                className="w-full"
-                min={0}
-                value={productDraft.unitPrice}
-                formatter={(value) =>
-                  `${value ?? ""}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                }
-                parser={(value) =>
-                  (value || "").replace(/\$\s?|(,*)/g, "") as any
-                }
-                onChange={(value) => updateProductDraft("unitPrice", value)}
-                onPressEnter={submitProduct}
-              />
-            </ProductField>
-          </div>
+          <Row gutter={16}>
+            <Col xs={24} md={12}>
+              <ProductField
+                label="Số lượng"
+                required
+                error={productErrors.quantity}
+              >
+                <InputNumber
+                  style={styles.fullWidth}
+                  min={0}
+                  precision={0}
+                  value={productDraft.quantity}
+                  formatter={(value) =>
+                    `${value ?? ""}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  }
+                  parser={(value) =>
+                    (value || "").replace(/\$\s?|(,*)/g, "") as any
+                  }
+                  onChange={(value) => updateProductDraft("quantity", value)}
+                  onPressEnter={submitProduct}
+                />
+              </ProductField>
+            </Col>
+            <Col xs={24} md={12}>
+              <ProductField
+                label="Đơn giá"
+                required
+                error={productErrors.unitPrice}
+              >
+                <InputNumber
+                  style={styles.fullWidth}
+                  min={0}
+                  value={productDraft.unitPrice}
+                  formatter={(value) =>
+                    `${value ?? ""}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  }
+                  parser={(value) =>
+                    (value || "").replace(/\$\s?|(,*)/g, "") as any
+                  }
+                  onChange={(value) => updateProductDraft("unitPrice", value)}
+                  onPressEnter={submitProduct}
+                />
+              </ProductField>
+            </Col>
+          </Row>
 
           <ProductField
             label="Tên sản phẩm tiếng Trung"
@@ -1605,8 +2489,8 @@ export const ShipmentDetailContent = ({
         onCancel={() => setOriginalReceiptModalOpen(false)}
         footer={null}
       >
-        <div className="space-y-3">
-          <div className="flex gap-2">
+        <Space direction="vertical" size="middle" style={styles.fullWidth}>
+          <Flex gap={token.marginXS}>
             <Input
               value={originalReceiptCode}
               placeholder="Nhập mã hóa đơn gốc"
@@ -1620,8 +2504,8 @@ export const ShipmentDetailContent = ({
             >
               Thêm
             </Button>
-          </div>
-          <div className="flex flex-wrap gap-2">
+          </Flex>
+          <Flex wrap="wrap" gap={token.marginXS}>
             {asArray(originalReceipts).length > 0 ? (
               asArray(originalReceipts).map((receipt) => (
                 <Tag
@@ -1638,10 +2522,10 @@ export const ShipmentDetailContent = ({
             ) : (
               <Empty description="Chưa có hóa đơn gốc" />
             )}
-          </div>
-        </div>
+          </Flex>
+        </Space>
       </Modal>
-    </div>
+    </Space>
   );
 };
 
@@ -1651,12 +2535,10 @@ const getParcelsForWaybill = (waybill: AnyRecord, parcels: AnyRecord[]) => {
 };
 
 const InfoBlock = ({ label, value }: { label: string; value: ReactNode }) => (
-  <div>
-    <h3 className="mb-1 text-sm font-normal text-gray-500">{label}</h3>
-    <span className="font-medium text-gray-900 dark:text-gray-100">
-      {value}
-    </span>
-  </div>
+  <Space direction="vertical" size={2}>
+    <Typography.Text type="secondary">{label}</Typography.Text>
+    <Typography.Text strong>{value}</Typography.Text>
+  </Space>
 );
 
 const InfoLine = ({
@@ -1672,55 +2554,609 @@ const InfoLine = ({
   accent?: boolean;
   alignStart?: boolean;
 }) => (
-  <div className={`flex gap-2 ${alignStart ? "items-start" : "items-center"}`}>
-    <span className="flex-none text-sm text-gray-500">{label}: </span>
-    <span
-      className={`${strong ? "font-bold" : "font-medium"} ${accent ? "text-primary" : "text-gray-900 dark:text-gray-100"}`}
-    >
-      {value}
-    </span>
-  </div>
+  <InfoLineInner
+    label={label}
+    value={value}
+    strong={strong}
+    accent={accent}
+    alignStart={alignStart}
+  />
 );
+
+const InfoLineInner = ({
+  label,
+  value,
+  strong,
+  accent,
+  alignStart,
+}: {
+  label: string;
+  value: ReactNode;
+  strong?: boolean;
+  accent?: boolean;
+  alignStart?: boolean;
+}) => {
+  const { token } = theme.useToken();
+  return (
+    <Flex gap={token.marginXS} align={alignStart ? "flex-start" : "center"}>
+      {label && <Typography.Text type="secondary">{label}: </Typography.Text>}
+      <Typography.Text
+        strong={strong}
+        style={{
+          color: accent ? token.colorPrimary : token.colorText,
+          fontWeight: strong ? token.fontWeightStrong : 500,
+        }}
+      >
+        {value}
+      </Typography.Text>
+    </Flex>
+  );
+};
 
 const FeeGroup = ({
   title,
   rows,
-  currency,
+  shipmentFees,
+  order,
+  onOpenFeeTable,
 }: {
   title: string;
   rows: AnyRecord[];
-  currency: string;
+  shipmentFees: AnyRecord[];
+  order: AnyRecord;
+  onOpenFeeTable: (feeConfig: AnyRecord) => void;
 }) => {
+  const { t } = useTranslation();
+  const { token } = theme.useToken();
   if (rows.length === 0) return null;
+
+  const getFeeConfig = (item: AnyRecord) =>
+    item.type
+      ? shipmentFees.find(
+          (fee) =>
+            fee.code === item.type.code &&
+            fee.feeMetadata?.template &&
+            fee.feeMetadata.template !== "custom",
+        )
+      : null;
+
+  const renderDiscountTooltip = (item: AnyRecord) => {
+    const customerDiscountLevel = order?.customerDiscountLevels?.find(
+      (discount: AnyRecord) => discount?.feeCode === item?.type?.code,
+    );
+
+    if (!item.reason && !(customerDiscountLevel && item.actualAmount)) {
+      return null;
+    }
+
+    return (
+      <Tooltip
+        color={token.colorPrimary}
+        title={
+          <Space direction="vertical" size={2}>
+            {item.reason && (
+              <Typography.Text style={{ color: token.colorWhite }}>
+                {item.reason}
+              </Typography.Text>
+            )}
+            {customerDiscountLevel && item.actualAmount && (
+              <Typography.Text style={{ color: token.colorWhite }}>
+                {t("fee_tab.discountCustomer", {
+                  value:
+                    customerDiscountLevel.discountType === "PERCENT"
+                      ? `${customerDiscountLevel.discountValue}%`
+                      : feeMoney(customerDiscountLevel.discountValue),
+                })}
+              </Typography.Text>
+            )}
+          </Space>
+        }
+      >
+        <QuestionCircleOutlined style={{ color: token.colorTextTertiary }} />
+      </Tooltip>
+    );
+  };
+
   return (
-    <div>
-      <h3 className="mb-2 text-sm font-semibold uppercase">{title}</h3>
-      <ul className="space-y-2 rounded bg-gray-50 p-4">
-        {rows.map((item, index) => (
-          <li
-            key={item.id ?? `${title}-${index}`}
-            className="flex items-center justify-between gap-4"
-          >
-            <span>
-              {display(item.type?.name)}
-              {(item.reason || item.customerDiscountLevel) && (
-                <QuestionCircleOutlined className="ml-2 text-gray-400" />
-              )}
-            </span>
-            <span>{feeText(item, currency)}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
+    <Space direction="vertical" size={8} style={{ width: "100%" }}>
+      <Typography.Text strong style={{ textTransform: "uppercase" }}>
+        {title}
+      </Typography.Text>
+      <Card size="small" style={{ background: token.colorFillAlter }}>
+        <Space direction="vertical" size={8} style={{ width: "100%" }}>
+          {rows.map((item, index) => {
+            const currentFee = getFeeConfig(item);
+
+            return (
+              <Flex
+                key={item.id ?? `${title}-${index}`}
+                justify="space-between"
+                align="center"
+                gap={token.marginMD}
+              >
+                <Space size={token.marginXS} wrap>
+                  <Typography.Text>{display(item.type?.name)}</Typography.Text>
+                  {(item.type?.minFee || item.type?.maxFee) && (
+                    <Tooltip
+                      color={token.colorPrimary}
+                      title={
+                        <Space direction="vertical" size={2}>
+                          <Typography.Text style={{ color: token.colorWhite }}>
+                            {t("fee_tab.min_fee")}:{" "}
+                            {feeMoney(item.type?.minFee)}
+                          </Typography.Text>
+                          <Typography.Text style={{ color: token.colorWhite }}>
+                            {t("fee_tab.max_fee")}:{" "}
+                            {feeMoney(item.type?.maxFee)}
+                          </Typography.Text>
+                        </Space>
+                      }
+                    >
+                      <InfoCircleOutlined
+                        style={{ color: token.colorTextTertiary }}
+                      />
+                    </Tooltip>
+                  )}
+                  {currentFee && (
+                    <Tooltip
+                      title={t("config_group.feeTable")}
+                      color={token.colorPrimary}
+                    >
+                      <DollarOutlined
+                        onClick={() => onOpenFeeTable(currentFee)}
+                        style={{
+                          color: token.colorTextTertiary,
+                          cursor: "pointer",
+                        }}
+                      />
+                    </Tooltip>
+                  )}
+                </Space>
+                <Space size={token.marginXS}>
+                  {item.free ? (
+                    <>
+                      <Typography.Text delete type="secondary">
+                        {feeMoney(item.actualAmount)}
+                      </Typography.Text>
+                      <Typography.Text>{t("fee_tab.free")}</Typography.Text>
+                    </>
+                  ) : item.manual && item.provisionalAmount !== null ? (
+                    <>
+                      <Typography.Text delete type="secondary">
+                        {feeMoney(item.provisionalAmount)}
+                      </Typography.Text>
+                      <Typography.Text>
+                        {feeMoney(item.actualAmount)}
+                      </Typography.Text>
+                    </>
+                  ) : (
+                    <Typography.Text>
+                      {feeMoney(item.actualAmount)}
+                    </Typography.Text>
+                  )}
+                  {renderDiscountTooltip(item)}
+                </Space>
+              </Flex>
+            );
+          })}
+        </Space>
+      </Card>
+    </Space>
   );
 };
 
-const FinanceLine = ({ label, value }: { label: string; value: string }) => (
-  <div className="flex items-center justify-between gap-3">
-    <span>{label}</span>
-    <span className="text-right font-semibold">{value}</span>
-  </div>
-);
+const makeRangeColumns = (sample: AnyRecord) =>
+  Object.keys(sample || {}).map((key) => ({
+    title: key,
+    dataIndex: key,
+    key,
+    render: (value: any) =>
+      typeof value === "number" ? feeMoney(value) : display(value),
+  }));
+
+const numericSort = (left: any, right: any) => Number(left) - Number(right);
+
+const buildRanges = (data: AnyRecord, emptyKey: string) => {
+  const keys = Object.keys(data || {}).sort(numericSort);
+
+  return keys.map((key, index) => {
+    if (key === emptyKey) {
+      return { key, from: null, to: null, value: data[key], empty: true };
+    }
+
+    const nextKey = keys[index + 1];
+    return {
+      key,
+      from: Number(key),
+      to:
+        nextKey && nextKey !== emptyKey
+          ? Number(nextKey)
+          : index === keys.length - 1
+            ? null
+            : Number(key),
+      value: data[key],
+      empty: false,
+    };
+  });
+};
+
+const rangeText = (
+  range: AnyRecord,
+  {
+    emptyText,
+    suffix = "",
+    moneyUnit,
+  }: { emptyText: string; suffix?: string; moneyUnit?: string } = {
+    emptyText: empty,
+  },
+) => {
+  if (range.empty) return emptyText;
+  const formatValue = (value: any) =>
+    moneyUnit ? money(value, moneyUnit) : quantity(value);
+  if (range.to === null || range.to === undefined) {
+    return `${formatValue(range.from)}${suffix}+`;
+  }
+  return `${formatValue(range.from)}${suffix} - ${formatValue(range.to)}${suffix}`;
+};
+
+const normalizeTableRows = (data: any) => {
+  if (Array.isArray(data)) return data;
+  if (!data || typeof data !== "object") return [];
+
+  if (Array.isArray(data.ranges)) return data.ranges;
+  if (Array.isArray(data.rows)) return data.rows;
+  if (Array.isArray(data.table)) return data.table;
+
+  return Object.keys(data)
+    .filter((key) => typeof data[key] === "object")
+    .map((key) => ({ range: key, ...data[key] }));
+};
+
+const renderFeeDataFallback = (data: any, emptyText: ReactNode) => {
+  const rows = normalizeTableRows(data);
+
+  if (rows.length > 0) {
+    return (
+      <Table
+        size="small"
+        bordered
+        pagination={false}
+        rowKey={(_, index) => String(index)}
+        columns={makeRangeColumns(rows[0])}
+        dataSource={rows}
+      />
+    );
+  }
+
+  if (data && typeof data === "object" && Object.keys(data).length > 0) {
+    return (
+      <Input.TextArea
+        value={JSON.stringify(data, null, 2)}
+        disabled
+        autoSize={{ minRows: 6, maxRows: 16 }}
+      />
+    );
+  }
+
+  return <Empty description={emptyText} />;
+};
+
+const getShippingFees = (feeConfig: AnyRecord, data: AnyRecord) => {
+  if (asArray(feeConfig.shippingFees).length > 0) {
+    return asArray(feeConfig.shippingFees);
+  }
+  if (asArray(data.shippingFees).length > 0) {
+    return asArray(data.shippingFees);
+  }
+  if (Array.isArray(data)) {
+    return data;
+  }
+  return [];
+};
+
+const getLocationCode = (item: AnyRecord) =>
+  display(item.location?.code ?? item.locationCode ?? item.code);
+
+const getLocationName = (location: AnyRecord) =>
+  display(location.display ?? location.name ?? location.code);
+
+const getLocationFromShippingFee = (item: AnyRecord) => {
+  if (item.location && typeof item.location === "object") return item.location;
+  return {
+    code: item.locationCode ?? item.location ?? item.code,
+    display: item.locationName ?? item.name,
+  };
+};
+
+const getWeightKey = (item: AnyRecord) =>
+  `${display(item.minWeight)}-${display(item.maxWeight)}`;
+
+const FeeTableContent = ({
+  feeConfig,
+  order,
+}: {
+  feeConfig: AnyRecord;
+  order: AnyRecord;
+}) => {
+  const { t } = useTranslation();
+  const metadata = feeConfig?.feeMetadata || {};
+  const template = metadata.template;
+  const marketplaceData = metadata.dataWithMarketPlace?.find(
+    (item: AnyRecord) => item.marketplace === order?.marketplace?.code,
+  )?.data;
+  const data = marketplaceData || metadata.data || {};
+  const emptyText = t("config_group.empty_fee_table");
+  const localShippingFees = getShippingFees(feeConfig, data);
+  const shouldFetchShippingFees =
+    template === "shipping" && localShippingFees.length === 0;
+  const { data: fetchedShippingFees = [], isLoading: isShippingFeesLoading } =
+    useShipmentShippingFeesQuery(
+      order?.configGroupId,
+      feeConfig?.shippingClass ?? metadata.shippingClass,
+      shouldFetchShippingFees,
+    );
+
+  if (template === "percentage_of_total_value") {
+    const rows = buildRanges(data, "empty_order").map((range) => ({
+      key: range.key,
+      orderValue: rangeText(range, {
+        emptyText: t("config_group.emptyOrderValue"),
+        moneyUnit: order?.currency,
+      }),
+      fee: range.value,
+    }));
+
+    if (rows.length === 0) {
+      return renderFeeDataFallback(data, emptyText);
+    }
+
+    return (
+      <Table
+        size="small"
+        bordered
+        pagination={false}
+        rowKey="key"
+        columns={[
+          {
+            title: t("config_group.orderValue"),
+            dataIndex: "orderValue",
+          },
+          {
+            title: t("config_group.serviceCharge"),
+            dataIndex: "fee",
+            render: (value) => <Input value={display(value)} disabled />,
+          },
+        ]}
+        dataSource={rows}
+      />
+    );
+  }
+
+  if (template === "inspection") {
+    const priceRanges = buildRanges(data, "empty_price");
+    const quantityRanges = priceRanges.reduce<AnyRecord[]>((result, range) => {
+      Object.keys(range.value || {}).forEach((key) => {
+        if (!result.some((item) => item.key === key)) {
+          result.push(buildRanges({ [key]: null }, "empty_quantity")[0]);
+        }
+      });
+      return result;
+    }, []);
+
+    const rows = quantityRanges.map((quantityRange) => ({
+      key: quantityRange.key,
+      quantity: rangeText(quantityRange, {
+        emptyText: t("config_group.emptyQuantity"),
+      }),
+      ...priceRanges.reduce((result: AnyRecord, priceRange) => {
+        result[priceRange.key] = priceRange.value?.[quantityRange.key];
+        return result;
+      }, {}),
+    }));
+
+    if (rows.length === 0 || priceRanges.length === 0) {
+      return renderFeeDataFallback(data, emptyText);
+    }
+
+    return (
+      <Table
+        size="small"
+        bordered
+        pagination={false}
+        rowKey="key"
+        columns={[
+          {
+            title: t("config_group.numberProducts"),
+            dataIndex: "quantity",
+            fixed: "left",
+          },
+          ...priceRanges.map((range) => ({
+            title: rangeText(range, {
+              emptyText: t("config_group.emptyUnitPrice"),
+              moneyUnit: order?.currency,
+            }),
+            dataIndex: range.key,
+            render: (value: any) => (
+              <Input
+                value={
+                  value === null || value === undefined
+                    ? empty
+                    : feeMoney(value)
+                }
+                disabled
+              />
+            ),
+          })),
+        ]}
+        dataSource={rows}
+        scroll={{ x: "max-content" }}
+      />
+    );
+  }
+
+  if (template === "shipping") {
+    const shippingFees =
+      localShippingFees.length > 0
+        ? localShippingFees
+        : asArray(fetchedShippingFees);
+
+    if (isShippingFeesLoading) {
+      return <Skeleton active paragraph={{ rows: 4 }} />;
+    }
+
+    if (shippingFees.length === 0) {
+      return renderFeeDataFallback(data, emptyText);
+    }
+
+    const locations = shippingFees.reduce<AnyRecord[]>((result, item) => {
+      const location = getLocationFromShippingFee(item);
+      const code = display(location.code);
+      if (!result.some((locationItem) => display(locationItem.code) === code)) {
+        result.push(location);
+      }
+      return result;
+    }, []);
+    const firstLocationCode = display(locations[0]?.code);
+    const weights = shippingFees
+      .filter((item) => getLocationCode(item) === firstLocationCode)
+      .sort(
+        (left, right) =>
+          Number(left.minWeight ?? 0) - Number(right.minWeight ?? 0),
+      );
+    const tableLocations =
+      locations.length > 0 ? locations : [{ code: "newLocation" }];
+    const tableWeights =
+      weights.length > 0
+        ? weights
+        : [
+            {
+              minWeight: undefined,
+              maxWeight: undefined,
+              price: null,
+              priceFormula: null,
+            },
+          ];
+
+    return (
+      <Table
+        size="small"
+        bordered
+        pagination={false}
+        rowKey={(record) => display(record.code)}
+        columns={[
+          {
+            title: t("config_group.location"),
+            dataIndex: "display",
+            fixed: "left",
+            render: (_text, record) => getLocationName(record),
+          },
+          ...tableWeights.map((weight) => ({
+            title: `${t("config_group.from")} ${quantity(
+              weight.minWeight,
+            )}(kg) ${t("config_group.to")} ${quantity(weight.maxWeight)} (kg)`,
+            dataIndex: getWeightKey(weight),
+            render: (_value: any, record: AnyRecord) => {
+              const currentFee = shippingFees.find(
+                (item) =>
+                  getLocationCode(item) === display(record.code) &&
+                  item.minWeight === weight.minWeight &&
+                  item.maxWeight === weight.maxWeight,
+              );
+              const price = currentFee?.price;
+              return (
+                <Input
+                  value={
+                    price === null || price === undefined || price === ""
+                      ? empty
+                      : quantity(price)
+                  }
+                  addonAfter="/kg"
+                  disabled
+                />
+              );
+            },
+          })),
+        ]}
+        dataSource={tableLocations}
+        scroll={{ x: 200 * tableWeights.length + 250 }}
+      />
+    );
+  }
+
+  if (template === "fixed_order" || template === "fixed_package") {
+    return (
+      <Row gutter={12} align="middle">
+        <Col span={8}>
+          <Typography.Text>{t("config_group.applied")}</Typography.Text>
+        </Col>
+        <Col span={10}>
+          <Input value={data.value ?? empty} disabled />
+        </Col>
+        <Col span={6}>
+          <Typography.Text>
+            {template === "fixed_order"
+              ? `₫/${t("config_group.order")}`
+              : `₫/${t("config_group.package")}`}
+          </Typography.Text>
+        </Col>
+      </Row>
+    );
+  }
+
+  const rows = normalizeTableRows(data);
+  if (rows.length === 0) {
+    return renderFeeDataFallback(data, emptyText);
+  }
+
+  return (
+    <Table
+      size="small"
+      bordered
+      pagination={false}
+      rowKey={(_, index) => String(index)}
+      columns={makeRangeColumns(rows[0])}
+      dataSource={rows}
+    />
+  );
+};
+
+const FinanceLine = ({
+  label,
+  value,
+  onDetail,
+}: {
+  label: ReactNode;
+  value: string;
+  onDetail?: () => void;
+}) => {
+  const { t } = useTranslation();
+  return (
+    <Flex
+      align={onDetail ? "flex-start" : "center"}
+      justify="space-between"
+      gap={12}
+      style={{ padding: "5px 0" }}
+    >
+      <Typography.Text style={{ color: "inherit" }}>{label}</Typography.Text>
+      <Space direction="vertical" size={0} align="end">
+        <Typography.Text
+          strong
+          style={{ color: "inherit", textAlign: "right" }}
+        >
+          {value}
+        </Typography.Text>
+        {onDetail && (
+          <Typography.Link
+            onClick={onDetail}
+            style={{ color: "inherit", fontSize: 12 }}
+          >
+            {t("fee_tab.detail")}
+          </Typography.Link>
+        )}
+      </Space>
+    </Flex>
+  );
+};
 
 const ProductField = ({
   label,
@@ -1744,8 +3180,23 @@ const ProductField = ({
 );
 
 const CreditInfo = ({ label, value }: { label: string; value: string }) => (
-  <div className="flex items-start justify-between gap-4">
-    <span>{label}</span>
-    <span className="font-semibold text-primary">{value}</span>
-  </div>
+  <CreditInfoInner label={label} value={value} />
 );
+
+const CreditInfoInner = ({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) => {
+  const { token } = theme.useToken();
+  return (
+    <Flex align="flex-start" justify="space-between" gap={token.marginMD}>
+      <span>{label}</span>
+      <Typography.Text strong style={{ color: token.colorPrimary }}>
+        {value}
+      </Typography.Text>
+    </Flex>
+  );
+};

@@ -1,44 +1,71 @@
-import { Form } from 'antd';
-import { 
-    useFilterWithURL, 
-    usePaginationWithURL,
-    useDeliveryRequestsLogic 
-} from '@repo/hooks';
+import { Form } from "antd";
+import { useState } from "react";
+import dayjs from "dayjs";
+import {
+  useFilterWithURL,
+  usePaginationWithURL,
+  useDeliveryRequestsLogic,
+} from "@repo/hooks";
 
 /**
  * Điều phối (Orchestration) đặc thù cho trang Yêu cầu giao hàng trên Web
  */
 export const useDeliveryRequestsPage = () => {
-    const [form] = Form.useForm();
+  const [form] = Form.useForm();
+  const [expandedRowKeys, setExpandedRowKeys] = useState<string[]>([]);
 
-    const { page, pageSize, setPage, setPageSize } = usePaginationWithURL({
-        defaultPage: 1,
-        defaultPageSize: 25,
-    });
+  const { page, pageSize, setPage, setPageSize } = usePaginationWithURL({
+    defaultPage: 1,
+    defaultPageSize: 25,
+  });
 
-    const { applyFilters, clearFilters, filters } = useFilterWithURL({ form });
+  const { applyFilters, clearFilters, filters } = useFilterWithURL({ form });
 
-    const logic = useDeliveryRequestsLogic({ page, pageSize, filters });
+  const expandedCode = expandedRowKeys[0];
+  const logic = useDeliveryRequestsLogic({
+    page,
+    pageSize,
+    filters,
+    expandedCode,
+  });
 
-    const handleSearch = () => {
-        applyFilters(form.getFieldsValue());
-    };
+  const normalizeFilters = (values: Record<string, any>) => ({
+    ...values,
+    createdFrom: values.createdFrom
+      ? dayjs(values.createdFrom).startOf("day")
+      : undefined,
+    createdTo: values.createdTo
+      ? dayjs(values.createdTo).endOf("day")
+      : undefined,
+  });
 
-    const handleReset = () => {
-        clearFilters();
-    };
+  const handleSearch = () => {
+    setExpandedRowKeys([]);
+    applyFilters(normalizeFilters(form.getFieldsValue()));
+  };
 
-    return {
-        form,
-        page,
-        pageSize,
-        setPage,
-        setPageSize,
-        filters,
-        ...logic,
-        handleSearch,
-        handleReset,
-        applyFilters
-    };
+  const handleReset = () => {
+    setExpandedRowKeys([]);
+    clearFilters();
+  };
+
+  const handleExpand = (expanded: boolean, record: any) => {
+    setExpandedRowKeys(expanded ? [record.code] : []);
+  };
+
+  return {
+    form,
+    page,
+    pageSize,
+    setPage,
+    setPageSize,
+    filters,
+    expandedRowKeys,
+    ...logic,
+    handleSearch,
+    handleReset,
+    handleExpand,
+    normalizeFilters,
+    applyFilters,
+  };
 };
-
