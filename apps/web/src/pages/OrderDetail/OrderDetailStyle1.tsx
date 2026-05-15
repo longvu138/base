@@ -228,8 +228,8 @@ export const OrderDetailStyle1 = () => {
         {
           label: t("orderDetail.supplier_discount"),
           value: `${displayMoney(order.exchangedDiscountAmount || order.supplierDiscount)}${order.discountAmount
-              ? ` (${displayYuan(order.discountAmount)})`
-              : ""
+            ? ` (${displayYuan(order.discountAmount)})`
+            : ""
             }`,
           span: 5,
         },
@@ -353,7 +353,7 @@ export const OrderDetailStyle1 = () => {
                   <Flex gap={token.marginLG} align="center" wrap="wrap">
                     <Space size={token.marginSM}>
                       <Image
-                        src={order.image}
+                        src={order?.image}
                         width={44}
                         height={44}
                         preview={false}
