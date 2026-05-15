@@ -25,7 +25,7 @@ export const supportedLanguages = [
 export const defaultI18nConfig = {
     resources,
     fallbackLng: 'vi',
-    lng: 'vi',
+    supportedLngs: ['vi', 'en'],
     ns: ['translation'],
     defaultNS: 'translation',
     interpolation: {
@@ -35,6 +35,9 @@ export const defaultI18nConfig = {
         order: ['localStorage', 'navigator', 'htmlTag'],
         caches: ['localStorage'],
         lookupLocalStorage: 'i18nextLng'
+    },
+    react: {
+        useSuspense: false
     }
 };
 

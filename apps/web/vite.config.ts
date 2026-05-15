@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [react()],
   envPrefix: "APP_",
   resolve: {
-    dedupe: ['react', 'react-dom'],
+    dedupe: ['react', 'react-dom', 'i18next', 'react-i18next'],
     alias: {
       '@': path.resolve(__dirname, '../../packages/ui/src'),
     },

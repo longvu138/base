@@ -222,28 +222,27 @@ export const OrderDetailStyle1 = () => {
       span: 5,
     },
     ...(order.exchangedDiscountAmount ||
-    order.discountAmount ||
-    order.supplierDiscount
+      order.discountAmount ||
+      order.supplierDiscount
       ? [
-          {
-            label: t("orderDetail.supplier_discount"),
-            value: `${displayMoney(order.exchangedDiscountAmount || order.supplierDiscount)}${
-              order.discountAmount
-                ? ` (${displayYuan(order.discountAmount)})`
-                : ""
+        {
+          label: t("orderDetail.supplier_discount"),
+          value: `${displayMoney(order.exchangedDiscountAmount || order.supplierDiscount)}${order.discountAmount
+              ? ` (${displayYuan(order.discountAmount)})`
+              : ""
             }`,
-            span: 5,
-          },
-        ]
+          span: 5,
+        },
+      ]
       : []),
     ...(order.contractWithShopkeeper
       ? [
-          {
-            label: t("orderDetail.contract_with_shopkeeper"),
-            value: displayValue(order.loanCreditStatus || order.contractStatus),
-            span: 4,
-          },
-        ]
+        {
+          label: t("orderDetail.contract_with_shopkeeper"),
+          value: displayValue(order.loanCreditStatus || order.contractStatus),
+          span: 4,
+        },
+      ]
       : []),
   ];
 
@@ -262,21 +261,21 @@ export const OrderDetailStyle1 = () => {
     },
     ...(order.contractWithShopkeeper
       ? [
-          {
-            key: "credit",
-            label: t("orderDetail.credit"),
-            children: (
-              <Empty
-                image={
-                  <BankOutlined
-                    style={{ color: token.colorTextTertiary, fontSize: 36 }}
-                  />
-                }
-                description={t("orderDetail.empty_credit")}
-              />
-            ),
-          },
-        ]
+        {
+          key: "credit",
+          label: t("orderDetail.credit"),
+          children: (
+            <Empty
+              image={
+                <BankOutlined
+                  style={{ color: token.colorTextTertiary, fontSize: 36 }}
+                />
+              }
+              description={t("orderDetail.empty_credit")}
+            />
+          ),
+        },
+      ]
       : []),
     {
       key: "packages",
@@ -364,6 +363,7 @@ export const OrderDetailStyle1 = () => {
                           borderRadius: token.borderRadius,
                           objectFit: "cover",
                         }}
+                        referrerPolicy="no-referrer"
                       />
                       <Space direction="vertical" size={4}>
                         <Text strong>#{displayValue(order.code)}</Text>
