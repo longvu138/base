@@ -1,44 +1,27 @@
-# Hướng Dẫn Thêm Tenant `thanhla` (UI khác hoàn toàn, giữ nguyên logic)
+# Tenant `thanhla`: Trạng Thái Hiện Tại Và Cách Mở Rộng
 
-Tài liệu này mô tả cách thêm tenant mới `thanhla` theo hướng:
-- UI có thể khác hoàn toàn
-- Logic nghiệp vụ (API/query/filter/pagination) tái sử dụng tối đa
-- Hạn chế sửa backend/DB cho config UI phức tạp
+Tài liệu này đã được cập nhật theo code hiện tại. `thanhla` không còn là kế hoạch `gd4`; trong source hiện tại tenant này đang dùng `gd2`.
 
----
+## 1. Backend config hiện tại
 
-## 1) Mục tiêu kiến trúc
+File:
 
-Với code hiện tại, bạn nên tách rõ:
-- **Logic layer (dùng lại):** `@repo/hooks`, page hooks (`useOrdersPage`, `useShipmentsPage`, ...)
-- **Presentation layer (thay theo tenant):** `*StyleX.tsx`, layout, menu, component sắp xếp
+```txt
+apps/tenant-server/src/index.js
+```
 
-Nguyên tắc:  
-**Cùng một hook logic -> nhiều giao diện khác nhau có thể render dữ liệu đó.**
-
----
-
-## 2) Việc cần làm ở backend (tối thiểu)
-
-Chỉ thêm tenant mới trong `apps/tenant-server/src/index.js`:
-
-- thêm key `thanhla` trong `tenants`
-- chọn `planCode` (`free` hoặc `paid`)
-- chọn `variantCode` (ví dụ `gd4` nếu bạn muốn hệ style mới)
-- giữ `override.tenantConfig.themeConfig` cho token màu/radius (nếu cần)
-
-Ví dụ:
+Tenant hiện tại:
 
 ```js
 thanhla: {
-  name: 'Thanhla Logistics',
-  planCode: 'paid',
-  variantCode: 'gd4',
+  name: "Thanhla Logistics",
+  planCode: "paid",
+  variantCode: "gd2",
   override: {
     tenantConfig: {
       themeConfig: {
-        colorPrimary: '#0ea5e9',
-        colorBorder: '#7dd3fc',
+        colorPrimary: "#0ea5e9",
+        colorBorder: "#7dd3fc",
         borderRadius: 10
       }
     }
@@ -46,166 +29,192 @@ thanhla: {
 }
 ```
 
-Luu y: backend **khong** can luu menu/layout/pages mapping.
+Vì `planCode = "paid"`, config cuối cùng là `PLAN_PRESETS.paid` deep merge với override trên.
 
----
+## 2. Tenant selector
 
-## 3) Việc cần làm ở frontend (quan trọng nhất)
+File:
 
-## 3.1 Them quy tac tenant-specific tap trung
-
-Hien tai logic tenant-specific dang nam o:
-- `packages/theme-provider/src/ThemeContext.tsx` (`useVariant`)
-- `apps/web/src/components/Layout/Navigation.ts` (menu)
-- `apps/web/src/pages/Shipments/Shipments.tsx` (status tabs rule)
-
-De de bao tri cho tenant moi, nen tao 1 file quy tac trung tam, vi du:
-- `apps/web/src/tenant-ui-rules.ts`
-
-Y tuong:
-- input: `tenantId`, `variantCode`, `pageKey`
-- output:
-  - layout nao dung
-  - menu nao dung
-  - co dung tabs status khong
-  - page nao can override component name
-
-Neu chua refactor ngay, ban van co the them rule `thanhla` truc tiep o 3 file tren.
-
----
-
-## 3.2 Tao giao dien rieng theo page (chi doi UI, giu logic)
-
-Moi page dang theo pattern dispatcher:
-- `index.tsx` goi `useVariant('orders')`
-- `DynamicVariant` load file `OrdersStyle{n}.tsx`
-
-Ban lam:
-
-1. Tao style moi cho tenant `thanhla`, vi du:
-   - `apps/web/src/pages/Orders/OrdersStyle4.tsx`
-   - `apps/web/src/pages/Shipments/ShipmentsStyle4.tsx`
-   - `apps/web/src/pages/Claims/ClaimsStyle4.tsx`
-   - ...
-
-2. Trong moi `*Style4.tsx`, **khong viet lai business logic**.
-   - Tai su dung hook page hien co:
-     - `useOrdersPage`
-     - `useShipmentsPage`
-     - `useClaimsPage`
-   - Ban chi doi:
-     - cau truc JSX
-     - className/CSS
-     - cach bo tri filter/table/card
-
-Template:
-
-```tsx
-export const OrdersStyle4 = () => {
-  const {
-    t,
-    form,
-    page,
-    pageSize,
-    setPage,
-    setPageSize,
-    ordersData,
-    isOrdersLoading,
-    handleSearch,
-    handleReset,
-    navigateToDetail
-  } = useOrdersPage(); // GIU NGUYEN LOGIC
-
-  // CHI DOI PHAN UI
-  return <YourThanhlaOrdersLayout ... />;
-};
+```txt
+packages/tenant-config/src/index.ts
 ```
 
-3. Dam bao fallback an toan:
-   - neu page chua co `Style4`, dispatcher fallback ve `Style1` de khong vo UI.
+`tenantExamples` đã có:
 
----
+```ts
+thanhla: {
+  name: "Thanhla Logistics",
+}
+```
 
-## 3.3 Layout va Navigation rieng cho `thanhla`
+Do đó tenant này đã xuất hiện trong dropdown nếu UI dùng `getTenantOptions()`.
 
-Neu `thanhla` can layout hoan toan khac:
+## 3. Variant defaults cho `gd2`
 
-1. Tao layout moi:
-   - `apps/web/src/components/Layout/ThanhlaLayout.tsx`
+File:
 
-2. Them rule trong `useVariant('layout')`:
-   - `tenantId === 'thanhla' -> 'ThanhlaLayout'`
+```txt
+packages/theme-provider/src/variantDefaults.ts
+```
 
-3. Menu:
-   - cach nhanh: them bo menu `THANHLA_MENU_ITEMS` trong `Navigation.ts`
-   - cach tot hon: doc menu tu file rules trung tam (`tenant-ui-rules.ts`)
+`gd2` hiện map:
 
----
+| Page key | Component |
+|---|---|
+| `layout` | `ThanhlaLayout` |
+| `login` | `LoginStyle2` |
+| `register` | `RegisterStyle2` |
+| `dashboard` | `DashboardStyle2` |
+| `orders` | `OrdersStyle2` |
+| `orderDetail` | `OrderDetailStyle2` |
+| `shipments` | `Shipments` |
+| `shipmentDetail` | `ShipmentDetailStyle2` |
+| `claims` | `ClaimsStyle2` |
+| `packages` | `PackagesStyle2` |
+| `deliveryRequests` | `DeliveryRequestsStyle2` |
+| `createClaim` | `CreateClaimStyle2` |
+| `deliveryNotes` | `DeliveryNotesStyle2` |
+| `withdrawalSlips` | `WithdrawalSlipsStyle2` |
+| `waybills` | `WaybillsStyle2` |
+| `profile` | `ProfileStyle2` |
+| `notifications` | `NotificationsStyle2` |
 
-## 4) Cach tai su dung hooks toi da
+Lưu ý mapping lệch tên trên Web:
 
-## 4.1 Nhung thu NEN giu nguyen
+| Page key | Mapping `gd2` | File Web đang có | Kết quả hiện tại |
+|---|---|---|---|
+| `deliveryNotes` | `DeliveryNotesStyle2` | `DeliveryNoteStyle2.tsx` | fallback theo page |
+| `packages` | `PackagesStyle2` | `PackageStyle2.tsx` | fallback theo page |
+| `withdrawalSlips` | `WithdrawalSlipsStyle2` | `WithdrawalSlipStyle2.tsx` | fallback theo page |
 
-- API layer trong `packages/api`
-- Logic hooks trong `packages/hooks`
-- Page hooks orchestration (form + URL + pagination), vi du:
-  - `apps/web/src/pages/Orders/hooks/useOrdersPage.ts`
+Mobile có file `PackagesStyle2.tsx` và `WithdrawalSlipsStyle2.tsx`, nhưng `deliveryNotes` vẫn lệch vì file là `DeliveryNoteStyle2.tsx`.
 
-## 4.2 Nhung thu CHI nen doi
+Menu:
 
-- file `*StyleX.tsx`
-- CSS/SCSS/Tailwind class
-- layout/menu composition
+```ts
+menu: {
+  preset: "base",
+  hiddenKeys: [],
+  labelOverrides: {}
+}
+```
 
-## 4.3 Rule 80/20
+Feature:
 
-- 80% logic dung chung (hooks, query, filter)
-- 20% khac biet nam o render layer (component + style)
+```ts
+features: {
+  shipmentStatusDisplay: "filter"
+}
+```
 
-Neu thay ban dang copy lai nhieu `useEffect` xu ly data giua cac style => nen day phan do ve hook dung chung.
+## 4. Layout Thanhla
 
----
+Web:
 
-## 5) Checklist thuc thi cho tenant `thanhla`
+```txt
+apps/web/src/components/Layout/ThanhlaLayout.tsx
+```
 
-- [ ] Them tenant `thanhla` trong `apps/tenant-server/src/index.js`
-- [ ] Chon `variantCode` (de xuat `gd4`)
-- [ ] Tao `*Style4.tsx` cho cac page uu tien:
-  - [ ] Login
-  - [ ] Dashboard
-  - [ ] Orders
-  - [ ] OrderDetail
-  - [ ] Shipments
-- [ ] Tao `ThanhlaLayout.tsx` neu can layout rieng
-- [ ] Them menu rieng cho `thanhla`
-- [ ] Them tenant-specific rules (layout/menu/status-tabs/page override)
-- [ ] Kiem tra fallback page chua co Style4 -> Style1
-- [ ] Test dark mode + light mode
-- [ ] Test URL filters/pagination van hoat dong
-- [ ] Test cac action quan trong (search, detail navigate, status update)
+Mobile:
 
----
+```txt
+apps/mobile/src/components/Layout/ThanhlaLayout.tsx
+```
 
-## 6) Ke hoach lam nhanh de an toan
+Layout được chọn bằng:
 
-Phase 1 (an toan, it rui ro):
-- them `thanhla`
-- doi theme token + layout + menu
-- thay UI 2-3 page quan trong
-- phan con lai fallback `Style1`
+```ts
+useVariant("layout")
+```
 
-Phase 2 (hoan thien):
-- bo sung `Style4` cho cac page con lai
-- toi uu hoa component dung chung cho `thanhla`
+Với `variantCode = "gd2"`, `variantDefaults` trả `ThanhlaLayout`.
 
----
+Nếu file layout không load được theo tên variant, layout dispatcher fallback về `VerticalLayout`.
 
-## 7) Tieu chi "chi doi giao dien, logic van day du"
+## 5. Page style và fallback
 
-Ban dat dung huong khi dam bao:
-- khong sua API contract cho tenant rieng
-- khong duplicate query/business logic trong style files
-- moi style file chi goi hook va render UI
-- thay doi tenant khong lam sai filter/pagination/navigation behavior
+Các page dùng `DynamicVariant` và có `fallbackName` riêng.
 
-Neu can, buoc tiep theo nen lam la refactor 1 file rules trung tam (`tenant-ui-rules.ts`) de tat ca tenant-specific UI behavior nam 1 cho, tranh ro rac khap codebase.
+Ví dụ Web Orders:
+
+```tsx
+const variant = useVariant("orders");
+
+<DynamicVariant
+  variantName={variant}
+  modules={modules}
+  fallbackName="OrdersStyle1"
+  featureName="Orders"
+/>
+```
+
+Với Thanhla:
+
+- `useVariant("orders")` trả `OrdersStyle2`.
+- nếu `OrdersStyle2.tsx` không tồn tại, `DynamicVariant` fallback về `OrdersStyle1`.
+
+Lưu ý: fallback chỉ hoạt động nếu file fallback thật sự tồn tại.
+
+## 6. Guard riêng cho OrderDetail
+
+`useVariant()` hiện có guard:
+
+```ts
+if (variantCode === "gd2" && pageKey === "orderDetail") {
+  return "OrderDetailStyle1";
+}
+```
+
+Tuy nhiên `variantDefaults.gd2.componentOverrides` cũng đang khai báo:
+
+```ts
+orderDetail: "OrderDetailStyle2"
+```
+
+Vì `variantDefaults` được kiểm tra trước guard, source hiện tại sẽ trả `OrderDetailStyle2` cho `gd2` nếu mapping này còn tồn tại.
+
+Nếu muốn thật sự ép `gd2` về `OrderDetailStyle1`, cần bỏ `orderDetail` khỏi `variantDefaults.gd2.componentOverrides` hoặc đổi mapping trực tiếp thành `OrderDetailStyle1`.
+
+## 7. Khi muốn mở rộng Thanhla
+
+Nếu chỉ đổi màu:
+
+- sửa `override.tenantConfig.themeConfig` của `thanhla`.
+
+Nếu đổi page UI:
+
+- tạo/sửa file `*Style2.tsx` trong folder page tương ứng.
+- hoặc override page key trong `variantDefaults.gd2.componentOverrides`.
+
+Nếu đổi menu:
+
+- ưu tiên cấu hình `themeConfig.menu.hiddenKeys`.
+- ưu tiên cấu hình `themeConfig.menu.labelOverrides`.
+- nếu cần menu mới hoàn toàn, sửa `Navigation.ts` và type preset.
+
+Nếu đổi layout:
+
+- sửa `ThanhlaLayout.tsx`.
+- hoặc đổi `componentOverrides.layout`.
+
+## 8. Không nên làm gì
+
+- Không tạo `gd4` cho Thanhla nếu chưa thêm `gd4` vào `VARIANT_NAMES` và `VARIANT_DEFAULTS`.
+- Không copy logic API/filter/pagination vào `*Style2.tsx`.
+- Không assume mọi page đều có `Style2`; luôn kiểm tra file thật và fallback.
+- Không sửa business hooks chỉ để đổi giao diện.
+
+## 9. QA cho Thanhla
+
+Checklist:
+
+- [ ] Chọn tenant `thanhla` từ dropdown.
+- [ ] Kiểm tra backend trả `variantCode: "gd2"`.
+- [ ] Kiểm tra layout là `ThanhlaLayout`.
+- [ ] Kiểm tra màu primary là `#0ea5e9`.
+- [ ] Kiểm tra border là `#7dd3fc`.
+- [ ] Kiểm tra radius là `10`.
+- [ ] Kiểm tra các page chính: login, register, dashboard, orders, profile.
+- [ ] Kiểm tra dark mode.
+- [ ] Kiểm tra fallback khi xoá/tắt thử một style file trong môi trường dev.
+- [ ] Kiểm tra reload vẫn giữ `selected-tenant = "thanhla"`.
