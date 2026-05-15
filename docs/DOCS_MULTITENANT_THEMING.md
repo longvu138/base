@@ -1,381 +1,264 @@
-# DOCS: Hệ thống Multi-Tenant Theming
+# Hệ thống Multi-Tenant Theming
 
-> **Tài liệu này giải thích toàn bộ luồng hoạt động** từ lúc người dùng chọn tenant, cho đến khi giao diện thay đổi theo đúng config theme của tenant đó.
+Tài liệu này mô tả cách source hiện tại chọn tenant, chọn theme và chọn UI variant cho Web/Mobile.
 
----
+## 1. Tổng quan
 
-## 📐 Kiến trúc tổng quan
+Luồng chính:
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                         Người dùng chọn Tenant                  │
-│                    (Dropdown trong Header/Sider)                 │
-└──────────────────────────┬──────────────────────────────────────┘
-                           │ dispatchTenantChange('gobiz')
-                           ▼
-┌─────────────────────────────────────────────────────────────────┐
-│              localStorage + CustomEvent: 'app:tenant-changed'   │
-└──────────┬──────────────────────────────────────────────────────┘
-           │
-    ┌──────▼──────┐           ┌────────────────────────────────┐
-    │   App.tsx   │──fetch──▶ │  API: /api/tenants/:key/config │
-    │  (listener) │           │  (localhost:3003 local server) │
-    └──────┬──────┘           └────────────────────────────────┘
-           │ setGlobalTenantConfig(data)
-           ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                     ThemeContext (React Context)                 │
-│   tenantConfig: FullTenantResponse                              │
-│   ┌─────────────────────────────────────────────────────────┐   │
-│   │  tenantConfig.tenantConfig.themeConfig:                 │   │
-│   │    variant: 'gd1' | 'gd3'                               │   │
-│   │    colorPrimary: '#FF6B35'                              │   │
-│   │    colorPrimaryDark: '#FF8C5A'                          │   │
-│   │    borderRadius: 8                                      │   │
-│   │    uiLib: 'antd' | 'mui'                                │   │
-│   │    variants: { login: 'LoginStyle2', ... }              │   │
-│   └─────────────────────────────────────────────────────────┘   │
-└────────────────┬────────────────────────────────────────────────┘
-                 │
-     ┌───────────┴────────────┐
-     │                        │
-     ▼                        ▼
-┌─────────────┐      ┌─────────────────────────────────┐
-│ AntD Theme  │      │  CSS Variables (document.root)  │
-│ ConfigProv  │      │  --tenant-primary-color: #FF6B35 │
-│ (token +    │      │  --tenant-bg-container: ...      │
-│  component  │      │  --tenant-radius-antd: 8px       │
-│  overrides) │      └─────────────────────────────────┘
-└─────────────┘
+```txt
+User chọn tenant
+  -> dispatchTenantChange(tenantKey)
+  -> localStorage("selected-tenant")
+  -> event "app:tenant-changed"
+  -> AppContent fetch /api/tenants/:tenantKey/config
+  -> ThemeProvider nhận tenantConfig
+  -> applyTenantConfig + updateTenantCSSVariables
+  -> useVariant(pageKey)
+  -> DynamicVariant load component đúng variant
 ```
 
----
+## 2. Tenant mặc định và fallback
 
-## 🔄 Luồng chi tiết từng bước
+Theo code hiện tại:
 
-### Bước 1 — Khởi động & load tenant từ cache
+- Client mặc định chọn `baogam` nếu `localStorage("selected-tenant")` chưa có.
+- Backend mặc định fallback về `baogam` nếu tenant id không tồn tại.
+- Backend fallback `variantCode` về `gd1` nếu tenant có variant sai/không hỗ trợ.
+- Frontend fallback về cache `full-tenant-data` nếu API lỗi.
+- Nếu cache không có hoặc bị hỏng, frontend dùng `FALLBACK_TENANT_CONFIG`.
+- `FALLBACK_TENANT_CONFIG` dùng `variantCode: "gd1"` và `themeConfig: {}`.
 
-```typescript
-// App.tsx
-const [selectedTenantId, setSelectedTenantId] = useState(() => {
-    // Đọc tenant đã chọn lần trước từ localStorage
-    return localStorage.getItem('selected-tenant') || 'baogam';
-});
+Vì vậy “giao diện mặc định” thực tế có 3 lớp:
 
-useEffect(() => {
-    // Nếu đã có cache từ session trước, apply ngay để tránh flash trắng
-    const cached = localStorage.getItem('full-tenant-data');
-    if (cached && !globalTenantConfig) {
-        setGlobalTenantConfig(JSON.parse(cached));
-    }
-}, []);
+| Lớp | Mặc định |
+|---|---|
+| Tenant | `baogam` |
+| Variant/UI | `gd1` / `Style1` |
+| Theme token | base theme từ `@repo/antd-config` + CSS variables trong `index.css` |
+
+## 3. Backend tenant server
+
+File:
+
+```txt
+apps/tenant-server/src/index.js
 ```
 
-### Bước 2 — Lắng nghe sự kiện thay đổi tenant
+Backend có:
 
-```typescript
-// App.tsx — lắng nghe CustomEvent từ bất kỳ component nào
-useEffect(() => {
-    const handleTenantChange = (e: any) => {
-        setSelectedTenantId(e.detail); // 'gobiz', 'baogam', ...
-    };
-    window.addEventListener('app:tenant-changed', handleTenantChange);
-    return () => window.removeEventListener('app:tenant-changed', handleTenantChange);
-}, []);
+- `VARIANT_NAMES`: `gd1`, `gd2`, `gd3`.
+- `PLAN_PRESETS`: preset `free`, `paid`.
+- `tenants`: danh sách tenant cụ thể.
+- `resolveTenantConfig(tenantId)`: resolve config cuối cùng.
+
+Tenant hiện có:
+
+| Tenant | Variant | Ghi chú |
+|---|---|---|
+| `baogam` | `gd1` | giao diện phổ thông |
+| `thien_long` | `gd1` | cùng variant với Baogam, khác màu |
+| `free_sample_3` | `gd1` | sample free tenant |
+| `gobiz` | `gd3` | giao diện premium/specialized |
+| `tetetete` | `gd2` | giao diện hiện đại |
+| `thanhla` | `gd2` | giao diện Thanhla |
+
+Backend merge config theo thứ tự:
+
+```txt
+PLAN_PRESETS[planCode] + tenant.override
 ```
 
-### Bước 3 — Fetch config từ API khi tenant thay đổi
+Merge là deep merge object. Field override thắng field preset.
 
-```typescript
-// App.tsx — mỗi khi selectedTenantId đổi, gọi API lấy full config
-useEffect(() => {
-    fetchTenantConfigFromAPI(selectedTenantId).then(data => {
-        setGlobalTenantConfig(data);  // lưu vào Context
-        localStorage.setItem('full-tenant-data', JSON.stringify(data)); // cache lại
-    });
-}, [selectedTenantId]);
+## 4. Frontend AppContent
 
-// API endpoint format:
-// GET http://localhost:3003/api/tenants/gobiz/config
-// Response: FullTenantResponse
+Web:
+
+```txt
+apps/web/src/App.tsx
 ```
 
-### Bước 4 — Apply config vào AntD và CSS Variables
+Mobile:
 
-```typescript
-// App.tsx — đồng bộ mỗi khi tenantConfig thay đổi
-const tenantConfig = globalTenantConfig?.tenantConfig?.themeConfig;
-
-// 4a. Apply CSS Variables lên document.documentElement
-updateTenantCSSVariables(tenantConfig, isDark);
-// → --tenant-primary-color, --tenant-bg-container, ...
-
-// 4b. Merge vào AntD ConfigProvider token
-const baseTheme = isDark ? webDarkAntdTheme : webAntdTheme;
-const finalTheme = applyTenantConfig(baseTheme, tenantConfig, isDark);
-// → token.colorPrimary, token.borderRadius, component overrides
+```txt
+apps/mobile/src/App.tsx
 ```
 
-### Bước 5 — Kích hoạt thay đổi từ UI
+Hai app đều:
 
-```typescript
-// Bất kỳ component nào (VD: Dropdown chọn tenant trong Header)
-import { dispatchTenantChange } from '@repo/tenant-config';
+1. tạo `selectedTenantId` từ `localStorage("selected-tenant") || "baogam"`.
+2. lắng nghe `app:tenant-changed`.
+3. fetch tenant config từ `${appConfig.be}/api/tenants/:tenant/config`.
+4. đưa response vào `ThemeProvider`.
+5. cache response vào `localStorage("full-tenant-data")`.
+6. apply theme token và CSS variables.
 
-// Gọi hàm này khi user chọn tenant
-dispatchTenantChange('gobiz');
+## 5. ThemeContext
 
-// Nội bộ hàm này làm 2 việc:
-// 1. Ghi vào localStorage: 'selected-tenant' = 'gobiz'
-// 2. Phát sự kiện: window.dispatchEvent(new CustomEvent('app:tenant-changed', { detail: 'gobiz' }))
+File:
+
+```txt
+packages/theme-provider/src/ThemeContext.tsx
 ```
 
----
+Context lưu:
 
-## 🎨 Cơ chế phát hiện & chuyển giao diện (Variant)
+- `theme`: `light` hoặc `dark`
+- `uiLib`: `antd` hoặc `mui`, mặc định `antd`
+- `tenantConfig`: full tenant response hoặc `null`
 
-Đây là phần cốt lõi để mỗi tenant hiển thị đúng giao diện riêng.
+Lưu ý: source hiện tại chỉ lưu `uiLib` vào context. Chưa có cơ chế runtime để render toàn bộ app bằng MUI.
 
-### Config tenant mẫu
+## 6. Resolve UI variant
 
-```json
-// Response từ GET /api/tenants/gobiz/config
-{
-  "id": "gobiz",
-  "name": "Gobiz Logistics",
-  "code": "gobiz",
-  "tenantConfig": {
-    "themeConfig": {
-      "variant": "gd3",          // ← Bộ giao diện toàn cục
-      "colorPrimary": "#1677FF",
-      "colorPrimaryDark": "#4096FF",
-      "borderRadius": 12,
-      "uiLib": "antd",
-      "variants": {              // ← Override giao diện cho trang cụ thể (tùy chọn)
-        "login": "LoginStyle2",  // Ghi đè: trang login dùng Style2
-        "orders": "OrdersCombined"
-      }
-    }
-  }
-}
+Hook:
+
+```ts
+useVariant(pageKey)
 ```
 
-### `useVariant(pageKey)` — Hook resolve tên component
+Thứ tự ưu tiên:
 
-```typescript
-// packages/theme-provider/src/ThemeContext.tsx
+1. `tenantConfig.tenantConfig.themeConfig.variants[pageKey]`.
+2. `getVariantDefaults(variantCode).componentOverrides[pageKey]`.
+3. Guard riêng `gd2 + orderDetail -> OrderDetailStyle1`.
+4. Naming convention `${PageKey}Style${numberFromVariantCode}`.
 
-export function useVariant(pageKey: string): string {
-    const globalVariant = useVariantCode(); // 'gd1', 'gd3', ...
+Nếu `tenantConfig` chưa có, `variantCode` mặc định là `gd1`.
 
-    // 1. Ưu tiên override cụ thể trong config
-    if (themeConfig?.variants?.[pageKey]) {
-        return themeConfig.variants[pageKey]; // VD: 'LoginStyle2'
-    }
+Ví dụ convention:
 
-    // 2. Quy tắc đặc biệt (layout riêng)
-    if (pageKey === 'layout') {
-        const layoutMap = { 'gd3': 'SpecializedLayout' };
-        return layoutMap[globalVariant] || 'VerticalLayout';
-    }
+| Variant | Page key | Component |
+|---|---|---|
+| `gd1` | `orders` | `OrdersStyle1` |
+| `gd2` | `login` | `LoginStyle2` |
+| `gd3` | `claims` | `ClaimsStyle3` |
 
-    // 3. Quy tắc kết hợp đặc biệt
-    if (globalVariant === 'gd3' && pageKey === 'orders') return 'OrdersCombined';
+Một số page không dùng convention thuần vì có override trong `variantDefaults`.
 
-    // 4. Convention mặc định: gd1→Style1, gd2→Style2, gd3→Style3
-    const styleNumber = globalVariant.replace(/\D/g, '') || '1'; // 'gd3' → '3'
-    return `${capitalize(pageKey)}Style${styleNumber}`;          // 'DeliveryRequestsStyle3'
-}
+## 7. Variant defaults
+
+File:
+
+```txt
+packages/theme-provider/src/variantDefaults.ts
 ```
 
-### Bảng ánh xạ Variant → Component
+Default chung:
 
-| Tenant | Variant | Trang | Component được load |
-|--------|---------|-------|---------------------|
-| Baogam | `gd1` | `/orders` | `OrdersStyle1` |
-| Baogam | `gd1` | `/shipments` | `ShipmentsStyle1` (Shipments.tsx) |
-| Baogam | `gd1` | `/delivery-requests` | `DeliveryRequestsStyle1` |
-| Gobiz | `gd3` | `/orders` | `OrdersCombined` (quy tắc đặc biệt) |
-| Gobiz | `gd3` | `/delivery-requests` | `DeliveryRequestsStyle3` |
+- menu preset `base`
+- không ẩn menu item
+- không đổi label menu
+- `shipmentStatusDisplay = "filter"`
 
-### `DynamicVariant` — Load component đúng theo variant
+`gd2` override:
 
-```typescript
-// pages/Orders/index.tsx
-export const Orders = () => {
-    const variant = useVariant('orders'); // → 'OrdersStyle1' hoặc 'OrdersCombined'
+- layout: `ThanhlaLayout`
+- nhiều page dùng `Style2`
+- shipments dùng `Shipments`
+- menu preset `base`
 
-    // Vite glob import: scan tất cả .tsx trong thư mục hiện tại
-    const modules = import.meta.glob('./*.tsx');
+Lưu ý theo source hiện tại: một số tên override `gd2` không khớp với file Web thật, nên `DynamicVariant` sẽ fallback theo `fallbackName` của page:
 
-    return (
-        <DynamicVariant
-            variantName={variant}        // Tên file cần load
-            modules={modules}            // Tất cả file có thể load
-            fallbackName="OrdersStyle1"  // Nếu không tìm thấy, dùng default
-            featureName="Orders"
-        />
-    );
-};
+- `deliveryNotes` map `DeliveryNotesStyle2`, nhưng Web có `DeliveryNoteStyle2.tsx`.
+- `packages` map `PackagesStyle2`, nhưng Web có `PackageStyle2.tsx`.
+- `withdrawalSlips` map `WithdrawalSlipsStyle2`, nhưng Web có `WithdrawalSlipStyle2.tsx`.
+
+Mobile cũng lệch `deliveryNotes` theo cách tương tự.
+
+`gd3` override:
+
+- layout: `SpecializedLayout`
+- orders: `OrdersCombined`
+- shipments: `Shipments`
+- notifications: `NotificationsStyle3`
+- createClaim: `CreateClaimStyle3`
+- menu preset `gobiz`
+- `/orders` đổi label thành `Quản lý Tổng hợp`
+- shipment status display `tabs`
+
+Nếu variant code không nằm trong `VARIANT_DEFAULTS`, `getVariantDefaults()` trả default chung. Tuy nhiên backend hiện đã chặn variant sai và trả `gd1`.
+
+## 8. DynamicVariant
+
+File:
+
+```txt
+packages/ui/src/DynamicVariant.tsx
 ```
 
-`DynamicVariant` hoạt động như sau:
-1. Tìm trong `modules` entry có key chứa `variantName` (VD: `'./OrdersStyle3.tsx'`)
-2. Gọi **dynamic `import()`** — Vite sẽ code-split, chỉ tải file đó
-3. Render component được export
+Mỗi dispatcher truyền:
 
----
+- `variantName`: component cần load.
+- `modules`: danh sách file lấy từ `import.meta.glob("./*.tsx")`.
+- `fallbackName`: component fallback của page/layout đó.
+- `featureName`: tên để log/debug.
 
-## 🌗 Dark Mode
+Nếu không tìm thấy `variantName`, `DynamicVariant` load `fallbackName`.
 
-Dark mode hoạt động độc lập với tenant. `ThemeContext` theo dõi cả 2:
+Ví dụ Web Orders:
 
-```typescript
-// ThemeContext.tsx
-const [theme, setTheme] = useState<'light' | 'dark'>('light');
-
-useEffect(() => {
-    if (theme === 'dark') document.documentElement.classList.add('dark');
-    else document.documentElement.classList.remove('dark');
-}, [theme]);
-```
-
-Khi dark mode bật, `updateTenantCSSVariables(config, isDark=true)` sẽ:
-- Dùng `colorPrimaryDark` thay vì `colorPrimary`
-- Dùng `colorBgContainerDark` thay vì `colorBgContainer`
-- v.v.
-
-Tailwind dark mode đọc class `.dark` trên `<html>`, CSS variables automatically reflect giá trị dark.
-
----
-
-## 🗂 Cấu trúc file quan trọng
-
-```
-packages/
-├── config/
-│   └── app.ts                    # Env vars (APP_X_TENANT, APP_API_URL, ...)
-├── tenant-config/
-│   └── src/index.ts              # Types, applyTenantConfig, updateTenantCSSVariables, dispatchTenantChange
-├── theme-provider/
-│   └── src/ThemeContext.tsx      # ThemeProvider, useTheme, useVariant, useVariantCode
-└── util/
-    └── src/Api/interceptor.ts    # Tự động gắn X-tenant header vào mọi API request
-
-apps/web/src/
-├── App.tsx                       # Fetch tenant config, apply vào AntD + CSS
-├── routes.tsx                    # Khai báo routes
-├── pages/
-│   ├── Orders/
-│   │   ├── index.tsx             # DynamicVariant wrapper
-│   │   ├── OrdersStyle1.tsx      # Giao diện Baogam
-│   │   └── OrdersStyle3.tsx      # Giao diện Gobiz
-│   └── DeliveryRequests/
-│       ├── index.tsx             # DynamicVariant wrapper
-│       ├── DeliveryRequestsStyle1.tsx  # Giao diện Baogam
-│       └── DeliveryRequestsStyle3.tsx  # Giao diện Gobiz
-└── components/Layout/
-    ├── Navigation.ts             # Menu items theo variant
-    └── VerticalLayout.tsx        # Sidebar + Header layout
-```
-
----
-
-## ➕ Cách thêm Tenant mới
-
-### 1. Thêm vào `tenantExamples` (hiển thị trong dropdown)
-```typescript
-// packages/tenant-config/src/index.ts
-export const tenantExamples = {
-    baogam: { name: 'Báo Gấm' },
-    gobiz: { name: 'Gobiz Logistics' },
-    my_tenant: { name: 'Tenant Mới' }, // ← Thêm vào đây
-};
-```
-
-### 2. Thêm config trong API server (`localhost:3003`)
-```json
-// API: GET /api/tenants/my_tenant/config
-{
-  "tenantConfig": {
-    "themeConfig": {
-      "variant": "gd1",
-      "colorPrimary": "#8B5CF6"
-    }
-  }
-}
-```
-
-### 3. (Tùy chọn) Tạo CSS file cho tenant
-```css
-/* apps/web/src/styles/tenants/my_tenant.css */
-:root {
-    --tenant-primary-color: #8B5CF6;
-}
-```
-
----
-
-## ➕ Cách thêm trang mới hỗ trợ Multi-Tenant
-
-### 1. Tạo API + Hook
-```bash
-packages/api/src/MyFeatureApi.ts      # API methods
-packages/hooks/src/useMyFeatureHooks.ts  # React Query hooks
-```
-
-### 2. Tạo các Style variant
-```bash
-apps/web/src/pages/MyFeature/
-├── MyFeatureStyle1.tsx   # Baogam (gd1)
-├── MyFeatureStyle3.tsx   # Gobiz (gd3)
-└── index.tsx             # DynamicVariant wrapper
-```
-
-### 3. `index.tsx` — luôn theo template này
-```typescript
-export const MyFeature = () => {
-    const variant = useVariant('myFeature'); // 'MyFeatureStyle1' hoặc 'MyFeatureStyle3'
-    const modules = import.meta.glob('./*.tsx');
-    return (
-        <DynamicVariant
-            variantName={variant}
-            modules={modules}
-            fallbackName="MyFeatureStyle1"
-            featureName="MyFeature"
-        />
-    );
-};
-```
-
-### 4. Thêm route trong `routes.tsx`
 ```tsx
-<Route path="my-feature" element={<MyFeature />} />
+<DynamicVariant
+  variantName={variant}
+  modules={modules}
+  fallbackName="OrdersStyle1"
+  featureName="Orders"
+/>
 ```
 
-### 5. Thêm vào `Navigation.ts`
-```typescript
-{ key: '/my-feature', icon: React.createElement(SomeIcon), label: 'Tính năng mới', path: '/my-feature' }
+Điểm cần nhớ: fallback chỉ an toàn nếu file fallback thật sự tồn tại trong folder đó.
+
+## 9. Layout và menu
+
+Layout dispatcher:
+
+- Web: `apps/web/src/components/Layout/index.tsx`
+- Mobile: `apps/mobile/src/components/Layout/index.tsx`
+
+Fallback layout là `VerticalLayout`.
+
+Web menu:
+
+```txt
+apps/web/src/components/Layout/Navigation.ts
 ```
 
-> **Convention tự động**: `gd1` → `MyFeatureStyle1`, `gd3` → `MyFeatureStyle3`.  
-> Không cần thêm bất kỳ mapping nào nếu tuân theo naming convention.
+Menu chọn theo:
 
----
+1. `tenantConfig.variantCode`.
+2. `getVariantDefaults(variantCode).menu.preset`.
+3. preset `gobiz` dùng `GOBIZ_MENU_ITEMS`, còn lại dùng `BASE_MENU_ITEMS`.
+4. `themeConfig.menu.hiddenKeys` override default hidden keys.
+5. `themeConfig.menu.labelOverrides` override default label overrides.
 
-## 🔍 Debug: Kiểm tra tenant đang active
+## 10. Khi thêm page mới
 
-Mở DevTools Console:
-```javascript
-// Xem tenant đang active
-localStorage.getItem('selected-tenant')
+Pattern bắt buộc:
 
-// Xem full config đang dùng
-JSON.parse(localStorage.getItem('full-tenant-data'))
+1. Tạo folder page.
+2. Tạo ít nhất một component fallback, thường là `PageStyle1.tsx`.
+3. `index.tsx` gọi `useVariant(pageKey)`.
+4. `index.tsx` dùng `DynamicVariant`.
+5. Đảm bảo `fallbackName` đúng tên file đang tồn tại.
+6. Nếu variant cần component đặc biệt, thêm vào `variantDefaults.ts` hoặc truyền qua `themeConfig.variants`.
 
-// Xem CSS variables đang áp dụng
-getComputedStyle(document.documentElement).getPropertyValue('--tenant-primary-color')
+## 11. Debug nhanh
 
-// Tự kích hoạt chuyển tenant (không cần UI)
-window.dispatchEvent(new CustomEvent('app:tenant-changed', { detail: 'gobiz' }))
+Trong browser console:
+
+```js
+localStorage.getItem("selected-tenant")
+JSON.parse(localStorage.getItem("full-tenant-data") || "null")
+getComputedStyle(document.documentElement).getPropertyValue("--tenant-primary-color")
+window.dispatchEvent(new CustomEvent("app:tenant-changed", { detail: "gobiz" }))
 ```
+
+Kiểm tra variant đang resolve bằng log:
+
+```txt
+[useVariant] orders -> OrdersStyle1 (code: gd1)
+```
+
+Log này được in trong `useVariant()` cho nhánh naming convention.

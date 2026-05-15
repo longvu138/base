@@ -1,120 +1,250 @@
-# Quy Trình Thêm Tenant Mới với Giao Diện (UI) Riêng Biệt
+# SOP: Thêm Tenant Mới Với UI Riêng
 
-Tài liệu này hướng dẫn các bước chi tiết để triển khai một Tenant mới (ví dụ: `newclient`) sử dụng một phong cách giao diện hoàn toàn mới (ví dụ: `gd4` - `Style4`) trong khi vẫn giữ nguyên 100% logic nghiệp vụ hiện có.
+Quy trình này bám source hiện tại trong repo `base`.
 
----
+## 1. Thêm tenant ở backend
 
-## Bước 1: Cấu hình Backend (Tenant Server)
+Sửa:
 
-Mở file `apps/tenant-server/src/index.js` và thêm cấu hình cho Tenant mới vào mảng `tenants`.
+```txt
+apps/tenant-server/src/index.js
+```
 
-```javascript
-{
-    id: 'newclient',
-    tenant: 'newclient',
-    name: 'New Client Logistics',
-    variantCode: 'gd4', // Mã giao diện mới (ví dụ: Style 4)
+Thêm tenant vào object `tenants`:
+
+```js
+newclient: {
+  name: "New Client Logistics",
+  planCode: "paid",
+  variantCode: "gd2",
+  override: {
     tenantConfig: {
-        themeConfig: {
-            uiLib: 'antd',
-            colorPrimary: '#ff4d4f', // Màu thương hiệu riêng (ví dụ: đỏ)
-            borderRadius: 8,
-            // Các token màu sắc khác nếu cần...
-        }
+      themeConfig: {
+        colorPrimary: "#0ea5e9",
+        colorBorder: "#7dd3fc",
+        borderRadius: 10
+      }
     }
+  }
 }
 ```
 
-## Bước 2: Đăng ký Tenant tại Frontend
+Chỉ dùng `variantCode` đã có trong `VARIANT_NAMES`:
 
-Mở file `packages/tenant-config/src/index.ts` và thêm ID của tenant mới vào danh sách `getTenantOptions` (để hiển thị trong bộ chọn ở header).
+- `gd1`
+- `gd2`
+- `gd3`
 
-```typescript
-// Thêm vào mảng tenant options
-{ label: 'New Client', value: 'newclient' },
+Nếu dùng variant khác mà chưa thêm vào `VARIANT_NAMES`, backend sẽ fallback về `gd1`.
+
+## 2. Thêm tenant vào selector
+
+Sửa:
+
+```txt
+packages/tenant-config/src/index.ts
 ```
 
-## Bước 3: Định nghĩa Mapping Giao Diện (Style Mapping)
+Thêm vào `tenantExamples`:
 
-Mở file `packages/theme-provider/src/variantDefaults.ts` để định nghĩa xem mã `gd4` sẽ sử dụng những Component Style nào cho từng trang.
-
-```typescript
-const VARIANT_DEFAULTS: Record<string, VariantDefaults> = {
-    gd4: {
-        componentOverrides: {
-            layout: 'NewClientLayout', // Layout riêng (nếu cần)
-            login: 'LoginStyle4',      // Trang login riêng
-            register: 'RegisterStyle4', 
-            orders: 'OrdersStyle4',
-            // Trang nào chưa có Style 4 thì có thể trỏ về Style 1 để dùng tạm
-        },
-        menu: {
-            preset: 'base', // hoặc 'gobiz'
-            hiddenKeys: [],
-        },
-        features: {
-            shipmentStatusDisplay: 'filter',
-        },
-    },
-    // ...
+```ts
+newclient: {
+  name: "New Client Logistics",
 }
 ```
 
-## Bước 4: Tạo Layout mới (Nếu cần thiết)
+Danh sách này chỉ dùng cho dropdown/select tenant. Config thật vẫn lấy từ tenant server.
 
-Nếu Tenant yêu cầu cấu trúc khung (Header, Sidebar, Tabbar) khác biệt:
-1.  Tạo file mới tại `apps/web/src/components/Layout/NewClientLayout.tsx`.
-2.  Sử dụng `<Outlet />` để render nội dung các trang bên trong.
-3.  Mapping tên `NewClientLayout` này vào bước 3.
+## 3. Chọn hướng UI
 
-## Bước 5: Triển khai các trang UI mới
+Có 3 hướng phổ biến.
 
-Tại mỗi thư mục trang (ví dụ: `apps/web/src/pages/Login/`):
-1.  Tạo file UI mới: `LoginStyle4.tsx`.
-2.  **Nguyên tắc**: Copy cấu trúc nhận props (`form`, `onFinish`, `isLoading`,...) từ `LoginStyle1.tsx`.
-3.  Chỉ thay đổi phần JSX (HTML/CSS), **tuyệt đối không** gọi API hay viết logic xử lý dữ liệu trong file này.
-4.  Hệ thống `DynamicVariant` sẽ tự động quét và load file này.
+### Hướng A: Dùng lại `gd1`
 
-> [!TIP]
-> Bạn có thể sử dụng các script trong thư mục `scratch/` để tạo nhanh hàng loạt file "vỏ" (boilerplate) cho Style mới từ Style có sẵn, sau đó mới vào chỉnh sửa chi tiết.
+Dùng khi tenant chỉ đổi màu/token, không cần UI riêng.
 
-## Bước 6: Kiểm tra (QA)
+```js
+variantCode: "gd1"
+```
 
-1.  **Backend**: Đảm bảo Tenant Server đang chạy.
-2.  **Frontend**: Mở trình duyệt, chọn Tenant `newclient` từ bộ chọn.
-3.  **Xác nhận**: Kiểm tra xem giao diện đã chuyển sang Style 4 chưa và các chức năng (logic) còn hoạt động chính xác không.
+Không cần tạo thêm `StyleX`.
 
-## Bước 7: Tùy biến Menu (Gộp, Ẩn hoặc Đổi tên mục)
+### Hướng B: Dùng lại `gd2` hoặc `gd3`
 
-Nếu Tenant mới yêu cầu cấu trúc Menu khác (ví dụ: Gộp "Đơn hàng" và "Ký gửi" thành "Quản lý đơn"), bạn có 2 cách tiếp cận:
+Dùng khi tenant muốn cùng layout/behavior với Thanhla hoặc Gobiz.
 
-### Cách A: Tùy biến nhanh (Dùng config)
-Nếu bạn chỉ muốn ẩn bớt và đổi tên mục có sẵn để "giả" gộp menu, hãy sửa trong `packages/theme-provider/src/variantDefaults.ts`:
+```js
+variantCode: "gd2"
+```
 
-```typescript
-gd4: {
-    // ...
-    menu: {
-        preset: 'base',
-        hiddenKeys: ['/shipments'], // Ẩn đơn ký gửi
-        labelOverrides: { 
-            '/orders': 'Quản lý đơn' // Đổi tên Đơn hàng thành Quản lý đơn
-        },
+hoặc:
+
+```js
+variantCode: "gd3"
+```
+
+### Hướng C: Thêm behavior mới cho variant hiện có
+
+Sửa:
+
+```txt
+packages/theme-provider/src/variantDefaults.ts
+```
+
+Thêm hoặc sửa `componentOverrides`, `menu`, `features`.
+
+Ví dụ:
+
+```ts
+gd2: {
+  componentOverrides: {
+    layout: "ThanhlaLayout",
+    orders: "OrdersStyle2",
+    profile: "ProfileStyle2"
+  },
+  menu: {
+    preset: "base",
+    hiddenKeys: [],
+    labelOverrides: {}
+  },
+  features: {
+    shipmentStatusDisplay: "filter"
+  }
+}
+```
+
+Nếu muốn tạo variant mới như `gd4`, phải làm đủ:
+
+1. thêm `gd4` vào `VARIANT_NAMES` ở tenant server.
+2. thêm `gd4` vào `VARIANT_DEFAULTS`.
+3. tạo đủ style/layout cần thiết.
+4. đảm bảo fallback của từng page tồn tại.
+
+## 4. Tạo layout riêng nếu cần
+
+Web layout:
+
+```txt
+apps/web/src/components/Layout/
+```
+
+Mobile layout:
+
+```txt
+apps/mobile/src/components/Layout/
+```
+
+Tạo file mới, ví dụ:
+
+```txt
+NewClientLayout.tsx
+```
+
+Layout phải render `<Outlet />` để route con hiển thị.
+
+Sau đó map trong `variantDefaults.ts`:
+
+```ts
+componentOverrides: {
+  layout: "NewClientLayout"
+}
+```
+
+Layout dispatcher fallback về `VerticalLayout`.
+
+## 5. Tạo page style mới
+
+Ví dụ thêm style cho Orders Web:
+
+```txt
+apps/web/src/pages/Orders/OrdersStyle2.tsx
+```
+
+Quy tắc:
+
+- giữ logic ở hook/page connector.
+- file `*StyleX.tsx` chỉ render UI.
+- export component đúng tên file hoặc default export.
+- nếu page dùng `DynamicVariant`, file style phải nằm cùng folder với `index.tsx`.
+
+Ví dụ dispatcher:
+
+```tsx
+const variant = useVariant("orders");
+const modules = import.meta.glob("./*.tsx");
+
+return (
+  <DynamicVariant
+    variantName={variant}
+    modules={modules}
+    fallbackName="OrdersStyle1"
+    featureName="Orders"
+  />
+);
+```
+
+## 6. Cấu hình menu
+
+Web menu nằm ở:
+
+```txt
+apps/web/src/components/Layout/Navigation.ts
+```
+
+Nếu chỉ ẩn hoặc đổi tên menu item, ưu tiên dùng `themeConfig.menu`:
+
+```js
+themeConfig: {
+  menu: {
+    hiddenKeys: ["/shipments"],
+    labelOverrides: {
+      "/orders": "Quản lý đơn"
     }
+  }
 }
 ```
 
-### Cách B: Tạo cấu trúc Menu riêng (Dùng Preset)
-Nếu cấu trúc gộp phức tạp hơn (ví dụ: gộp nhiều mục thành 1 mục hoàn toàn mới với logic chuyển hướng riêng):
-1. Mở `apps/web/src/components/Layout/Navigation.ts`.
-2. Định nghĩa một mảng Menu mới (ví dụ: `NEWCLIENT_MENU_ITEMS`).
-3. Cập nhật hook `useNavigation` để trả về mảng này khi gặp preset tương ứng.
-4. Trong `variantDefaults.ts`, set `preset: 'newclient'`.
+Nếu cần menu preset mới:
 
----
+1. thêm type preset mới trong `VariantMenuDefaults`.
+2. tạo menu item list mới trong `Navigation.ts`.
+3. cập nhật logic chọn `baseItems`.
+4. set preset trong `variantDefaults.ts`.
 
-## Lưu ý quan trọng:
-- **Tách biệt Logic**: Luôn sử dụng hooks từ `@repo/hooks` thông qua `index.tsx` của trang, không bao giờ import hooks trực tiếp vào file Style.
-- **CSS**: Ưu tiên dùng Tailwind CSS để tránh xung đột style giữa các Tenant khác nhau.
-- **Dùng lại (Reuse)**: Nếu một trang của Tenant mới không cần giao diện riêng, hãy để nó mặc định dùng `Style1` để tiết kiệm thời gian.
-- **Tùy biến Menu**: Ưu tiên dùng `labelOverrides` và `hiddenKeys` (Cách A) để giữ code base sạch sẽ và dễ quản lý nhất.
+Hiện source chỉ type sẵn `base | gobiz`.
+
+## 7. Kiểm tra fallback
+
+Bắt buộc kiểm tra:
+
+- tenant không tồn tại có fallback về `baogam`.
+- API tenant lỗi có dùng cache hoặc `FALLBACK_TENANT_CONFIG`.
+- variant sai có bị backend trả `gd1`.
+- page thiếu style có fallback về `fallbackName`.
+- `fallbackName` thật sự tồn tại.
+- layout thiếu file có fallback `VerticalLayout`.
+
+## 8. QA tối thiểu
+
+1. Chạy tenant server.
+2. Chạy Web/Mobile app.
+3. Chọn tenant từ dropdown.
+4. Reload trang để kiểm tra `selected-tenant`.
+5. Test light mode và dark mode.
+6. Test các route chính: dashboard, orders, shipments, profile.
+7. Test các action nghiệp vụ quan trọng.
+8. Xoá `full-tenant-data`, tắt backend, reload để kiểm tra hardcoded fallback.
+9. Sửa tạm tenant id không tồn tại để kiểm tra fallback backend về `baogam`.
+
+## 9. Checklist hoàn tất
+
+- [ ] Tenant đã thêm ở `apps/tenant-server/src/index.js`.
+- [ ] Tenant đã thêm ở `tenantExamples` nếu cần hiển thị dropdown.
+- [ ] `variantCode` hợp lệ.
+- [ ] Theme token đã có light/dark nếu cần.
+- [ ] `variantDefaults.ts` đã map layout/page/menu nếu cần.
+- [ ] File `*StyleX.tsx` đã tồn tại.
+- [ ] Mọi `fallbackName` trỏ tới file thật.
+- [ ] Đã test đổi tenant runtime.
+- [ ] Đã test reload/browser cache.
+- [ ] Đã test API lỗi/cache lỗi.
