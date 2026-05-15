@@ -443,10 +443,18 @@ export const OrdersStyle1 = () => {
                             rel="noreferrer"
                             onClick={(event) => event.stopPropagation()}
                           >
-                            <Avatar
-                              shape="square"
-                              size={20}
+                            <Image
                               src={record?.marketplace?.image}
+                              height={20}
+                              width={20}
+                              preview={false}
+                              fallback="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="
+                              style={{
+                                borderRadius: token.borderRadius,
+                                objectFit: "cover",
+                                background: token.colorFillQuaternary,
+                                border: `1px solid ${token.colorBorderSecondary}`,
+                              }}
                             />
                           </a>
                           <Typography.Text ellipsis style={{ maxWidth: 320 }}>
@@ -522,23 +530,23 @@ export const OrdersStyle1 = () => {
                               </Typography.Text>
                               {record?.services?.length
                                 ? record.services.map((item: any) => (
-                                    <Tag
-                                      key={item.code}
-                                      color={
+                                  <Tag
+                                    key={item.code}
+                                    color={
+                                      item.approved === false
+                                        ? "default"
+                                        : "blue"
+                                    }
+                                    style={{
+                                      textDecoration:
                                         item.approved === false
-                                          ? "default"
-                                          : "blue"
-                                      }
-                                      style={{
-                                        textDecoration:
-                                          item.approved === false
-                                            ? "line-through"
-                                            : undefined,
-                                      }}
-                                    >
-                                      {item.name}
-                                    </Tag>
-                                  ))
+                                          ? "line-through"
+                                          : undefined,
+                                    }}
+                                  >
+                                    {item.name}
+                                  </Tag>
+                                ))
                                 : "---"}
                             </Space>
 
@@ -631,7 +639,7 @@ export const OrdersStyle1 = () => {
                                   style={metricValueStyle}
                                 >
                                   {record?.actualWeight ||
-                                  record?.chargeableWeight
+                                    record?.chargeableWeight
                                     ? `${record.actualWeight || record.chargeableWeight}kg`
                                     : "---"}
                                 </Typography.Paragraph>
@@ -665,8 +673,8 @@ export const OrdersStyle1 = () => {
                                 >
                                   {record?.createdAt
                                     ? dayjs(record.createdAt).format(
-                                        "HH:mm DD/MM/YYYY",
-                                      )
+                                      "HH:mm DD/MM/YYYY",
+                                    )
                                     : "---"}
                                 </Typography.Paragraph>
                               </div>

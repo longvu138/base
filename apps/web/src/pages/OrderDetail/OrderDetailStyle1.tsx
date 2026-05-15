@@ -394,10 +394,12 @@ export const OrderDetailStyle1 = () => {
                       </Space>
                       <Space size={token.marginXS}>
                         {marketplaceImage && (
-                          <Avatar
-                            shape="square"
-                            size={14}
+                          <img
+                            width={14}
+                            height={14}
                             src={marketplaceImage}
+                            alt="img"
+                            referrerPolicy="no-referrer"
                           />
                         )}
                         <Text type="secondary">{t("orderDetail.seller")}:</Text>
