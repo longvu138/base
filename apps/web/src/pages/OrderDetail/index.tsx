@@ -7,16 +7,16 @@ const modules = import.meta.glob('./*.tsx');
  * OrderDetail dispatcher — dùng đúng pattern như các trang khác.
  * Variant được resolve bởi useVariant:
  *   - Ưu tiên tenant override
- *   - Sau đó theo naming convention (Style1/2/3)
- *   - Riêng gd2 hiện fallback về Style1 để tránh thiếu component
+ *   - Sau đó theo naming convention (StyleDefault/StyleThanhla/StyleGobiz)
+ *   - Riêng thanhla hiện fallback về StyleDefault để tránh thiếu component
  */
 export const OrderDetail = () => {
-    const variant = useVariant('orderDetail');
+    const variant = useVariant('orderDetail', 'OrderDetailStyleDefault');
     return (
         <DynamicVariant
             variantName={variant}
             modules={modules}
-            fallbackName="OrderDetailStyle1"
+            fallbackName="OrderDetailStyleDefault"
             featureName="OrderDetail"
         />
     );

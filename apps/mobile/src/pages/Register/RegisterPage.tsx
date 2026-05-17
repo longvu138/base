@@ -8,7 +8,7 @@ const modules = import.meta.glob('./*.tsx');
 
 export const RegisterPage = () => {
     const [form] = Form.useForm();
-    const variant = useVariant('register');
+    const variant = useVariant('register', 'RegisterStyleDefault');
     const logic = useRegisterPage({
         onSuccess: () => message.success('Đăng ký tài khoản thành công!'),
         onError: (error: any) => message.error(error?.response?.data?.message || 'Đăng ký thất bại, vui lòng thử lại.')
@@ -18,7 +18,7 @@ export const RegisterPage = () => {
         <DynamicVariant
             variantName={variant}
             modules={modules}
-            fallbackName="RegisterStyle1"
+            fallbackName="RegisterStyleDefault"
             featureName="Register"
             componentProps={{
                 ...logic,

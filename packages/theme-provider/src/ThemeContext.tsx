@@ -60,36 +60,36 @@ export function useTheme() {
 /**
  * Hook: Quyết định component nào sẽ được render cho một pageKey nhất định.
  * Luồng ưu tiên:
- * 1. Quy tắc tenant-specific ở frontend
- * 2. Quy ước đặt tên mặc định (Naming Convention)
+ * 1. Tenant-specific override từ themeConfig.variants
+ * 2. Variant/UI preset explicit trong variantDefaults
+ * 3. Component default của page/layout
  */
-export function useVariant(pageKey: string): string {
+export function useVariant(pageKey: string, defaultComponentName?: string): string {
     const { tenantConfig } = useTheme();
     const themeConfig = tenantConfig?.tenantConfig?.themeConfig;
-    const variantCode = tenantConfig?.variantCode || 'gd1';
+    const variantCode = tenantConfig?.variantCode;
     const variantDefaults = getVariantDefaults(variantCode);
+    const normalizedPageKey = normalizePageKey(pageKey);
 
-    // Direct override injected by frontend tenant UI rules.
-    if (themeConfig?.variants?.[pageKey]) {
-        return themeConfig.variants[pageKey];
+    const tenantOverride = themeConfig?.variants?.[pageKey] || themeConfig?.variants?.[normalizedPageKey];
+    if (tenantOverride) {
+        return tenantOverride;
     }
 
-    // Variant-level defaults for UI behavior without backend mapping.
-    const variantOverride = variantDefaults.componentOverrides?.[pageKey];
+    const variantOverride =
+        variantDefaults.componentOverrides?.[pageKey] ||
+        variantDefaults.componentOverrides?.[normalizedPageKey];
     if (variantOverride) {
         return variantOverride;
     }
 
-    // Guard các trang chưa có Style2 để không bị văng UI.
-    if (variantCode === 'gd2' && pageKey === 'orderDetail') {
-        return 'OrderDetailStyle1';
-    }
+    return defaultComponentName || getDefaultComponentName(normalizedPageKey);
+}
 
-    // Naming Convention (Ví dụ: 'orders' + 'gd3' -> 'OrdersStyle3')
-    const styleNumber = variantCode.replace(/\D/g, '') || '1';
-    const capitalizedKey = pageKey.charAt(0).toUpperCase() + pageKey.slice(1);
+function normalizePageKey(pageKey: string): string {
+    return pageKey.replace(/[-_]+([a-z])/g, (_, char: string) => char.toUpperCase());
+}
 
-    const result = `${capitalizedKey}Style${styleNumber}`;
-    console.log(`[useVariant] ${pageKey} -> ${result} (code: ${variantCode})`);
-    return result;
+function getDefaultComponentName(pageKey: string): string {
+    return `${pageKey.charAt(0).toUpperCase()}${pageKey.slice(1)}StyleDefault`;
 }

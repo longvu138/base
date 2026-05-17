@@ -5,7 +5,7 @@ import { useVariant } from '@repo/theme-provider';
 const modules = import.meta.glob('./*.tsx');
 
 const FaqsPage = () => {
-    const variant = useVariant('faqs');
+    const variant = useVariant('faqs', 'FaqsStyleDefault');
     const { page, pageSize } = usePaginationWithURL();
     const { filters } = useFilterWithURL({ form: undefined as any });
     const { faqsData, isFaqsLoading } = useFaqsLogic({ page, pageSize, filters });
@@ -17,7 +17,7 @@ const FaqsPage = () => {
                 <DynamicVariant
                     variantName={variant}
                     modules={modules}
-                    fallbackName="FaqsStyle1"
+                    fallbackName="FaqsStyleDefault"
                     featureName="Faqs"
                     componentProps={{ 
                         faqs: faqsData?.data, 

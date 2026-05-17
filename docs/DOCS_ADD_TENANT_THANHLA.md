@@ -1,6 +1,6 @@
 # Tenant `thanhla`: Trạng Thái Hiện Tại Và Cách Mở Rộng
 
-Tài liệu này đã được cập nhật theo code hiện tại. `thanhla` không còn là kế hoạch `gd4`; trong source hiện tại tenant này đang dùng `gd2`.
+Tài liệu này đã được cập nhật theo code hiện tại. `thanhla` không còn là kế hoạch `gd4`; trong source hiện tại tenant này đang dùng `thanhla`.
 
 ## 1. Backend config hiện tại
 
@@ -16,7 +16,7 @@ Tenant hiện tại:
 thanhla: {
   name: "Thanhla Logistics",
   planCode: "paid",
-  variantCode: "gd2",
+  variantCode: "thanhla",
   override: {
     tenantConfig: {
       themeConfig: {
@@ -49,7 +49,7 @@ thanhla: {
 
 Do đó tenant này đã xuất hiện trong dropdown nếu UI dùng `getTenantOptions()`.
 
-## 3. Variant defaults cho `gd2`
+## 3. Variant defaults cho `thanhla`
 
 File:
 
@@ -57,37 +57,37 @@ File:
 packages/theme-provider/src/variantDefaults.ts
 ```
 
-`gd2` hiện map:
+`thanhla` hiện map:
 
 | Page key | Component |
 |---|---|
-| `layout` | `ThanhlaLayout` |
-| `login` | `LoginStyle2` |
-| `register` | `RegisterStyle2` |
-| `dashboard` | `DashboardStyle2` |
-| `orders` | `OrdersStyle2` |
-| `orderDetail` | `OrderDetailStyle2` |
+| `layout` | `LayoutStyleThanhla` |
+| `login` | `LoginStyleThanhla` |
+| `register` | `RegisterStyleThanhla` |
+| `dashboard` | `DashboardStyleThanhla` |
+| `orders` | `OrdersStyleThanhla` |
+| `orderDetail` | `OrderDetailStyleThanhla` |
 | `shipments` | `Shipments` |
-| `shipmentDetail` | `ShipmentDetailStyle2` |
-| `claims` | `ClaimsStyle2` |
-| `packages` | `PackagesStyle2` |
-| `deliveryRequests` | `DeliveryRequestsStyle2` |
-| `createClaim` | `CreateClaimStyle2` |
-| `deliveryNotes` | `DeliveryNotesStyle2` |
-| `withdrawalSlips` | `WithdrawalSlipsStyle2` |
-| `waybills` | `WaybillsStyle2` |
-| `profile` | `ProfileStyle2` |
-| `notifications` | `NotificationsStyle2` |
+| `shipmentDetail` | `ShipmentDetailStyleThanhla` |
+| `claims` | `ClaimsStyleThanhla` |
+| `packages` | `PackagesStyleThanhla` |
+| `deliveryRequests` | `DeliveryRequestsStyleThanhla` |
+| `createClaim` | `CreateClaimStyleThanhla` |
+| `deliveryNotes` | `DeliveryNotesStyleThanhla` |
+| `withdrawalSlips` | `WithdrawalSlipsStyleThanhla` |
+| `waybills` | `WaybillsStyleThanhla` |
+| `profile` | `ProfileStyleThanhla` |
+| `notifications` | `NotificationsStyleThanhla` |
 
 Lưu ý mapping lệch tên trên Web:
 
-| Page key | Mapping `gd2` | File Web đang có | Kết quả hiện tại |
+| Page key | Mapping `thanhla` | File Web đang có | Kết quả hiện tại |
 |---|---|---|---|
-| `deliveryNotes` | `DeliveryNotesStyle2` | `DeliveryNoteStyle2.tsx` | fallback theo page |
-| `packages` | `PackagesStyle2` | `PackageStyle2.tsx` | fallback theo page |
-| `withdrawalSlips` | `WithdrawalSlipsStyle2` | `WithdrawalSlipStyle2.tsx` | fallback theo page |
+| `deliveryNotes` | `DeliveryNotesStyleThanhla` | `DeliveryNoteStyleThanhla.tsx` | fallback theo page |
+| `packages` | `PackagesStyleThanhla` | `PackageStyleThanhla.tsx` | fallback theo page |
+| `withdrawalSlips` | `WithdrawalSlipsStyleThanhla` | `WithdrawalSlipStyleThanhla.tsx` | fallback theo page |
 
-Mobile có file `PackagesStyle2.tsx` và `WithdrawalSlipsStyle2.tsx`, nhưng `deliveryNotes` vẫn lệch vì file là `DeliveryNoteStyle2.tsx`.
+Mobile có file `PackagesStyleThanhla.tsx` và `WithdrawalSlipsStyleThanhla.tsx`, nhưng `deliveryNotes` vẫn lệch vì file là `DeliveryNoteStyleThanhla.tsx`.
 
 Menu:
 
@@ -112,13 +112,13 @@ features: {
 Web:
 
 ```txt
-apps/web/src/components/Layout/ThanhlaLayout.tsx
+apps/web/src/components/Layout/LayoutStyleThanhla.tsx
 ```
 
 Mobile:
 
 ```txt
-apps/mobile/src/components/Layout/ThanhlaLayout.tsx
+apps/mobile/src/components/Layout/LayoutStyleThanhla.tsx
 ```
 
 Layout được chọn bằng:
@@ -127,9 +127,9 @@ Layout được chọn bằng:
 useVariant("layout")
 ```
 
-Với `variantCode = "gd2"`, `variantDefaults` trả `ThanhlaLayout`.
+Với `variantCode = "thanhla"`, `variantDefaults` trả `LayoutStyleThanhla`.
 
-Nếu file layout không load được theo tên variant, layout dispatcher fallback về `VerticalLayout`.
+Nếu file layout không load được theo tên variant, layout dispatcher fallback về `LayoutStyleDefault`.
 
 ## 5. Page style và fallback
 
@@ -143,37 +143,29 @@ const variant = useVariant("orders");
 <DynamicVariant
   variantName={variant}
   modules={modules}
-  fallbackName="OrdersStyle1"
+  fallbackName="OrdersStyleDefault"
   featureName="Orders"
 />
 ```
 
 Với Thanhla:
 
-- `useVariant("orders")` trả `OrdersStyle2`.
-- nếu `OrdersStyle2.tsx` không tồn tại, `DynamicVariant` fallback về `OrdersStyle1`.
+- `useVariant("orders")` trả `OrdersStyleThanhla`.
+- nếu `OrdersStyleThanhla.tsx` không tồn tại, `DynamicVariant` fallback về `OrdersStyleDefault`.
 
 Lưu ý: fallback chỉ hoạt động nếu file fallback thật sự tồn tại.
 
-## 6. Guard riêng cho OrderDetail
+## 6. Default khi không có mapping
 
-`useVariant()` hiện có guard:
+`useVariant()` hiện không còn nhánh xử lý riêng theo `variantCode`.
 
-```ts
-if (variantCode === "gd2" && pageKey === "orderDetail") {
-  return "OrderDetailStyle1";
-}
-```
+Thứ tự resolve:
 
-Tuy nhiên `variantDefaults.gd2.componentOverrides` cũng đang khai báo:
+1. `themeConfig.variants[pageKey]`
+2. `variantDefaults.thanhla.componentOverrides[pageKey]`
+3. `defaultComponentName` của dispatcher, ví dụ `OrderDetailStyleDefault`
 
-```ts
-orderDetail: "OrderDetailStyle2"
-```
-
-Vì `variantDefaults` được kiểm tra trước guard, source hiện tại sẽ trả `OrderDetailStyle2` cho `gd2` nếu mapping này còn tồn tại.
-
-Nếu muốn thật sự ép `gd2` về `OrderDetailStyle1`, cần bỏ `orderDetail` khỏi `variantDefaults.gd2.componentOverrides` hoặc đổi mapping trực tiếp thành `OrderDetailStyle1`.
+Nếu muốn ép `thanhla` về `OrderDetailStyleDefault`, đổi mapping `orderDetail` trong `variantDefaults.thanhla.componentOverrides` thành `OrderDetailStyleDefault` hoặc override qua tenant config.
 
 ## 7. Khi muốn mở rộng Thanhla
 
@@ -183,8 +175,8 @@ Nếu chỉ đổi màu:
 
 Nếu đổi page UI:
 
-- tạo/sửa file `*Style2.tsx` trong folder page tương ứng.
-- hoặc override page key trong `variantDefaults.gd2.componentOverrides`.
+- tạo/sửa file `*StyleThanhla.tsx` trong folder page tương ứng.
+- hoặc override page key trong `variantDefaults.thanhla.componentOverrides`.
 
 Nếu đổi menu:
 
@@ -194,14 +186,14 @@ Nếu đổi menu:
 
 Nếu đổi layout:
 
-- sửa `ThanhlaLayout.tsx`.
+- sửa `LayoutStyleThanhla.tsx`.
 - hoặc đổi `componentOverrides.layout`.
 
 ## 8. Không nên làm gì
 
 - Không tạo `gd4` cho Thanhla nếu chưa thêm `gd4` vào `VARIANT_NAMES` và `VARIANT_DEFAULTS`.
-- Không copy logic API/filter/pagination vào `*Style2.tsx`.
-- Không assume mọi page đều có `Style2`; luôn kiểm tra file thật và fallback.
+- Không copy logic API/filter/pagination vào `*StyleThanhla.tsx`.
+- Không assume mọi page đều có `StyleThanhla`; luôn kiểm tra file thật và fallback.
 - Không sửa business hooks chỉ để đổi giao diện.
 
 ## 9. QA cho Thanhla
@@ -209,8 +201,8 @@ Nếu đổi layout:
 Checklist:
 
 - [ ] Chọn tenant `thanhla` từ dropdown.
-- [ ] Kiểm tra backend trả `variantCode: "gd2"`.
-- [ ] Kiểm tra layout là `ThanhlaLayout`.
+- [ ] Kiểm tra backend trả `variantCode: "thanhla"`.
+- [ ] Kiểm tra layout là `LayoutStyleThanhla`.
 - [ ] Kiểm tra màu primary là `#0ea5e9`.
 - [ ] Kiểm tra border là `#7dd3fc`.
 - [ ] Kiểm tra radius là `10`.

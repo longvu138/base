@@ -4,13 +4,13 @@ import { DynamicVariant } from "@repo/ui";
 const modules = import.meta.glob("./*.tsx");
 
 export const Lieferscheine = () => {
-  const variant = useVariant("lieferscheine");
+  const variant = useVariant("lieferscheine", "LieferscheineStyleDefault");
 
   return (
     <DynamicVariant
       variantName={variant}
       modules={modules}
-      fallbackName="LieferscheineStyle1"
+      fallbackName="LieferscheineStyleDefault"
       featureName="Lieferscheine"
     />
   );

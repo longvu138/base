@@ -6,14 +6,14 @@ import { DynamicVariant } from '@repo/ui';
 const modules = import.meta.glob('./*.tsx');
 
 export const Orders = () => {
-    // Lấy tên style từ cấu hình Tenant (Ví dụ: 'OrdersStyle1', 'OrdersCombined')
-    const variant = useVariant('orders');
+    // Lấy tên style từ cấu hình Tenant (Ví dụ: 'OrdersStyleDefault', 'OrdersStyleGobizCombined')
+    const variant = useVariant('orders', 'OrdersStyleDefault');
 
     return (
         <DynamicVariant
             variantName={variant}
             modules={modules}
-            fallbackName="OrdersStyle1"
+            fallbackName="OrdersStyleDefault"
             featureName="Orders"
         />
     );

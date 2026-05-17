@@ -5,7 +5,7 @@ import { useVariant } from '@repo/theme-provider';
 const modules = import.meta.glob('./*.tsx');
 
 const VouchersPage = () => {
-    const variant = useVariant('vouchers');
+    const variant = useVariant('vouchers', 'VouchersStyleDefault');
     const { page, pageSize } = usePaginationWithURL();
     const { filters } = useFilterWithURL({ form: undefined as any });
     const { vouchersData, isVouchersLoading } = useVouchersLogic({ page, pageSize, filters });
@@ -17,7 +17,7 @@ const VouchersPage = () => {
                 <DynamicVariant
                     variantName={variant}
                     modules={modules}
-                    fallbackName="VouchersStyle1"
+                    fallbackName="VouchersStyleDefault"
                     featureName="Vouchers"
                     componentProps={{ 
                         vouchers: vouchersData?.data, 

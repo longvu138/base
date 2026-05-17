@@ -11,7 +11,7 @@ const modules = import.meta.glob('./*.tsx');
 export const RegisterPage = () => {
     const [form] = Form.useForm();
     const { token } = theme.useToken();
-    const variant = useVariant('register');
+    const variant = useVariant('register', 'RegisterStyleDefault');
     const { tenantConfig } = useTheme();
     const [currentTenant, setCurrentTenant] = useState(() =>
         localStorage.getItem('selected-tenant') || 'baogam'
@@ -72,7 +72,7 @@ export const RegisterPage = () => {
             <DynamicVariant
                 variantName={variant}
                 modules={modules}
-                fallbackName="RegisterStyle1"
+                fallbackName="RegisterStyleDefault"
                 featureName="Register"
                 componentProps={{
                     ...logic,

@@ -70,7 +70,7 @@ export const useOrdersLogic = ({ page, pageSize, filters }: UseOrdersLogicProps)
     return {
         orderData,
         isOrderLoading,
-        isOrdersLoading: isOrderLoading, // alias cho Style3
+        isOrdersLoading: isOrderLoading, // alias cho StyleGobiz
         statusData,
         statisticData,
         servicesData,

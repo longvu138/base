@@ -10,7 +10,7 @@ const modules = import.meta.glob('./*.tsx');
 
 export const Login = () => {
     const { currentLanguage, changeLanguage } = useLanguage();
-    const variant = useVariant('login');
+    const variant = useVariant('login', 'LoginStyleDefault');
 
     const [currentTenant, setCurrentTenant] = useState(() =>
         localStorage.getItem('selected-tenant') || 'baogam'
@@ -70,7 +70,7 @@ export const Login = () => {
                 <DynamicVariant
                     variantName={variant}
                     modules={modules}
-                    fallbackName="LoginStyle1"
+                    fallbackName="LoginStyleDefault"
                     featureName="Login"
                 />
             </div>

@@ -122,7 +122,7 @@ const BASE_MENU_ITEMS: MenuItem[] = [
 ];
 
 /**
- * Menu riêng cho Gobiz (gd3):
+ * Menu riêng cho Gobiz (gobiz):
  * - Gom /packages + /delivery + /delivery-notes → "Quản lý giao hàng"
  * - Gom /transactions + /withdrawal-slips → "Giao dịch"
  */
@@ -208,7 +208,7 @@ const GOBIZ_MENU_ITEMS: MenuItem[] = [
 export const useNavigation = (): MenuItem[] => {
   const { tenantConfig } = useTheme();
   const themeConfig = tenantConfig?.tenantConfig?.themeConfig;
-  const variantCode = tenantConfig?.variantCode || "gd1";
+  const variantCode = tenantConfig?.variantCode || "default";
   const variantDefaults = getVariantDefaults(variantCode);
   const menuPreset = variantDefaults.menu?.preset || "base";
   const baseItems = menuPreset === "gobiz" ? GOBIZ_MENU_ITEMS : BASE_MENU_ITEMS;

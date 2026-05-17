@@ -43,7 +43,7 @@ Backend hiện chỉ chịu trách nhiệm:
 - khai báo `override.tenantConfig.themeConfig`.
 - merge `PLAN_PRESETS` với `override`.
 - fallback tenant id không tồn tại về `baogam`.
-- fallback `variantCode` sai về `gd1`.
+- fallback `variantCode` sai về `default`.
 
 Backend không chịu trách nhiệm route mapping, import component, hoặc chọn file layout/page cụ thể.
 
@@ -112,17 +112,17 @@ Thứ tự ưu tiên của `useVariant()`:
 
 1. `themeConfig.variants[pageKey]`
 2. `variantDefaults.componentOverrides[pageKey]`
-3. guard hardcoded trong `useVariant()`
-4. naming convention
+3. `defaultComponentName` do page/layout dispatcher truyền vào
+4. naming convention mặc định `${PageKey}StyleDefault` nếu dispatcher không truyền default
 
 ## 7. Giao diện mặc định
 
 Giao diện mặc định theo code hiện tại:
 
 - tenant: `baogam`
-- variant: `gd1`
-- page style: `Style1`
-- layout fallback: `VerticalLayout`
+- variant: `default`
+- page style: `StyleDefault`
+- layout fallback: `LayoutStyleDefault`
 - theme token fallback: base AntD theme
 
 ## 8. Quy tắc tách logic và UI
@@ -139,4 +139,4 @@ Các page nên giữ pattern:
 - `DynamicVariant` không có fallback cấp 2 nếu `fallbackName` cũng sai.
 - `uiLib` hiện mới được lưu trong context, chưa switch toàn bộ UI runtime.
 - `variantDefaults.ts` hiện chỉ hỗ trợ menu preset type `base | gobiz`.
-- Backend mock server chỉ có các variant `gd1`, `gd2`, `gd3`.
+- Backend mock server chỉ có các variant `default`, `thanhla`, `gobiz`.

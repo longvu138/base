@@ -8,7 +8,7 @@ const modules = import.meta.glob('./*.tsx');
 
 const PackagesPage = () => {
     const [form] = Form.useForm();
-    const variant = useVariant('packages');
+    const variant = useVariant('packages', 'PackagesStyleDefault');
 
     const { page, pageSize, setPage, setPageSize } = usePaginationWithURL();
     const { applyFilters, clearFilters, filters } = useFilterWithURL({ form });
@@ -28,7 +28,7 @@ const PackagesPage = () => {
                 <DynamicVariant
                     variantName={variant}
                     modules={modules}
-                    fallbackName="PackagesStyle1"
+                    fallbackName="PackagesStyleDefault"
                     featureName="Packages"
                     componentProps={{
                         data: logic.packageData,

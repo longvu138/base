@@ -5,13 +5,13 @@ import { DynamicVariant } from "@repo/ui";
 const modules = import.meta.glob("./*.tsx");
 
 const CreateShipmentPage: React.FC<any> = (props) => {
-  const variant = useVariant("createShipment");
+  const variant = useVariant("createShipment", "CreateShipmentStyleDefault");
 
   return (
     <DynamicVariant
       variantName={variant}
       modules={modules}
-      fallbackName="CreateShipmentStyle1"
+      fallbackName="CreateShipmentStyleDefault"
       featureName="CreateShipment"
       componentProps={props}
     />

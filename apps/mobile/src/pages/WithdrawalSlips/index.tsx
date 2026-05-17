@@ -7,7 +7,7 @@ const modules = import.meta.glob('./*.tsx');
 
 const WithdrawalSlipsPage = () => {
     const [form] = Form.useForm();
-    const variant = useVariant('withdrawal-slips');
+    const variant = useVariant('withdrawalSlips', 'WithdrawalSlipsStyleDefault');
 
     const { page, pageSize, setPage, setPageSize } = usePaginationWithURL();
     const { applyFilters, clearFilters, filters } = useFilterWithURL({ form });
@@ -21,7 +21,7 @@ const WithdrawalSlipsPage = () => {
                 <DynamicVariant
                     variantName={variant}
                     modules={modules}
-                    fallbackName="WithdrawalSlipsStyle1"
+                    fallbackName="WithdrawalSlipsStyleDefault"
                     featureName="WithdrawalSlips"
                     componentProps={{
                         data: logic.listData,

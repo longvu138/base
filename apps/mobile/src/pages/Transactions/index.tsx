@@ -7,7 +7,7 @@ const modules = import.meta.glob('./*.tsx');
 
 const TransactionsPage = () => {
     const [form] = Form.useForm();
-    const variant = useVariant('transactions');
+    const variant = useVariant('transactions', 'TransactionsStyleDefault');
 
     const { page, pageSize, setPage, setPageSize } = usePaginationWithURL();
     const { applyFilters, clearFilters, filters } = useFilterWithURL({ form });
@@ -27,7 +27,7 @@ const TransactionsPage = () => {
                 <DynamicVariant
                     variantName={variant}
                     modules={modules}
-                    fallbackName="TransactionsStyle1"
+                    fallbackName="TransactionsStyleDefault"
                     featureName="Transactions"
                     componentProps={{
                         data: logic.transactionData,

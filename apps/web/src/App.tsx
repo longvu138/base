@@ -32,7 +32,7 @@ const queryClient = new QueryClient({
 const FALLBACK_TENANT_CONFIG: FullTenantResponse = {
   id: "fallback",
   name: "Default",
-  variantCode: "gd1",
+  variantCode: "default",
   tenantConfig: {
     themeConfig: {} as SimpleTenantConfig,
   },

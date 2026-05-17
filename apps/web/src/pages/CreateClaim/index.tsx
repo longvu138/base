@@ -4,13 +4,13 @@ import { DynamicVariant } from "@repo/ui";
 const modules = import.meta.glob("./*.tsx");
 
 export const CreateClaim = () => {
-  const variant = useVariant("createClaim");
+  const variant = useVariant("createClaim", "CreateClaimStyleDefault");
 
   return (
     <DynamicVariant
       variantName={variant}
       modules={modules}
-      fallbackName="CreateClaimStyle1"
+      fallbackName="CreateClaimStyleDefault"
       featureName="CreateClaim"
     />
   );

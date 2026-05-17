@@ -25,12 +25,12 @@ Các tenant hiện có:
 
 | Tenant | Plan | Variant |
 |---|---|---|
-| `baogam` | `free` | `gd1` |
-| `thien_long` | `free` | `gd1` |
-| `free_sample_3` | `free` | `gd1` |
-| `gobiz` | `paid` | `gd3` |
-| `tetetete` | `paid` | `gd2` |
-| `thanhla` | `paid` | `gd2` |
+| `baogam` | `free` | `default` |
+| `thien_long` | `free` | `default` |
+| `free_sample_3` | `free` | `default` |
+| `gobiz` | `paid` | `gobiz` |
+| `tetetete` | `paid` | `thanhla` |
+| `thanhla` | `paid` | `thanhla` |
 
 Luồng resolve backend:
 
@@ -39,7 +39,7 @@ Luồng resolve backend:
 3. Lấy `planCode` để nạp preset trong `PLAN_PRESETS`.
 4. Merge preset với `tenant.override` bằng `deepMerge`.
 5. Validate `variantCode` bằng `VARIANT_NAMES`.
-6. Nếu `variantCode` sai/không nằm trong `gd1`, `gd2`, `gd3`, backend trả `variantCode: "gd1"`.
+6. Nếu `variantCode` sai/không nằm trong `default`, `thanhla`, `gobiz`, backend trả `variantCode: "default"`.
 
 Response trả về có dạng:
 
@@ -48,7 +48,7 @@ Response trả về có dạng:
   "id": "gobiz",
   "tenant": "gobiz",
   "name": "Gobiz Logistics",
-  "variantCode": "gd3",
+  "variantCode": "gobiz",
   "tenantConfig": {
     "themeConfig": {
       "uiLib": "antd",
@@ -92,7 +92,7 @@ Luồng runtime:
 {
   id: "fallback",
   name: "Default",
-  variantCode: "gd1",
+  variantCode: "default",
   tenantConfig: {
     themeConfig: {}
   }
@@ -111,7 +111,7 @@ uiLib = "antd"
 tenantConfig = null
 ```
 
-Khi chưa có tenant config, `useVariant()` tự coi `variantCode` là `gd1`.
+Khi chưa có tenant config, `useVariant()` tự coi `variantCode` là `default`.
 
 Dark mode chỉ quản lý class `.dark` trên `<html>` và lưu `theme-mode` vào `localStorage`.
 
@@ -147,21 +147,19 @@ Thứ tự ưu tiên hiện tại:
 
 1. `themeConfig.variants[pageKey]`, nếu backend/config truyền override trực tiếp.
 2. `getVariantDefaults(variantCode).componentOverrides[pageKey]`.
-3. Guard riêng: nếu `variantCode === "gd2"` và `pageKey === "orderDetail"` thì trả `OrderDetailStyle1`.
-4. Naming convention: `${PageKey}Style${numberFromVariantCode}`.
-
-Lưu ý quan trọng: guard ở bước 3 chỉ chạy nếu bước 2 không trả override. Source hiện tại đang có `gd2.componentOverrides.orderDetail = "OrderDetailStyle2"`, nên guard `gd2 + orderDetail -> OrderDetailStyle1` không có hiệu lực cho cấu hình hiện tại.
+3. `defaultComponentName` do page/layout dispatcher truyền vào.
+4. Naming convention mặc định: `${PageKey}StyleDefault`.
 
 Ví dụ:
 
 | Input | Kết quả |
 |---|---|
-| `pageKey = "orders"`, `variantCode = "gd1"` | `OrdersStyle1` |
-| `pageKey = "orders"`, `variantCode = "gd2"` | `OrdersStyle2` từ `variantDefaults` |
-| `pageKey = "orders"`, `variantCode = "gd3"` | `OrdersCombined` từ `variantDefaults` |
-| `pageKey = "login"`, `variantCode = "gd3"` | `LoginStyle3` theo naming convention |
-| `pageKey = "layout"`, `variantCode = "gd3"` | `SpecializedLayout` |
-| `pageKey = "layout"`, `variantCode = "gd2"` | `ThanhlaLayout` |
+| `pageKey = "orders"`, `variantCode = "default"` | `OrdersStyleDefault` |
+| `pageKey = "orders"`, `variantCode = "thanhla"` | `OrdersStyleThanhla` từ `variantDefaults` |
+| `pageKey = "orders"`, `variantCode = "gobiz"` | `OrdersStyleGobizCombined` từ `variantDefaults` |
+| `pageKey = "login"`, `variantCode = "gobiz"` | `LoginStyleGobiz` từ `variantDefaults` |
+| `pageKey = "layout"`, `variantCode = "gobiz"` | `LayoutStyleGobiz` |
+| `pageKey = "layout"`, `variantCode = "thanhla"` | `LayoutStyleThanhla` |
 
 ## 6. Variant defaults hiện tại
 
@@ -187,31 +185,31 @@ Default chung nếu không có variant hoặc variant không được định ng
 }
 ```
 
-`gd2` hiện đại/Thanhla:
+`thanhla` hiện đại/Thanhla:
 
-- layout: `ThanhlaLayout`
-- login/register/dashboard/orders/orderDetail/... dùng `Style2`
+- layout: `LayoutStyleThanhla`
+- login/register/dashboard/orders/orderDetail/... dùng `StyleThanhla`
 - shipments dùng `Shipments`
 - menu preset `base`
 - shipment status display `filter`
 
-Một số mapping `gd2` hiện lệch tên với file Web đang có:
+Một số mapping `thanhla` hiện lệch tên với file Web đang có:
 
 | Page key | Mapping trong `variantDefaults` | File Web đang có | Runtime Web |
 |---|---|---|---|
-| `deliveryNotes` | `DeliveryNotesStyle2` | `DeliveryNoteStyle2.tsx` | fallback theo dispatcher |
-| `packages` | `PackagesStyle2` | `PackageStyle2.tsx` | fallback theo dispatcher |
-| `withdrawalSlips` | `WithdrawalSlipsStyle2` | `WithdrawalSlipStyle2.tsx` | fallback theo dispatcher |
+| `deliveryNotes` | `DeliveryNotesStyleThanhla` | `DeliveryNoteStyleThanhla.tsx` | fallback theo dispatcher |
+| `packages` | `PackagesStyleThanhla` | `PackageStyleThanhla.tsx` | fallback theo dispatcher |
+| `withdrawalSlips` | `WithdrawalSlipsStyleThanhla` | `WithdrawalSlipStyleThanhla.tsx` | fallback theo dispatcher |
 
-Mobile không lệch ở `packages` và `withdrawalSlips`, nhưng `deliveryNotes` cũng đang dùng file `DeliveryNoteStyle2.tsx` trong khi mapping là `DeliveryNotesStyle2`.
+Mobile không lệch ở `packages` và `withdrawalSlips`, nhưng `deliveryNotes` cũng đang dùng file `DeliveryNoteStyleThanhla.tsx` trong khi mapping là `DeliveryNotesStyleThanhla`.
 
-`gd3` Gobiz:
+`gobiz` Gobiz:
 
-- layout: `SpecializedLayout`
-- orders: `OrdersCombined`
+- layout: `LayoutStyleGobiz`
+- orders: `OrdersStyleGobizCombined`
 - shipments: `Shipments`
-- notifications: `NotificationsStyle3`
-- createClaim: `CreateClaimStyle3`
+- notifications: `NotificationsStyleGobiz`
+- createClaim: `CreateClaimStyleGobiz`
 - menu preset `gobiz`
 - label `/orders`: `Quản lý Tổng hợp`
 - shipment status display `tabs`
@@ -240,7 +238,7 @@ return (
   <DynamicVariant
     variantName={variant}
     modules={modules}
-    fallbackName="OrdersStyle1"
+    fallbackName="OrdersStyleDefault"
     featureName="Orders"
   />
 );
@@ -265,8 +263,8 @@ Theo code hiện tại:
 
 - Tenant mặc định khi client chưa chọn là `baogam`.
 - Tenant không tồn tại ở backend fallback về `baogam`.
-- Variant sai ở backend fallback về `gd1`.
+- Variant sai ở backend fallback về `default`.
 - API tenant lỗi thì frontend dùng cache, sau đó mới dùng `FALLBACK_TENANT_CONFIG`.
-- `FALLBACK_TENANT_CONFIG` dùng `variantCode: "gd1"` và `themeConfig: {}`.
+- `FALLBACK_TENANT_CONFIG` dùng `variantCode: "default"` và `themeConfig: {}`.
 - Khi thiếu file UI variant, page/layout fallback theo `fallbackName` riêng của dispatcher.
 - Khi chưa có tenant config, app dùng base AntD theme và CSS variables mặc định.

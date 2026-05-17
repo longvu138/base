@@ -16,7 +16,7 @@ Thêm tenant vào object `tenants`:
 newclient: {
   name: "New Client Logistics",
   planCode: "paid",
-  variantCode: "gd2",
+  variantCode: "thanhla",
   override: {
     tenantConfig: {
       themeConfig: {
@@ -31,11 +31,11 @@ newclient: {
 
 Chỉ dùng `variantCode` đã có trong `VARIANT_NAMES`:
 
-- `gd1`
-- `gd2`
-- `gd3`
+- `default`
+- `thanhla`
+- `gobiz`
 
-Nếu dùng variant khác mà chưa thêm vào `VARIANT_NAMES`, backend sẽ fallback về `gd1`.
+Nếu dùng variant khác mà chưa thêm vào `VARIANT_NAMES`, backend sẽ fallback về `default`.
 
 ## 2. Thêm tenant vào selector
 
@@ -59,28 +59,28 @@ Danh sách này chỉ dùng cho dropdown/select tenant. Config thật vẫn lấ
 
 Có 3 hướng phổ biến.
 
-### Hướng A: Dùng lại `gd1`
+### Hướng A: Dùng lại `default`
 
 Dùng khi tenant chỉ đổi màu/token, không cần UI riêng.
 
 ```js
-variantCode: "gd1"
+variantCode: "default"
 ```
 
 Không cần tạo thêm `StyleX`.
 
-### Hướng B: Dùng lại `gd2` hoặc `gd3`
+### Hướng B: Dùng lại `thanhla` hoặc `gobiz`
 
 Dùng khi tenant muốn cùng layout/behavior với Thanhla hoặc Gobiz.
 
 ```js
-variantCode: "gd2"
+variantCode: "thanhla"
 ```
 
 hoặc:
 
 ```js
-variantCode: "gd3"
+variantCode: "gobiz"
 ```
 
 ### Hướng C: Thêm behavior mới cho variant hiện có
@@ -96,11 +96,11 @@ Thêm hoặc sửa `componentOverrides`, `menu`, `features`.
 Ví dụ:
 
 ```ts
-gd2: {
+thanhla: {
   componentOverrides: {
-    layout: "ThanhlaLayout",
-    orders: "OrdersStyle2",
-    profile: "ProfileStyle2"
+    layout: "LayoutStyleThanhla",
+    orders: "OrdersStyleThanhla",
+    profile: "ProfileStyleThanhla"
   },
   menu: {
     preset: "base",
@@ -150,14 +150,14 @@ componentOverrides: {
 }
 ```
 
-Layout dispatcher fallback về `VerticalLayout`.
+Layout dispatcher fallback về `LayoutStyleDefault`.
 
 ## 5. Tạo page style mới
 
 Ví dụ thêm style cho Orders Web:
 
 ```txt
-apps/web/src/pages/Orders/OrdersStyle2.tsx
+apps/web/src/pages/Orders/OrdersStyleThanhla.tsx
 ```
 
 Quy tắc:
@@ -177,7 +177,7 @@ return (
   <DynamicVariant
     variantName={variant}
     modules={modules}
-    fallbackName="OrdersStyle1"
+    fallbackName="OrdersStyleDefault"
     featureName="Orders"
   />
 );
@@ -219,10 +219,10 @@ Bắt buộc kiểm tra:
 
 - tenant không tồn tại có fallback về `baogam`.
 - API tenant lỗi có dùng cache hoặc `FALLBACK_TENANT_CONFIG`.
-- variant sai có bị backend trả `gd1`.
+- variant sai có bị backend trả `default`.
 - page thiếu style có fallback về `fallbackName`.
 - `fallbackName` thật sự tồn tại.
-- layout thiếu file có fallback `VerticalLayout`.
+- layout thiếu file có fallback `LayoutStyleDefault`.
 
 ## 8. QA tối thiểu
 

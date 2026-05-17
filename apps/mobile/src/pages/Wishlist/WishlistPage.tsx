@@ -8,7 +8,7 @@ import { useWishlistMobile } from './hooks/useWishlistMobile';
 const modules = import.meta.glob('./*.tsx');
 
 export const WishlistPage = () => {
-    const variant = useVariant('wishlist');
+    const variant = useVariant('wishlist', 'WishlistStyleDefault');
     const {
         wishlistData,
         isWishlistLoading,
@@ -17,12 +17,12 @@ export const WishlistPage = () => {
         updateQuery,
     } = useWishlistMobile();
 
-    if (variant === 'WishlistStyle3') {
+    if (variant === 'WishlistStyleGobiz') {
         return (
             <DynamicVariant
                 variantName={variant}
                 modules={modules}
-                fallbackName="WishlistStyle1"
+                fallbackName="WishlistStyleDefault"
                 featureName="Wishlist"
             />
         );

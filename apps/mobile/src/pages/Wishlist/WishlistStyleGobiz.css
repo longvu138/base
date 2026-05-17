@@ -1,0 +1,35 @@
+/* Scoped CSS for WishlistStyleGobiz - Gobiz Logistics Aesthetic (Mobile Optimized) */
+
+.wishlist-style-gobiz-wrapper .product-image {
+    position: relative;
+    overflow: hidden;
+}
+
+.wishlist-style-gobiz-wrapper .product-image img {
+    transition: transform 0.5s ease;
+}
+
+.wishlist-style-gobiz-wrapper .wishlist-card:hover .product-image img {
+    transform: scale(1.1);
+}
+
+.wishlist-style-gobiz-wrapper .wishlist-heart-icon {
+    background: rgba(255, 255, 255, 0.9);
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    items-center: center;
+    justify-content: center;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.dark .wishlist-style-gobiz-wrapper .wishlist-heart-icon {
+    background: rgba(31, 41, 55, 0.9);
+}
+
+@media (max-width: 640px) {
+    .wishlist-style-gobiz-wrapper {
+        padding: 12px !important;
+    }
+}

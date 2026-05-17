@@ -62,7 +62,7 @@ API lỗi
 {
   id: "fallback",
   name: "Default",
-  variantCode: "gd1",
+  variantCode: "default",
   tenantConfig: {
     themeConfig: {}
   }
@@ -204,7 +204,7 @@ Khi dark mode đổi:
 |---|---|
 | Chưa chọn tenant | `selectedTenantId = "baogam"` |
 | Tenant id không tồn tại ở backend | backend trả config của `baogam` |
-| `variantCode` backend sai | backend trả `gd1` |
+| `variantCode` backend sai | backend trả `default` |
 | API tenant lỗi, cache tốt | dùng `full-tenant-data` từ cache |
 | API tenant lỗi, không có cache/cache hỏng | dùng `FALLBACK_TENANT_CONFIG` |
 | Không có `themeConfig` | dùng base AntD theme + CSS variables mặc định |

@@ -2,7 +2,7 @@ import type { ThemeConfig } from 'antd';
 
 /**
  * Cấu hình menu navigation được drive từ backend.
- * Thay vì client hardcode 'gd3 thì ẩn /shipments', backend khai báo luôn.
+ * Thay vì client hardcode theo mã UI, backend khai báo luôn.
  */
 export interface MenuConfig {
     /** Danh sách path cần ẩn khỏi menu (VD: ['/shipments']) */
@@ -20,7 +20,7 @@ export interface MenuConfig {
  */
 export interface SimpleTenantConfig extends ThemeConfig {
     uiLib?: 'antd' | 'mui';
-    /** Per-page component overrides. E.g. { orders: 'OrdersCombined', login: 'LoginStyle3' } */
+    /** Per-page component overrides. E.g. { orders: 'OrdersStyleGobizCombined', login: 'LoginStyleGobiz' } */
     variants?: Record<string, string>;
     menu?: MenuConfig;
     // Top-level color shorthands (mapped to AntD tokens + CSS variables)
@@ -43,7 +43,7 @@ export interface SimpleTenantConfig extends ThemeConfig {
 export interface FullTenantResponse {
     id: string;
     name: string;
-    variantCode: string; // Mã giao diện tenant chọn (gd1, gd2...)
+    variantCode: string; // Mã giao diện tenant chọn (default, thanhla, gobiz...)
     tenantConfig?: {
         themeConfig: SimpleTenantConfig;
         [key: string]: any;

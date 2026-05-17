@@ -18,7 +18,7 @@ export const ShipmentsPage = ({
 }) => {
   useTranslation();
   const [form] = Form.useForm();
-  const variant = useVariant("shipments");
+  const variant = useVariant("shipments", "ShipmentsStyleDefault");
 
   const { page, pageSize, setPage, setPageSize } = usePaginationWithURL();
   const { applyFilters, clearFilters, filters } = useFilterWithURL({ form });
@@ -29,7 +29,7 @@ export const ShipmentsPage = ({
     <DynamicVariant
       variantName={variant}
       modules={modules}
-      fallbackName="ShipmentsStyle3"
+      fallbackName="ShipmentsStyleDefault"
       featureName="Shipments"
       componentProps={{
         data: logic.shipmentData,

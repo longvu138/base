@@ -7,7 +7,7 @@ const modules = import.meta.glob('./*.tsx');
 
 const WaybillsPage = () => {
     const [form] = Form.useForm();
-    const variant = useVariant('waybills');
+    const variant = useVariant('waybills', 'WaybillsStyleDefault');
 
     const { page, pageSize, setPage, setPageSize } = usePaginationWithURL();
     const { applyFilters, clearFilters, filters } = useFilterWithURL({ form });
@@ -27,7 +27,7 @@ const WaybillsPage = () => {
                 <DynamicVariant
                     variantName={variant}
                     modules={modules}
-                    fallbackName="WaybillsStyle1"
+                    fallbackName="WaybillsStyleDefault"
                     featureName="Waybills"
                     componentProps={{
                         data: logic.listData,

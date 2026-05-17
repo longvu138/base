@@ -4,13 +4,13 @@ import { DynamicVariant } from '@repo/ui';
 const modules = import.meta.glob('./*.tsx');
 
 export const Packages = () => {
-    const variant = useVariant('packages');
+    const variant = useVariant('packages', 'PackagesStyleDefault');
 
     return (
         <DynamicVariant
             variantName={variant}
             modules={modules}
-            fallbackName="PackageStyle1"
+            fallbackName="PackagesStyleDefault"
             featureName="Package"
         />
     );

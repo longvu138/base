@@ -22,10 +22,17 @@ export const DynamicVariant: React.FC<DynamicVariantProps> = ({
     const Component = useMemo(() => {
         // Tìm file tương ứng trong danh sách glob modules
         const importFn = modules[`./${variantName}.tsx`];
+        const fallbackFn = modules[`./${fallbackName}.tsx`];
 
         if (!importFn) {
             console.warn(`[DynamicVariant] ${featureName}: Không tìm thấy file ./${variantName}.tsx. Đang dùng fallback: ${fallbackName}`);
-            const fallbackFn = modules[`./${fallbackName}.tsx`];
+            if (!fallbackFn) {
+                return () => (
+                    <div className="min-h-[240px] flex items-center justify-center text-red-500">
+                        Không tìm thấy giao diện mặc định cho {featureName}: {fallbackName}
+                    </div>
+                );
+            }
             return React.lazy(async () => {
                 const mod = await fallbackFn();
                 return { default: mod.default || mod[fallbackName] };

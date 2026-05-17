@@ -27,9 +27,9 @@ function deepMerge(base, override) {
 }
 
 const VARIANT_NAMES = {
-  gd1: "Giao diện Phổ thông",
-  gd2: "Giao diện Hiện đại",
-  gd3: "Giao diện Premium",
+  default: "Giao diện mặc định",
+  thanhla: "Giao diện Thanhla",
+  gobiz: "Giao diện Gobiz",
 };
 
 const PLAN_PRESETS = {
@@ -82,7 +82,7 @@ const tenants = {
   baogam: {
     name: "Báo Gấm",
     planCode: "free",
-    variantCode: "gd1",
+    variantCode: "default",
     override: {
       tenantConfig: {
         themeConfig: {
@@ -94,7 +94,7 @@ const tenants = {
   thien_long: {
     name: "Thiên Long Express",
     planCode: "free",
-    variantCode: "gd1",
+    variantCode: "default",
     override: {
       tenantConfig: {
         themeConfig: {
@@ -109,7 +109,7 @@ const tenants = {
   free_sample_3: {
     name: "Free Tenant 3",
     planCode: "free",
-    variantCode: "gd1",
+    variantCode: "default",
     override: {
       tenantConfig: {
         themeConfig: {
@@ -122,7 +122,7 @@ const tenants = {
   gobiz: {
     name: "Gobiz Logistics",
     planCode: "paid",
-    variantCode: "gd3",
+    variantCode: "gobiz",
     override: {
       tenantConfig: {
         themeConfig: {
@@ -135,7 +135,7 @@ const tenants = {
   tetetete: {
     name: "Te te nè Express",
     planCode: "paid",
-    variantCode: "gd2",
+    variantCode: "thanhla",
     override: {
       tenantConfig: {
         themeConfig: {
@@ -149,7 +149,7 @@ const tenants = {
   thanhla: {
     name: "Thanhla Logistics",
     planCode: "paid",
-    variantCode: "gd2",
+    variantCode: "thanhla",
     override: {
       tenantConfig: {
         themeConfig: {
@@ -168,7 +168,7 @@ function resolveTenantConfig(tenantId) {
   const tenant = tenants[tenantId] || tenants[fallbackId];
   const variantCode = VARIANT_NAMES[tenant.variantCode]
     ? tenant.variantCode
-    : "gd1";
+    : "default";
   const plan = PLAN_PRESETS[tenant.planCode] || PLAN_PRESETS.free;
 
   const resolved = deepMerge(plan, tenant.override || {});

@@ -77,9 +77,9 @@ export const usePackagesLogic = ({
 
   return {
     packageData,
-    listData: packageData, // alias cho Style3
+    listData: packageData, // alias cho StyleGobiz
     isPackageLoading,
-    isPackagesLoading: isPackageLoading, // alias cho Style3
+    isPackagesLoading: isPackageLoading, // alias cho StyleGobiz
     statusData: allStatusData,
     packageStatusData: statusData,
     parcelStatusData,

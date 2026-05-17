@@ -3,7 +3,7 @@ import { useVariant } from '@repo/theme-provider';
 import { DynamicVariant } from '@repo/ui';
 
 const ProfilePage: React.FC<any> = (props) => {
-    const variant = useVariant('profile');
+    const variant = useVariant('profile', 'ProfileStyleDefault');
 
     // Quét tất cả file .tsx trong thư mục này để load động
     const modules = import.meta.glob('./*.tsx');
@@ -12,7 +12,7 @@ const ProfilePage: React.FC<any> = (props) => {
         <DynamicVariant
             variantName={variant}
             modules={modules}
-            fallbackName="ProfileStyle1"
+            fallbackName="ProfileStyleDefault"
             featureName="Profile"
             componentProps={props}
         />

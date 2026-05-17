@@ -4,13 +4,13 @@ import { DynamicVariant } from "@repo/ui";
 const modules = import.meta.glob("./*.tsx");
 
 export const Notifications = () => {
-  const variant = useVariant("notifications");
+  const variant = useVariant("notifications", "NotificationsStyleDefault");
 
   return (
     <DynamicVariant
       variantName={variant}
       modules={modules}
-      fallbackName="NotificationsStyle1"
+      fallbackName="NotificationsStyleDefault"
       featureName="Notifications"
     />
   );

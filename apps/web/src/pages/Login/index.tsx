@@ -8,8 +8,8 @@ import { DynamicVariant } from '@repo/ui';
 const modules = import.meta.glob('./*.tsx');
 
 export const Login = () => {
-    // Lấy tên style từ cấu hình Tenant (Ví dụ: 'LoginStyle1', 'LoginStyle2')
-    const variant = useVariant('login');
+    // Lấy tên style từ cấu hình Tenant (Ví dụ: 'LoginStyleDefault', 'LoginStyleThanhla')
+    const variant = useVariant('login', 'LoginStyleDefault');
 
     const [currentTenant, setCurrentTenant] = useState(() =>
         localStorage.getItem('selected-tenant') || 'baogam'
@@ -48,7 +48,7 @@ export const Login = () => {
             <DynamicVariant
                 variantName={variant}
                 modules={modules}
-                fallbackName="LoginStyle1"
+                fallbackName="LoginStyleDefault"
                 featureName="Login"
             />
         </div>

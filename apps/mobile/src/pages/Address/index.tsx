@@ -5,7 +5,7 @@ import { useVariant } from '@repo/theme-provider';
 const modules = import.meta.glob('./*.tsx');
 
 const AddressPage = () => {
-    const variant = useVariant('address');
+    const variant = useVariant('address', 'AddressStyleDefault');
     const { addressData, isAddressLoading } = useAddressLogic();
 
     return (
@@ -21,7 +21,7 @@ const AddressPage = () => {
                 <DynamicVariant
                     variantName={variant}
                     modules={modules}
-                    fallbackName="AddressStyle1"
+                    fallbackName="AddressStyleDefault"
                     featureName="Address"
                     componentProps={{
                         addresses: addressData?.data,

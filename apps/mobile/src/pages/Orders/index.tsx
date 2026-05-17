@@ -6,7 +6,7 @@ import { useOrdersMobile } from './hooks/useOrdersMobile';
 const modules = import.meta.glob('./*.tsx');
 
 export const OrdersPage = () => {
-    const variant = useVariant('orders');
+    const variant = useVariant('orders', 'OrdersStyleDefault');
     const ordersLogic = useOrdersMobile();
 
     return (
@@ -22,7 +22,7 @@ export const OrdersPage = () => {
                 <DynamicVariant
                     variantName={variant}
                     modules={modules}
-                    fallbackName="OrdersStyle1"
+                    fallbackName="OrdersStyleDefault"
                     featureName="Orders"
                     componentProps={{
                         data: ordersLogic.orderData,

@@ -7,7 +7,7 @@ const modules = import.meta.glob('./*.tsx');
 
 const DeliveryRequestsPage = () => {
     const [form] = Form.useForm();
-    const variant = useVariant('delivery-requests');
+    const variant = useVariant('deliveryRequests', 'DeliveryRequestsStyleDefault');
 
     const { page, pageSize, setPage, setPageSize } = usePaginationWithURL();
     const { applyFilters, clearFilters, filters } = useFilterWithURL({ form });
@@ -27,7 +27,7 @@ const DeliveryRequestsPage = () => {
                 <DynamicVariant
                     variantName={variant}
                     modules={modules}
-                    fallbackName="DeliveryRequestsStyle1"
+                    fallbackName="DeliveryRequestsStyleDefault"
                     featureName="DeliveryRequests"
                     componentProps={{
                         data: logic.listData,

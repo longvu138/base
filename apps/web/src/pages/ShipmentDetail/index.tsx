@@ -6,16 +6,16 @@ const modules = import.meta.glob('./*.tsx');
 /**
  * ShipmentDetail dispatcher.
  * Backend config decides variant:
- *   Style 1 -> ShipmentDetailStyle1
- *   Style 2 -> ShipmentDetailStyle2
+ *   Default -> ShipmentDetailStyleDefault
+ *   Thanhla -> ShipmentDetailStyleThanhla
  */
 export const ShipmentDetail = () => {
-    const variant = useVariant('shipmentDetail');
+    const variant = useVariant('shipmentDetail', 'ShipmentDetailStyleDefault');
     return (
         <DynamicVariant
             variantName={variant}
             modules={modules}
-            fallbackName="ShipmentDetailStyle1"
+            fallbackName="ShipmentDetailStyleDefault"
             featureName="ShipmentDetail"
         />
     );

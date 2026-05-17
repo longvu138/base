@@ -16,7 +16,7 @@ Ví dụ tenant:
 gobiz: {
   name: "Gobiz Logistics",
   planCode: "paid",
-  variantCode: "gd3",
+  variantCode: "gobiz",
   override: {
     tenantConfig: {
       themeConfig: {
@@ -42,11 +42,11 @@ Backend validate bằng `VARIANT_NAMES`.
 
 | Variant | Ý nghĩa hiện tại | Tenant đang dùng |
 |---|---|---|
-| `gd1` | Giao diện phổ thông / Style1 | `baogam`, `thien_long`, `free_sample_3` |
-| `gd2` | Giao diện hiện đại / Thanhla layout | `tetetete`, `thanhla` |
-| `gd3` | Giao diện premium / Gobiz layout | `gobiz` |
+| `default` | Giao diện phổ thông / StyleDefault | `baogam`, `thien_long`, `free_sample_3` |
+| `thanhla` | Giao diện hiện đại / Thanhla layout | `tetetete`, `thanhla` |
+| `gobiz` | Giao diện premium / Gobiz layout | `gobiz` |
 
-Nếu tenant cấu hình `variantCode` sai, backend trả `gd1`.
+Nếu tenant cấu hình `variantCode` sai, backend trả `default`.
 
 ## 3. ThemeConfig hỗ trợ
 
@@ -124,27 +124,27 @@ Mobile có defaults trong `apps/mobile/src/index.css`.
 UI component được resolve ở frontend qua:
 
 ```ts
-useVariant(pageKey)
+useVariant(pageKey, defaultComponentName)
 ```
 
 Thứ tự ưu tiên:
 
 1. `themeConfig.variants[pageKey]`.
 2. `variantDefaults.componentOverrides[pageKey]`.
-3. guard riêng trong `useVariant()`.
-4. naming convention `${PageKey}Style${number}`.
+3. `defaultComponentName` do page/layout dispatcher truyền vào.
+4. naming convention mặc định `${PageKey}StyleDefault`.
 
 Ví dụ:
 
 ```json
 {
-  "variantCode": "gd3"
+  "variantCode": "gobiz"
 }
 ```
 
-Nếu page key là `claims`, không có override, frontend tìm `ClaimsStyle3`.
+Nếu page key là `claims` và `variantCode` là `gobiz`, frontend dùng `ClaimsStyleGobiz` từ `variantDefaults`.
 
-Nếu page key là `orders` và variant là `gd3`, `variantDefaults` override sang `OrdersCombined`.
+Nếu page key là `orders` và variant là `gobiz`, `variantDefaults` override sang `OrdersStyleGobizCombined`.
 
 ## 7. Override component trực tiếp
 
@@ -155,8 +155,8 @@ override: {
   tenantConfig: {
     themeConfig: {
       variants: {
-        login: "LoginStyle2",
-        orders: "OrdersCombined"
+        login: "LoginStyleThanhla",
+        orders: "OrdersStyleGobizCombined"
       }
     }
   }
@@ -199,25 +199,25 @@ themeConfig: {
 |---|---|
 | Client chưa chọn tenant | `baogam` |
 | Backend không có tenant id | `baogam` |
-| Backend gặp variant sai | `gd1` |
+| Backend gặp variant sai | `default` |
 | Frontend API lỗi | dùng cache `full-tenant-data` |
 | API lỗi và cache không dùng được | `FALLBACK_TENANT_CONFIG` |
-| `FALLBACK_TENANT_CONFIG` | `variantCode: "gd1"`, `themeConfig: {}` |
+| `FALLBACK_TENANT_CONFIG` | `variantCode: "default"`, `themeConfig: {}` |
 | Không có theme token | base AntD theme |
 | Không tìm thấy component variant | `DynamicVariant` dùng `fallbackName` |
-| Không tìm thấy layout variant | fallback `VerticalLayout` |
+| Không tìm thấy layout variant | fallback `LayoutStyleDefault` |
 
 ## 10. Mapping lệch tên cần biết
 
-Một vài mapping hiện tại trong `variantDefaults.gd2` không khớp với file Web:
+Một vài mapping hiện tại trong `variantDefaults.thanhla` không khớp với file Web:
 
 | Page key | Mapping | File Web đang có |
 |---|---|---|
-| `deliveryNotes` | `DeliveryNotesStyle2` | `DeliveryNoteStyle2.tsx` |
-| `packages` | `PackagesStyle2` | `PackageStyle2.tsx` |
-| `withdrawalSlips` | `WithdrawalSlipsStyle2` | `WithdrawalSlipStyle2.tsx` |
+| `deliveryNotes` | `DeliveryNotesStyleThanhla` | `DeliveryNoteStyleThanhla.tsx` |
+| `packages` | `PackagesStyleThanhla` | `PackageStyleThanhla.tsx` |
+| `withdrawalSlips` | `WithdrawalSlipsStyleThanhla` | `WithdrawalSlipStyleThanhla.tsx` |
 
-Khi gặp các case này, `DynamicVariant` không tìm thấy file variant và sẽ dùng `fallbackName` của page. Nếu muốn `gd2` thật sự dùng các style này trên Web, cần đổi mapping hoặc đổi tên file cho khớp.
+Khi gặp các case này, `DynamicVariant` không tìm thấy file variant và sẽ dùng `fallbackName` của page. Nếu muốn `thanhla` thật sự dùng các style này trên Web, cần đổi mapping hoặc đổi tên file cho khớp.
 
 ## 11. Checklist cấu hình tenant
 
@@ -225,7 +225,7 @@ Khi thêm hoặc sửa tenant:
 
 1. Thêm tenant trong `apps/tenant-server/src/index.js`.
 2. Chọn `planCode`.
-3. Chọn `variantCode` trong `gd1`, `gd2`, `gd3`.
+3. Chọn `variantCode` trong `default`, `thanhla`, `gobiz`.
 4. Thêm `override.tenantConfig.themeConfig` nếu cần đổi màu/token/menu/component.
 5. Nếu muốn tenant xuất hiện ở selector, thêm vào `tenantExamples` trong `packages/tenant-config/src/index.ts`.
 6. Nếu variant cần layout/page đặc biệt, thêm mapping vào `packages/theme-provider/src/variantDefaults.ts`.

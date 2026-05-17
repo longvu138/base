@@ -7,8 +7,8 @@ import { DynamicVariant } from '@repo/ui';
  * Tự động chọn Layout dựa trên cấu hình từ API
  */
 const Layout: React.FC = () => {
-    // Lấy tên Layout từ cấu hình Tenant (Mặc định là VerticalLayout)
-    const layoutName = useVariant('layout');
+    // Lấy tên Layout từ cấu hình Tenant (Mặc định là LayoutStyleDefault)
+    const layoutName = useVariant('layout', 'LayoutStyleDefault');
 
     // Quét tất cả file .tsx trong thư mục này để load động
     const modules = import.meta.glob('./*.tsx');
@@ -17,7 +17,7 @@ const Layout: React.FC = () => {
         <DynamicVariant
             variantName={layoutName}
             modules={modules}
-            fallbackName="VerticalLayout"
+            fallbackName="LayoutStyleDefault"
             featureName="Layout"
         />
     );

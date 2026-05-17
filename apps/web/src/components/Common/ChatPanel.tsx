@@ -41,7 +41,7 @@ interface ChatPanelProps {
   entityType: string;
   /** Mã entity: 'BG00W5F', ... */
   entityCode: string;
-  /** Style dáng bo: 'square' (Style1) | 'round' (Style3) */
+  /** Style dáng bo: 'square' (default) | 'round' (gobiz) */
   rounded?: "square" | "round";
   /** Ngày tạo entity để chọn đúng comment API theo tenant config. */
   entityCreatedAt?: string;

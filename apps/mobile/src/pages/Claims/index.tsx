@@ -10,7 +10,7 @@ const modules = import.meta.glob('./*.tsx');
 export const ClaimsPage = () => {
     useTranslation();
     const [form] = Form.useForm();
-    const variant = useVariant('claims');
+    const variant = useVariant('claims', 'ClaimsStyleDefault');
 
     const { page, pageSize, setPage, setPageSize } = usePaginationWithURL();
     const { applyFilters, clearFilters, filters } = useFilterWithURL({ form });
@@ -30,7 +30,7 @@ export const ClaimsPage = () => {
                 <DynamicVariant
                     variantName={variant}
                     modules={modules}
-                    fallbackName="ClaimsStyle3"
+                    fallbackName="ClaimsStyleDefault"
                     featureName="Claims"
                     componentProps={{
                         listData: logic.listData,

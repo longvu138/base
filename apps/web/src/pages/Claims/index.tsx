@@ -5,13 +5,13 @@ import { DynamicVariant } from '@repo/ui';
 const modules = import.meta.glob('./*.tsx');
 
 const ClaimsPage = () => {
-    const variant = useVariant('claims');
+    const variant = useVariant('claims', 'ClaimsStyleDefault');
 
     return (
         <DynamicVariant
             variantName={variant}
             modules={modules}
-            fallbackName="ClaimsStyle1"
+            fallbackName="ClaimsStyleDefault"
             featureName="Claims"
         />
     );

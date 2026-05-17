@@ -5,7 +5,7 @@ import { useVariant } from '@repo/theme-provider';
 const modules = import.meta.glob('./*.tsx');
 
 const ProfilePage = () => {
-    const variant = useVariant('profile');
+    const variant = useVariant('profile', 'ProfileStyleDefault');
     const { data: profile, isLoading } = useProfileQuery();
 
     return (
@@ -21,7 +21,7 @@ const ProfilePage = () => {
                 <DynamicVariant
                     variantName={variant}
                     modules={modules}
-                    fallbackName="ProfileStyle1"
+                    fallbackName="ProfileStyleDefault"
                     featureName="Profile"
                     componentProps={{
                         profile,
