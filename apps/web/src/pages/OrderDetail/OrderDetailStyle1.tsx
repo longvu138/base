@@ -4,7 +4,6 @@ import { Link } from "react-router-dom";
 import {
   ArrowLeftOutlined,
   ArrowsAltOutlined,
-  BankOutlined,
   ShrinkOutlined,
   ShoppingCartOutlined,
 } from "@ant-design/icons";
@@ -234,15 +233,6 @@ export const OrderDetailStyle1 = () => {
         },
       ]
       : []),
-    ...(order.contractWithShopkeeper
-      ? [
-        {
-          label: t("orderDetail.contract_with_shopkeeper"),
-          value: displayValue(order.loanCreditStatus || order.contractStatus),
-          span: 4,
-        },
-      ]
-      : []),
   ];
 
   const tabItems = [
@@ -258,24 +248,6 @@ export const OrderDetailStyle1 = () => {
         <FeeTab orderCode={code} order={order} statusInfo={statusInfo} />
       ),
     },
-    ...(order.contractWithShopkeeper
-      ? [
-        {
-          key: "credit",
-          label: t("orderDetail.credit"),
-          children: (
-            <Empty
-              image={
-                <BankOutlined
-                  style={{ color: token.colorTextTertiary, fontSize: 36 }}
-                />
-              }
-              description={t("orderDetail.empty_credit")}
-            />
-          ),
-        },
-      ]
-      : []),
     {
       key: "packages",
       label: t("orderDetail.packages"),
@@ -431,6 +403,7 @@ export const OrderDetailStyle1 = () => {
               {isExpand && (
                 <>
                   <Divider />
+
                   <Row gutter={[token.marginSM, token.marginMD]}>
                     {metricRow1.map((item) => (
                       <Col key={item.label} xs={12} md={8} xl={item.span}>
@@ -455,21 +428,10 @@ export const OrderDetailStyle1 = () => {
                     ))}
                   </Row>
 
+                  <Divider />
+
                   {needPay > 0 && (
                     <>
-                      {order.contractWithShopkeeper && (
-                        <>
-                          <Divider />
-                          <InfoLine label={t("orderDetail.bifin")}>
-                            <Text strong style={{ color: token.colorPrimary }}>
-                              {displayMoney(
-                                order.bifin ?? order.bifInAmount ?? 0,
-                              )}
-                            </Text>
-                          </InfoLine>
-                        </>
-                      )}
-                      <Divider />
                       <InfoLine label={t("orderDetail.total_need_payment")}>
                         <Text strong style={{ color: token.colorPrimary }}>
                           {displayMoney(needPay)}
@@ -479,6 +441,7 @@ export const OrderDetailStyle1 = () => {
                   )}
 
                   <Divider />
+
                   <InfoLine label={t("orderDetail.service")}>
                     {renderServiceList(order.services, services)}
                   </InfoLine>
@@ -497,6 +460,7 @@ export const OrderDetailStyle1 = () => {
                   {receiptAddress && (
                     <>
                       <Divider />
+
                       <InfoLine label={t("orderDetail.delivery_address")}>
                         {formatAddress(receiptAddress)}
                       </InfoLine>
@@ -504,6 +468,7 @@ export const OrderDetailStyle1 = () => {
                   )}
 
                   <Divider />
+
                   <Space
                     direction="vertical"
                     size={token.marginSM}
@@ -568,7 +533,6 @@ export const OrderDetailStyle1 = () => {
                 </>
               )}
 
-              <Divider />
               <Flex justify="center">
                 <Button
                   type="link"

@@ -1,101 +1,110 @@
-import type { ThemeConfig } from 'antd';
+import type { ThemeConfig } from "antd";
 
 /**
  * Base Ant Design theme — Light Mode
  */
 export const baseAntdTheme: ThemeConfig = {
-    token: {
-        colorPrimary: '#1890ff',
-        colorSuccess: '#52c41a',
-        colorWarning: '#faad14',
-        colorError: '#f5222d',
-        colorInfo: '#1890ff',
-        colorBgBase: '#ffffff',
-        borderRadius: 8,
-        colorBorder: '#d9d9d9',
-        fontSize: 14,
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+  token: {
+    colorPrimary: "#1890ff",
+    colorSuccess: "#52c41a",
+    colorWarning: "#faad14",
+    colorError: "#f5222d",
+    colorInfo: "#1890ff",
+    colorBgBase: "#ffffff",
+    borderRadius: 8,
+    colorBorder: "#d9d9d9",
+    fontSize: 14,
+    fontFamily:
+      '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+  },
+  components: {
+    Layout: {
+      headerBg: "#fff",
     },
-    components: {
-        Layout: {
-            headerBg: '#fff',
-        }
-    }
+    Tag: {
+      fontSize: 16,
+      borderRadiusSM: 12,
+    },
+    Divider: {
+      marginLG: 12,
+    },
+  },
 };
 
 /**
  * Base Ant Design theme — Dark Mode
  */
 export const baseDarkAntdTheme: ThemeConfig = {
-    token: {
-        colorPrimary: '#1890ff',
-        colorSuccess: '#52c41a',
-        colorWarning: '#faad14',
-        colorError: '#ff4d4f',
-        colorInfo: '#1890ff',
-        colorBgBase: '#0a0c10',
-        colorBgContainer: '#141414',
-        colorBgElevated: '#1f1f1f',
-        colorBorder: '#303030',
-        colorText: 'rgba(255, 255, 255, 0.85)',
-        colorTextHeading: 'rgba(255, 255, 255, 0.95)',
-        colorTextSecondary: 'rgba(255, 255, 255, 0.45)',
-        borderRadius: 8,
-        fontSize: 14,
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+  token: {
+    colorPrimary: "#1890ff",
+    colorSuccess: "#52c41a",
+    colorWarning: "#faad14",
+    colorError: "#ff4d4f",
+    colorInfo: "#1890ff",
+    colorBgBase: "#0a0c10",
+    colorBgContainer: "#141414",
+    colorBgElevated: "#1f1f1f",
+    colorBorder: "#303030",
+    colorText: "rgba(255, 255, 255, 0.85)",
+    colorTextHeading: "rgba(255, 255, 255, 0.95)",
+    colorTextSecondary: "rgba(255, 255, 255, 0.45)",
+    borderRadius: 8,
+    fontSize: 14,
+    fontFamily:
+      '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+  },
+  components: {
+    Table: {
+      headerBg: "#1a1a1a",
     },
-    components: {
-        Table: {
-            headerBg: '#1a1a1a',
-        },
-        Input: {
-            colorBgContainer: '#141414',
-            colorBorder: '#303030',
-        },
-        Pagination: {
-            itemBg: '#141414',
-        },
-        DatePicker: {
-            colorBgContainer: '#141414',
-        },
-        Select: {
-            colorBgContainer: '#141414',
-        },
-        Checkbox: {
-            colorBgContainer: 'transparent',
-        },
-        // Button: {
-        //     defaultBg: '#141414',
-        //     defaultColor: 'rgba(255, 255, 255, 0.85)',
-        //     defaultBorderColor: '#303030',
-        // },
-    }
+    Input: {
+      colorBgContainer: "#141414",
+      colorBorder: "#303030",
+    },
+    Pagination: {
+      itemBg: "#141414",
+    },
+    DatePicker: {
+      colorBgContainer: "#141414",
+    },
+    Select: {
+      colorBgContainer: "#141414",
+    },
+    Checkbox: {
+      colorBgContainer: "transparent",
+    },
+    // Button: {
+    //     defaultBg: '#141414',
+    //     defaultColor: 'rgba(255, 255, 255, 0.85)',
+    //     defaultBorderColor: '#303030',
+    // },
+  },
 };
 
 export const webAntdTheme: ThemeConfig = {
-    ...baseAntdTheme,
-    token: {
-        ...baseAntdTheme.token,
-    },
+  ...baseAntdTheme,
+  token: {
+    ...baseAntdTheme.token,
+  },
 };
 
 export const webDarkAntdTheme: ThemeConfig = {
-    ...baseDarkAntdTheme,
-    token: {
-        ...baseDarkAntdTheme.token,
-    },
+  ...baseDarkAntdTheme,
+  token: {
+    ...baseDarkAntdTheme.token,
+  },
 };
 
 export const mobileAntdTheme: ThemeConfig = {
-    ...baseAntdTheme,
-    token: {
-        ...baseAntdTheme.token,
-    },
+  ...baseAntdTheme,
+  token: {
+    ...baseAntdTheme.token,
+  },
 };
 
 export const mobileDarkAntdTheme: ThemeConfig = {
-    ...baseDarkAntdTheme,
-    token: {
-        ...baseDarkAntdTheme.token,
-    },
+  ...baseDarkAntdTheme,
+  token: {
+    ...baseDarkAntdTheme.token,
+  },
 };

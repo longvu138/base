@@ -21,7 +21,7 @@
     "add_address": "Thêm địa chỉ",
     "add_products": "Thêm sản phẩm",
     "save": "Lưu",
-    "csv": "Xuất CSV",
+    "csv": "Xuất Excel",
     "cancel": "Hủy bỏ",
     "agree": "Đồng ý",
     "back": "Quay lại",
@@ -291,7 +291,7 @@
     "send": "Gửi"
   },
   "chat": {
-    "title": "Ghi chú / Trao đổi",
+    "title": "Trao đổi",
     "attach_file": "Đính kèm file",
     "empty": "Chưa có tin nhắn nào",
     "system": "Hệ thống",
@@ -405,8 +405,8 @@
       "goods_money": "Tiền hàng",
       "need_payment": "Cần thanh toán",
       "excess_cash": "Thừa tiền",
-      "weight": "Cân nặng",
-      "packages": "Kiện"
+      "weight": "Cân nặng tính phí",
+      "packages": "Số lượng kiện"
     }
   },
   "orderDetail": {

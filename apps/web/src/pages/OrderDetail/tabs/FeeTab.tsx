@@ -68,17 +68,17 @@ const yuanMoney = (value: any) => {
 
 const moneyValue = (value: any, showSign = false) =>
   value === null ||
-  value === undefined ||
-  value === "" ||
-  Number.isNaN(Number(value))
+    value === undefined ||
+    value === "" ||
+    Number.isNaN(Number(value))
     ? "---"
     : money(value, showSign);
 
 const absoluteMoneyValue = (value: any) =>
   value === null ||
-  value === undefined ||
-  value === "" ||
-  Number.isNaN(Number(value))
+    value === undefined ||
+    value === "" ||
+    Number.isNaN(Number(value))
     ? "---"
     : moneyFormat(value, undefined, true);
 
@@ -220,11 +220,11 @@ const FeeValue = ({ fee, order }: { fee: any; order: any }) => {
 const getFeeConfig = (fee: any, feeConfigs: any[]) =>
   fee?.type
     ? feeConfigs.find(
-        (item: any) =>
-          item.code === fee.type.code &&
-          item.feeMetadata?.template &&
-          item.feeMetadata.template !== "custom",
-      )
+      (item: any) =>
+        item.code === fee.type.code &&
+        item.feeMetadata?.template &&
+        item.feeMetadata.template !== "custom",
+    )
     : null;
 
 const FeeGroup = ({
@@ -527,7 +527,6 @@ export const FeeTab = ({ orderCode, order, statusInfo }: FeeTabProps) => {
     totalUnpaid >= 0 ? t("order.need_payment") : t("order.excess_cash");
   const generalConfig = tenantConfig?.tenantConfig?.generalConfig || {};
   const showSupplierDiscount = Boolean(generalConfig.showSupplierDiscount);
-  const isBifinOrder = Boolean(order.contractWithShopkeeper);
   const couponVisible = Array.isArray(coupons) && coupons.length > 0;
   const couponLabel = (
     <Space size={4}>
@@ -643,130 +642,62 @@ export const FeeTab = ({ orderCode, order, statusInfo }: FeeTabProps) => {
                   />
                 )}
 
-                {isBifinOrder ? (
-                  <>
-                    <SummaryLine
-                      label={t("cartCheckout.provisional_cal")}
-                      value={moneyValue(order.grandTotal)}
-                      strong
-                    />
-                    <Divider
-                      style={{
-                        borderColor: "rgba(255,255,255,0.35)",
-                        margin: `${token.marginXS}px 0`,
-                      }}
-                    />
-                    <SummaryLine
-                      label={t("fee_tab.paid")}
-                      value={moneyValue(order.totalPaid)}
-                    />
-                    <SummaryLine
-                      label={t("fee_tab.refunded_service")}
-                      value={moneyValue(order.totalRefund)}
-                    />
-                    <Divider
-                      style={{
-                        borderColor: "rgba(255,255,255,0.35)",
-                        margin: `${token.marginXS}px 0`,
-                      }}
-                    />
-                    <SummaryLine
-                      label={t("fee_tab.biffin_borrow")}
-                      value={moneyValue(order.totalPaid)}
-                    />
-                    <SummaryLine
-                      label={t("cartCheckout.lending_fee")}
-                      value={moneyValue(order.totalRefund)}
-                    />
-                    {!statusInfo?.negativeEnd && (
-                      <>
-                        <Divider
-                          style={{
-                            borderColor: "rgba(255,255,255,0.35)",
-                            margin: `${token.marginXS}px 0`,
-                          }}
-                        />
-                        <SummaryLine
-                          label={needPaymentLabel}
-                          value={absoluteMoneyValue(order.totalUnpaid)}
-                        />
-                      </>
-                    )}
-                    {order.totalCollect ? (
-                      <>
-                        <Divider
-                          style={{
-                            borderColor: "rgba(255,255,255,0.35)",
-                            margin: `${token.marginXS}px 0`,
-                          }}
-                        />
-                        <SummaryLine
-                          label={t("fee_tab.collect_refund")}
-                          value={moneyValue(order.totalCollect, true)}
-                          onDetail={() => setCollectModalOpen(true)}
-                        />
-                      </>
-                    ) : null}
-                  </>
-                ) : (
-                  <>
-                    <Divider
-                      style={{
-                        borderColor: "rgba(255,255,255,0.35)",
-                        margin: `${token.marginXS}px 0`,
-                      }}
-                    />
-                    <SummaryLine
-                      label={t("fee_tab.cost_total")}
-                      value={moneyValue(order.grandTotal)}
-                      strong
-                    />
-                    <SummaryLine
-                      label={t("fee_tab.paid")}
-                      value={moneyValue(order.totalPaid)}
-                    />
-                    <SummaryLine
-                      label={t("fee_tab.refunded_service")}
-                      value={moneyValue(order.totalRefund)}
-                    />
-                    {!statusInfo?.negativeEnd && (
-                      <SummaryLine
-                        label={needPaymentLabel}
-                        value={absoluteMoneyValue(order.totalUnpaid)}
-                      />
-                    )}
-                    {order.totalClaim ? (
-                      <>
-                        <Divider
-                          style={{
-                            borderColor: "rgba(255,255,255,0.35)",
-                            margin: `${token.marginXS}px 0`,
-                          }}
-                        />
-                        <SummaryLine
-                          label={t("fee_tab.claimed_refund")}
-                          value={moneyValue(order.totalClaim)}
-                          onDetail={() => setClaimModalOpen(true)}
-                        />
-                      </>
-                    ) : null}
-                    {order.totalCollect ? (
-                      <>
-                        <Divider
-                          style={{
-                            borderColor: "rgba(255,255,255,0.35)",
-                            margin: `${token.marginXS}px 0`,
-                          }}
-                        />
-                        <SummaryLine
-                          label={t("fee_tab.collect_refund")}
-                          value={moneyValue(order.totalCollect, true)}
-                          onDetail={() => setCollectModalOpen(true)}
-                        />
-                      </>
-                    ) : null}
-                  </>
+
+                <Divider
+                  style={{
+                    borderColor: "rgba(255,255,255,0.35)",
+                    margin: `${token.marginXS}px 0`,
+                  }}
+                />
+                <SummaryLine
+                  label={t("fee_tab.cost_total")}
+                  value={moneyValue(order.grandTotal)}
+                  strong
+                />
+                <SummaryLine
+                  label={t("fee_tab.paid")}
+                  value={moneyValue(order.totalPaid)}
+                />
+                <SummaryLine
+                  label={t("fee_tab.refunded_service")}
+                  value={moneyValue(order.totalRefund)}
+                />
+                {!statusInfo?.negativeEnd && (
+                  <SummaryLine
+                    label={needPaymentLabel}
+                    value={absoluteMoneyValue(order.totalUnpaid)}
+                  />
                 )}
+                {order.totalClaim ? (
+                  <>
+                    <Divider
+                      style={{
+                        borderColor: "rgba(255,255,255,0.35)",
+                        margin: `${token.marginXS}px 0`,
+                      }}
+                    />
+                    <SummaryLine
+                      label={t("fee_tab.claimed_refund")}
+                      value={moneyValue(order.totalClaim)}
+                      onDetail={() => setClaimModalOpen(true)}
+                    />
+                  </>
+                ) : null}
+                {order.totalCollect ? (
+                  <>
+                    <Divider
+                      style={{
+                        borderColor: "rgba(255,255,255,0.35)",
+                        margin: `${token.marginXS}px 0`,
+                      }}
+                    />
+                    <SummaryLine
+                      label={t("fee_tab.collect_refund")}
+                      value={moneyValue(order.totalCollect, true)}
+                      onDetail={() => setCollectModalOpen(true)}
+                    />
+                  </>
+                ) : null}
               </Space>
             </Card>
           </Space>

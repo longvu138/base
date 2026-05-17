@@ -1,83 +1,89 @@
-import { useMemo } from 'react';
-import dayjs from 'dayjs';
+import { useMemo } from "react";
+import dayjs from "dayjs";
 import {
-    usePackagesQuery,
-    useParcelStatusesQuery,
-    usePackageStatusesQuery,
-} from '../usePackageHooks';
+  usePackagesQuery,
+  useParcelStatusesQuery,
+  usePackageStatusesQuery,
+} from "../usePackageHooks";
 
 export interface UsePackagesLogicProps {
-    page: number;
-    pageSize: number;
-    filters: Record<string, any>;
+  page: number;
+  pageSize: number;
+  filters: Record<string, any>;
 }
 
 /**
  * Shared logic for Packages Page
  */
-export const usePackagesLogic = ({ page, pageSize, filters }: UsePackagesLogicProps) => {
-    // 1. Format params for API
-    const apiParams = useMemo(() => {
-        const params: Record<string, any> = {
-            page: page - 1,
-            size: pageSize,
-            sort: 'createdAt:desc',
-            ...filters,
-        };
-
-        // Handle date range
-        if (filters.createdFromTo) {
-            params.createdFrom = filters.createdFromTo[0]?.toISOString();
-            params.createdTo = filters.createdFromTo[1]?.toISOString();
-            delete params.createdFromTo;
-        }
-
-        if (dayjs.isDayjs(params.createdFrom)) {
-            params.createdFrom = params.createdFrom.startOf('day').toISOString();
-        }
-
-        if (dayjs.isDayjs(params.createdTo)) {
-            params.createdTo = params.createdTo.endOf('day').toISOString();
-        }
-
-        // Handle array status
-        if (Array.isArray(params.statuses)) {
-            params.statuses = params.statuses.join(',');
-        }
-
-        return params;
-    }, [page, pageSize, filters]);
-
-    // 2. Fetch data
-    const { data: packageData, isLoading: isPackageLoading } = usePackagesQuery(apiParams);
-    const { data: statusData } = usePackageStatusesQuery();
-    const { data: parcelStatusData } = useParcelStatusesQuery();
-    const allStatusData = useMemo(() => {
-        const packageStatuses = statusData || [];
-        const parcelStatuses = parcelStatusData || [];
-        const maxLength = Math.max(packageStatuses.length, parcelStatuses.length);
-
-        return Array.from({ length: maxLength }, (_, index) => ({
-            ...(packageStatuses[index] || {}),
-            ...(parcelStatuses[index] || {}),
-        })).filter((item: any) => item.code);
-    }, [parcelStatusData, statusData]);
-
-    // 3. Derived State
-    const statusOptions = useMemo(
-        () => allStatusData.map((s: any) => ({ label: s.name, value: s.code })),
-        [allStatusData],
-    );
-
-    return {
-        packageData,
-        listData: packageData, // alias cho Style3
-        isPackageLoading,
-        isPackagesLoading: isPackageLoading, // alias cho Style3
-        statusData: allStatusData,
-        packageStatusData: statusData,
-        parcelStatusData,
-        statusOptions,
-        apiParams
+export const usePackagesLogic = ({
+  page,
+  pageSize,
+  filters,
+}: UsePackagesLogicProps) => {
+  // 1. Format params for API
+  const apiParams = useMemo(() => {
+    const params: Record<string, any> = {
+      page: page - 1,
+      size: pageSize,
+      sort: "createdAt:desc",
+      ...filters,
     };
+
+    // Handle date range
+    if (filters.createdFromTo) {
+      params.createdFrom = filters.createdFromTo[0]?.toISOString();
+      params.createdTo = filters.createdFromTo[1]?.toISOString();
+      delete params.createdFromTo;
+    }
+
+    if (dayjs.isDayjs(params.createdFrom)) {
+      params.createdFrom = params.createdFrom.startOf("day").toISOString();
+    }
+
+    if (dayjs.isDayjs(params.createdTo)) {
+      params.createdTo = params.createdTo.endOf("day").toISOString();
+    }
+
+    // Handle array status
+    if (Array.isArray(params.statuses)) {
+      params.statuses = params.statuses.join(",");
+    }
+
+    return params;
+  }, [page, pageSize, filters]);
+
+  // 2. Fetch data
+  const { data: packageData, isLoading: isPackageLoading } =
+    usePackagesQuery(apiParams);
+  const { data: statusData } = usePackageStatusesQuery();
+  const { data: parcelStatusData } = useParcelStatusesQuery();
+  const allStatusData = useMemo(() => {
+    const packageStatuses = statusData || [];
+    const parcelStatuses = parcelStatusData || [];
+    const maxLength = Math.max(packageStatuses.length, parcelStatuses.length);
+
+    return Array.from({ length: maxLength }, (_, index) => ({
+      ...(packageStatuses[index] || {}),
+      ...(parcelStatuses[index] || {}),
+    })).filter((item: any) => item.code);
+  }, [parcelStatusData, statusData]);
+  console.log("allStatusData", allStatusData);
+
+  // 3. Derived State
+  const statusOptions = useMemo(
+    () => allStatusData.map((s: any) => ({ label: s.name, value: s.code })),
+    [allStatusData],
+  );
+
+  return {
+    packageData,
+    listData: packageData, // alias cho Style3
+    isPackageLoading,
+    isPackagesLoading: isPackageLoading, // alias cho Style3
+    statusData: allStatusData,
+    packageStatusData: statusData,
+    parcelStatusData,
+    statusOptions,
+    apiParams,
+  };
 };

@@ -25,13 +25,13 @@ export const PackageStyle1 = () => {
     setPageSize,
     packageData,
     isPackageLoading,
-    statusData,
     filters,
     handleSearch,
     handleReset,
     handleExportOpen,
     isExporting,
     navigateToOrder,
+    packageStatusData
   } = pageState;
 
   const columns = [
@@ -78,7 +78,7 @@ export const PackageStyle1 = () => {
       dataIndex: "status",
       key: "status",
       align: "right" as const,
-      render: (status: any) => <PackageStatusTag status={status} statusData={statusData || []} />,
+      render: (status: any) => <PackageStatusTag status={status} statusData={packageStatusData || []} />,
     },
   ];
 
@@ -86,7 +86,7 @@ export const PackageStyle1 = () => {
     <div className="min-h-screen bg-layout p-4 space-y-4">
       <PackageGobizFilter
           form={form}
-          statusData={statusData || []}
+          statusData={packageStatusData || []}
           filters={filters}
           handleSearch={handleSearch}
           handleReset={handleReset}

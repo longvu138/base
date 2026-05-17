@@ -349,6 +349,11 @@ export const OrdersStyle1 = () => {
                     ? t("orders.buttons.search_collapse")
                     : t("orders.buttons.search_expand")}
                 </Button>
+              </Space>
+              <Space>
+                <Button onClick={handleReset}>
+                  {t("orders.buttons.reset")}
+                </Button>
                 <Button
                   type="primary"
                   icon={<SearchOutlined />}
@@ -357,11 +362,6 @@ export const OrdersStyle1 = () => {
                 >
                   {t("orders.buttons.search")}
                 </Button>
-                <Button onClick={handleReset}>
-                  {t("orders.buttons.reset")}
-                </Button>
-              </Space>
-              <Space>
                 <Button icon={<DownloadOutlined />}>
                   {t("common.export")}
                 </Button>
@@ -478,23 +478,23 @@ export const OrdersStyle1 = () => {
                       }}
                     >
                       <Row gutter={[24, 16]} align="top">
-                        <Col xs={24} md={4}>
+                        <Col xs={24} md={3}>
                           <Image
                             src={record?.image}
-                            width="100%"
                             height={160}
+                            width={160}
                             preview={false}
                             fallback="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="
                             style={{
                               borderRadius: token.borderRadius,
                               objectFit: "cover",
-                              background: token.colorFillQuaternary,
-                              border: `1px solid ${token.colorBorderSecondary}`,
+                              // background: token.colorFillQuaternary,
+                              // border: `1px solid ${token.colorBorderSecondary}`,
                             }}
                             onClick={() => navigateToDetail(record?.code)}
                           />
                         </Col>
-                        <Col xs={24} md={20}>
+                        <Col xs={24} md={21}>
                           <Space
                             direction="vertical"
                             size="middle"
@@ -549,8 +549,9 @@ export const OrdersStyle1 = () => {
                                 : "---"}
                             </Space>
 
-                            <Flex wrap gap={token.marginMD}>
-                              <div style={metricColStyle}>
+                            <Row gutter={[24, 16]}>
+                              <Col xs={24} sm={12} md={6}>
+                                <div style={metricColStyle}>
                                 <Typography.Text
                                   type="secondary"
                                   style={metricLabelStyle}
@@ -573,7 +574,9 @@ export const OrdersStyle1 = () => {
                                     : ""}
                                 </Typography.Paragraph>
                               </div>
-                              <div style={metricColStyle}>
+                              </Col>
+                              <Col xs={24} sm={12} md={6}>
+                                <div style={metricColStyle}>
                                 <Typography.Text
                                   type="secondary"
                                   style={metricLabelStyle}
@@ -587,7 +590,9 @@ export const OrdersStyle1 = () => {
                                   {formatCurrency(record?.grandTotal || 0)}
                                 </Typography.Paragraph>
                               </div>
-                              <div style={metricColStyle}>
+                              </Col>
+                              <Col xs={24} sm={12} md={6}>
+                                <div style={metricColStyle}>
                                 <Typography.Text
                                   type="secondary"
                                   style={metricLabelStyle}
@@ -603,7 +608,9 @@ export const OrdersStyle1 = () => {
                                   )}
                                 </Typography.Paragraph>
                               </div>
-                              <div style={metricColStyle}>
+                              </Col>
+                              <Col xs={24} sm={12} md={6}>
+                                <div style={metricColStyle}>
                                 <Typography.Text
                                   type="secondary"
                                   style={metricLabelStyle}
@@ -626,7 +633,27 @@ export const OrdersStyle1 = () => {
                                   )}
                                 </Typography.Paragraph>
                               </div>
-                              <div style={metricColStyle}>
+                              </Col>
+                              <Col xs={24} sm={12} md={6}>
+                                <div style={metricColStyle}>
+                                <Typography.Text
+                                  type="secondary"
+                                  style={metricLabelStyle}
+                                >
+                                  {t("order.discountAmount")}
+                                </Typography.Text>
+                                <Typography.Paragraph
+                                  strong
+                                  style={metricValueStyle}
+                                >
+                                  {record?.discountAmount !== undefined
+                                    ? formatCurrency(record.discountAmount)
+                                    : "---"}
+                                </Typography.Paragraph>
+                              </div>
+                              </Col>
+                              <Col xs={24} sm={12} md={6}>
+                                <div style={metricColStyle}>
                                 <Typography.Text
                                   type="secondary"
                                   style={metricLabelStyle}
@@ -643,7 +670,9 @@ export const OrdersStyle1 = () => {
                                     : "---"}
                                 </Typography.Paragraph>
                               </div>
-                              <div style={metricColStyle}>
+                              </Col>
+                              <Col xs={24} sm={12} md={6}>
+                                <div style={metricColStyle}>
                                 <Typography.Text
                                   type="secondary"
                                   style={metricLabelStyle}
@@ -659,7 +688,9 @@ export const OrdersStyle1 = () => {
                                     "---"}
                                 </Typography.Paragraph>
                               </div>
-                              <div style={metricColStyle}>
+                              </Col>
+                              <Col xs={24} sm={12} md={6}>
+                                <div style={metricColStyle}>
                                 <Typography.Text
                                   type="secondary"
                                   style={metricLabelStyle}
@@ -677,7 +708,8 @@ export const OrdersStyle1 = () => {
                                     : "---"}
                                 </Typography.Paragraph>
                               </div>
-                            </Flex>
+                              </Col>
+                            </Row>
                           </Space>
                         </Col>
                       </Row>

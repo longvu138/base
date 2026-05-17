@@ -84,6 +84,12 @@ export const DeliveryRequestsStyle1 = () => {
       render: formatDate,
     },
     {
+      title: t("delivery.volumetric"),
+      key: "volumetric",
+      align: "right",
+      render: (_, record) => record.volumetric ? `${record.volumetric} cm³` : "---",
+    },
+    {
       title: t("delivery.weight"),
       key: "weight",
       align: "right",
@@ -122,6 +128,19 @@ export const DeliveryRequestsStyle1 = () => {
       key: "totalWeight",
       align: "right",
       render: formatWeight,
+    },
+    {
+      title: t("delivery.address"),
+      dataIndex: "address",
+      key: "address",
+      width: "40%",
+      align: "left",
+      render: (address) => {
+        const fullAddress = `${address?.fullName}, ${address?.address}, ${address?.location?.display}`;
+        return <div>
+          {fullAddress}
+        </div>
+      }
     },
     {
       title: t("delivery.note"),

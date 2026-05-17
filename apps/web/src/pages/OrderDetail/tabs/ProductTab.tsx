@@ -160,7 +160,7 @@ export const ProductTab = ({ orderCode, order }: ProductTabProps) => {
                 <Space size={4}>
                   <Text>
                     {quantity(totalQuantity)}/{quantity(purchasedQuantity)}
-                    {hasInspection ? `/${quantity(receivedQuantity)}` : ""}
+                    {hasInspection ? `/${receivedQuantity > 0 ? quantity(receivedQuantity) : "---"}` : "---"}
                   </Text>
                   <Tooltip title={t("order.order_buy_receive")} color={token.colorPrimary}>
                     <QuestionCircleOutlined style={{ color: token.colorTextTertiary }} />
@@ -199,13 +199,6 @@ export const ProductTab = ({ orderCode, order }: ProductTabProps) => {
 
         return (
           <List.Item
-            style={{
-              background: token.colorFillAlter,
-              border: `1px solid ${token.colorBorderSecondary}`,
-              marginTop: token.marginMD,
-              padding: token.padding,
-              position: "relative",
-            }}
           >
             <Row gutter={token.marginSM} style={{ width: "100%" }}>
               <Col span={10}>
@@ -268,7 +261,7 @@ export const ProductTab = ({ orderCode, order }: ProductTabProps) => {
                   <Col span={6}>
                     <Text strong>
                       {quantity(product.quantity)}/{quantity(product.purchasedQuantity ?? product.actualQuantity)}
-                      {hasInspection ? `/${quantity(product.receivedQuantity)}` : ""}
+                      {hasInspection ? `/${quantity(product.receivedQuantity)}` : "---"}
                     </Text>
                   </Col>
                   <Col span={6}>
