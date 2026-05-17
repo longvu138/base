@@ -20,12 +20,11 @@ import {
   theme,
 } from "antd";
 import {
-  DownOutlined,
   DownloadOutlined,
   SearchOutlined,
-  UpOutlined,
 } from "@ant-design/icons";
 import { formatCurrency } from "@repo/util";
+import { FilterPanel } from "@repo/ui";
 import { useOrdersPage } from "./hooks/useOrdersPage";
 
 const getStatusMeta = (statuses: any[] = [], code?: string) =>
@@ -51,8 +50,6 @@ export const OrdersStyle2 = () => {
     navigateToDetail,
     navigateToCreateDelivery,
     deliveryReadyCount,
-    isAdvancedFilterOpen,
-    toggleAdvancedFilter,
   } = useOrdersPage();
 
   const columns = [
@@ -131,203 +128,193 @@ export const OrdersStyle2 = () => {
           }
         />
       )}
-      <Card>
-        <Form form={form} layout="vertical">
-          <Space direction="vertical" size="middle" style={{ width: "100%" }}>
-            <Form.Item name="statuses" label={t("orders.filters.status")}>
-              <Checkbox.Group>
-                <Space wrap>
-                  {statusOptions.map((item: any) => (
-                    <Checkbox key={item.value} value={item.value}>
-                      {item.label} ({item.count})
-                    </Checkbox>
-                  ))}
-                </Space>
-              </Checkbox.Group>
-            </Form.Item>
+      <Card className="mb-4 shadow-sm">
+        <FilterPanel
+          form={form}
+          onSearch={handleSearch}
+          onReset={handleReset}
+          loading={isOrderLoading}
+          searchText={t("orders.buttons.search")}
+          resetText={t("orders.buttons.reset")}
+          showCollapseAll={true}
+          primaryContent={
+            <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+              <Form.Item name="statuses" label={t("orders.filters.status")} style={{ marginBottom: 0 }}>
+                <Checkbox.Group>
+                  <Space wrap>
+                    {statusOptions.map((item: any) => (
+                      <Checkbox key={item.value} value={item.value}>
+                        {item.label} ({item.count})
+                      </Checkbox>
+                    ))}
+                  </Space>
+                </Checkbox.Group>
+              </Form.Item>
 
-            <Row gutter={[16, 16]}>
-              <Col xs={24} md={6}>
-                <Form.Item name="query" label={t("orders.search_placeholder")}>
-                  <Input
-                    allowClear
-                    prefix={<SearchOutlined />}
-                    placeholder={t("orders.search_placeholder")}
-                    onPressEnter={handleSearch}
-                  />
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={6}>
-                <Form.Item name="note" label={t("orders.filters.note")}>
-                  <Input allowClear />
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={6}>
-                <Form.Item name="timestampFrom" label={t("orders.filters.created_at")}>
-                  <DatePicker
-                    style={{ width: "100%" }}
-                    format="DD/MM/YYYY"
-                    placeholder={t("orders.filters.start_date")}
-                  />
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={6}>
-                <Form.Item name="timestampTo" label=" ">
-                  <DatePicker
-                    style={{ width: "100%" }}
-                    format="DD/MM/YYYY"
-                    placeholder={t("orders.filters.end_date")}
-                  />
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={6}>
-                <Form.Item name="refOrderCode" label={t("orders.filters.ref_order_code")}>
-                  <Input allowClear placeholder={t("orders.filters.ref_order_code")} />
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={6}>
-                <Form.Item name="refCustomerCode" label={t("orders.filters.ref_customer_code")}>
-                  <Input allowClear placeholder={t("orders.filters.ref_customer_code")} />
-                </Form.Item>
-              </Col>
-              {isAdvancedFilterOpen && (
-                <>
-              <Col xs={24} md={6}>
-                <Form.Item name="cutOffStatus" label={t("orders.filters.stuck_status")}>
-                  <Select
-                    allowClear
-                    showSearch
-                    placeholder={t("orders.filters.status")}
-                    optionFilterProp="label"
-                    options={statusData?.map((item: any) => ({
-                      label: item.name,
-                      value: item.code,
-                    }))}
-                  />
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={6}>
-                <Form.Item name="typeSearch" label={t("orders.filters.period")}>
-                  <Select
-                    allowClear
-                    placeholder={t("orders.filters.period")}
-                    options={[
-                      { label: t("orders.filters.cut_off_range"), value: "range" },
-                      { label: t("orders.filters.cut_off_equal"), value: "equal" },
-                      { label: t("orders.filters.cut_off_from"), value: "from" },
-                      { label: t("orders.filters.cut_off_to"), value: "to" },
-                    ]}
-                  />
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={6}>
-                <Form.Item name="handlingTimeFrom" label={t("orders.filters.from")}>
-                  <Input allowClear placeholder={t("orders.filters.from")} />
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={6}>
-                <Form.Item name="handlingTimeTo" label={t("orders.filters.to")}>
-                  <Input allowClear placeholder={t("orders.filters.to")} />
-                </Form.Item>
-              </Col>
-                </>
-              )}
-              <Col xs={24} md={6}>
-                <Form.Item name="needPaid" valuePropName="checked" label=" ">
-                  <Checkbox>{t("orders.filters.financial_payment")}</Checkbox>
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={6}>
-                <Form.Item label=" ">
-                  <Button type="primary" block onClick={handleSearch}>
-                    {t("orders.buttons.search")}
-                  </Button>
-                </Form.Item>
-              </Col>
-            </Row>
+              <Row gutter={[16, 16]}>
+                <Col xs={24} md={6}>
+                  <Form.Item name="query" label={t("orders.search_placeholder")} style={{ marginBottom: 0 }}>
+                    <Input
+                      allowClear
+                      prefix={<SearchOutlined />}
+                      placeholder={t("orders.search_placeholder")}
+                      onPressEnter={handleSearch}
+                    />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={6}>
+                  <Form.Item name="note" label={t("orders.filters.note")} style={{ marginBottom: 0 }}>
+                    <Input allowClear />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={6}>
+                  <Form.Item name="timestampFrom" label={t("orders.filters.created_at")} style={{ marginBottom: 0 }}>
+                    <DatePicker
+                      style={{ width: "100%" }}
+                      format="DD/MM/YYYY"
+                      placeholder={t("orders.filters.start_date")}
+                    />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={6}>
+                  <Form.Item name="timestampTo" label=" " style={{ marginBottom: 0 }}>
+                    <DatePicker
+                      style={{ width: "100%" }}
+                      format="DD/MM/YYYY"
+                      placeholder={t("orders.filters.end_date")}
+                    />
+                  </Form.Item>
+                </Col>
+              </Row>
 
-            {isAdvancedFilterOpen && (
-            <Row gutter={[16, 16]}>
-              <Col xs={24} md={8}>
-                <Form.Item name="marketplaces" label={t("orders.filters.source")}>
-                  <Checkbox.Group>
-                    <Space wrap>
-                      {marketplacesData?.map((item: any) => (
-                        <Checkbox key={item.code} value={item.code}>
-                          {item.name}
-                        </Checkbox>
-                      ))}
-                    </Space>
-                  </Checkbox.Group>
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={8}>
-                <Form.Item name="services" label={t("orders.filters.services")}>
-                  <Checkbox.Group>
-                    <Space wrap>
-                      {servicesData?.map((item: any) => (
-                        <Checkbox key={item.code} value={item.code}>
-                          {item.name}
-                        </Checkbox>
-                      ))}
-                    </Space>
-                  </Checkbox.Group>
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={6}>
-                <Form.Item name="milestoneStatus" label={t("orders.filters.time_range")}>
-                  <Select
-                    allowClear
-                    showSearch
-                    placeholder={t("orders.filters.status")}
-                    optionFilterProp="label"
-                    options={statusData?.map((item: any) => ({
-                      label: item.name,
-                      value: item.code,
-                    }))}
-                  />
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={6}>
-                <Form.Item name="milestoneStatusFrom" label={t("orders.filters.start_date")}>
-                  <DatePicker
-                    style={{ width: "100%" }}
-                    format="DD/MM/YYYY"
-                    placeholder={t("orders.filters.start_date")}
-                  />
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={6}>
-                <Form.Item name="milestoneStatusTo" label={t("orders.filters.end_date")}>
-                  <DatePicker
-                    style={{ width: "100%" }}
-                    format="DD/MM/YYYY"
-                    placeholder={t("orders.filters.end_date")}
-                  />
-                </Form.Item>
-              </Col>
-            </Row>
-            )}
+              <Row gutter={[16, 16]}>
+                <Col xs={24} md={6}>
+                  <Form.Item name="refOrderCode" label={t("orders.filters.ref_order_code")} style={{ marginBottom: 0 }}>
+                    <Input allowClear placeholder={t("orders.filters.ref_order_code")} />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={6}>
+                  <Form.Item name="refCustomerCode" label={t("orders.filters.ref_customer_code")} style={{ marginBottom: 0 }}>
+                    <Input allowClear placeholder={t("orders.filters.ref_customer_code")} />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={6}>
+                  <Form.Item name="needPaid" valuePropName="checked" label=" " style={{ marginBottom: 0 }}>
+                    <Checkbox>{t("orders.filters.financial_payment")}</Checkbox>
+                  </Form.Item>
+                </Col>
+              </Row>
+            </Space>
+          }
+          secondaryContent={
+            <div style={{ marginTop: 16 }}>
+              <Row gutter={[16, 16]}>
+                <Col xs={24} md={6}>
+                  <Form.Item name="cutOffStatus" label={t("orders.filters.stuck_status")} style={{ marginBottom: 0 }}>
+                    <Select
+                      allowClear
+                      showSearch
+                      placeholder={t("orders.filters.status")}
+                      optionFilterProp="label"
+                      options={statusData?.map((item: any) => ({
+                        label: item.name,
+                        value: item.code,
+                      }))}
+                    />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={6}>
+                  <Form.Item name="typeSearch" label={t("orders.filters.period")} style={{ marginBottom: 0 }}>
+                    <Select
+                      allowClear
+                      placeholder={t("orders.filters.period")}
+                      options={[
+                        { label: t("orders.filters.cut_off_range"), value: "range" },
+                        { label: t("orders.filters.cut_off_equal"), value: "equal" },
+                        { label: t("orders.filters.cut_off_from"), value: "from" },
+                        { label: t("orders.filters.cut_off_to"), value: "to" },
+                      ]}
+                    />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={6}>
+                  <Form.Item name="handlingTimeFrom" label={t("orders.filters.from")} style={{ marginBottom: 0 }}>
+                    <Input allowClear placeholder={t("orders.filters.from")} />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={6}>
+                  <Form.Item name="handlingTimeTo" label={t("orders.filters.to")} style={{ marginBottom: 0 }}>
+                    <Input allowClear placeholder={t("orders.filters.to")} />
+                  </Form.Item>
+                </Col>
+              </Row>
 
-            <Flex justify="space-between" wrap gap={token.marginSM}>
-              <Space>
-                <Button
-                  type="link"
-                  icon={isAdvancedFilterOpen ? <UpOutlined /> : <DownOutlined />}
-                  onClick={toggleAdvancedFilter}
-                >
-                  {isAdvancedFilterOpen
-                    ? t("orders.buttons.search_collapse")
-                    : t("orders.buttons.search_expand")}
-                </Button>
-                <Button onClick={handleReset}>{t("orders.buttons.reset")}</Button>
-              </Space>
-              <Space>
-                <Button icon={<DownloadOutlined />}>{t("common.export")}</Button>
-              </Space>
-            </Flex>
-          </Space>
-        </Form>
+              <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
+                <Col xs={24} md={8}>
+                  <Form.Item name="marketplaces" label={t("orders.filters.source")} style={{ marginBottom: 0 }}>
+                    <Checkbox.Group>
+                      <Space wrap>
+                        {marketplacesData?.map((item: any) => (
+                          <Checkbox key={item.code} value={item.code}>
+                            {item.name}
+                          </Checkbox>
+                        ))}
+                      </Space>
+                    </Checkbox.Group>
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={8}>
+                  <Form.Item name="services" label={t("orders.filters.services")} style={{ marginBottom: 0 }}>
+                    <Checkbox.Group>
+                      <Space wrap>
+                        {servicesData?.map((item: any) => (
+                          <Checkbox key={item.code} value={item.code}>
+                            {item.name}
+                          </Checkbox>
+                        ))}
+                      </Space>
+                    </Checkbox.Group>
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
+                <Col xs={24} md={6}>
+                  <Form.Item name="milestoneStatus" label={t("orders.filters.time_range")} style={{ marginBottom: 0 }}>
+                    <Select
+                      allowClear
+                      showSearch
+                      placeholder={t("orders.filters.status")}
+                      optionFilterProp="label"
+                      options={statusData?.map((item: any) => ({
+                        label: item.name,
+                        value: item.code,
+                      }))}
+                    />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={6}>
+                  <Form.Item name="milestoneStatusFrom" label={t("orders.filters.start_date")} style={{ marginBottom: 0 }}>
+                    <DatePicker
+                      style={{ width: "100%" }}
+                      format="DD/MM/YYYY"
+                      placeholder={t("orders.filters.start_date")}
+                    />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={6}>
+                  <Form.Item name="milestoneStatusTo" label={t("orders.filters.end_date")} style={{ marginBottom: 0 }}>
+                    <DatePicker
+                      style={{ width: "100%" }}
+                      format="DD/MM/YYYY"
+                      placeholder={t("orders.filters.end_date")}
+                    />
+                  </Form.Item>
+                </Col>
+              </Row>
+            </div>
+          }
+        />
       </Card>
 
       <Card
@@ -336,6 +323,9 @@ export const OrdersStyle2 = () => {
             <Typography.Text strong>{t("orders.title")}</Typography.Text>
             <Tag color="blue">{orderData?.total || 0}</Tag>
           </Space>
+        }
+        extra={
+          <Button icon={<DownloadOutlined />}>{t("common.export")}</Button>
         }
       >
         <Table

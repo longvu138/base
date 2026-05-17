@@ -30,19 +30,16 @@ import {
 } from "antd";
 import {
   DownloadOutlined,
-  DownOutlined,
   FileSearchOutlined,
   InfoCircleOutlined,
   InboxOutlined,
   PlusOutlined,
   QuestionCircleOutlined,
-  RedoOutlined,
-  SearchOutlined,
   ShopOutlined,
   UploadOutlined,
-  UpOutlined,
 } from "@ant-design/icons";
 import { useShipmentMilestonesQuery } from "@repo/hooks";
+import { FilterPanel } from "@repo/ui";
 import { useShipmentsPage } from "./hooks/useShipmentsPage";
 
 const { Text } = Typography;
@@ -144,8 +141,6 @@ export const ShipmentsView = ({
   const {
     t,
     form,
-    expanded,
-    setExpanded,
     page,
     pageSize,
     setPage,
@@ -297,53 +292,62 @@ export const ShipmentsView = ({
 
   return (
     <Space direction="vertical" size={pageGap} style={{ width: "100%" }}>
-      <Card>
-        <Form form={form} layout="vertical" onFinish={handleSearch}>
-          <Space direction="vertical" size={pageGap} style={{ width: "100%" }}>
-            <Form.Item name="statuses" label={t("shipments.filters.status")} style={{ marginBottom: 0 }}>
-              <Checkbox.Group>
-                <Space wrap>
-                  {statusOptions.map((option: any) => (
-                    <Checkbox key={option.value} value={option.value}>
-                      {option.label} ({option.count})
-                    </Checkbox>
-                  ))}
-                </Space>
-              </Checkbox.Group>
-            </Form.Item>
+      <Card className="mb-4 shadow-sm">
+        <FilterPanel
+          form={form}
+          onSearch={handleSearch}
+          onReset={clearFilters}
+          searchText={t("orders.buttons.search")}
+          resetText={t("orders.buttons.reset")}
+          showCollapseAll={true}
+          primaryContent={
+            <Space direction="vertical" size={pageGap} style={{ width: "100%" }}>
+              <Form.Item name="statuses" label={t("shipments.filters.status")} style={{ marginBottom: 0 }}>
+                <Checkbox.Group>
+                  <Space wrap>
+                    {statusOptions.map((option: any) => (
+                      <Checkbox key={option.value} value={option.value}>
+                        {option.label} ({option.count})
+                      </Checkbox>
+                    ))}
+                  </Space>
+                </Checkbox.Group>
+              </Form.Item>
 
-            <Row gutter={[16, 8]}>
-              <Col xs={24} md={8}>
-                <Form.Item name="query" label={t("shipments.filters.code")}>
-                  <Input allowClear placeholder={t("shipments.search_placeholder")} onPressEnter={handleSearch} />
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={16}>
-                <Form.Item label={t("shipments.filters.created_at")}>
-                  <Row gutter={[12, 8]}>
-                    <Col xs={24} md={12}>
-                      <Form.Item name="timestampFrom" noStyle>
-                        <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" placeholder={t("orders.filters.start_date")} />
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24} md={12}>
-                      <Form.Item name="timestampTo" noStyle>
-                        <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" placeholder={t("orders.filters.end_date")} />
-                      </Form.Item>
-                    </Col>
-                  </Row>
-                </Form.Item>
-              </Col>
-            </Row>
-
-            {expanded && (
+              <Row gutter={[16, 8]}>
+                <Col xs={24} md={8}>
+                  <Form.Item name="query" label={t("shipments.filters.code")} style={{ marginBottom: 0 }}>
+                    <Input allowClear placeholder={t("shipments.search_placeholder")} onPressEnter={handleSearch} />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={16}>
+                  <Form.Item label={t("shipments.filters.created_at")} style={{ marginBottom: 0 }}>
+                    <Row gutter={[12, 8]}>
+                      <Col xs={24} md={12}>
+                        <Form.Item name="timestampFrom" noStyle>
+                          <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" placeholder={t("orders.filters.start_date")} />
+                        </Form.Item>
+                      </Col>
+                      <Col xs={24} md={12}>
+                        <Form.Item name="timestampTo" noStyle>
+                          <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" placeholder={t("orders.filters.end_date")} />
+                        </Form.Item>
+                      </Col>
+                    </Row>
+                  </Form.Item>
+                </Col>
+              </Row>
+            </Space>
+          }
+          secondaryContent={
+            <div style={{ marginTop: 16 }}>
               <Space direction="vertical" size={pageGap} style={{ width: "100%" }}>
                 <Row gutter={[16, 8]}>
-                  <Col xs={24} md={8}><Form.Item name="originalReceiptCode" label={t("shipments.filters.original_invoice")}><Input allowClear /></Form.Item></Col>
-                  <Col xs={24} md={8}><Form.Item name="wayBill" label={t("shipments.filters.waybill")}><Input allowClear /></Form.Item></Col>
-                  <Col xs={24} md={8}><Form.Item name="merchantName" label={t("shipments.filters.shop_name")}><Input allowClear /></Form.Item></Col>
-                  <Col xs={24} md={12}><Form.Item name="refShipmentCode" label={t("shipments.filters.your_order_code")}><Input allowClear /></Form.Item></Col>
-                  <Col xs={24} md={12}><Form.Item name="refCustomerCode" label={t("shipments.filters.your_customer_code")}><Input allowClear /></Form.Item></Col>
+                  <Col xs={24} md={8}><Form.Item name="originalReceiptCode" label={t("shipments.filters.original_invoice")} style={{ marginBottom: 0 }}><Input allowClear /></Form.Item></Col>
+                  <Col xs={24} md={8}><Form.Item name="wayBill" label={t("shipments.filters.waybill")} style={{ marginBottom: 0 }}><Input allowClear /></Form.Item></Col>
+                  <Col xs={24} md={8}><Form.Item name="merchantName" label={t("shipments.filters.shop_name")} style={{ marginBottom: 0 }}><Input allowClear /></Form.Item></Col>
+                  <Col xs={24} md={12}><Form.Item name="refShipmentCode" label={t("shipments.filters.your_order_code")} style={{ marginBottom: 0 }}><Input allowClear /></Form.Item></Col>
+                  <Col xs={24} md={12}><Form.Item name="refCustomerCode" label={t("shipments.filters.your_customer_code")} style={{ marginBottom: 0 }}><Input allowClear /></Form.Item></Col>
                 </Row>
 
                 {isServicesLoading ? (
@@ -362,12 +366,12 @@ export const ShipmentsView = ({
 
                 <Row gutter={[16, 8]}>
                   <Col xs={24} md={6}>
-                    <Form.Item name="cutOffStatus" label={t("shipments.filters.stuck_at")}>
+                    <Form.Item name="cutOffStatus" label={t("shipments.filters.stuck_at")} style={{ marginBottom: 0 }}>
                       <Select allowClear showSearch optionFilterProp="label" options={(statusData || []).map((status: any) => ({ label: status.name, value: status.code }))} />
                     </Form.Item>
                   </Col>
                   <Col xs={24} md={6}>
-                    <Form.Item name="typeSearch" label={t("shipments.filters.period")}>
+                    <Form.Item name="typeSearch" label={t("shipments.filters.period")} style={{ marginBottom: 0 }}>
                       <Select
                         allowClear
                         options={[
@@ -379,8 +383,8 @@ export const ShipmentsView = ({
                       />
                     </Form.Item>
                   </Col>
-                  <Col xs={24} md={6}><Form.Item name="handlingTimeFrom" label={t("shipments.filters.from")}><Input allowClear type="number" /></Form.Item></Col>
-                  <Col xs={24} md={6}><Form.Item name="handlingTimeTo" label={t("shipments.filters.to")}><Input allowClear type="number" /></Form.Item></Col>
+                  <Col xs={24} md={6}><Form.Item name="handlingTimeFrom" label={t("shipments.filters.from")} style={{ marginBottom: 0 }}><Input allowClear type="number" /></Form.Item></Col>
+                  <Col xs={24} md={6}><Form.Item name="handlingTimeTo" label={t("shipments.filters.to")} style={{ marginBottom: 0 }}><Input allowClear type="number" /></Form.Item></Col>
                   <Col span={24}>
                     <Form.Item name="existsProduct" valuePropName="checked" style={{ marginBottom: 0 }}>
                       <Checkbox>{t("shipments.filters.lack_product_info")}</Checkbox>
@@ -388,19 +392,9 @@ export const ShipmentsView = ({
                   </Col>
                 </Row>
               </Space>
-            )}
-
-            <Flex justify="space-between" align="center" gap={16} wrap>
-              <Button type="link" icon={expanded ? <UpOutlined /> : <DownOutlined />} onClick={() => setExpanded((value) => !value)}>
-                {expanded ? t("orders.buttons.search_collapse") : t("orders.buttons.search_expand")}
-              </Button>
-              <Space>
-                <Button icon={<RedoOutlined />} onClick={clearFilters}>{t("orders.buttons.reset")}</Button>
-                <Button type="primary" htmlType="submit" icon={<SearchOutlined />}>{t("orders.buttons.search")}</Button>
-              </Space>
-            </Flex>
-          </Space>
-        </Form>
+            </div>
+          }
+        />
       </Card>
 
       <Card

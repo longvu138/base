@@ -2,11 +2,11 @@ import { Button, Card, Drawer, Flex, Form, Input, Space, Tag, Typography, theme 
 import { DownloadOutlined, FilterOutlined, PlusOutlined, SearchOutlined } from "@ant-design/icons";
 import { quantityFormat } from "@repo/util";
 import { useState } from "react";
+import { FilterPanel } from "@repo/ui";
 import { useWaybillsPage } from "./hooks/useWaybillsPage";
 import {
   WaybillCreateModal,
   WaybillExportModal,
-  WaybillFilterActions,
   WaybillFilterFields,
   WaybillListCard,
 } from "./WaybillsShared";
@@ -68,25 +68,18 @@ export const WaybillsStyle2 = () => {
         open={filterOpen}
         width={960}
         onClose={() => setFilterOpen(false)}
-        extra={
-          <Space>
-            <Button onClick={page.handleReset}>{page.t("order.filter_refresh")}</Button>
-            <Button
-              type="primary"
-              onClick={() => {
-                page.handleSearch();
-                setFilterOpen(false);
-              }}
-            >
-              {page.t("order.search")}
-            </Button>
-          </Space>
-        }
       >
-        <Form form={page.form} layout="vertical">
-          <WaybillFilterFields page={page} />
-          <WaybillFilterActions page={page} />
-        </Form>
+        <FilterPanel
+          form={page.form}
+          onSearch={() => {
+            page.handleSearch();
+            setFilterOpen(false);
+          }}
+          onReset={page.handleReset}
+          searchText={page.t("order.search")}
+          resetText={page.t("order.filter_refresh")}
+          primaryContent={<WaybillFilterFields page={page} />}
+        />
       </Drawer>
 
       <WaybillCreateModal page={page} />

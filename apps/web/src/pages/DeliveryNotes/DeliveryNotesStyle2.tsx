@@ -16,6 +16,7 @@ import {
 } from "antd";
 import { FilterOutlined, SearchOutlined, SyncOutlined } from "@ant-design/icons";
 import { quantityFormat } from "@repo/util";
+import { FilterPanel } from "@repo/ui";
 import { useDeliveryNotesPage } from "./hooks/useDeliveryNotesPage";
 import { DeliveryNotesList } from "./DeliveryNotesShared";
 
@@ -75,40 +76,36 @@ export const DeliveryNotesStyle2 = ({ isTabView }: { isTabView?: boolean }) => {
         open={filterOpen}
         width={720}
         onClose={() => setFilterOpen(false)}
-        extra={
-          <Space>
-            <Button onClick={page.handleReset}>{page.t("order.filter_refresh")}</Button>
-            <Button
-              type="primary"
-              onClick={() => {
-                page.handleSearch();
-                setFilterOpen(false);
-              }}
-            >
-              {page.t("order.search")}
-            </Button>
-          </Space>
-        }
       >
-        <Form form={page.form} layout="vertical">
-          <Row gutter={[20, 16]}>
-            <Col xs={24} md={12}>
-              <Form.Item name="code" label="Mã phiếu xuất">
-                <Input allowClear prefix={<SearchOutlined />} />
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={12}>
-              <Form.Item name="exportedAtFrom" label="Ngày bắt đầu">
-                <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" />
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={12}>
-              <Form.Item name="exportedAtTo" label="Ngày kết thúc">
-                <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" />
-              </Form.Item>
-            </Col>
-          </Row>
-        </Form>
+        <FilterPanel
+          form={page.form}
+          onSearch={() => {
+            page.handleSearch();
+            setFilterOpen(false);
+          }}
+          onReset={page.handleReset}
+          searchText={page.t("order.search")}
+          resetText={page.t("order.filter_refresh")}
+          primaryContent={
+            <Row gutter={[20, 16]}>
+              <Col xs={24} md={12}>
+                <Form.Item name="code" label="Mã phiếu xuất" style={{ marginBottom: 0 }}>
+                  <Input allowClear prefix={<SearchOutlined />} />
+                </Form.Item>
+              </Col>
+              <Col xs={24} md={12}>
+                <Form.Item name="exportedAtFrom" label="Ngày bắt đầu" style={{ marginBottom: 0 }}>
+                  <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" />
+                </Form.Item>
+              </Col>
+              <Col xs={24} md={12}>
+                <Form.Item name="exportedAtTo" label="Ngày kết thúc" style={{ marginBottom: 0 }}>
+                  <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" />
+                </Form.Item>
+              </Col>
+            </Row>
+          }
+        />
       </Drawer>
     </Space>
   );

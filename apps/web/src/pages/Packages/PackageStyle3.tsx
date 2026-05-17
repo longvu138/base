@@ -11,6 +11,7 @@ import {
 import { Pagination } from '@repo/ui';
 import {
     ArrowRightOutlined,
+    DownloadOutlined,
 } from '@ant-design/icons';
 import { ParcelMilestoneSteps } from '../../components/Package/ParcelMilestoneSteps';
 import './PackageStyle3.css';
@@ -111,7 +112,28 @@ export const PackageStyle3: React.FC<{ isTabView?: boolean }> = ({ isTabView }) 
             />
 
             {/* Table */}
-            <div className="bg-white dark:bg-gray-800 rounded-3xl overflow-hidden border border-gray-100 dark:border-gray-700 shadow-sm">
+            <div className="bg-white dark:bg-gray-800 rounded-3xl overflow-hidden border border-gray-100 dark:border-gray-700 shadow-sm p-6">
+                <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                        <span className="text-xl font-bold text-gray-900 dark:text-gray-100">Danh sách kiện hàng</span>
+                        {listData?.total !== undefined && (
+                            <span className="text-sm px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium">
+                                Tổng: {listData.total}
+                            </span>
+                        )}
+                    </div>
+                    {handleExportOpen && (
+                        <AntButton
+                            onClick={handleExportOpen}
+                            loading={isExporting}
+                            icon={<DownloadOutlined />}
+                            className="flex items-center gap-2"
+                        >
+                            Xuất Excel
+                        </AntButton>
+                    )}
+                </div>
+
                 {isPackagesLoading ? (
                     <List
                         dataSource={Array.from({ length: 6 }).map((_, i) => ({ id: `sk-${i}` }))}

@@ -18,8 +18,9 @@ import {
   theme,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
-import { PlusOutlined, SearchOutlined, SyncOutlined } from "@ant-design/icons";
+import { PlusOutlined, SearchOutlined } from "@ant-design/icons";
 import { quantityFormat } from "@repo/util";
+import { FilterPanel } from "@repo/ui";
 import { useDeliveryRequestsPage } from "./hooks/useDeliveryRequestsPage";
 
 const { Text, Title, Link } = Typography;
@@ -155,87 +156,69 @@ export const DeliveryRequestsStyle1 = () => {
 
   return (
     <Space direction="vertical" size="large" style={{ width: "100%" }}>
-      <Card>
-        <Form form={form} layout="vertical">
-          <Space direction="vertical" size="middle" style={{ width: "100%" }}>
-            <Flex gap={token.marginMD} align="flex-start" wrap>
-              <Text strong style={{ minWidth: 96 }}>
-                {t("delivery.status")}:
-              </Text>
-              <Form.Item name="statuses" noStyle>
-                <Checkbox.Group>
-                  <Space size={[token.marginLG, token.marginXS]} wrap>
-                    {statusData?.map((item: any) => (
-                      <Checkbox key={item.code} value={item.code}>
-                        {item.name}
-                      </Checkbox>
-                    ))}
-                  </Space>
-                </Checkbox.Group>
-              </Form.Item>
-            </Flex>
+      <Card className="mb-4 shadow-sm">
+        <FilterPanel
+          form={form}
+          onSearch={handleSearch}
+          onReset={handleReset}
+          searchText={t("order.search")}
+          resetText="Làm mới bộ lọc"
+          primaryContent={
+            <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+              <Flex gap={token.marginMD} align="flex-start" wrap>
+                <Text strong style={{ minWidth: 96 }}>
+                  {t("delivery.status")}:
+                </Text>
+                <Form.Item name="statuses" noStyle>
+                  <Checkbox.Group>
+                    <Space size={[token.marginLG, token.marginXS]} wrap>
+                      {statusData?.map((item: any) => (
+                        <Checkbox key={item.code} value={item.code}>
+                          {item.name}
+                        </Checkbox>
+                      ))}
+                    </Space>
+                  </Checkbox.Group>
+                </Form.Item>
+              </Flex>
 
-            <Row gutter={[24, 16]} align="bottom">
-              <Col xs={24} md={8}>
-                <Form.Item name="query" label={t("delivery.search_code")}>
-                  <Input
-                    allowClear
-                    prefix={<SearchOutlined />}
-                    placeholder={t("delivery.search_code")}
-                    onPressEnter={handleSearch}
-                  />
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={8}>
-                <Form.Item
-                  name="createdFrom"
-                  label={t("delivery.created_time")}
-                >
-                  <DatePicker
-                    style={{ width: "100%" }}
-                    format="DD/MM/YYYY"
-                    placeholder={t("delivery.start_date")}
-                  />
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={8}>
-                <Form.Item name="createdTo" label=" ">
-                  <DatePicker
-                    style={{ width: "100%" }}
-                    format="DD/MM/YYYY"
-                    placeholder={t("delivery.end_date")}
-                  />
-                </Form.Item>
-              </Col>
-            </Row>
-
-            <Flex
-              justify="flex-end"
-              align="center"
-              gap={token.marginLG}
-              style={{
-                width: "100%",
-                paddingTop: token.paddingSM,
-              }}
-            >
-              <Button
-                type="link"
-                icon={<SyncOutlined />}
-                onClick={handleReset}
-                style={{ paddingInline: 0, color: token.colorTextSecondary }}
-              >
-                Làm mới bộ lọc
-              </Button>
-              <Button
-                type="primary"
-                style={{ minWidth: 240 }}
-                onClick={handleSearch}
-              >
-                {t("order.search")}
-              </Button>
-            </Flex>
-          </Space>
-        </Form>
+              <Row gutter={[24, 16]} align="bottom">
+                <Col xs={24} md={8}>
+                  <Form.Item name="query" label={t("delivery.search_code")} style={{ marginBottom: 0 }}>
+                    <Input
+                      allowClear
+                      prefix={<SearchOutlined />}
+                      placeholder={t("delivery.search_code")}
+                      onPressEnter={handleSearch}
+                    />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={8}>
+                  <Form.Item
+                    name="createdFrom"
+                    label={t("delivery.created_time")}
+                    style={{ marginBottom: 0 }}
+                  >
+                    <DatePicker
+                      style={{ width: "100%" }}
+                      format="DD/MM/YYYY"
+                      placeholder={t("delivery.start_date")}
+                    />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={8}>
+                  <Form.Item name="createdTo" label=" " style={{ marginBottom: 0 }}>
+                    <DatePicker
+                      style={{ width: "100%" }}
+                      format="DD/MM/YYYY"
+                      placeholder={t("delivery.end_date")}
+                    />
+                  </Form.Item>
+                </Col>
+              </Row>
+            </Space>
+          }
+        />
       </Card>
 
       <Card>

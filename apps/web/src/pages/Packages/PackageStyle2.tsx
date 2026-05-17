@@ -1,4 +1,5 @@
-import { Table } from 'antd';
+import { Table, Button } from 'antd';
+import { DownloadOutlined } from '@ant-design/icons';
 import { TableComponent, Pagination } from '@repo/ui';
 import { ParcelMilestoneSteps } from '../../components/Package/ParcelMilestoneSteps';
 import { usePackagesPage } from './hooks/usePackagesPage';
@@ -85,6 +86,17 @@ export const PackageStyle2 = () => {
                 title="Danh sách kiện hàng"
                 totalCount={packageData?.total}
                 loading={isPackageLoading}
+                extra={
+                    handleExportOpen ? (
+                        <Button
+                            icon={<DownloadOutlined />}
+                            onClick={handleExportOpen}
+                            loading={isExporting}
+                        >
+                            Xuất Excel
+                        </Button>
+                    ) : null
+                }
             >
                 <Table
                     columns={columns}

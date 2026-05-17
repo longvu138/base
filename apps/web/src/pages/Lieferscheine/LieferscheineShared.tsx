@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import {
-  Button,
   Card,
+  Checkbox,
   Col,
   DatePicker,
   Empty,
@@ -11,7 +11,6 @@ import {
   Input,
   Pagination,
   Row,
-  Select,
   Space,
   Spin,
   Table,
@@ -21,8 +20,9 @@ import {
   theme,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
-import { SearchOutlined, SyncOutlined } from "@ant-design/icons";
+import { SearchOutlined } from "@ant-design/icons";
 import { moneyFormat, quantityFormat } from "@repo/util";
+import { FilterPanel } from "@repo/ui";
 import { useLieferscheinePage } from "./hooks/useLieferscheinePage";
 
 const { Text, Link, Paragraph, Title } = Typography;
@@ -70,106 +70,85 @@ export const LieferscheineFilter = ({
   const { token } = theme.useToken();
 
   return (
-    <Card
-      title={
-        <Title level={5} style={{ margin: 0 }}>
-          {page.t("order.search")}
-        </Title>
-      }
-      styles={{ body: { paddingTop: token.paddingMD } }}
-    >
-      <Form form={page.form} layout="vertical">
-        <Row gutter={[24, 16]} align="bottom">
-          <Col xs={24} md={6}>
-            <Form.Item name="query" label="Mã phiếu giao">
-              <Input
-                allowClear
-                prefix={<SearchOutlined />}
-                placeholder="Mã phiếu giao"
-                onPressEnter={page.handleSearch}
-              />
+    <Card className="mb-4 shadow-sm">
+      <FilterPanel
+        form={page.form}
+        onSearch={page.handleSearch}
+        onReset={page.handleReset}
+        searchText={page.t("order.search")}
+        resetText={page.t("order.filter_refresh")}
+        primaryContent={
+          <Space direction="vertical" size={token.marginMD} style={{ width: "100%" }}>
+            <Form.Item name="status" label="Trạng thái" style={{ marginBottom: 0 }}>
+              <Checkbox.Group>
+                <Space wrap>
+                  {page.statuses.map((item) => (
+                    <Checkbox key={item.value} value={item.value}>
+                      {item.label}
+                    </Checkbox>
+                  ))}
+                </Space>
+              </Checkbox.Group>
             </Form.Item>
-          </Col>
-          <Col xs={24} md={6}>
-            <Form.Item name="orderCode" label="Mã đơn">
-              <Input
-                allowClear
-                placeholder="Mã đơn"
-                onPressEnter={page.handleSearch}
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={24} md={6}>
-            <Form.Item label="Ngày tạo từ">
-              <Flex
-                align="center"
-                gap={token.marginXS}
-                style={{
-                  border: `1px solid ${token.colorBorder}`,
-                  borderRadius: token.borderRadius,
-                  paddingInline: token.paddingXS,
-                  background: token.colorBgContainer,
-                }}
-              >
-                <Form.Item name="issueDateFrom" noStyle>
-                  <DatePicker
-                    bordered={false}
-                    showTime={{ format: "HH:mm" }}
-                    style={{ flex: 1, minWidth: 0 }}
-                    format="DD/MM/YYYY HH:mm"
-                    placeholder="Từ"
+
+            <Row gutter={[24, 16]} align="bottom">
+              <Col xs={24} md={8}>
+                <Form.Item name="query" label="Mã phiếu giao" style={{ marginBottom: 0 }}>
+                  <Input
+                    allowClear
+                    prefix={<SearchOutlined />}
+                    placeholder="Mã phiếu giao"
+                    onPressEnter={page.handleSearch}
                   />
                 </Form.Item>
-                <Text type="secondary">-</Text>
-                <Form.Item name="issueDateTo" noStyle>
-                  <DatePicker
-                    bordered={false}
-                    showTime={{ format: "HH:mm" }}
-                    style={{ flex: 1, minWidth: 0 }}
-                    format="DD/MM/YYYY HH:mm"
-                    placeholder="Đến"
+              </Col>
+              <Col xs={24} md={8}>
+                <Form.Item name="orderCode" label="Mã đơn" style={{ marginBottom: 0 }}>
+                  <Input
+                    allowClear
+                    placeholder="Mã đơn"
+                    onPressEnter={page.handleSearch}
                   />
                 </Form.Item>
-              </Flex>
-            </Form.Item>
-          </Col>
-          <Col xs={24} md={6}>
-            <Form.Item name="status" label="Trạng thái">
-              <Select
-                allowClear
-                showSearch
-                optionFilterProp="label"
-                options={page.statuses.map((item) => ({
-                  label: item.label,
-                  value: item.value,
-                }))}
-              />
-            </Form.Item>
-          </Col>
-        </Row>
-        <Flex
-          justify="flex-end"
-          align="center"
-          gap={token.marginLG}
-          style={{ paddingTop: token.paddingXS }}
-        >
-          <Button
-            type="link"
-            icon={<SyncOutlined />}
-            onClick={page.handleReset}
-            style={{ paddingInline: 0, color: token.colorTextSecondary }}
-          >
-            {page.t("order.filter_refresh")}
-          </Button>
-          <Button
-            type="primary"
-            style={{ minWidth: 220 }}
-            onClick={page.handleSearch}
-          >
-            {page.t("order.search")}
-          </Button>
-        </Flex>
-      </Form>
+              </Col>
+              <Col xs={24} md={8}>
+                <Form.Item label="Ngày tạo từ" style={{ marginBottom: 0 }}>
+                  <Flex
+                    align="center"
+                    gap={token.marginXS}
+                    style={{
+                      border: `1px solid ${token.colorBorder}`,
+                      borderRadius: token.borderRadius,
+                      paddingInline: token.paddingXS,
+                      background: token.colorBgContainer,
+                    }}
+                  >
+                    <Form.Item name="issueDateFrom" noStyle>
+                      <DatePicker
+                        bordered={false}
+                        showTime={{ format: "HH:mm" }}
+                        style={{ flex: 1, minWidth: 0 }}
+                        format="DD/MM/YYYY HH:mm"
+                        placeholder="Từ"
+                      />
+                    </Form.Item>
+                    <Text type="secondary">-</Text>
+                    <Form.Item name="issueDateTo" noStyle>
+                      <DatePicker
+                        bordered={false}
+                        showTime={{ format: "HH:mm" }}
+                        style={{ flex: 1, minWidth: 0 }}
+                        format="DD/MM/YYYY HH:mm"
+                        placeholder="Đến"
+                      />
+                    </Form.Item>
+                  </Flex>
+                </Form.Item>
+              </Col>
+            </Row>
+          </Space>
+        }
+      />
     </Card>
   );
 };

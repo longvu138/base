@@ -23,10 +23,10 @@ import type { ColumnsType } from "antd/es/table";
 import {
   FilterOutlined,
   PlusOutlined,
-  RedoOutlined,
   SearchOutlined,
 } from "@ant-design/icons";
 import { quantityFormat } from "@repo/util";
+import { FilterPanel } from "@repo/ui";
 import { useDeliveryRequestsPage } from "./hooks/useDeliveryRequestsPage";
 
 const { Text, Title, Link } = Typography;
@@ -237,69 +237,62 @@ export const DeliveryRequestsStyle2 = () => {
         open={filterOpen}
         width={960}
         onClose={() => setFilterOpen(false)}
-        extra={
-          <Space>
-            <Button icon={<RedoOutlined />} onClick={handleReset}>
-              {t("order.filter_refresh")}
-            </Button>
-            <Button
-              type="primary"
-              icon={<SearchOutlined />}
-              onClick={() => {
-                handleSearch();
-                setFilterOpen(false);
-              }}
-            >
-              {t("order.search")}
-            </Button>
-          </Space>
-        }
       >
-        <Form form={form} layout="vertical">
-          <Space direction="vertical" size="middle" style={{ width: "100%" }}>
-            <div>
-              <Text strong>{t("delivery.status")}</Text>
-              <Form.Item
-                name="statuses"
-                style={{
-                  marginTop: token.marginSM,
-                  marginBottom: 0,
-                  padding: token.paddingSM,
-                  borderRadius: token.borderRadiusLG,
-                  background: token.colorFillQuaternary,
-                }}
-              >
-                <Checkbox.Group>
-                  <Space size={[token.marginLG, token.marginXS]} wrap>
-                    {statusData?.map((item: any) => (
-                      <Checkbox key={item.code} value={item.code}>
-                        {item.name}
-                      </Checkbox>
-                    ))}
-                  </Space>
-                </Checkbox.Group>
-              </Form.Item>
-            </div>
+        <FilterPanel
+          form={form}
+          onSearch={() => {
+            handleSearch();
+            setFilterOpen(false);
+          }}
+          onReset={handleReset}
+          searchText={t("order.search")}
+          resetText={t("order.filter_refresh")}
+          primaryContent={
+            <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+              <div>
+                <Text strong>{t("delivery.status")}</Text>
+                <Form.Item
+                  name="statuses"
+                  style={{
+                    marginTop: token.marginSM,
+                    marginBottom: 0,
+                    padding: token.paddingSM,
+                    borderRadius: token.borderRadiusLG,
+                    background: token.colorFillQuaternary,
+                  }}
+                >
+                  <Checkbox.Group>
+                    <Space size={[token.marginLG, token.marginXS]} wrap>
+                      {statusData?.map((item: any) => (
+                        <Checkbox key={item.code} value={item.code}>
+                          {item.name}
+                        </Checkbox>
+                      ))}
+                    </Space>
+                  </Checkbox.Group>
+                </Form.Item>
+              </div>
 
-            <Row gutter={[16, 0]}>
-              <Col xs={24} lg={8}>
-                <Form.Item name="query" label={t("delivery.search_code")}>
-                  <Input allowClear prefix={<SearchOutlined />} />
-                </Form.Item>
-              </Col>
-              <Col xs={24} lg={8}>
-                <Form.Item name="createdFrom" label={t("delivery.start_date")}>
-                  <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" />
-                </Form.Item>
-              </Col>
-              <Col xs={24} lg={8}>
-                <Form.Item name="createdTo" label={t("delivery.end_date")}>
-                  <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" />
-                </Form.Item>
-              </Col>
-            </Row>
-          </Space>
-        </Form>
+              <Row gutter={[16, 0]}>
+                <Col xs={24} lg={8}>
+                  <Form.Item name="query" label={t("delivery.search_code")} style={{ marginBottom: 0 }}>
+                    <Input allowClear prefix={<SearchOutlined />} />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} lg={8}>
+                  <Form.Item name="createdFrom" label={t("delivery.start_date")} style={{ marginBottom: 0 }}>
+                    <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} lg={8}>
+                  <Form.Item name="createdTo" label={t("delivery.end_date")} style={{ marginBottom: 0 }}>
+                    <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" />
+                  </Form.Item>
+                </Col>
+              </Row>
+            </Space>
+          }
+        />
       </Drawer>
     </Space>
   );

@@ -1,13 +1,11 @@
 import dayjs from 'dayjs';
-import { useState } from 'react';
 import {
     Form, Input as AntInput, Button as AntButton, Tag,
-    Skeleton as AntSkeleton, Tabs, Empty, Table, List,
+    Skeleton as AntSkeleton, Tabs, Empty, Table, List, Card,
 } from 'antd';
-import { Pagination } from '@repo/ui';
+import { Pagination, FilterPanel } from '@repo/ui';
 import {
-    SearchOutlined, RedoOutlined, WalletOutlined,
-    FilterOutlined, ArrowRightOutlined,
+    SearchOutlined, WalletOutlined, ArrowRightOutlined,
 } from '@ant-design/icons';
 import './WithdrawalSlipStyle3.css';
 import { useWithdrawalSlipsPage } from './hooks/useWithdrawalSlipsPage';
@@ -21,8 +19,6 @@ export const WithdrawalSlipStyle3 = ({ isTabView }: { isTabView?: boolean }) => 
         filters, listData, isWithdrawalSlipsLoading, statusData,
         handleSearch, handleReset, applyFilters
     } = useWithdrawalSlipsPage();
-
-    const [showFilters, setShowFilters] = useState(false);
 
     const getStatusTag = (status: string) => {
         const found = statusData?.find((s: any) => s.code === status);
@@ -115,47 +111,39 @@ export const WithdrawalSlipStyle3 = ({ isTabView }: { isTabView?: boolean }) => 
                 </div>
             )}
 
-            {/* Search + actions */}
-            <div className="flex flex-wrap gap-3">
-                <Form form={form} component={false}>
-                    <Form.Item name="query" noStyle>
-                        <AntInput
-                            placeholder="Mã phiếu, ngân hàng..."
-                            prefix={<SearchOutlined className="text-gray-400" />}
-                            className="w-full md:w-80 h-11 rounded-2xl bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700"
-                            onPressEnter={handleSearch}
-                        />
-                    </Form.Item>
-                </Form>
-                <AntButton type="primary" icon={<SearchOutlined />} onClick={handleSearch}
-                    className="h-11 px-8 rounded-2xl font-bold shadow-lg shadow-primary/20">
-                    Tìm kiếm
-                </AntButton>
-                <AntButton icon={<FilterOutlined />} onClick={() => setShowFilters(!showFilters)}
-                    className={`h-11 px-5 rounded-2xl font-bold transition-all ${showFilters ? 'bg-primary/10 text-primary border-primary/20' : 'bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700'}`}>
-                    Bộ lọc
-                </AntButton>
-                <AntButton icon={<RedoOutlined />} onClick={handleReset}
-                    className="h-11 px-5 rounded-2xl font-bold border-gray-200 dark:border-gray-700 hover:text-primary transition-all bg-gray-50 dark:bg-gray-900">
-                    Làm mới
-                </AntButton>
-            </div>
-
-            {/* Advanced Filters */}
-            <div className={`overflow-hidden transition-all duration-300 ease-in-out ${showFilters ? 'max-h-[400px] opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
-                    <Form form={form} layout="vertical" onValuesChange={() => applyFilters(form.getFieldsValue())}>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <Form.Item name="bankName" label="Tên ngân hàng" className="mb-0">
-                                <AntInput placeholder="VD: Vietcombank" className="h-11 rounded-2xl bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700" />
-                            </Form.Item>
-                            <Form.Item name="bankAccountNumber" label="Số tài khoản" className="mb-0">
-                                <AntInput placeholder="VD: 0123456789" className="h-11 rounded-2xl bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700" />
-                            </Form.Item>
+            {/* Standard FilterPanel */}
+            <Card className="mb-4 shadow-sm rounded-3xl border border-gray-100 dark:border-gray-700">
+                <FilterPanel
+                    form={form}
+                    onSearch={handleSearch}
+                    onReset={handleReset}
+                    searchText="Tìm kiếm"
+                    resetText="Làm mới"
+                    showCollapseAll={true}
+                    primaryContent={
+                        <Form.Item name="query" label="Tìm kiếm" style={{ marginBottom: 0 }}>
+                            <AntInput
+                                placeholder="Mã phiếu, ngân hàng..."
+                                prefix={<SearchOutlined className="text-gray-400" />}
+                                className="h-11 rounded-2xl bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700"
+                                onPressEnter={handleSearch}
+                            />
+                        </Form.Item>
+                    }
+                    secondaryContent={
+                        <div style={{ marginTop: 16 }}>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <Form.Item name="bankName" label="Tên ngân hàng" style={{ marginBottom: 0 }}>
+                                    <AntInput placeholder="VD: Vietcombank" className="h-11 rounded-2xl bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700" />
+                                </Form.Item>
+                                <Form.Item name="bankAccountNumber" label="Số tài khoản" style={{ marginBottom: 0 }}>
+                                    <AntInput placeholder="VD: 0123456789" className="h-11 rounded-2xl bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700" />
+                                </Form.Item>
+                            </div>
                         </div>
-                    </Form>
-                </div>
-            </div>
+                    }
+                />
+            </Card>
 
             {/* Status Tabs */}
             <div className="bg-white dark:bg-gray-800 p-1 rounded-2xl border border-gray-100 dark:border-gray-700 inline-block overflow-hidden max-w-full">

@@ -4,7 +4,6 @@ import {
   Card,
   Drawer,
   Flex,
-  Form,
   Input,
   Space,
   Tag,
@@ -19,6 +18,7 @@ import {
   SyncOutlined,
 } from "@ant-design/icons";
 import { quantityFormat } from "@repo/util";
+import { FilterPanel } from "@repo/ui";
 import { useWaybillsPage } from "./hooks/useWaybillsPage";
 import {
   WaybillCreateModal,
@@ -99,23 +99,15 @@ export const WaybillsStyle3 = () => {
         </Flex>
       </Card>
 
-      <Card>
-        <Form form={page.form} layout="vertical">
-          <WaybillFilterFields page={page} />
-          <Flex justify="flex-end" gap={token.marginLG}>
-            <Button
-              type="link"
-              icon={<SyncOutlined />}
-              onClick={handleReset}
-              style={{ paddingInline: 0, color: token.colorTextSecondary }}
-            >
-              {page.t("order.filter_refresh")}
-            </Button>
-            <Button type="primary" style={{ minWidth: 240 }} onClick={handleFilterSearch}>
-              {page.t("order.search")}
-            </Button>
-          </Flex>
-        </Form>
+      <Card className="mb-4 shadow-sm">
+        <FilterPanel
+          form={page.form}
+          onSearch={handleFilterSearch}
+          onReset={handleReset}
+          searchText={page.t("order.search")}
+          resetText={page.t("order.filter_refresh")}
+          primaryContent={<WaybillFilterFields page={page} />}
+        />
       </Card>
 
       <WaybillListCard page={page} />
@@ -125,24 +117,18 @@ export const WaybillsStyle3 = () => {
         open={filterOpen}
         width={960}
         onClose={() => setFilterOpen(false)}
-        extra={
-          <Space>
-            <Button onClick={handleReset}>{page.t("order.filter_refresh")}</Button>
-            <Button
-              type="primary"
-              onClick={() => {
-                handleFilterSearch();
-                setFilterOpen(false);
-              }}
-            >
-              {page.t("order.search")}
-            </Button>
-          </Space>
-        }
       >
-        <Form form={page.form} layout="vertical">
-          <WaybillFilterFields page={page} />
-        </Form>
+        <FilterPanel
+          form={page.form}
+          onSearch={() => {
+            handleFilterSearch();
+            setFilterOpen(false);
+          }}
+          onReset={handleReset}
+          searchText={page.t("order.search")}
+          resetText={page.t("order.filter_refresh")}
+          primaryContent={<WaybillFilterFields page={page} />}
+        />
       </Drawer>
 
       <WaybillCreateModal page={page} />

@@ -1,6 +1,5 @@
 import dayjs from "dayjs";
 import {
-  Button,
   Card,
   Col,
   DatePicker,
@@ -18,8 +17,9 @@ import {
   theme,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
-import { SearchOutlined, SyncOutlined } from "@ant-design/icons";
+import { SearchOutlined } from "@ant-design/icons";
 import { moneyFormat, quantityFormat } from "@repo/util";
+import { FilterPanel } from "@repo/ui";
 import { useDeliveryNotesPage } from "./hooks/useDeliveryNotesPage";
 
 const { Text, Link, Paragraph, Title } = Typography;
@@ -34,64 +34,53 @@ const getNote = (record: any) => record?.delivery_note || {};
 const moneyCeil = (value: unknown) => Math.ceil(Number(value || 0));
 
 export const DeliveryNotesFilter = ({ page }: { page: DeliveryNotesPageState }) => {
-  const { token } = theme.useToken();
-
   return (
-    <Card
-      title={<Title level={5} style={{ margin: 0 }}>{page.t("order.search")}</Title>}
-      styles={{ body: { paddingTop: token.paddingMD } }}
-    >
-      <Form form={page.form} layout="vertical">
-        <Row gutter={[20, 16]} align="bottom">
-          <Col xs={24} md={12}>
-            <Form.Item name="code" label="Mã phiếu xuất">
-              <Input
-                allowClear
-                prefix={<SearchOutlined />}
-                placeholder="Mã phiếu xuất"
-                onPressEnter={page.handleSearch}
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={24} md={12}>
-            <Form.Item label="Thời gian tạo">
-              <Row gutter={20}>
-                <Col span={12}>
-                  <Form.Item name="exportedAtFrom" noStyle>
-                    <DatePicker
-                      style={{ width: "100%" }}
-                      format="DD/MM/YYYY"
-                      placeholder="Ngày bắt đầu"
-                    />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item name="exportedAtTo" noStyle>
-                    <DatePicker
-                      style={{ width: "100%" }}
-                      format="DD/MM/YYYY"
-                      placeholder="Ngày kết thúc"
-                    />
-                  </Form.Item>
-                </Col>
-              </Row>
-            </Form.Item>
-          </Col>
-        </Row>
-        <Flex justify="flex-end" align="center" gap={token.marginLG}>
-          <Button
-            type="link"
-            icon={<SyncOutlined />}
-            onClick={page.handleReset}
-            style={{ paddingInline: 0, color: token.colorTextSecondary }}
-          >
-            {page.t("order.filter_refresh")}
-          </Button>
-          <Button type="primary" style={{ minWidth: 220 }} onClick={page.handleSearch}>
-            {page.t("order.search")}
-          </Button>
-        </Flex>
-      </Form>
+    <Card className="mb-4 shadow-sm">
+      <FilterPanel
+        form={page.form}
+        onSearch={page.handleSearch}
+        onReset={page.handleReset}
+        searchText={page.t("order.search")}
+        resetText={page.t("order.filter_refresh")}
+        primaryContent={
+          <Row gutter={[20, 16]} align="bottom">
+            <Col xs={24} md={12}>
+              <Form.Item name="code" label="Mã phiếu xuất" style={{ marginBottom: 0 }}>
+                <Input
+                  allowClear
+                  prefix={<SearchOutlined />}
+                  placeholder="Mã phiếu xuất"
+                  onPressEnter={page.handleSearch}
+                />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={12}>
+              <Form.Item label="Thời gian tạo" style={{ marginBottom: 0 }}>
+                <Row gutter={20}>
+                  <Col span={12}>
+                    <Form.Item name="exportedAtFrom" noStyle>
+                      <DatePicker
+                        style={{ width: "100%" }}
+                        format="DD/MM/YYYY"
+                        placeholder="Ngày bắt đầu"
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item name="exportedAtTo" noStyle>
+                      <DatePicker
+                        style={{ width: "100%" }}
+                        format="DD/MM/YYYY"
+                        placeholder="Ngày kết thúc"
+                      />
+                    </Form.Item>
+                  </Col>
+                </Row>
+              </Form.Item>
+            </Col>
+          </Row>
+        }
+      />
     </Card>
   );
 };

@@ -11,6 +11,7 @@ import {
   Image,
   Input,
   Pagination,
+  Radio,
   Row,
   Space,
   Table,
@@ -18,18 +19,12 @@ import {
   Typography,
   theme,
 } from "antd";
-import { SyncOutlined } from "@ant-design/icons";
 import { useTranslation } from "@repo/i18n";
 import { moneyFormat, quantityFormat } from "@repo/util";
+import { FilterPanel } from "@repo/ui";
 import { useClaimsPage } from "../hooks/useClaimsPage";
 
 const { Text, Title } = Typography;
-
-const asArray = (value: any) => {
-  if (!value) return [];
-  if (Array.isArray(value)) return value;
-  return String(value).split(",").filter(Boolean);
-};
 
 const getStatusView = (record: any, statuses: any[] = []) => {
   if (record.publicStateNewView) return record.publicStateNewView;
@@ -58,25 +53,9 @@ export const GobizClaimsList = () => {
     solutionData = [],
     handleSearch,
     handleReset,
-    applyFilters,
   } = useClaimsPage();
 
-  const activePublicStates = asArray(filters.publicStates);
-  const activeSolutions = asArray(filters.solutionCode);
-  const activeTicketType = filters.ticketType || "";
-
-  const updateFilter = (key: string, value: any) => {
-    form.setFieldsValue({ [key]: value });
-    applyFilters({ ...form.getFieldsValue(), [key]: value });
-  };
-
-  const toggleMultiFilter = (key: string, code: string) => {
-    const current = asArray(form.getFieldValue(key) ?? filters[key]);
-    const next = current.includes(code)
-      ? current.filter((item: string) => item !== code)
-      : [...current, code];
-    updateFilter(key, next);
-  };
+  const activeTicketType = Form.useWatch("ticketType", form) || filters.ticketType || "";
 
   const solutionsByTicketType = activeTicketType
     ? solutionData.filter((item: any) => item.subject === activeTicketType)
@@ -194,121 +173,78 @@ export const GobizClaimsList = () => {
 
   return (
     <Space direction="vertical" size={token.margin} style={{ width: "100%" }}>
-      <Card>
-        <Form form={form} layout="vertical" onFinish={handleSearch}>
-          <Space direction="vertical" size={token.margin} style={{ width: "100%" }}>
-            <Row gutter={[token.marginSM, token.marginSM]} align="top">
-              <Col flex="110px">
-                <Text>{t("tickets.status")}:</Text>
-              </Col>
-              <Col flex="auto">
-                <Space size={token.marginXS} wrap>
-                  {statusData.map((item: any) => {
-                    const checked = activePublicStates.includes(item.code);
-                    return (
-                      <Tag.CheckableTag
-                        key={item.code}
-                        checked={checked}
-                        onChange={() => toggleMultiFilter("publicStates", item.code)}
-                        style={{
-                          border: `1px solid ${checked ? token.colorPrimary : token.colorBorder}`,
-                          borderRadius: token.borderRadiusSM,
-                          paddingInline: token.paddingSM,
-                        }}
-                      >
+      <Card className="mb-4 shadow-sm">
+        <FilterPanel
+          form={form}
+          onSearch={handleSearch}
+          onReset={handleReset}
+          searchText={t("order.search")}
+          resetText={t("order.filter_refresh")}
+          primaryContent={
+            <Space direction="vertical" size={token.margin} style={{ width: "100%" }}>
+              <Form.Item name="publicStates" label={t("tickets.status")} style={{ marginBottom: 0 }}>
+                <Checkbox.Group>
+                  <Space wrap>
+                    {statusData.map((item: any) => (
+                      <Checkbox key={item.code} value={item.code}>
                         {item.name}
-                      </Tag.CheckableTag>
-                    );
-                  })}
-                </Space>
-              </Col>
-            </Row>
+                      </Checkbox>
+                    ))}
+                  </Space>
+                </Checkbox.Group>
+              </Form.Item>
 
-            <Row gutter={[token.marginSM, token.marginSM]} align="top">
-              <Col flex="110px">
-                <Text>{t("tickets.solution")}:</Text>
-              </Col>
-              <Col flex="auto">
-                <Space size={token.marginXS} wrap>
-                  {solutionsByTicketType.map((item: any) => {
-                    const checked = activeSolutions.includes(item.code);
-                    return (
-                      <Tag.CheckableTag
-                        key={`${item.subject || "all"}-${item.code}`}
-                        checked={checked}
-                        onChange={() => toggleMultiFilter("solutionCode", item.code)}
-                        style={{
-                          border: `1px solid ${checked ? token.colorPrimary : token.colorBorder}`,
-                          borderRadius: token.borderRadiusSM,
-                          paddingInline: token.paddingSM,
-                        }}
-                      >
+              <Form.Item name="solutionCode" label={t("tickets.solution")} style={{ marginBottom: 0 }}>
+                <Checkbox.Group>
+                  <Space wrap>
+                    {solutionsByTicketType.map((item: any) => (
+                      <Checkbox key={`${item.subject || "all"}-${item.code}`} value={item.code}>
                         {item.name}
-                      </Tag.CheckableTag>
-                    );
-                  })}
-                </Space>
-              </Col>
-            </Row>
+                      </Checkbox>
+                    ))}
+                  </Space>
+                </Checkbox.Group>
+              </Form.Item>
 
-            <Row gutter={[token.marginSM, token.marginSM]}>
-              <Col span={24}>
-                <Space wrap>
-                  <Checkbox
-                    checked={activeTicketType === "order"}
-                    onChange={(event) => updateFilter("ticketType", event.target.checked ? "order" : "")}
-                  >
-                    {t("menu.orders")}
-                  </Checkbox>
-                  <Checkbox
-                    checked={activeTicketType === "shipment"}
-                    onChange={(event) =>
-                      updateFilter("ticketType", event.target.checked ? "shipment" : "")
-                    }
-                  >
-                    {t("menu.shipments")}
-                  </Checkbox>
-                </Space>
-              </Col>
-            </Row>
+              <Form.Item name="ticketType" label="Loại khiếu nại" style={{ marginBottom: 0 }}>
+                <Radio.Group onChange={() => handleSearch()}>
+                  <Space wrap>
+                    <Radio value="">Tất cả</Radio>
+                    <Radio value="order">{t("menu.orders")}</Radio>
+                    <Radio value="shipment">{t("menu.shipments")}</Radio>
+                  </Space>
+                </Radio.Group>
+              </Form.Item>
 
-            <Row gutter={[token.margin, token.marginSM]}>
-              <Col xs={24} md={8}>
-                <Form.Item name="code" label={`${t("tickets.enter_code")}:`}>
-                  <Input
-                    placeholder={t("tickets.code")}
-                    onPressEnter={handleSearch}
-                  />
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={8}>
-                <Form.Item name="relatedOrder" label={`${t("tickets.enter_order_code")}:`}>
-                  <Input
-                    placeholder={t("tickets.order_code")}
-                    onPressEnter={handleSearch}
-                  />
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={8}>
-                <Form.Item name="relatedProduct" label={`${t("tickets.enter_product_code")}:`}>
-                  <Input
-                    placeholder={t("tickets.product_code")}
-                    onPressEnter={handleSearch}
-                  />
-                </Form.Item>
-              </Col>
-            </Row>
-
-            <Flex justify="flex-end" align="center" gap={token.margin}>
-              <Button type="text" icon={<SyncOutlined />} onClick={handleReset}>
-                {t("order.filter_refresh")}
-              </Button>
-              <Button type="primary" htmlType="submit" style={{ minWidth: 200 }}>
-                {t("order.search")}
-              </Button>
-            </Flex>
-          </Space>
-        </Form>
+              <Row gutter={[token.margin, token.marginSM]}>
+                <Col xs={24} md={8}>
+                  <Form.Item name="code" label={`${t("tickets.enter_code")}:`} style={{ marginBottom: 0 }}>
+                    <Input
+                      placeholder={t("tickets.code")}
+                      onPressEnter={handleSearch}
+                    />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={8}>
+                  <Form.Item name="relatedOrder" label={`${t("tickets.enter_order_code")}:`} style={{ marginBottom: 0 }}>
+                    <Input
+                      placeholder={t("tickets.order_code")}
+                      onPressEnter={handleSearch}
+                    />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={8}>
+                  <Form.Item name="relatedProduct" label={`${t("tickets.enter_product_code")}:`} style={{ marginBottom: 0 }}>
+                    <Input
+                      placeholder={t("tickets.product_code")}
+                      onPressEnter={handleSearch}
+                    />
+                  </Form.Item>
+                </Col>
+              </Row>
+            </Space>
+          }
+        />
       </Card>
 
       <Card

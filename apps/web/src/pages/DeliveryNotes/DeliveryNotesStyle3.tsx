@@ -1,5 +1,4 @@
 import {
-  Button,
   Card,
   Col,
   DatePicker,
@@ -13,8 +12,9 @@ import {
   Typography,
   theme,
 } from "antd";
-import { SearchOutlined, SyncOutlined } from "@ant-design/icons";
+import { SearchOutlined } from "@ant-design/icons";
 import { moneyFormat, quantityFormat } from "@repo/util";
+import { FilterPanel } from "@repo/ui";
 import { useDeliveryNotesPage } from "./hooks/useDeliveryNotesPage";
 import { DeliveryNotesList } from "./DeliveryNotesShared";
 
@@ -51,37 +51,38 @@ export const DeliveryNotesStyle3 = ({ isTabView }: { isTabView?: boolean }) => {
         </Card>
       )}
 
-      <Card>
-        <Form form={page.form} layout="vertical">
-          <Row gutter={[16, 12]} align="bottom">
-            <Col xs={24} md={8}>
-              <Form.Item name="code" label="Mã phiếu xuất">
-                <Input
-                  allowClear
-                  prefix={<SearchOutlined />}
-                  placeholder="Mã phiếu xuất"
-                  onPressEnter={page.handleSearch}
-                />
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={6}>
-              <Form.Item name="exportedAtFrom" label="Ngày bắt đầu">
-                <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" />
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={6}>
-              <Form.Item name="exportedAtTo" label="Ngày kết thúc">
-                <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" />
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={4}>
-              <Flex gap={token.marginXS}>
-                <Button type="primary" icon={<SearchOutlined />} onClick={page.handleSearch} />
-                <Button icon={<SyncOutlined />} onClick={page.handleReset} />
-              </Flex>
-            </Col>
-          </Row>
-        </Form>
+      <Card className="mb-4 shadow-sm">
+        <FilterPanel
+          form={page.form}
+          onSearch={page.handleSearch}
+          onReset={page.handleReset}
+          searchText="Tìm kiếm"
+          resetText="Làm mới"
+          primaryContent={
+            <Row gutter={[16, 12]} align="bottom">
+              <Col xs={24} md={8}>
+                <Form.Item name="code" label="Mã phiếu xuất" style={{ marginBottom: 0 }}>
+                  <Input
+                    allowClear
+                    prefix={<SearchOutlined />}
+                    placeholder="Mã phiếu xuất"
+                    onPressEnter={page.handleSearch}
+                  />
+                </Form.Item>
+              </Col>
+              <Col xs={24} md={8}>
+                <Form.Item name="exportedAtFrom" label="Ngày bắt đầu" style={{ marginBottom: 0 }}>
+                  <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" />
+                </Form.Item>
+              </Col>
+              <Col xs={24} md={8}>
+                <Form.Item name="exportedAtTo" label="Ngày kết thúc" style={{ marginBottom: 0 }}>
+                  <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" />
+                </Form.Item>
+              </Col>
+            </Row>
+          }
+        />
       </Card>
 
       <DeliveryNotesList page={page} compactHeader={isTabView} />
