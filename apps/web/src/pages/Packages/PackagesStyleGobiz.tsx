@@ -3,7 +3,7 @@ import { Card, Space, Tabs, Typography, theme } from 'antd';
 import { BarcodeOutlined, InboxOutlined, FileTextOutlined } from '@ant-design/icons';
 import { PackageStyleGobiz } from './PackageStyleGobiz';
 import { DeliveryRequestsStyleGobiz } from '../DeliveryRequests/DeliveryRequestsStyleGobiz';
-import { DeliveryNoteStyleGobiz } from '../DeliveryNotes/DeliveryNoteStyleGobiz';
+import { DeliveryNoteStyleGobiz } from '../DeliveryNotes/DeliveryNotesStyleGobiz';
 import { useSearchParams } from 'react-router-dom';
 
 /**
@@ -13,7 +13,7 @@ import { useSearchParams } from 'react-router-dom';
  * giống cách OrdersStyleGobizCombined.tsx gom Orders + Shipments.
  *
  * Tên export = PackagesStyleGobiz để DynamicVariant resolve đúng:
- *   useVariant('packages', 'PackagesStyleDefault') + variantCode 'gobiz' → 'PackagesStyleGobiz'
+     *   useVariant('packages', 'PackageStyleDefault') + variantCode 'gobiz' → 'PackagesStyleGobiz'
  */
 export const PackagesStyleGobiz: React.FC = () => {
     const { token } = theme.useToken();
