@@ -104,7 +104,7 @@ export const PackageExportModal = ({ page }: { page: any }) => {
 
     return (
         <Modal
-            title={page.t('orders.export_pin')}
+            title={page.t('Xác nhận mã pin của bạn')}
             open={page.exportOpen}
             onCancel={() => page.setExportOpen(false)}
             okText={page.t('common.export')}
@@ -119,7 +119,7 @@ export const PackageExportModal = ({ page }: { page: any }) => {
             <Form form={form} layout="vertical">
                 <Form.Item
                     name="secret"
-                    label={page.t('orders.input_pin')}
+                    label={page.t('Vui lòng nhập mã PIN để thực hiện thao tác này')}
                     rules={[{ required: true, message: page.t('message.required') }]}
                 >
                     <Input.Password />

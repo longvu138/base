@@ -732,7 +732,7 @@ export const OrdersStyleDefault = () => {
           />
         </Spin>
 
-        <Flex justify="center" style={{ marginTop: token.marginLG }}>
+        <Flex justify="flex-end" style={{ marginTop: token.marginLG }}>
           <Pagination
             current={page}
             pageSize={pageSize}

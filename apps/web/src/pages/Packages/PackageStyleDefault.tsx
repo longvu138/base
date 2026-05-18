@@ -1,5 +1,5 @@
-import { Table, Button } from "antd";
-import { DownloadOutlined } from "@ant-design/icons";
+import { Table, Button, Tooltip } from "antd";
+import { DownloadOutlined, QuestionCircleOutlined } from "@ant-design/icons";
 import {
   TableComponent,
   Pagination,
@@ -15,6 +15,41 @@ import {
   PackageStatusTag,
 } from "./PackageShared";
 import { formatPackageDate } from "./PackageUtils";
+
+const numberFormatter = new Intl.NumberFormat("vi-VN");
+
+function formatCm(value: number | string | null | undefined) {
+  const numberValue = Number(value || 0);
+  return `${numberFormatter.format(numberValue)} cm`;
+}
+
+function formatCm3(value: number | string | null | undefined) {
+  if (!value) return "Chưa xác định";
+  return `${numberFormatter.format(Number(value))} cm3`;
+}
+
+function formatKg(value: number | string | null | undefined) {
+  if (!value) return "---";
+  return `${numberFormatter.format(Number(value))} kg`;
+}
+
+function PackageDimensionsCell({ record }: { record: any }) {
+  return (
+    <div style={{ textAlign: "left", lineHeight: 1.6 }}>
+      <div>
+        <span>{formatCm3(record.volumetric)}</span>
+        <Tooltip title="Dài × Rộng × Cao">
+          <QuestionCircleOutlined
+            style={{ marginLeft: 8, color: "#bfbfbf", cursor: "help" }}
+          />
+        </Tooltip>
+      </div>
+      <div style={{ color: "#8c8c8c", fontWeight: 600 }}>
+        {formatCm(record.length)}×{formatCm(record.width)}×{formatCm(record.height)}
+      </div>
+    </div>
+  );
+}
 
 export const PackageStyleDefault = () => {
   const pageState = usePackagesPage();
@@ -57,16 +92,15 @@ export const PackageStyleDefault = () => {
       render: (text: string) => <CopyableText text={text} />,
     },
     {
-      title: "Cân nặng (kg)",
-      dataIndex: "weight",
-      key: "weight",
-      render: (val: number) => val?.toFixed(2) || "0.00",
+      title: "Cân nặng",
+      dataIndex: "actualWeight",
+      key: "actualWeight",
+      render: (val: number) => formatKg(val),
     },
     {
-      title: "Kích thước",
+      title: "Thông số",
       key: "dimensions",
-      render: (_: any, record: any) =>
-        `${record.length || 0}x${record.width || 0}x${record.height || 0}`,
+      render: (_: any, record: any) => <PackageDimensionsCell record={record} />,
     },
     {
       title: "Ngày tạo",
@@ -86,14 +120,14 @@ export const PackageStyleDefault = () => {
   return (
     <div className="min-h-screen bg-layout p-4 space-y-4">
       <PackageGobizFilter
-          form={form}
-          statusData={packageStatusData || []}
-          filters={filters}
-          handleSearch={handleSearch}
-          handleReset={handleReset}
-          handleExportOpen={handleExportOpen}
-          isExporting={isExporting}
-        />
+        form={form}
+        statusData={packageStatusData || []}
+        filters={filters}
+        handleSearch={handleSearch}
+        handleReset={handleReset}
+        handleExportOpen={handleExportOpen}
+        isExporting={isExporting}
+      />
 
       <TableComponent
         title="Danh sách kiện hàng"

@@ -42,13 +42,19 @@ export const LoginStyleThanhla = () => {
                         type="text"
                         value={login.credentials.username}
                         onChange={(e) => login.updateField('username', e.target.value)}
-                        className="w-full bg-transparent border-b-2 border-gray-200 py-3 text-lg outline-none focus:border-black transition-colors peer"
+                        className={`w-full bg-transparent border-b-2 py-3 text-lg outline-none transition-colors peer ${
+                            login.loginError ? 'border-red-500 focus:border-red-600' : 'border-gray-200 focus:border-black'
+                        }`}
                         placeholder=" "
                         id="username"
                     />
                     <label
                         htmlFor="username"
-                        className="absolute left-0 top-3 text-gray-400 text-lg transition-all pointer-events-none peer-focus:-top-6 peer-focus:text-sm peer-focus:text-black peer-[:not(:placeholder-shown)]:-top-6 peer-[:not(:placeholder-shown)]:text-sm peer-[:not(:placeholder-shown)]:text-black"
+                        className={`absolute left-0 top-3 text-lg transition-all pointer-events-none peer-focus:-top-6 peer-focus:text-sm peer-[:not(:placeholder-shown)]:-top-6 peer-[:not(:placeholder-shown)]:text-sm ${
+                            login.loginError
+                                ? 'text-red-500 peer-focus:text-red-600 peer-[:not(:placeholder-shown)]:text-red-500'
+                                : 'text-gray-400 peer-focus:text-black peer-[:not(:placeholder-shown)]:text-black'
+                        }`}
                     >
                         {t('auth.login.username')}
                     </label>
@@ -59,16 +65,25 @@ export const LoginStyleThanhla = () => {
                         type="password"
                         value={login.credentials.password}
                         onChange={(e) => login.updateField('password', e.target.value)}
-                        className="w-full bg-transparent border-b-2 border-gray-200 py-3 text-lg outline-none focus:border-black transition-colors peer"
+                        className={`w-full bg-transparent border-b-2 py-3 text-lg outline-none transition-colors peer ${
+                            login.loginError ? 'border-red-500 focus:border-red-600' : 'border-gray-200 focus:border-black'
+                        }`}
                         placeholder=" "
                         id="password"
                     />
                     <label
                         htmlFor="password"
-                        className="absolute left-0 top-3 text-gray-400 text-lg transition-all pointer-events-none peer-focus:-top-6 peer-focus:text-sm peer-focus:text-black peer-[:not(:placeholder-shown)]:-top-6 peer-[:not(:placeholder-shown)]:text-sm peer-[:not(:placeholder-shown)]:text-black"
+                        className={`absolute left-0 top-3 text-lg transition-all pointer-events-none peer-focus:-top-6 peer-focus:text-sm peer-[:not(:placeholder-shown)]:-top-6 peer-[:not(:placeholder-shown)]:text-sm ${
+                            login.loginError
+                                ? 'text-red-500 peer-focus:text-red-600 peer-[:not(:placeholder-shown)]:text-red-500'
+                                : 'text-gray-400 peer-focus:text-black peer-[:not(:placeholder-shown)]:text-black'
+                        }`}
                     >
                         {t('auth.login.password')}
                     </label>
+                    {login.loginError && (
+                        <div className="text-red-500 text-xs mt-1.5">{login.loginError}</div>
+                    )}
                 </div>
 
                 <button

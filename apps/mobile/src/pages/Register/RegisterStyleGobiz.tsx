@@ -1,6 +1,17 @@
 import { Form, Input, Button, Typography, Card, Checkbox } from 'antd';
 import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined, IdcardOutlined, ArrowRightOutlined, RocketOutlined, UserAddOutlined } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
+import {
+    confirmPasswordRules,
+    emailRules,
+    fullnameRules,
+    normalizePhone,
+    passwordRules,
+    phoneRules,
+    RegisterTermsContent,
+    termsRules,
+    usernameRules,
+} from './RegisterShared';
 import './RegisterStyleGobiz.css';
 
 const { Title, Text } = Typography;
@@ -46,7 +57,7 @@ export const RegisterStyleGobiz = ({ form, onFinish, isLoading, projectInfo }: a
                         <Form.Item
                             name="fullname"
                             label={<span className="label-bold">Họ và tên</span>}
-                            rules={[{ required: true, message: 'Nhập họ tên!' }]}
+                            rules={fullnameRules}
                         >
                             <Input prefix={<IdcardOutlined />} placeholder="Họ và tên của bạn" size="large" className="premium-input" />
                         </Form.Item>
@@ -54,7 +65,7 @@ export const RegisterStyleGobiz = ({ form, onFinish, isLoading, projectInfo }: a
                         <Form.Item
                             name="username"
                             label={<span className="label-bold">Tên đăng nhập</span>}
-                            rules={[{ required: true, message: 'Nhập tên đăng nhập!' }]}
+                            rules={usernameRules}
                         >
                             <Input prefix={<UserOutlined />} placeholder="Tên đăng nhập" size="large" className="premium-input" />
                         </Form.Item>
@@ -62,10 +73,7 @@ export const RegisterStyleGobiz = ({ form, onFinish, isLoading, projectInfo }: a
                         <Form.Item
                             name="email"
                             label={<span className="label-bold">Email</span>}
-                            rules={[
-                                { required: true, message: 'Nhập email!' },
-                                { type: 'email', message: 'Sai định dạng!' }
-                            ]}
+                            rules={emailRules}
                         >
                             <Input prefix={<MailOutlined />} placeholder="email@example.com" size="large" className="premium-input" />
                         </Form.Item>
@@ -73,7 +81,8 @@ export const RegisterStyleGobiz = ({ form, onFinish, isLoading, projectInfo }: a
                         <Form.Item
                             name="phone"
                             label={<span className="label-bold">Số điện thoại</span>}
-                            rules={[{ required: true, message: 'Nhập số điện thoại!' }]}
+                            getValueFromEvent={normalizePhone}
+                            rules={phoneRules}
                         >
                             <Input prefix={<PhoneOutlined />} placeholder="+84 ..." size="large" className="premium-input" />
                         </Form.Item>
@@ -81,7 +90,7 @@ export const RegisterStyleGobiz = ({ form, onFinish, isLoading, projectInfo }: a
                         <Form.Item
                             name="password"
                             label={<span className="label-bold">Mật khẩu</span>}
-                            rules={[{ required: true, message: 'Nhập mật khẩu!' }]}
+                            rules={passwordRules}
                         >
                             <Input.Password prefix={<LockOutlined />} placeholder="••••••••" size="large" className="premium-input" />
                         </Form.Item>
@@ -90,17 +99,7 @@ export const RegisterStyleGobiz = ({ form, onFinish, isLoading, projectInfo }: a
                             name="confirm"
                             label={<span className="label-bold">Xác nhận mật khẩu</span>}
                             dependencies={['password']}
-                            rules={[
-                                { required: true, message: 'Xác nhận mật khẩu!' },
-                                ({ getFieldValue }) => ({
-                                    validator(_, value) {
-                                        if (!value || getFieldValue('password') === value) {
-                                            return Promise.resolve();
-                                        }
-                                        return Promise.reject(new Error('Không khớp!'));
-                                    },
-                                }),
-                            ]}
+                            rules={confirmPasswordRules}
                         >
                             <Input.Password prefix={<LockOutlined />} placeholder="••••••••" size="large" className="premium-input" />
                         </Form.Item>
@@ -115,15 +114,10 @@ export const RegisterStyleGobiz = ({ form, onFinish, isLoading, projectInfo }: a
                         <Form.Item
                             name="terms"
                             valuePropName="checked"
-                            rules={[
-                                {
-                                    validator: (_, value) =>
-                                        value ? Promise.resolve() : Promise.reject(new Error('Vui lòng đồng ý điều khoản!')),
-                                },
-                            ]}
+                            rules={termsRules}
                         >
                             <Checkbox>
-                                <span className="text-sm">Tôi đồng ý với <Link to="/terms" className="text-primary">điều khoản & chính sách</Link></span>
+                                <RegisterTermsContent projectInfo={projectInfo} linkClassName="text-primary" className="text-sm" />
                             </Checkbox>
                         </Form.Item>
 

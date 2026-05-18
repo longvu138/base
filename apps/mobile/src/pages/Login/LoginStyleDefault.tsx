@@ -44,7 +44,11 @@ export const LoginStyleDefault = () => {
                         type="text"
                         value={login.credentials.username}
                         onChange={(e) => login.updateField('username', e.target.value)}
-                        className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-base outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 transition-all shadow-sm"
+                        className={`w-full bg-white border rounded-xl px-4 py-3 text-base outline-none transition-all shadow-sm ${
+                            login.loginError
+                                ? 'border-red-500 focus:border-red-600 focus:ring-2 focus:ring-red-100'
+                                : 'border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100'
+                        }`}
                         placeholder={t('auth.login.username')}
                     />
                 </div>
@@ -55,9 +59,16 @@ export const LoginStyleDefault = () => {
                         type="password"
                         value={login.credentials.password}
                         onChange={(e) => login.updateField('password', e.target.value)}
-                        className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-base outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 transition-all shadow-sm"
+                        className={`w-full bg-white border rounded-xl px-4 py-3 text-base outline-none transition-all shadow-sm ${
+                            login.loginError
+                                ? 'border-red-500 focus:border-red-600 focus:ring-2 focus:ring-red-100'
+                                : 'border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100'
+                        }`}
                         placeholder={t('auth.login.password')}
                     />
+                    {login.loginError && (
+                        <div className="text-red-500 text-xs mt-1.5 pl-1">{login.loginError}</div>
+                    )}
                 </div>
 
                 <button

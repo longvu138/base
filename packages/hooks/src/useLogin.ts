@@ -27,6 +27,8 @@ export interface UseLoginReturn {
     // Trạng thái
     isLoading: boolean;
     error: any;
+    loginError: string | null;
+    setLoginError: React.Dispatch<React.SetStateAction<string | null>>;
 
     // Validation
     isValid: boolean;
@@ -75,6 +77,8 @@ export const useLogin = (options: UseLoginOptions = {}): UseLoginReturn => {
         password: '',
     });
 
+    const [loginError, setLoginError] = useState<string | null>(null);
+
     // Hook mutation
     const { mutate: login, isPending, error } = useLoginMutation();
 
@@ -84,6 +88,7 @@ export const useLogin = (options: UseLoginOptions = {}): UseLoginReturn => {
             ...prev,
             [field]: value
         }));
+        setLoginError(null); // Xóa lỗi khi người dùng bắt đầu nhập lại
     };
 
     // Validation form
@@ -95,9 +100,11 @@ export const useLogin = (options: UseLoginOptions = {}): UseLoginReturn => {
         const currentValid = loginData.username.trim() !== '' && loginData.password.trim() !== '';
 
         if (!currentValid) {
-            showMessage?.('error', 'Vui lòng nhập đầy đủ thông tin đăng nhập');
+            setLoginError('Vui lòng nhập đầy đủ thông tin đăng nhập');
             return;
         }
+
+        setLoginError(null);
 
         login(
             {
@@ -113,8 +120,18 @@ export const useLogin = (options: UseLoginOptions = {}): UseLoginReturn => {
                     onSuccess?.(data);
                 },
                 onError: (err: any) => {
-                    const errorMessage = err?.response?.data?.message || 'Lỗi không xác định';
-                    showMessage?.('error', `Đăng nhập thất bại: ${errorMessage}`);
+                    const apiMessage = err?.response?.data?.message;
+                    let errorMessage = 'Lỗi không xác định';
+                    
+                    if (err?.response?.status === 400 || err?.response?.status === 401) {
+                        errorMessage = 'Tài khoản hoặc mật khẩu không chính xác.';
+                    } else if (apiMessage) {
+                        errorMessage = apiMessage;
+                    } else if (err?.message) {
+                        errorMessage = err.message;
+                    }
+
+                    setLoginError(errorMessage);
                     onError?.(err);
                 }
             }
@@ -128,6 +145,8 @@ export const useLogin = (options: UseLoginOptions = {}): UseLoginReturn => {
         handleLogin,
         isLoading: isPending,
         error,
+        loginError,
+        setLoginError,
         isValid,
         projectInfo,
     };

@@ -1,13 +1,13 @@
 import { Form, Input, Button, Card, Typography, Checkbox } from 'antd';
 import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined, IdcardOutlined, UserAddOutlined } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
+import './RegisterStyleDefault.css';
 
 const { Title, Text } = Typography;
 
 export const RegisterStyleDefault = ({ form, onFinish, isLoading, projectInfo }: any) => {
     const bgImage = projectInfo?.tenantConfig?.generalConfig?.registerBackgroundImage;
-    console.log("bgImage", projectInfo);
-
+    const serviceAgreementUrl = projectInfo?.tenantConfig?.generalConfig?.serviceAgreementUrl;
     return (
         <div style={{
             display: 'flex',
@@ -21,10 +21,10 @@ export const RegisterStyleDefault = ({ form, onFinish, isLoading, projectInfo }:
                 <div style={{ textAlign: 'center', marginBottom: 32 }}>
                     {!bgImage && projectInfo?.tenantConfig?.logoStandard && (
                         <div style={{ marginBottom: 20 }}>
-                            <img 
-                                src={projectInfo.tenantConfig.logoStandard} 
-                                alt="logo" 
-                                style={{ height: 64, objectFit: 'contain' }} 
+                            <img
+                                src={projectInfo.tenantConfig.logoStandard}
+                                alt="logo"
+                                style={{ height: 64, objectFit: 'contain' }}
                             />
                         </div>
                     )}
@@ -41,7 +41,19 @@ export const RegisterStyleDefault = ({ form, onFinish, isLoading, projectInfo }:
                 >
                     <Form.Item
                         name="username"
-                        rules={[{ required: true, message: 'Vui lòng nhập tên đăng nhập!' }]}
+                        rules={[
+                            { required: true, message: 'Vui lòng nhập tên đăng nhập!' },
+                            { min: 6, message: 'Tên đăng nhập không được ít hơn 6 ký tự!' },
+                            { pattern: /^[a-zA-Z0-9]+$/, message: 'Tên đăng nhập không được chứa ký tự đặc biệt!' },
+                            {
+                                validator: (_, value) => {
+                                    if (value && /^\d+$/.test(value)) {
+                                        return Promise.reject(new Error('Tên đăng nhập không được chứa toàn số!'));
+                                    }
+                                    return Promise.resolve();
+                                }
+                            }
+                        ]}
                     >
                         <Input prefix={<UserOutlined />} placeholder="Tên đăng nhập" size="large" />
                     </Form.Item>
@@ -65,7 +77,11 @@ export const RegisterStyleDefault = ({ form, onFinish, isLoading, projectInfo }:
 
                     <Form.Item
                         name="phone"
-                        rules={[{ required: true, message: 'Vui lòng nhập số điện thoại!' }]}
+                        getValueFromEvent={(e) => e.target.value.replace(/[^0-9]/g, '')}
+                        rules={[
+                            { required: true, message: 'Vui lòng nhập số điện thoại!' },
+                            { pattern: /^[0-9]+$/, message: 'Số điện thoại chỉ được chứa chữ số!' }
+                        ]}
                     >
                         <Input prefix={<PhoneOutlined />} placeholder="Số điện thoại" size="large" />
                     </Form.Item>
@@ -101,19 +117,31 @@ export const RegisterStyleDefault = ({ form, onFinish, isLoading, projectInfo }:
                         <Input prefix={<UserAddOutlined />} placeholder="Mã giới thiệu (nếu có)" size="large" />
                     </Form.Item>
 
-                    <Form.Item
-                        name="terms"
-                        valuePropName="checked"
-                        rules={[
-                            {
-                                validator: (_, value) =>
-                                    value ? Promise.resolve() : Promise.reject(new Error('Vui lòng đồng ý với điều khoản và chính sách!')),
-                            },
-                        ]}
-                    >
-                        <Checkbox>
-                            Tôi đồng ý với <Link to="/terms">điều khoản và chính sách</Link>
-                        </Checkbox>
+                    <Form.Item className="register-terms-item">
+                        <div className="register-terms-row">
+                            <Form.Item
+                                name="terms"
+                                valuePropName="checked"
+                                noStyle
+                                rules={[
+                                    {
+                                        validator: (_, value) =>
+                                            value ? Promise.resolve() : Promise.reject(new Error('Vui lòng đồng ý với điều khoản và chính sách!')),
+                                    },
+                                ]}
+                            >
+                                <Checkbox id="register-terms-checkbox" className="register-terms-checkbox" />
+                            </Form.Item>
+                            <label className="register-terms-content" htmlFor="register-terms-checkbox">
+                                {!serviceAgreementUrl ? (
+                                    <>
+                                        Tôi đồng ý với <Link to="/terms">điều khoản và chính sách</Link>
+                                    </>
+                                ) : (
+                                    <span dangerouslySetInnerHTML={{ __html: serviceAgreementUrl }} />
+                                )}
+                            </label>
+                        </div>
                     </Form.Item>
 
                     <Form.Item>

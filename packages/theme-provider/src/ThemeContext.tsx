@@ -97,9 +97,11 @@ export function useVariant(pageKey: string, defaultComponentName?: string): stri
     }
 
     // Naming convention chính:
-    // pageKey="delivery-requests" được normalize thành "deliveryRequests",
-    // rồi resolve thành DeliveryRequestsStyle{VariantCodePascal}.
-    const conventionName = getConventionComponentName(normalizedPageKey, variantCode);
+    // - Nếu dispatcher truyền fallback dạng XxxStyleDefault, ưu tiên thay suffix
+    //   thành XxxStyle{Variant}; cách này tránh phải tạo file alias khi pageKey
+    //   là số nhiều nhưng component thật dùng số ít.
+    // - Nếu không có fallback dạng đó, dựng tên từ pageKey như trước.
+    const conventionName = getConventionComponentName(normalizedPageKey, variantCode, defaultComponentName);
     if (conventionName) {
         return conventionName;
     }
@@ -116,10 +118,14 @@ function getDefaultComponentName(pageKey: string): string {
     return `${pageKey.charAt(0).toUpperCase()}${pageKey.slice(1)}StyleDefault`;
 }
 
-function getConventionComponentName(pageKey: string, variantCode?: string): string | null {
+function getConventionComponentName(pageKey: string, variantCode?: string, defaultComponentName?: string): string | null {
     const variantSuffix = toPascalCase(variantCode);
     if (!variantSuffix || variantSuffix === 'Default') {
         return null;
+    }
+
+    if (defaultComponentName?.endsWith('StyleDefault')) {
+        return defaultComponentName.replace(/StyleDefault$/, `Style${variantSuffix}`);
     }
 
     return `${pageKey.charAt(0).toUpperCase()}${pageKey.slice(1)}Style${variantSuffix}`;

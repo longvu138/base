@@ -277,7 +277,7 @@ export const GobizClaimsList = () => {
           }}
         />
 
-        <Flex justify="center" style={{ marginTop: token.margin }}>
+        <Flex justify="flex-end" style={{ marginTop: token.margin }}>
           <Pagination
             hideOnSinglePage
             current={page}

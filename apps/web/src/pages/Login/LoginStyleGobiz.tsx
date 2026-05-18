@@ -68,7 +68,7 @@ export const LoginStyleGobiz = () => {
                                 className="h-28 object-contain mb-4"
                             />
                         )}
-                        <h2 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+                        <h2 className="text-3xl text-center font-bold tracking-tight text-gray-900 dark:text-white">
                             Chào mừng trở lại
                         </h2>
                         <p className="text-gray-500 dark:text-gray-400">
@@ -83,11 +83,17 @@ export const LoginStyleGobiz = () => {
                         onFinish={onFinish}
                         size="large"
                         className="mt-8"
+                        onValuesChange={() => {
+                            if (login.loginError) {
+                                login.setLoginError(null);
+                            }
+                        }}
                     >
                         <Form.Item
                             name="username"
                             label="Tên đăng nhập"
                             rules={[{ required: true, message: 'Vui lòng nhập tên đăng nhập!' }]}
+                            validateStatus={login.loginError ? 'error' : undefined}
                         >
                             <AntInput
                                 prefix={<UserOutlined className="text-gray-400" />}
@@ -100,6 +106,8 @@ export const LoginStyleGobiz = () => {
                             name="password"
                             label="Mật khẩu"
                             rules={[{ required: true, message: 'Vui lòng nhập mật khẩu!' }]}
+                            validateStatus={login.loginError ? 'error' : undefined}
+                            help={login.loginError ? login.loginError : undefined}
                         >
                             <AntInput.Password
                                 prefix={<LockOutlined className="text-gray-400" />}

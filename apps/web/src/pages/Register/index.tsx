@@ -18,7 +18,26 @@ export const RegisterPage = () => {
     );
     const logic = useRegisterPage({
         onSuccess: () => message.success('Đăng ký tài khoản thành công!'),
-        onError: (error: any) => message.error(error?.response?.data?.message || 'Đăng ký thất bại, vui lòng thử lại.')
+        onError: (error: any) => {
+            const errorTitle = error?.response?.data?.title;
+            if (errorTitle === 'username_duplicated') {
+                form.setFields([
+                    {
+                        name: 'username',
+                        errors: ['Tài khoản không hợp lệ'],
+                    },
+                ]);
+            } else if (errorTitle === 'email_duplicated') {
+                form.setFields([
+                    {
+                        name: 'email',
+                        errors: ['Email đã tồn tại'],
+                    },
+                ]);
+            } else {
+                message.error(error?.response?.data?.message || 'Đăng ký thất bại, vui lòng thử lại.');
+            }
+        }
     });
 
     useEffect(() => {
@@ -34,6 +53,7 @@ export const RegisterPage = () => {
         setCurrentTenant(value);
         dispatchTenantChange(value);
     };
+    const projectInfo = isFullProjectInfo(logic.projectInfo) ? logic.projectInfo : tenantConfig || logic.projectInfo;
 
     return (
         <>
@@ -76,7 +96,7 @@ export const RegisterPage = () => {
                 featureName="Register"
                 componentProps={{
                     ...logic,
-                    projectInfo: tenantConfig || logic.projectInfo,
+                    projectInfo,
                     form
                 }}
             />
@@ -85,3 +105,7 @@ export const RegisterPage = () => {
 };
 
 export default RegisterPage;
+
+function isFullProjectInfo(projectInfo: any) {
+    return Boolean(projectInfo?.tenantConfig?.generalConfig);
+}

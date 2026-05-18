@@ -10,7 +10,7 @@ const modules = import.meta.glob('./*.tsx');
 export const DeliveryNotesPage = () => {
     useTranslation();
     const [form] = Form.useForm();
-    const variant = useVariant('deliveryNotes', 'DeliveryNotesStyleDefault');
+    const variant = useVariant('deliveryNotes', 'DeliveryNoteStyleDefault');
 
     const { page, pageSize, setPage, setPageSize } = usePaginationWithURL();
     const { applyFilters, clearFilters, filters } = useFilterWithURL({ form });
@@ -30,7 +30,7 @@ export const DeliveryNotesPage = () => {
                 <DynamicVariant
                     variantName={variant}
                     modules={modules}
-                    fallbackName="DeliveryNotesStyleDefault"
+                    fallbackName="DeliveryNoteStyleDefault"
                     featureName="DeliveryNotes"
                     componentProps={{
                         listData: logic.listData,
