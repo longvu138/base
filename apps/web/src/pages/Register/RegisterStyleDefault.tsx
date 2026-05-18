@@ -41,7 +41,19 @@ export const RegisterStyleDefault = ({ form, onFinish, isLoading, projectInfo }:
                 >
                     <Form.Item
                         name="username"
-                        rules={[{ required: true, message: 'Vui lòng nhập tên đăng nhập!' }]}
+                        rules={[
+                            { required: true, message: 'Vui lòng nhập tên đăng nhập!' },
+                            { min: 6, message: 'Tên đăng nhập không được ít hơn 6 ký tự!' },
+                            { pattern: /^[a-zA-Z0-9]+$/, message: 'Tên đăng nhập không được chứa ký tự đặc biệt!' },
+                            {
+                                validator: (_, value) => {
+                                    if (value && /^\d+$/.test(value)) {
+                                        return Promise.reject(new Error('Tên đăng nhập không được chứa toàn số!'));
+                                    }
+                                    return Promise.resolve();
+                                }
+                            }
+                        ]}
                     >
                         <Input prefix={<UserOutlined />} placeholder="Tên đăng nhập" size="large" />
                     </Form.Item>
@@ -65,7 +77,11 @@ export const RegisterStyleDefault = ({ form, onFinish, isLoading, projectInfo }:
 
                     <Form.Item
                         name="phone"
-                        rules={[{ required: true, message: 'Vui lòng nhập số điện thoại!' }]}
+                        getValueFromEvent={(e) => e.target.value.replace(/[^0-9]/g, '')}
+                        rules={[
+                            { required: true, message: 'Vui lòng nhập số điện thoại!' },
+                            { pattern: /^[0-9]+$/, message: 'Số điện thoại chỉ được chứa chữ số!' }
+                        ]}
                     >
                         <Input prefix={<PhoneOutlined />} placeholder="Số điện thoại" size="large" />
                     </Form.Item>
