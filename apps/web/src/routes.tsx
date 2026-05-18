@@ -19,6 +19,7 @@ import WithdrawalSlips from "./pages/WithdrawalSlips";
 import { Packages } from "./pages/Packages";
 import Profile from "./pages/Profile";
 import Notifications from "./pages/Notifications";
+import { Carts } from "./pages/Carts";
 
 import ThemeConfigurator from "./pages/ThemeConfigurator";
 
@@ -34,6 +35,7 @@ function AppRoutes() {
         <Route path="/" element={<Layout />}>
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="orders" element={<Orders />} />
+          <Route path="carts" element={<Carts />} />
           <Route path="orders/:code" element={<OrderDetail />} />
           <Route path="shipments" element={<Shipments />} />
           <Route path="shipments/create" element={<CreateShipment />} />

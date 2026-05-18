@@ -154,6 +154,104 @@ export const useCartItemsQuery = (enabled = true) => {
     });
 };
 
+export const useUpdateCartSkuMutation = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({ id, payload }: { id: string; payload: any }) =>
+            CustomerApi.updateCartSku(id, payload),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['customer.cart.items'] });
+            queryClient.invalidateQueries({ queryKey: ['customer.cart.statistics'] });
+        },
+    });
+};
+
+export const useDeleteCartSkuMutation = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (id: string) => CustomerApi.deleteCartSku(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['customer.cart.items'] });
+            queryClient.invalidateQueries({ queryKey: ['customer.cart.statistics'] });
+        },
+    });
+};
+
+export const useDeleteCartSkusMutation = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (ids: string[]) => CustomerApi.deleteCartSkus(ids),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['customer.cart.items'] });
+            queryClient.invalidateQueries({ queryKey: ['customer.cart.statistics'] });
+        },
+    });
+};
+
+export const useDeleteCartGroupMutation = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (id: string) => CustomerApi.deleteCartGroup(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['customer.cart.items'] });
+            queryClient.invalidateQueries({ queryKey: ['customer.cart.statistics'] });
+        },
+    });
+};
+
+export const useDeleteAllCartMutation = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: () => CustomerApi.deleteAllCart(),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['customer.cart.items'] });
+            queryClient.invalidateQueries({ queryKey: ['customer.cart.statistics'] });
+        },
+    });
+};
+
+export const useImportCartProductsMutation = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (file: File) => CustomerApi.importCartProducts(file),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['customer.cart.items'] });
+            queryClient.invalidateQueries({ queryKey: ['customer.cart.statistics'] });
+        },
+    });
+};
+
+export const useCreateCartProductMutation = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({ payload, images }: { payload: any; images: File[] }) =>
+            CustomerApi.createCartProduct(payload, images),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['customer.cart.items'] });
+            queryClient.invalidateQueries({ queryKey: ['customer.cart.statistics'] });
+        },
+    });
+};
+
+export const useAddCartSkusMutation = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (payload: any) => CustomerApi.addCartSkus(payload),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['customer.cart.items'] });
+            queryClient.invalidateQueries({ queryKey: ['customer.cart.statistics'] });
+        },
+    });
+};
+
 export const useThirdPartyLoansQuery = (orderCodes: string, enabled = true) => {
     return useQuery({
         queryKey: ['customer.third_party_loans', orderCodes],

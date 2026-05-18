@@ -1,39 +1,19 @@
-import { useLocation, useNavigate } from 'react-router-dom'
-// @ts-expect-error legacy Amphitrite cart is copied as JS and bundled by Vite.
-import Carts from '../../legacy/amphitrite/containers/Carts'
+import { useVariant } from '@repo/theme-provider';
+import { DynamicVariant } from '@repo/ui';
 
-export const CartsPage = () => {
-    const navigate = useNavigate()
-    const location = useLocation()
+const modules = import.meta.glob('./*.tsx');
 
-    const history = {
-        push: (to: any) => {
-            if (typeof to === 'string') {
-                navigate(to)
-                return
-            }
-            navigate({
-                pathname: to.pathname || location.pathname,
-                search: to.search || '',
-            })
-        },
-        replace: (to: any) => {
-            if (typeof to === 'string') {
-                navigate(to, { replace: true })
-                return
-            }
-            navigate(
-                {
-                    pathname: to.pathname || location.pathname,
-                    search: to.search || '',
-                },
-                { replace: true }
-            )
-        },
-        location,
-    }
+export const Carts = () => {
+  const variant = useVariant('carts', 'CartsStyleDefault');
 
-    return <Carts history={history} location={location} />
-}
+  return (
+    <DynamicVariant
+      variantName={variant}
+      modules={modules}
+      fallbackName="CartsStyleDefault"
+      featureName="Carts"
+    />
+  );
+};
 
-export default CartsPage
+export default Carts;

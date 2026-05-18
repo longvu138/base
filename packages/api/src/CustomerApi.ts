@@ -39,6 +39,56 @@ export const CustomerApi = {
     getCartItems: () => {
         return ApiClient.auth.get("customer/cart?page=0&size=9999&sort=modifiedAt:desc");
     },
+    updateCartSku: (id: string, payload: any) => {
+        return ApiClient.auth.patch(`customer/skus/${id}`, payload);
+    },
+    deleteCartSku: (id: string) => {
+        return ApiClient.auth.delete(`customer/skus/${id}`);
+    },
+    deleteCartSkus: (ids: string[]) => {
+        return ApiClient.auth.delete(`customer/skus?skus=${ids.join(",")}`);
+    },
+    deleteCartGroup: (id: string) => {
+        return ApiClient.auth.delete(`customer/cart/${id}`);
+    },
+    deleteAllCart: () => {
+        return ApiClient.auth.delete("customer/cart/delete_all");
+    },
+    importCartProducts: (file: File) => {
+        const formData = new FormData();
+        formData.append("attachments", new Blob([file]), file.name);
+        return ApiClient.auth.post("customer/cart/products/import_excel", formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+        });
+    },
+    createCartProduct: (payload: any, images: File[]) => {
+        const formData = new FormData();
+        images.forEach((file) => {
+            formData.append("attachments", new Blob([file]), file.name);
+        });
+        formData.append(
+            "command",
+            new Blob([JSON.stringify(payload)], { type: "application/json" }),
+        );
+        return ApiClient.auth.post("customer/cart/products", formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+        });
+    },
+    fetchTaobaoProduct: (itemId: string) => {
+        return ApiClient.auth.get(`customer/taobao/fetch_global_product?itemId=${itemId}`);
+    },
+    fetchAlibabaProduct: (itemId: string) => {
+        return ApiClient.auth.get(`customer/alibaba/fetch_global_product?itemId=${itemId}`);
+    },
+    resolveMarketplaceShortLink: (marketplace: "taobao" | "alibaba", shortLink: string) => {
+        return ApiClient.auth.get(`customer/${marketplace}/get-link?shortLink=${shortLink}`);
+    },
+    addCartSkus: (payload: any) => {
+        return ApiClient.auth.post("customer/cart/skus", payload);
+    },
+    trackAddToCart: () => {
+        return ApiClient.auth.post("tenants/current/tracking-add-to-cart");
+    },
     getThirdPartyLoans: (orderCodes: string) => {
         return ApiClient.auth.get("customer/third-parties/shopkeeper/loans", {
             params: { orderCodes },

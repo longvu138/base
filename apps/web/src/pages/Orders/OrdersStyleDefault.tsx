@@ -109,7 +109,11 @@ export const OrdersStyleDefault = () => {
           showCollapseAll={true}
           primaryContent={
             <Space direction="vertical" size="middle" style={{ width: "100%" }}>
-              <Form.Item name="statuses" label={t("orders.filters.status")} style={{ marginBottom: 0 }}>
+              <Form.Item
+                name="statuses"
+                label={t("orders.filters.status")}
+                style={{ marginBottom: 0 }}
+              >
                 <Checkbox.Group>
                   <Space wrap>
                     {statusOptions.map((item: any) => (
@@ -123,7 +127,11 @@ export const OrdersStyleDefault = () => {
 
               <Row gutter={[16, 16]}>
                 <Col xs={24} md={6}>
-                  <Form.Item name="query" label={t("orders.search_placeholder")} style={{ marginBottom: 0 }}>
+                  <Form.Item
+                    name="query"
+                    label={t("orders.search_placeholder")}
+                    style={{ marginBottom: 0 }}
+                  >
                     <Input
                       allowClear
                       prefix={<SearchOutlined />}
@@ -133,7 +141,11 @@ export const OrdersStyleDefault = () => {
                   </Form.Item>
                 </Col>
                 <Col xs={24} md={6}>
-                  <Form.Item name="note" label={t("orders.filters.note")} style={{ marginBottom: 0 }}>
+                  <Form.Item
+                    name="note"
+                    label={t("orders.filters.note")}
+                    style={{ marginBottom: 0 }}
+                  >
                     <Input allowClear />
                   </Form.Item>
                 </Col>
@@ -151,7 +163,11 @@ export const OrdersStyleDefault = () => {
                   </Form.Item>
                 </Col>
                 <Col xs={24} md={6}>
-                  <Form.Item name="timestampTo" label=" " style={{ marginBottom: 0 }}>
+                  <Form.Item
+                    name="timestampTo"
+                    label=" "
+                    style={{ marginBottom: 0 }}
+                  >
                     <DatePicker
                       style={{ width: "100%" }}
                       format="DD/MM/YYYY"
@@ -187,7 +203,12 @@ export const OrdersStyleDefault = () => {
                   </Form.Item>
                 </Col>
                 <Col xs={24} md={6}>
-                  <Form.Item name="needPaid" valuePropName="checked" label=" " style={{ marginBottom: 0 }}>
+                  <Form.Item
+                    name="needPaid"
+                    valuePropName="checked"
+                    label=" "
+                    style={{ marginBottom: 0 }}
+                  >
                     <Checkbox>{t("orders.filters.financial_payment")}</Checkbox>
                   </Form.Item>
                 </Col>
@@ -288,10 +309,7 @@ export const OrdersStyleDefault = () => {
                     label={t("orders.filters.from")}
                     style={{ marginBottom: 0 }}
                   >
-                    <Input
-                      allowClear
-                      placeholder={t("orders.filters.from")}
-                    />
+                    <Input allowClear placeholder={t("orders.filters.from")} />
                   </Form.Item>
                 </Col>
                 <Col xs={24} md={6}>
@@ -364,9 +382,7 @@ export const OrdersStyleDefault = () => {
           </Space>
         }
         extra={
-          <Button icon={<DownloadOutlined />}>
-            {t("common.export")}
-          </Button>
+          <Button icon={<DownloadOutlined />}>{t("common.export")}</Button>
         }
         styles={{ body: { padding: "0 12px" } }}
       >
@@ -438,6 +454,7 @@ export const OrdersStyleDefault = () => {
                               height={20}
                               width={20}
                               preview={false}
+                              referrerPolicy="no-referrer"
                               fallback="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="
                               style={{
                                 borderRadius: token.borderRadius,
@@ -520,23 +537,23 @@ export const OrdersStyleDefault = () => {
                               </Typography.Text>
                               {record?.services?.length
                                 ? record.services.map((item: any) => (
-                                  <Tag
-                                    key={item.code}
-                                    color={
-                                      item.approved === false
-                                        ? "default"
-                                        : "blue"
-                                    }
-                                    style={{
-                                      textDecoration:
+                                    <Tag
+                                      key={item.code}
+                                      color={
                                         item.approved === false
-                                          ? "line-through"
-                                          : undefined,
-                                    }}
-                                  >
-                                    {item.name}
-                                  </Tag>
-                                ))
+                                          ? "default"
+                                          : "blue"
+                                      }
+                                      style={{
+                                        textDecoration:
+                                          item.approved === false
+                                            ? "line-through"
+                                            : undefined,
+                                      }}
+                                    >
+                                      {item.name}
+                                    </Tag>
+                                  ))
                                 : "---"}
                             </Space>
 
@@ -549,7 +566,9 @@ export const OrdersStyleDefault = () => {
                                   >
                                     {t("orders.metrics.quantity")}{" "}
                                     <Tooltip
-                                      title={t("orders.metrics.quantity_tooltip")}
+                                      title={t(
+                                        "orders.metrics.quantity_tooltip",
+                                      )}
                                     >
                                       <QuestionCircleOutlined />
                                     </Tooltip>
@@ -656,7 +675,7 @@ export const OrdersStyleDefault = () => {
                                     style={metricValueStyle}
                                   >
                                     {record?.actualWeight ||
-                                      record?.chargeableWeight
+                                    record?.chargeableWeight
                                       ? `${record.actualWeight || record.chargeableWeight}kg`
                                       : "---"}
                                   </Typography.Paragraph>
@@ -694,8 +713,8 @@ export const OrdersStyleDefault = () => {
                                   >
                                     {record?.createdAt
                                       ? dayjs(record.createdAt).format(
-                                        "HH:mm DD/MM/YYYY",
-                                      )
+                                          "HH:mm DD/MM/YYYY",
+                                        )
                                       : "---"}
                                   </Typography.Paragraph>
                                 </div>
