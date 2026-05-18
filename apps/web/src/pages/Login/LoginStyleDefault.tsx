@@ -26,7 +26,7 @@ export const LoginStyleDefault = () => {
 
             <div className="flex-1 flex items-center justify-center bg-filter dark:bg-filter-dark">
                 <div className="w-full max-w-[470px] shadow-2xl p-8 rounded-lg" style={{ boxShadow: '0 1px 22px #00000040' }}>
-                    <div className="text-center">
+                    <div className="text-center mb-4">
                         {login.projectInfo?.tenantConfig?.logoStandard && (
                             <img
                                 src={login.projectInfo.tenantConfig.logoStandard}
