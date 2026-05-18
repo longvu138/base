@@ -897,14 +897,14 @@
       "shop": "Tên Shop",
       "warehouse": "Kho nhận",
       "quantity": "Số lượng",
-      "received_quantity_hint": "Số lượng đặt / số lượng đã nhận",
-      "packages": "Kiện",
-      "weight": "Cân nặng",
+      "received_quantity_hint": "Đặt/Nhận",
+      "packages": "Số lượng kiện",
+      "weight": "Cân nặng tính phí",
       "timestamp": "Thời gian",
       "amounts": "Giá trị / Phí",
-      "total_value": "Giá trị",
-      "total_fee": "Phí",
-      "total_unpaid": "Còn thiếu"
+      "total_value": "Tổng tiền hàng",
+      "total_fee": "Tổng chi phí",
+      "total_unpaid": "Cần thanh toán"
     }
   },
   "header": {

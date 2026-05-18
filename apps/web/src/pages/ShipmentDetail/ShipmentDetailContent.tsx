@@ -2,7 +2,7 @@ import { Fragment, useMemo, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import dayjs from "dayjs";
 import { Link } from "react-router-dom";
-import { moneyCeil, moneyFormat } from "@repo/util";
+import { moneyFormat } from "@repo/util";
 import {
   Alert,
   Avatar,
@@ -96,8 +96,18 @@ const quantity = (value: any): string => {
 const money = (value: any, currency?: string, noNegative?: boolean): string =>
   moneyFormat(value, currency, noNegative);
 
+// Match the legacy shipment detail screen, where Math.round coerces null,
+// empty strings, and numeric strings before formatting.
+const roundShipmentMoney = (value: unknown) => Math.round(value as number);
+
+const roundedMoney = (
+  value: any,
+  currency?: string,
+  noNegative?: boolean,
+): string => moneyFormat(roundShipmentMoney(value), currency, noNegative);
+
 const feeMoney = (value: any, noNegative?: boolean): string =>
-  moneyFormat(moneyCeil(value), undefined, noNegative);
+  roundedMoney(value, undefined, noNegative);
 
 const dateTime = (value: any): string =>
   value ? dayjs(value).format("HH:mm DD/MM/YYYY") : empty;
@@ -1194,12 +1204,12 @@ export const ShipmentDetailContent = ({
             <Space direction="vertical" size={4}>
               <InfoLine
                 label={t("shipments.totalFee")}
-                value={money(shipment.totalFee)}
+                value={roundedMoney(shipment.totalFee)}
                 strong
               />
               <InfoLine
                 label={t("shipments.totalValue")}
-                value={money(shipment.totalValue, currency)}
+                value={roundedMoney(shipment.totalValue, currency)}
                 strong
               />
             </Space>
@@ -1256,7 +1266,7 @@ export const ShipmentDetailContent = ({
                   value={renderNumberEditor(
                     "declareValue",
                     shipment.declareValue,
-                    money(shipment.declareValue),
+                    roundedMoney(shipment.declareValue),
                     !!statusInfo?.updatable,
                     t("shipments.declareValue"),
                   )}
@@ -1278,7 +1288,9 @@ export const ShipmentDetailContent = ({
                     <InfoLine
                       label="BiFin"
                       value={money(
-                        activeThirdPartyLoan?.totalAmountPay ?? 0,
+                        roundShipmentMoney(
+                          activeThirdPartyLoan?.totalAmountPay ?? 0,
+                        ),
                         undefined,
                         true,
                       )}
@@ -1287,7 +1299,7 @@ export const ShipmentDetailContent = ({
                   )}
                   <InfoLine
                     label={t("orderDetail.total_need_payment")}
-                    value={money(totalNeedPay, undefined, true)}
+                    value={roundedMoney(totalNeedPay, undefined, true)}
                     accent
                   />
                 </Space>
@@ -1665,7 +1677,7 @@ export const ShipmentDetailContent = ({
                             </Col>
                             <Col span={6} style={styles.right}>
                               <Text strong>
-                                {money(item.unitPrice, currency)}
+                                {roundedMoney(item.unitPrice, currency)}
                               </Text>
                             </Col>
                             <Col span={6}>

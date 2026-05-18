@@ -966,14 +966,14 @@
       "shop": "Shop name",
       "warehouse": "Receiving warehouse",
       "quantity": "Quantity",
-      "received_quantity_hint": "Ordered quantity / received quantity",
-      "packages": "Packages",
-      "weight": "Weight",
+      "received_quantity_hint": "Ordered/Received",
+      "packages": "Total packages",
+      "weight": "Chargeable weight",
       "timestamp": "Timestamp",
       "amounts": "Value / Fees",
-      "total_value": "Value",
-      "total_fee": "Fee",
-      "total_unpaid": "Unpaid"
+      "total_value": "Total item amount",
+      "total_fee": "Total fee",
+      "total_unpaid": "Need to pay"
     }
   },
   "createDelivery": {

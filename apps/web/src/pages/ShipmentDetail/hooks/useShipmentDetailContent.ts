@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import dayjs from "dayjs";
 import { notification } from "antd";
 import { useSearchParams } from "react-router-dom";
-import { moneyCeil, moneyFormat } from "@repo/util";
+import { moneyFormat } from "@repo/util";
 import { useTranslation } from "@repo/i18n";
 import {
   useAddShipmentOriginalReceiptMutation,
@@ -83,8 +83,10 @@ const quantity = (value: any): string => {
 const money = (value: any, currency?: string, noNegative?: boolean): string =>
   moneyFormat(value, currency, noNegative);
 
+const roundShipmentMoney = (value: unknown) => Math.round(value as number);
+
 const feeMoney = (value: any, noNegative?: boolean): string =>
-  moneyFormat(moneyCeil(value), undefined, noNegative);
+  moneyFormat(roundShipmentMoney(value), undefined, noNegative);
 
 const errorTitle = (error: any) =>
   error?.response?.data?.title ||
@@ -403,13 +405,13 @@ const parseShipmentLogs = ({
             ele.property === "quantity"
               ? quantity(ele.oldValue)
               : ele.property === "unitPrice"
-                ? money(moneyCeil(ele.oldValue), currency)
+                ? money(roundShipmentMoney(ele.oldValue), currency)
                 : ele.oldValue || empty,
           newValue:
             ele.property === "quantity"
               ? quantity(ele.newValue)
               : ele.property === "unitPrice"
-                ? money(moneyCeil(ele.newValue), currency)
+                ? money(roundShipmentMoney(ele.newValue), currency)
                 : ele.newValue || empty,
           name: item.reference?.code || empty,
         }));
