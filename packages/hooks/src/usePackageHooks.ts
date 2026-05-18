@@ -28,7 +28,7 @@ export const useExportPackagesMutation = () => {
       PackageApi.exportPackages(params, { secret }),
     onError: (error: any) => {
       notification.error({
-        message: getErrorMessage(error, "Không thể xuất Excel"),
+        message: getErrorMessage(error, "Không thể xuất Excel do mã pin sai"),
       });
     },
   });

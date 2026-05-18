@@ -30,6 +30,7 @@ export function Pagination({
                 onChange={onChange}
                 showSizeChanger={showSizeChanger}
                 pageSizeOptions={pageSizeOptions}
+                locale={{ items_per_page: '/trang' }}
             />
         </div>
     );

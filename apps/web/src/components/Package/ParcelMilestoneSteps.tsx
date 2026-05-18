@@ -96,11 +96,6 @@ export const ParcelMilestoneSteps = ({
                         <span className="parcel-badge-pulse" />
                         {currentStatusMeta.name}
                     </span>
-                    {milestoneMap[currentStatusMeta.code]?.[0]?.handlingTime > 0 && (
-                        <span className="parcel-badge-note">
-                            {milestoneMap[currentStatusMeta.code][0].handlingTime} ngày xử lý
-                        </span>
-                    )}
                 </div>
             )}
 
@@ -180,6 +175,8 @@ export const ParcelMilestoneSteps = ({
                                     <span className="parcel-step-time--empty">—</span>
                                 )}
                             </div>
+                            {isCurrent && <span className='!text-xs text-black italic text-center'>({milestoneMap[currentStatusMeta.code][0].handlingTime} ngày)</span>}
+
                         </div>
                     );
                 })}

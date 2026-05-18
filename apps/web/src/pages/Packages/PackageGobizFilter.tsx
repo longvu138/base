@@ -135,7 +135,7 @@ export const PackageGobizFilter = ({
                 }
                 secondaryContent={
                     <div style={{ marginTop: 16 }}>
-                        <Form.Item label="Đơn dừng ở trạng thái" style={{ marginBottom: 0 }}>
+                        <Form.Item label="Kiện dừng ở trạng thái" style={{ marginBottom: 0 }}>
                             <Row gutter={[10, 10]}>
                                 <Col xs={24} md={6}>
                                     <Form.Item name="cutOffStatus" noStyle>
@@ -163,8 +163,8 @@ export const PackageGobizFilter = ({
                                             options={[
                                                 { label: 'Khoảng', value: 'range' },
                                                 { label: 'Bằng', value: 'equal' },
-                                                { label: 'Từ', value: 'from' },
-                                                { label: 'Đến', value: 'to' },
+                                                { label: 'Lớn hơn', value: 'from' },
+                                                { label: 'Nhỏ hơn', value: 'to' },
                                             ]}
                                         />
                                     </Form.Item>
