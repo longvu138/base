@@ -1,4 +1,5 @@
 import {
+  Alert,
   Avatar,
   Button,
   Card,
@@ -8,6 +9,7 @@ import {
   Flex,
   Image,
   InputNumber,
+  Modal,
   Pagination,
   Popconfirm,
   Select,
@@ -20,6 +22,10 @@ import {
 } from "antd";
 import {
   DeleteOutlined,
+  EditOutlined,
+  HeartFilled,
+  HeartOutlined,
+  InfoCircleOutlined,
   QuestionCircleOutlined,
   ShopOutlined,
   ShoppingCartOutlined,
@@ -68,11 +74,73 @@ const getUnitPrice = (sku: any) =>
       0,
   );
 
+const getEffectiveUnitPrice = (sku: any) =>
+  Number(
+    (sku?.bargainPrice !== null && sku?.bargainPrice !== undefined
+      ? sku?.exchangedBargainPrice
+      : undefined) ?? getUnitPrice(sku),
+  );
+
+const getForeignCurrency = (sku: any) =>
+  sku?.currency?.code ||
+  sku?.currencyCode ||
+  sku?.currency ||
+  sku?.cartGroupCurrency ||
+  "CNY";
+
+const getForeignSalePrice = (sku: any) =>
+  Number(sku?.salePrice ?? sku?.product?.salePrice ?? 0);
+const getForeignBargainPrice = (sku: any) => Number(sku?.bargainPrice ?? 0);
+
 const getExchangeRate = (group: any, exchangeRates: any[]) => {
   const currency = group?.marketplace?.currency;
   if (!currency || !Array.isArray(exchangeRates)) return null;
   return exchangeRates.find((item: any) => item.code === `${currency}/VND`);
 };
+
+const QUANTITY_WARNING_MESSAGE =
+  "Chúng tôi sẽ cố gắng mua đủ số lượng sản phẩm quý khách yêu cầu, tuy nhiên việc này không được đảm bảo.";
+
+const MONEY_TEXT_STYLE = { whiteSpace: "nowrap" };
+const CART_COLUMNS_COUNT = 6;
+
+const getNumberValue = (value: unknown) => {
+  if (value === null || value === undefined || value === "") return null;
+  const numberValue = Number(value);
+  return Number.isFinite(numberValue) ? numberValue : null;
+};
+
+const getMinQuantity = (sku: any) =>
+  getNumberValue(
+    sku?.product?.minQuantity ?? sku?.minQuantity ?? sku?.minOrderQuantity,
+  );
+
+const hasQuantityWarning = (sku: any) => {
+  const quantity = getNumberValue(sku?.quantity) || 0;
+  const batchSize = getNumberValue(sku?.product?.batchSize ?? sku?.batchSize);
+  const stock = getNumberValue(sku?.stock ?? sku?.product?.stock);
+  const minQuantity = getMinQuantity(sku);
+
+  return (
+    (batchSize !== null && batchSize > 1 && quantity % batchSize !== 0) ||
+    (stock !== null && quantity > stock) ||
+    (minQuantity !== null && quantity < minQuantity)
+  );
+};
+
+const getCartTableRows = (skus: any[]) =>
+  skus.flatMap((sku: any) =>
+    hasQuantityWarning(sku)
+      ? [
+          {
+            __rowType: "quantityWarning",
+            id: `quantity-warning-${sku.id}`,
+            skuId: sku.id,
+          },
+          sku,
+        ]
+      : [sku],
+  );
 
 export const CartsStyleDefault = () => {
   const { token } = theme.useToken();
@@ -110,20 +178,30 @@ export const CartsStyleDefault = () => {
       title: "",
       key: "selected",
       width: 48,
-      render: (_: unknown, sku: any) => (
-        <Checkbox
-          checked={logic.selectedSkuIds.includes(String(sku.id))}
-          onChange={(event) =>
-            logic.toggleSku(String(sku.id), event.target.checked)
-          }
-        />
-      ),
+      onCell: (sku: any) =>
+        sku.__rowType === "quantityWarning"
+          ? { colSpan: CART_COLUMNS_COUNT }
+          : {},
+      render: (_: unknown, sku: any) =>
+        sku.__rowType === "quantityWarning" ? (
+          <Alert type="warning" showIcon message={QUANTITY_WARNING_MESSAGE} />
+        ) : (
+          <Checkbox
+            checked={logic.selectedSkuIds.includes(String(sku.id))}
+            onChange={(event) =>
+              logic.toggleSku(String(sku.id), event.target.checked)
+            }
+          />
+        ),
     },
     {
       title: "Sản phẩm",
       key: "product",
+      width: 420,
+      onCell: (sku: any) =>
+        sku.__rowType === "quantityWarning" ? { colSpan: 0 } : {},
       render: (_: unknown, sku: any) => (
-        <Space align="start">
+        <Space align="start" style={{ minWidth: 0 }}>
           {getImage(sku) ? (
             <Image
               width={56}
@@ -135,15 +213,29 @@ export const CartsStyleDefault = () => {
           ) : (
             <Avatar shape="square" size={56} icon={<ShoppingCartOutlined />} />
           )}
-          <Space direction="vertical" size={0}>
-            <Typography.Text strong>
+          <Space direction="vertical" size={0} style={{ minWidth: 0 }}>
+            <Typography.Text
+              strong
+              ellipsis={{ tooltip: getName(sku, logic.showTranslatedNames) }}
+              style={{ maxWidth: 320 }}
+            >
               {getName(sku, logic.showTranslatedNames)}
             </Typography.Text>
-            <Typography.Text type="secondary">
+            <Typography.Text
+              type="secondary"
+              ellipsis={{ tooltip: getProperties(sku, logic.showTranslatedNames) || "---" }}
+              style={{ maxWidth: 320 }}
+            >
               {getProperties(sku, logic.showTranslatedNames) || "---"}
             </Typography.Text>
             {sku?.note && (
-              <Typography.Text type="secondary">{sku.note}</Typography.Text>
+              <Typography.Text
+                type="secondary"
+                ellipsis={{ tooltip: sku.note }}
+                style={{ maxWidth: 320 }}
+              >
+                {sku.note}
+              </Typography.Text>
             )}
           </Space>
         </Space>
@@ -154,53 +246,192 @@ export const CartsStyleDefault = () => {
       dataIndex: "quantity",
       key: "quantity",
       width: 140,
-      render: (quantity: number, sku: any) => (
-        <InputNumber
-          min={1}
-          value={quantity}
-          onChange={(value) => logic.updateQuantity(sku, value)}
-          disabled={logic.isUpdating}
-        />
-      ),
+      onCell: (sku: any) =>
+        sku.__rowType === "quantityWarning" ? { colSpan: 0 } : {},
+      render: (quantity: number, sku: any) => {
+        const minQuantity = getMinQuantity(sku);
+        const showMinWarning =
+          minQuantity !== null && Number(quantity || 0) < minQuantity;
+
+        return (
+          <Space direction="vertical" size={4}>
+            <InputNumber
+              min={1}
+              value={quantity}
+              status={showMinWarning ? "warning" : undefined}
+              onChange={(value) => logic.updateQuantity(sku, value)}
+              disabled={logic.isUpdating}
+            />
+            {showMinWarning && (
+              <Typography.Text
+                type="warning"
+                style={{ fontSize: 12 }}
+                className="whitespace-nowrap"
+              >
+                Số lượng tối thiểu: {minQuantity}
+              </Typography.Text>
+            )}
+          </Space>
+        );
+      },
     },
     {
       title: "Đơn giá",
       key: "unitPrice",
       width: 160,
       align: "right" as const,
-      render: (_: unknown, sku: any) => formatCurrency(getUnitPrice(sku)),
+      onCell: (sku: any) =>
+        sku.__rowType === "quantityWarning" ? { colSpan: 0 } : {},
+      render: (_: unknown, sku: any) => {
+        const hasBargain =
+          sku.bargainPrice !== null && sku.bargainPrice !== undefined;
+        const currency = getForeignCurrency(sku);
+        return (
+          <Space direction="vertical" size={0} align="end">
+            <Typography.Text style={MONEY_TEXT_STYLE}>
+              {hasBargain ? (
+                <>
+                  <Typography.Text
+                    delete
+                    type="secondary"
+                    style={MONEY_TEXT_STYLE}
+                  >
+                    {formatCurrency(getUnitPrice(sku))}
+                  </Typography.Text>{" "}
+                  /{" "}
+                  <Typography.Text strong style={MONEY_TEXT_STYLE}>
+                    {formatCurrency(getEffectiveUnitPrice(sku))}
+                  </Typography.Text>
+                </>
+              ) : (
+                formatCurrency(getUnitPrice(sku))
+              )}
+            </Typography.Text>
+            <Space size={4} align="center" style={MONEY_TEXT_STYLE}>
+              <Typography.Text type="secondary" style={MONEY_TEXT_STYLE}>
+                {hasBargain && (
+                  <Tooltip title="Giá gốc / giá thương lượng">
+                    <InfoCircleOutlined style={{ marginRight: 4 }} />
+                  </Tooltip>
+                )}
+                {hasBargain ? (
+                  <>
+                    <Typography.Text
+                      delete
+                      type="secondary"
+                      style={MONEY_TEXT_STYLE}
+                    >
+                      {formatCurrency(getForeignSalePrice(sku), currency)}
+                    </Typography.Text>{" "}
+                    /{" "}
+                    <Typography.Text strong style={MONEY_TEXT_STYLE}>
+                      {formatCurrency(getForeignBargainPrice(sku), currency)}
+                    </Typography.Text>
+                  </>
+                ) : (
+                  formatCurrency(getForeignSalePrice(sku), currency)
+                )}
+              </Typography.Text>
+              {logic.canEditCart && (
+                <Button
+                  type="link"
+                  size="small"
+                  icon={<EditOutlined />}
+                  style={{ paddingInline: 2 }}
+                  onClick={() => logic.setEditingPriceSku(sku)}
+                />
+              )}
+            </Space>
+          </Space>
+        );
+      },
     },
     {
       title: "Tiền hàng",
       key: "amount",
       width: 160,
       align: "right" as const,
+      onCell: (sku: any) =>
+        sku.__rowType === "quantityWarning" ? { colSpan: 0 } : {},
       render: (_: unknown, sku: any) => (
-        <Typography.Text strong>
-          {formatCurrency(getUnitPrice(sku) * Number(sku.quantity || 0))}
-        </Typography.Text>
+        <Space direction="vertical" size={0} align="end">
+          <Typography.Text strong style={MONEY_TEXT_STYLE}>
+            {formatCurrency(
+              getEffectiveUnitPrice(sku) * Number(sku.quantity || 0),
+            )}
+          </Typography.Text>
+          <Typography.Text type="secondary" style={MONEY_TEXT_STYLE}>
+            {sku.bargainPrice !== null && sku.bargainPrice !== undefined ? (
+              <>
+                <Typography.Text
+                  delete
+                  type="secondary"
+                  style={MONEY_TEXT_STYLE}
+                >
+                  {formatCurrency(
+                    getForeignSalePrice(sku) * Number(sku.quantity || 0),
+                    getForeignCurrency(sku),
+                  )}
+                </Typography.Text>{" "}
+                /{" "}
+                <Typography.Text strong style={MONEY_TEXT_STYLE}>
+                  {formatCurrency(
+                    getForeignBargainPrice(sku) * Number(sku.quantity || 0),
+                    getForeignCurrency(sku),
+                  )}
+                </Typography.Text>
+              </>
+            ) : (
+              formatCurrency(
+                getForeignSalePrice(sku) * Number(sku.quantity || 0),
+                getForeignCurrency(sku),
+              )
+            )}
+          </Typography.Text>
+        </Space>
       ),
     },
     {
       title: "",
       key: "actions",
-      width: 72,
+      width: 150,
       align: "right" as const,
-      render: (_: unknown, sku: any) => (
-        <Popconfirm
-          title="Xóa sản phẩm này?"
-          okText="Xóa"
-          cancelText="Hủy"
-          onConfirm={() => logic.deleteSku(String(sku.id))}
-        >
-          <Button
-            type="text"
-            danger
-            icon={<DeleteOutlined />}
-            loading={logic.deletingSkuId === String(sku.id)}
-          />
-        </Popconfirm>
-      ),
+      onCell: (sku: any) =>
+        sku.__rowType === "quantityWarning" ? { colSpan: 0 } : {},
+      render: (_: unknown, sku: any) => {
+        const skuId = String(sku.id);
+        const saved = logic.savedSkuIds.includes(skuId);
+
+        return (
+          <Space size={4}>
+            <Button
+              type="link"
+              size="small"
+              icon={saved ? <HeartFilled /> : <HeartOutlined />}
+              loading={logic.savingSkuId === skuId}
+              disabled={saved}
+              onClick={() => logic.saveSkuToWishlist(skuId)}
+              style={{
+                paddingInline: 4,
+                color: saved ? token.colorPrimary : undefined,
+              }}
+            />
+            <Popconfirm
+              title="Xóa sản phẩm này?"
+              okText="Xóa"
+              cancelText="Hủy"
+              onConfirm={() => logic.deleteSku(skuId)}
+            >
+              <Button
+                type="text"
+                danger
+                icon={<DeleteOutlined />}
+                loading={String(logic.deletingSkuId || "") === skuId}
+              />
+            </Popconfirm>
+          </Space>
+        );
+      },
     },
   ];
 
@@ -310,7 +541,10 @@ export const CartsStyleDefault = () => {
                           />
                         </Tooltip>
                         {exchangeRate && (
-                          <Typography.Text type="secondary">
+                          <Typography.Text
+                            type="secondary"
+                            style={MONEY_TEXT_STYLE}
+                          >
                             Tỷ giá: {formatCurrency(1, exchangeRate.base)} ={" "}
                             {formatCurrency(
                               exchangeRate.rate,
@@ -346,9 +580,10 @@ export const CartsStyleDefault = () => {
                   <Table
                     className="[&_.ant-table-tbody>tr:last-child>td]:!border-b-0 "
                     rowKey={(sku) => String(sku.id)}
-                    dataSource={group.cartSkus.slice(
-                      0,
-                      logic.productsPerSeller,
+                    tableLayout="fixed"
+                    scroll={{ x: 1078 }}
+                    dataSource={getCartTableRows(
+                      group.cartSkus.slice(0, logic.productsPerSeller),
                     )}
                     columns={columns}
                     pagination={false}
@@ -428,18 +663,22 @@ export const CartsStyleDefault = () => {
           </Space>
 
           <Flex align="center" gap={token.marginLG} wrap>
-            <Typography.Text>
+            <Typography.Text style={MONEY_TEXT_STYLE}>
               Ngoại tệ:{" "}
-              <Typography.Text strong>
+              <Typography.Text strong style={MONEY_TEXT_STYLE}>
                 {formatCurrency(
                   logic.totals.selectedForeignAmount,
                   logic.selectedForeignCurrency,
                 )}
               </Typography.Text>
             </Typography.Text>
-            <Typography.Text>
+            <Typography.Text style={MONEY_TEXT_STYLE}>
               Tổng:{" "}
-              <Typography.Text strong className="text-lg !text-primary">
+              <Typography.Text
+                strong
+                className="text-lg !text-primary"
+                style={MONEY_TEXT_STYLE}
+              >
                 {formatCurrency(logic.totals.selectedAmount)}
               </Typography.Text>{" "}
               ({logic.totals.selectedGroups} Shop / {logic.totals.selectedSkus}{" "}
@@ -460,6 +699,65 @@ export const CartsStyleDefault = () => {
         open={logic.addProductsOpen}
         onClose={() => logic.setAddProductsOpen(false)}
       />
+      <Modal
+        title="Sửa giá tệ"
+        open={!!logic.editingPriceSku}
+        onCancel={() => logic.setEditingPriceSku(null)}
+        okText="Cập nhật"
+        cancelText="Hủy"
+        destroyOnHidden
+        confirmLoading={logic.isUpdating}
+        okButtonProps={{
+          disabled:
+            logic.editingPriceSku?.draftBargainPrice === null ||
+            logic.editingPriceSku?.draftBargainPrice === undefined,
+        }}
+        onOk={() =>
+          logic.updateBargainPrice(
+            logic.editingPriceSku,
+            Number(
+              logic.editingPriceSku?.draftBargainPrice ??
+                logic.editingPriceSku?.bargainPrice,
+            ),
+          )
+        }
+      >
+        {logic.editingPriceSku && (
+          <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+            <Space align="start">
+              <Avatar
+                shape="square"
+                size={72}
+                src={getImage(logic.editingPriceSku)}
+              />
+              <Space direction="vertical" size={0}>
+                <Typography.Text strong>
+                  {getName(logic.editingPriceSku, logic.showTranslatedNames)}
+                </Typography.Text>
+                <Typography.Text type="secondary">
+                  Giá gốc:{" "}
+                  {formatCurrency(
+                    getForeignSalePrice(logic.editingPriceSku),
+                    getForeignCurrency(logic.editingPriceSku),
+                  )}
+                </Typography.Text>
+              </Space>
+            </Space>
+            <InputNumber
+              style={{ width: "100%" }}
+              min={0}
+              placeholder="Giá thương lượng"
+              defaultValue={logic.editingPriceSku.bargainPrice ?? undefined}
+              onChange={(value) =>
+                logic.setEditingPriceSku({
+                  ...logic.editingPriceSku,
+                  draftBargainPrice: value,
+                })
+              }
+            />
+          </Space>
+        )}
+      </Modal>
     </div>
   );
 };

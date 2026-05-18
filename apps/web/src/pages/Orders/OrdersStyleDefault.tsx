@@ -499,6 +499,7 @@ export const OrdersStyleDefault = () => {
                               // background: token.colorFillQuaternary,
                               // border: `1px solid ${token.colorBorderSecondary}`,
                             }}
+                            referrerPolicy="no-referrer"
                             onClick={() => navigateToDetail(record?.code)}
                           />
                         </Col>
