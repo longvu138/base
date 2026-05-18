@@ -165,7 +165,7 @@ export const PackageStyleGobiz: React.FC<{ isTabView?: boolean }> = ({ isTabView
             </div>
 
             {/* Pagination */}
-            <div className="flex justify-center pt-4">
+            <div className="flex justify-end pt-4">
                 <Pagination current={page} pageSize={pageSize} total={listData?.total || 0}
                     onChange={(p, s) => { setPage(p); if (s !== pageSize) setPageSize(s); }} />
             </div>

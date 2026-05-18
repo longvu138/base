@@ -337,7 +337,7 @@ export const DeliveryRequestsStyleGobiz: React.FC<{ isTabView?: boolean }> = ({
           scroll={{ x: 1100 }}
         />
 
-        <Flex justify="center" style={{ marginTop: token.marginLG }}>
+        <Flex justify="flex-end" style={{ marginTop: token.marginLG }}>
           <Pagination
             current={page}
             pageSize={pageSize}

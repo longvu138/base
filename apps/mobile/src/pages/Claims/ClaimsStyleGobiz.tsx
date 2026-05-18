@@ -180,7 +180,7 @@ export const ClaimsStyleGobiz = ({
             </div>
 
             {/* Pagination */}
-            <div className="flex justify-center pb-24">
+            <div className="flex justify-end pb-24">
                 <Pagination
                     current={page}
                     pageSize={pageSize}

@@ -264,7 +264,7 @@ export const DeliveryNotesList = ({
         locale={{ emptyText: <Empty description={page.t("message.empty")} /> }}
         scroll={{ x: 1280 }}
       />
-      <Flex justify="center" style={{ marginTop: token.marginLG }}>
+      <Flex justify="flex-end" style={{ marginTop: token.marginLG }}>
         <Pagination
           current={page.page}
           pageSize={page.pageSize}

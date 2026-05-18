@@ -1,4 +1,5 @@
 import { App as AntdApp, ConfigProvider, theme } from "antd";
+import viVN from "antd/locale/vi_VN";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter } from "react-router-dom";
 import { useState, useEffect, useMemo } from "react";
@@ -24,6 +25,14 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+const antdLocale = {
+  ...viVN,
+  Pagination: {
+    ...viVN.Pagination,
+    items_per_page: "/trang",
+  },
+};
 
 /**
  * Default config used when the tenant API is unavailable.
@@ -134,7 +143,7 @@ function AppContent() {
   }, [themeConfig, isDark]);
 
   return (
-    <ConfigProvider theme={antdTheme}>
+    <ConfigProvider theme={antdTheme} locale={antdLocale}>
       <AntdApp>
         <BrowserRouter>
           <AppRoutes />

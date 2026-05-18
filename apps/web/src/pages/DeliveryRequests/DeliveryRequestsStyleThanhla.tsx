@@ -218,7 +218,7 @@ export const DeliveryRequestsStyleThanhla = () => {
           scroll={{ x: 960 }}
         />
 
-        <Flex justify="center" style={{ marginTop: token.marginLG }}>
+        <Flex justify="flex-end" style={{ marginTop: token.marginLG }}>
           <Pagination
             current={page}
             pageSize={pageSize}

@@ -180,7 +180,7 @@ export const WithdrawalSlipStyleGobiz = ({ isTabView }: { isTabView?: boolean })
             </div>
 
             {/* Pagination */}
-            <div className="flex justify-center pt-4">
+            <div className="flex justify-end pt-4">
                 <Pagination
                     current={page}
                     pageSize={pageSize}
@@ -191,4 +191,3 @@ export const WithdrawalSlipStyleGobiz = ({ isTabView }: { isTabView?: boolean })
         </div>
     );
 };
-

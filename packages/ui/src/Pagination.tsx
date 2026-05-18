@@ -22,7 +22,7 @@ export function Pagination({
     if (total <= 0) return null;
 
     return (
-        <div className={`flex justify-end py-4 ${className}`}>
+        <div className={`flex w-full justify-end py-4 ${className}`}>
             <AntPagination
                 current={current}
                 pageSize={pageSize}
