@@ -402,6 +402,7 @@
     "order_list": "Orders list",
     "reorder": "Reorder",
     "re_order": "Reorder",
+    "re_order_success": "Products added to cart",
     "claim": "Create claim",
     "complaint_order": "Create claim",
     "cancel_order": "Cancel order",

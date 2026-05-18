@@ -88,7 +88,6 @@ const BASE_MENU_ITEMS: MenuItem[] = [
     label: "Khiếu nại",
     path: "/claims",
   },
-
   {
     key: "/withdrawal-slips",
     icon: React.createElement(CreditCardOutlined),

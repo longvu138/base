@@ -36,6 +36,12 @@ export const OrderApi = {
     patchOrder: (code: string, data: any) => {
         return ApiClient.auth.patch(`customer/orders/${code}`, data);
     },
+    cancelOrder: (code: string) => {
+        return ApiClient.auth.post(`customer/orders/${code}/cancel`);
+    },
+    reorderProductsToCart: (code: string) => {
+        return ApiClient.auth.post(`customer/orders/${code}/products/cart`);
+    },
     getOrderProducts: (code: string) => {
         return ApiClient.auth.get(`customer/orders/${code}/products?size=6969`);
     },

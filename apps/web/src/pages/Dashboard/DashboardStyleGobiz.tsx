@@ -107,67 +107,33 @@ export const DashboardStyleGobiz = () => {
           </Col>
         </Row>
 
-        <Row gutter={[16, 16]}>
-          <Col xs={24} lg={14}>
-            <Card title={t("dashboard.order")}>
-              <List
-                dataSource={visibleOrderStatuses}
-                renderItem={(item: any) => {
-                  const statistic = getOrderStatusStatistic(item.code);
-                  return (
-                    <List.Item>
-                      <List.Item.Meta
-                        avatar={<Avatar icon={<ShoppingCartOutlined />} />}
-                        title={<Typography.Text strong>{item.name}</Typography.Text>}
-                        description={item.code}
-                      />
-                      <Space>
-                        <Typography.Title level={4} style={{ margin: 0 }}>
-                          {statistic?.total || 0}
-                        </Typography.Title>
-                        {statistic?.totalUnpaid ? (
-                          <Tag color="red">
-                            -{formatCurrency(Math.abs(statistic.totalUnpaid))}
-                          </Tag>
-                        ) : null}
-                      </Space>
-                    </List.Item>
-                  );
-                }}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} lg={10}>
-            <Card title={t("dashboard.suggest")}>
-              <Spin spinning={isSuggestLoading}>
-                {suggestProducts.length > 0 ? (
-                  <List
-                    dataSource={suggestProducts.slice(0, 8) as DashboardProduct[]}
-                    renderItem={(item) => (
-                      <List.Item>
-                        <List.Item.Meta
-                          avatar={<Avatar shape="square" size={56} src={item.image} />}
-                          title={
-                            <a
-                              href={`https://detail.1688.com/offer/${item.itemId}.html`}
-                              target="_blank"
-                              rel="noreferrer"
-                            >
-                              {item.translateName}
-                            </a>
-                          }
-                          description={formatCurrency(item.price || 0, "CNY")}
-                        />
-                      </List.Item>
-                    )}
+        <Card title={t("dashboard.order")}>
+          <List
+            dataSource={visibleOrderStatuses}
+            renderItem={(item: any) => {
+              const statistic = getOrderStatusStatistic(item.code);
+              return (
+                <List.Item>
+                  <List.Item.Meta
+                    avatar={<Avatar icon={<ShoppingCartOutlined />} />}
+                    title={<Typography.Text strong>{item.name}</Typography.Text>}
+                    description={item.code}
                   />
-                ) : (
-                  <Empty description={t("common.no_data")} />
-                )}
-              </Spin>
-            </Card>
-          </Col>
-        </Row>
+                  <Space>
+                    <Typography.Title level={4} style={{ margin: 0 }}>
+                      {statistic?.total || 0}
+                    </Typography.Title>
+                    {statistic?.totalUnpaid ? (
+                      <Tag color="red">
+                        -{formatCurrency(Math.abs(statistic.totalUnpaid))}
+                      </Tag>
+                    ) : null}
+                  </Space>
+                </List.Item>
+              );
+            }}
+          />
+        </Card>
       </Space>
       {isDepositModalOpen && (
         <DepositModal

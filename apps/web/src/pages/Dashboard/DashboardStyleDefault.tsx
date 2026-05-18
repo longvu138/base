@@ -30,7 +30,6 @@ import type {
   DashboardStatusAmountConfig,
 } from "./hooks/useDashboardPage";
 
-const PRODUCT_SITE_URL = "https://www.1688.com/";
 
 const formatAmount = (
   statistic: any,
@@ -58,9 +57,7 @@ export const DashboardStyleDefault = () => {
     deliveryReadyCount,
     visibleOrderStatuses,
     statusAmountConfig,
-    suggestProducts,
     isLoading,
-    isSuggestLoading,
     isDepositModalOpen,
     setDepositModalOpen,
     getOrderStatusStatistic,
@@ -70,11 +67,14 @@ export const DashboardStyleDefault = () => {
     <Spin spinning={isLoading}>
       <Space direction="vertical" size="large" style={{ width: "100%" }}>
         <Row gutter={[24, 24]}>
-          <Col xs={24} xl={15}>
-            <Card title={t("dashboard.title")}>
+          <Col xs={24} xl={15} style={{ display: "flex" }}>
+            <Card
+              title={t("dashboard.title")}
+              style={{ width: "100%", height: "100%" }}
+            >
               <Row gutter={[16, 16]}>
-                <Col xs={24} md={12}>
-                  <Card>
+                <Col xs={24} md={12} style={{ display: "flex" }}>
+                  <Card style={{ width: "100%", height: "100%" }}>
                     <Flex align="center" gap={token.marginMD}>
                       <Avatar
                         size={48}
@@ -112,8 +112,8 @@ export const DashboardStyleDefault = () => {
                   </Card>
                 </Col>
 
-                <Col xs={24} md={12}>
-                  <Card>
+                <Col xs={24} md={12} style={{ display: "flex" }}>
+                  <Card style={{ width: "100%", height: "100%" }}>
                     <Flex align="center" gap={token.marginMD}>
                       <Avatar
                         size={48}
@@ -156,7 +156,7 @@ export const DashboardStyleDefault = () => {
             </Card>
           </Col>
 
-          <Col xs={24} xl={9}>
+          <Col xs={24} xl={9} style={{ display: "flex" }}>
             <Card
               title={t("dashboard.order")}
               extra={
@@ -166,7 +166,7 @@ export const DashboardStyleDefault = () => {
                   </Button>
                 </Link>
               }
-              style={{ height: "100%" }}
+              style={{ width: "100%", height: "100%" }}
             >
               <Row gutter={[16, 24]}>
                 {visibleOrderStatuses.map((item: any) => {
@@ -206,7 +206,7 @@ export const DashboardStyleDefault = () => {
           </Col>
         </Row>
 
-        <Card
+        {/* <Card
           title={t("dashboard.suggest")}
           extra={
             <a href={PRODUCT_SITE_URL} target="_blank" rel="noreferrer">
@@ -269,7 +269,7 @@ export const DashboardStyleDefault = () => {
               <Empty description={t("common.no_data")} />
             )}
           </Spin>
-        </Card>
+        </Card> */}
       </Space>
 
       {isDepositModalOpen && (

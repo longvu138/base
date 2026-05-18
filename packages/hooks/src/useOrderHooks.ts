@@ -149,6 +149,38 @@ export const useUpdateOrderNoteMutation = () => {
     });
 };
 
+export const useCancelOrderMutation = (code: string) => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async () => {
+            const res = await OrderApi.cancelOrder(code);
+            return res.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['orders.detail', code] });
+            queryClient.invalidateQueries({ queryKey: ['orders.list'] });
+            queryClient.invalidateQueries({ queryKey: ['orders.statistic'] });
+            queryClient.invalidateQueries({ queryKey: ['orders.logs', code] });
+            queryClient.invalidateQueries({ queryKey: ['orders.milestones', code] });
+            queryClient.invalidateQueries({ queryKey: ['orders.financials', code] });
+        },
+    });
+};
+
+export const useReorderMutation = (code: string) => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async () => {
+            const res = await OrderApi.reorderProductsToCart(code);
+            return res.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['customer.cart.statistics'] });
+            queryClient.invalidateQueries({ queryKey: ['customer.cart.items'] });
+        },
+    });
+};
+
 export const useOrderProductsQuery = (code: string) => {
     return useQuery({
         queryKey: ['orders.products', code],

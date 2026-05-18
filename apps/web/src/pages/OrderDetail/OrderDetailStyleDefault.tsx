@@ -17,6 +17,8 @@ import {
   Flex,
   Image,
   Layout,
+  notification,
+  Popconfirm,
   Row,
   Skeleton,
   Space,
@@ -115,8 +117,12 @@ export const OrderDetailStyleDefault = () => {
     activeTab,
     code,
     detailQuery,
+    handleCancelOrder,
+    handleReorder,
     handleTabChange,
     handleUpdate,
+    isCancellingOrder,
+    isReordering,
     isUpdating,
     navigate,
     order,
@@ -167,6 +173,22 @@ export const OrderDetailStyleDefault = () => {
     ? `¥1 = ${Number(order.exchangeRate).toLocaleString("vi-VN")} ₫`
     : "---";
   const canCancelOrder = Boolean(statusInfo?.cancellable);
+  const handleConfirmCancelOrder = async () => {
+    try {
+      await handleCancelOrder();
+      notification.success({ message: t("orderDetail.order_cancel") });
+    } catch {
+      notification.error({ message: t("message.update_failed") });
+    }
+  };
+  const handleConfirmReorder = async () => {
+    try {
+      await handleReorder();
+      notification.success({ message: t("orderDetail.re_order_success") });
+    } catch {
+      notification.error({ message: t("message.update_failed") });
+    }
+  };
 
   const metricRow1 = [
     {
@@ -296,7 +318,12 @@ export const OrderDetailStyleDefault = () => {
                   <Text>{t("orderDetail.order_list")}</Text>
                 </Space>
               </Link>
-              <Button type="primary" ghost>
+              <Button
+                type="primary"
+                ghost
+                loading={isReordering}
+                onClick={handleConfirmReorder}
+              >
                 {t("orderDetail.re_order")}
               </Button>
             </Flex>
@@ -392,9 +419,16 @@ export const OrderDetailStyleDefault = () => {
                       <Button>{t("orderDetail.complaint_order")}</Button>
                     </Link>
                     {canCancelOrder && (
-                      <Button danger ghost>
-                        {t("orderDetail.cancel_order")}
-                      </Button>
+                      <Popconfirm
+                        title={t("orderDetail.confirm_question")}
+                        okText={t("button.yes")}
+                        cancelText={t("button.no")}
+                        onConfirm={handleConfirmCancelOrder}
+                      >
+                        <Button danger ghost loading={isCancellingOrder}>
+                          {t("orderDetail.cancel_order")}
+                        </Button>
+                      </Popconfirm>
                     )}
                   </Flex>
                 </Col>

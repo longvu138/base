@@ -1,8 +1,10 @@
 import { useMemo } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
+  useCancelOrderMutation,
   useOrderDetailQuery,
   useOrderStatusesQuery,
+  useReorderMutation,
   useUpdateOrderMutation,
 } from "@repo/hooks";
 import { moneyFormat } from "@repo/util";
@@ -55,6 +57,8 @@ export const useOrderDetailPage = () => {
   const detailQuery = useOrderDetailQuery(code);
   const statusesQuery = useOrderStatusesQuery();
   const updateMutation = useUpdateOrderMutation();
+  const cancelMutation = useCancelOrderMutation(code);
+  const reorderMutation = useReorderMutation(code);
 
   const order = detailQuery.data;
 
@@ -101,12 +105,26 @@ export const useOrderDetailPage = () => {
     });
   };
 
+  const handleCancelOrder = async () => {
+    if (!code || cancelMutation.isPending) return;
+    await cancelMutation.mutateAsync();
+  };
+
+  const handleReorder = async () => {
+    if (!code || reorderMutation.isPending) return;
+    await reorderMutation.mutateAsync();
+  };
+
   return {
     activeTab,
     code,
     detailQuery,
+    handleCancelOrder,
+    handleReorder,
     handleTabChange,
     handleUpdate,
+    isCancellingOrder: cancelMutation.isPending,
+    isReordering: reorderMutation.isPending,
     isUpdating: updateMutation.isPending,
     navigate,
     order,

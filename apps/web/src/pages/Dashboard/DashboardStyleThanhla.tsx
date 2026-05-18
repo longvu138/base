@@ -133,47 +133,6 @@ export const DashboardStyleThanhla = () => {
               </Space>
             </Card>
           </Col>
-          <Col xs={24} lg={14}>
-            <Card
-              title={t("dashboard.suggest")}
-              extra={
-                <a href="https://www.1688.com/" target="_blank" rel="noreferrer">
-                  <Button type="link" icon={<ExportOutlined />}>
-                    {t("dashboard.loadMore")}
-                  </Button>
-                </a>
-              }
-            >
-              <Spin spinning={isSuggestLoading}>
-                {suggestProducts.length > 0 ? (
-                  <Row gutter={[12, 12]}>
-                    {suggestProducts.slice(0, 12).map((item: DashboardProduct) => (
-                      <Col xs={12} sm={8} md={6} key={item.itemId}>
-                        <a
-                          href={`https://detail.1688.com/offer/${item.itemId}.html`}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          <Image
-                            preview={false}
-                            src={item.image}
-                            height={120}
-                            width="100%"
-                            style={{
-                              objectFit: "cover",
-                              borderRadius: token.borderRadiusLG,
-                            }}
-                          />
-                        </a>
-                      </Col>
-                    ))}
-                  </Row>
-                ) : (
-                  <Empty description={t("common.no_data")} />
-                )}
-              </Spin>
-            </Card>
-          </Col>
         </Row>
       </Space>
       {isDepositModalOpen && (

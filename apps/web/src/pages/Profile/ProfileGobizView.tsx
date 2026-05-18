@@ -101,11 +101,9 @@ const ProfileSidebar = () => {
 
   return (
     <Card
-      bordered={false}
       styles={{
         body: {
           padding: `${token.paddingXL}px 0 ${token.paddingSM}px`,
-          position: "relative",
         },
       }}
       style={{ boxShadow: token.boxShadowTertiary }}
@@ -851,10 +849,14 @@ export const ProfileGobizView = ({
         </Typography.Title>
 
         <Row gutter={[token.marginLG, token.marginLG]}>
-          <Col xs={24} lg={compact ? 7 : 6}>
+          <Col
+            xs={24}
+            lg={compact ? 6 : 5}
+            className="lg:sticky lg:top-4 lg:self-start"
+          >
             <ProfileSidebar />
           </Col>
-          <Col xs={24} lg={compact ? 17 : 18}>
+          <Col xs={24} lg={compact ? 18 : 19}>
             <Space
               direction="vertical"
               size={token.marginLG}
