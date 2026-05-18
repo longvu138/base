@@ -24,8 +24,8 @@ export const LoginStyleDefault = () => {
     return (
         <div className="min-h-screen flex w-full">
 
-            <div className="flex-1 flex items-center justify-center bg-filter dark:bg-filter-dark p-8">
-                <div className="w-full max-w-[400px]">
+            <div className="flex-1 flex items-center justify-center bg-filter dark:bg-filter-dark">
+                <div className="w-full max-w-[470px] shadow-2xl p-8 rounded-lg" style={{ boxShadow: '0 1px 22px #00000040' }}>
                     <div className="text-center">
                         {login.projectInfo?.tenantConfig?.logoStandard && (
                             <img
@@ -34,8 +34,8 @@ export const LoginStyleDefault = () => {
                                 className="h-32 mx-auto mb-6 object-contain"
                             />
                         )}
-                        <h1 className="text-3xl font-bold text-primary mb-2 text-left">{t('auth.login.title')}</h1>
-                        <p className="text-gray-500 dark:text-gray-400 text-left">{t('auth.login.subtitle')}</p>
+                        <h1 className="text-3xl font-bold text-primary mb-2 text-center">{t('auth.login.title')}</h1>
+                        <p className="text-gray-500 dark:text-gray-400 text-center">{t('auth.login.subtitle')}</p>
                     </div>
 
                     <Form
@@ -43,9 +43,13 @@ export const LoginStyleDefault = () => {
                         layout="vertical"
                         onFinish={onFinish}
                         autoComplete="off"
-                        size="large"
-                        className="space-y-4"
+                        size="middle"
                         requiredMark={false}
+                        onValuesChange={() => {
+                            if (login.loginError) {
+                                login.setLoginError(null);
+                            }
+                        }}
                     >
                         <Form.Item
                             label={<span className="font-medium text-gray-700 dark:text-gray-300">{t('auth.login.username')}</span>}
@@ -53,6 +57,7 @@ export const LoginStyleDefault = () => {
                             rules={[
                                 { required: true, message: t('auth.login.usernameRequired') },
                             ]}
+                            validateStatus={login.loginError ? 'error' : undefined}
                         >
                             <Input
                                 className="rounded-lg border-gray-300 hover:border-blue-500 transition-colors"
@@ -64,6 +69,8 @@ export const LoginStyleDefault = () => {
                             label={<span className="font-medium text-gray-700 dark:text-gray-300">{t('auth.login.password')}</span>}
                             name="password"
                             rules={[{ required: true, message: t('auth.login.passwordRequired') }]}
+                            validateStatus={login.loginError ? 'error' : undefined}
+                            help={login.loginError ? login.loginError : undefined}
                         >
                             <Input.Password
                                 className="rounded-lg border-gray-300 hover:border-blue-500 transition-colors"

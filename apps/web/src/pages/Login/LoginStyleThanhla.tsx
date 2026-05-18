@@ -89,10 +89,16 @@ export const LoginStyleThanhla = () => {
                         size="large"
                         className="space-y-6"
                         requiredMark={false}
+                        onValuesChange={() => {
+                            if (login.loginError) {
+                                login.setLoginError(null);
+                            }
+                        }}
                     >
                         <Form.Item
                             name="username"
                             rules={[{ required: true, message: t('auth.login.usernameRequired') }]}
+                            validateStatus={login.loginError ? 'error' : undefined}
                         >
                             <Input
                                 prefix={<User className="text-gray-400 mr-2" size={18} />}
@@ -104,6 +110,8 @@ export const LoginStyleThanhla = () => {
                         <Form.Item
                             name="password"
                             rules={[{ required: true, message: t('auth.login.passwordRequired') }]}
+                            validateStatus={login.loginError ? 'error' : undefined}
+                            help={login.loginError ? login.loginError : undefined}
                         >
                             <Input.Password
                                 prefix={<Lock className="text-gray-400 mr-2" size={18} />}

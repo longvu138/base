@@ -57,12 +57,18 @@ export const LoginStyleGobiz: React.FC = () => {
                 onFinish={onFinish}
                 size="large"
                 className="mt-6 relative z-10"
+                onValuesChange={() => {
+                    if (login.loginError) {
+                        login.setLoginError(null);
+                    }
+                }}
             >
                 <Form.Item
                     name="username"
                     label={<span className="text-xs font-bold uppercase text-gray-400 pl-1">{t('auth.login.username')}</span>}
                     rules={[{ required: true, message: 'Vui lòng nhập tên đăng nhập!' }]}
                     className="mb-4"
+                    validateStatus={login.loginError ? 'error' : undefined}
                 >
                     <AntInput
                         prefix={<UserOutlined className="text-gray-400" />}
@@ -76,6 +82,8 @@ export const LoginStyleGobiz: React.FC = () => {
                     label={<span className="text-xs font-bold uppercase text-gray-400 pl-1">{t('auth.login.password')}</span>}
                     rules={[{ required: true, message: 'Vui lòng nhập mật khẩu!' }]}
                     className="mb-4"
+                    validateStatus={login.loginError ? 'error' : undefined}
+                    help={login.loginError ? login.loginError : undefined}
                 >
                     <AntInput.Password
                         prefix={<LockOutlined className="text-gray-400" />}
