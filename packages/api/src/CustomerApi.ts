@@ -10,6 +10,9 @@ export const CustomerApi = {
     updateProfile: (payload: any) => {
         return ApiClient.auth.patch("customer/profile", payload);
     },
+    updatePreferredServices: (serviceCodes: string[]) => {
+        return ApiClient.auth.patch("customer/profile/preferred_services", serviceCodes);
+    },
     changePassword: (payload: any) => {
         return ApiClient.auth.post("customer/profile/change_password", payload);
     },
@@ -36,8 +39,14 @@ export const CustomerApi = {
     getTotalSkusInCart: () => {
         return ApiClient.auth.get("customer/cart/statistics");
     },
-    getCartItems: () => {
-        return ApiClient.auth.get("customer/cart?page=0&size=9999&sort=modifiedAt:desc");
+    getCartItems: (params: { page?: number; size?: number } = {}) => {
+        return ApiClient.auth.get("customer/cart", {
+            params: {
+                page: params.page ?? 0,
+                size: params.size ?? 5,
+                sort: "modifiedAt:desc",
+            },
+        });
     },
     updateCartSku: (id: string, payload: any) => {
         return ApiClient.auth.patch(`customer/skus/${id}`, payload);
@@ -51,8 +60,17 @@ export const CustomerApi = {
     deleteCartGroup: (id: string) => {
         return ApiClient.auth.delete(`customer/cart/${id}`);
     },
+    updateCartGroup: (id: string, payload: any) => {
+        return ApiClient.auth.patch(`customer/cart/${id}`, payload);
+    },
     deleteAllCart: () => {
         return ApiClient.auth.delete("customer/cart/delete_all");
+    },
+    updateCartServices: (id: string, serviceCodes: string[]) => {
+        return ApiClient.auth.post(`customer/cart/${id}/services`, serviceCodes);
+    },
+    getCartFees: (id: string) => {
+        return ApiClient.auth.get(`customer/cart/${id}/fees`);
     },
     importCartProducts: (file: File) => {
         const formData = new FormData();
@@ -85,6 +103,18 @@ export const CustomerApi = {
     },
     addCartSkus: (payload: any) => {
         return ApiClient.auth.post("customer/cart/skus", payload);
+    },
+    createDraftOrder: (payload: { skus: string[] }) => {
+        return ApiClient.auth.post("customer/draft_orders", payload);
+    },
+    getDraftOrder: (id: string) => {
+        return ApiClient.auth.get(`customer/draft_orders/${id}`);
+    },
+    updateDraftOrder: (id: string, payload: any) => {
+        return ApiClient.auth.patch(`customer/draft_orders/${id}`, payload);
+    },
+    createCustomerOrder: (payload: any) => {
+        return ApiClient.auth.post("customer/orders", payload);
     },
     trackAddToCart: () => {
         return ApiClient.auth.post("tenants/current/tracking-add-to-cart");

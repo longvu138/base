@@ -31,6 +31,7 @@ import {
   useCreateCartProductMutation,
   useImportCartProductsMutation,
 } from "@repo/hooks";
+import { formatCurrency } from "@repo/util";
 import * as XLSX from "xlsx";
 
 type AddMode = "manual" | "excel" | "link";
@@ -728,7 +729,11 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
                                 Số lượng từ: {range.startQuantity}
                               </Typography.Text>
                               <Typography.Text>
-                                Giá: {range.promotionPrice || range.price} CNY
+                                Giá:{" "}
+                                {formatCurrency(
+                                  range.promotionPrice || range.price,
+                                  "CNY",
+                                )}
                               </Typography.Text>
                             </Space>
                           ),
@@ -821,7 +826,7 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
                                 textAlign: "center",
                               }}
                             >
-                              {getDisplayPrice(row)} CNY
+                              {formatCurrency(getDisplayPrice(row), "CNY")}
                             </Typography.Text>
                             <Flex
                               align="center"
@@ -875,7 +880,8 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
                       </Space>
                       <Space direction="vertical" size={0} align="end">
                         <Typography.Text>
-                          Thành tiền: {totalSelectedAmount} CNY
+                          Thành tiền:{" "}
+                          {formatCurrency(totalSelectedAmount, "CNY")}
                         </Typography.Text>
                         {product?.minOrderQuantity > 1 && (
                           <Typography.Text type="danger">

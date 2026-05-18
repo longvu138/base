@@ -27,6 +27,16 @@ export const useUpdateCustomerProfile = () => {
     });
 };
 
+export const useUpdatePreferredServicesMutation = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (serviceCodes: string[]) => CustomerApi.updatePreferredServices(serviceCodes),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['customer.profile'] });
+        },
+    });
+};
+
 export const useChangeCustomerPassword = () => {
     return useMutation({
         mutationFn: async (payload: any) => {
@@ -142,12 +152,21 @@ export const useTotalSkusInCart = () => {
     });
 };
 
-export const useCartItemsQuery = (enabled = true) => {
+export const useCartItemsQuery = (
+    params: { page?: number; size?: number } = {},
+    enabled = true,
+) => {
     return useQuery({
-        queryKey: ['customer.cart.items'],
+        queryKey: ['customer.cart.items', params],
         queryFn: async () => {
-            const res = await CustomerApi.getCartItems();
-            return Array.isArray(res.data) ? res.data : [];
+            const res = await CustomerApi.getCartItems(params);
+            return {
+                data: Array.isArray(res.data) ? res.data : [],
+                total: parseInt(res.headers['x-total-count'] || '0', 10),
+                pageSize: parseInt(res.headers['x-page-size'] || params.size || '5', 10),
+                current: parseInt(res.headers['x-page-number'] || params.page || '0', 10),
+                totalPage: parseInt(res.headers['x-page-count'] || '0', 10),
+            };
         },
         enabled: !!localStorage.getItem('access_token') && enabled,
         retry: false,
@@ -203,6 +222,18 @@ export const useDeleteCartGroupMutation = () => {
     });
 };
 
+export const useUpdateCartGroupMutation = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({ id, payload }: { id: string; payload: any }) =>
+            CustomerApi.updateCartGroup(id, payload),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['customer.cart.items'] });
+        },
+    });
+};
+
 export const useDeleteAllCartMutation = () => {
     const queryClient = useQueryClient();
 
@@ -212,6 +243,31 @@ export const useDeleteAllCartMutation = () => {
             queryClient.invalidateQueries({ queryKey: ['customer.cart.items'] });
             queryClient.invalidateQueries({ queryKey: ['customer.cart.statistics'] });
         },
+    });
+};
+
+export const useUpdateCartServicesMutation = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({ id, serviceCodes }: { id: string; serviceCodes: string[] }) =>
+            CustomerApi.updateCartServices(id, serviceCodes),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['customer.cart.items'] });
+            queryClient.invalidateQueries({ queryKey: ['customer.cart.statistics'] });
+        },
+    });
+};
+
+export const useCartFeesQuery = (id?: string, enabled = true) => {
+    return useQuery({
+        queryKey: ['customer.cart.fees', id],
+        queryFn: async () => {
+            const res = await CustomerApi.getCartFees(String(id));
+            return Array.isArray(res.data) ? res.data : [];
+        },
+        enabled: !!localStorage.getItem('access_token') && !!id && enabled,
+        retry: false,
     });
 };
 
@@ -249,6 +305,39 @@ export const useAddCartSkusMutation = () => {
             queryClient.invalidateQueries({ queryKey: ['customer.cart.items'] });
             queryClient.invalidateQueries({ queryKey: ['customer.cart.statistics'] });
         },
+    });
+};
+
+export const useCreateDraftOrderMutation = () => {
+    return useMutation({
+        mutationFn: (payload: { skus: string[] }) => CustomerApi.createDraftOrder(payload),
+    });
+};
+
+export const useDraftOrderQuery = (id?: string) => {
+    return useQuery({
+        queryKey: ['customer.draft_order', id],
+        queryFn: async () => {
+            const res = await CustomerApi.getDraftOrder(String(id));
+            return res.data;
+        },
+        enabled: !!localStorage.getItem('access_token') && !!id,
+    });
+};
+
+export const useUpdateDraftOrderMutation = (id?: string) => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (payload: any) => CustomerApi.updateDraftOrder(String(id), payload),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['customer.draft_order', id] });
+        },
+    });
+};
+
+export const useCreateCustomerOrderMutation = () => {
+    return useMutation({
+        mutationFn: (payload: any) => CustomerApi.createCustomerOrder(payload),
     });
 };
 

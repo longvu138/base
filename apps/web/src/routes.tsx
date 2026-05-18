@@ -20,6 +20,7 @@ import { Packages } from "./pages/Packages";
 import Profile from "./pages/Profile";
 import Notifications from "./pages/Notifications";
 import { Carts } from "./pages/Carts";
+import CartCheckout from "./pages/Carts/CartCheckout";
 
 import ThemeConfigurator from "./pages/ThemeConfigurator";
 
@@ -36,6 +37,7 @@ function AppRoutes() {
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="orders" element={<Orders />} />
           <Route path="carts" element={<Carts />} />
+          <Route path="carts/checkout/:draftOrderId" element={<CartCheckout />} />
           <Route path="orders/:code" element={<OrderDetail />} />
           <Route path="shipments" element={<Shipments />} />
           <Route path="shipments/create" element={<CreateShipment />} />
