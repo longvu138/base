@@ -408,31 +408,32 @@ export const CartCheckoutStyleDefault = () => {
         </Col>
 
         <Col xs={24} xl={7}>
-          <Space
-            direction="vertical"
-            size={token.marginMD}
-            style={{ width: "100%" }}
-          >
-            <DeliveryAddressPanel
-              addresses={addresses?.data || []}
-              selectedAddressData={
-                draftOrder?.address && typeof draftOrder.address === "object"
-                  ? draftOrder.address
-                  : undefined
-              }
-              selectedAddressId={selectedAddressId}
-              isUpdating={isUpdatingDraftOrder}
-              onSelectAddress={selectAddress}
-              onRefetchAddresses={() => refetchAddresses()}
-            />
-
-            <Card
-              title="Thông tin thanh toán"
-              style={{
-                borderColor: token.colorPrimaryBorder,
-                background: token.colorPrimaryBg,
-              }}
+          <Card styles={{ body: { padding: token.paddingMD } }}>
+            <Space
+              direction="vertical"
+              size={token.marginMD}
+              style={{ width: "100%" }}
             >
+              <DeliveryAddressPanel
+                addresses={addresses?.data || []}
+                selectedAddressData={
+                  draftOrder?.address && typeof draftOrder.address === "object"
+                    ? draftOrder.address
+                    : undefined
+                }
+                selectedAddressId={selectedAddressId}
+                isUpdating={isUpdatingDraftOrder}
+                onSelectAddress={selectAddress}
+                onRefetchAddresses={() => refetchAddresses()}
+              />
+
+              <Card
+                title="Thông tin thanh toán"
+                style={{
+                  borderColor: token.colorPrimaryBorder,
+                  background: token.colorPrimaryBg,
+                }}
+              >
               <Space
                 direction="vertical"
                 size={token.marginSM}
@@ -515,8 +516,9 @@ export const CartCheckoutStyleDefault = () => {
                   Tạo đơn hàng
                 </Button>
               </Space>
-            </Card>
-          </Space>
+              </Card>
+            </Space>
+          </Card>
         </Col>
       </Row>
     </div>
