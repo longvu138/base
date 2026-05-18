@@ -1,13 +1,13 @@
 import { Form, Input, Button, Card, Typography, Checkbox } from 'antd';
 import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined, IdcardOutlined, UserAddOutlined } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
+import './RegisterStyleDefault.css';
 
 const { Title, Text } = Typography;
 
 export const RegisterStyleDefault = ({ form, onFinish, isLoading, projectInfo }: any) => {
     const bgImage = projectInfo?.tenantConfig?.generalConfig?.registerBackgroundImage;
-    console.log("bgImage", projectInfo);
-
+    const serviceAgreementUrl = projectInfo?.tenantConfig?.generalConfig?.serviceAgreementUrl;
     return (
         <div style={{
             display: 'flex',
@@ -21,10 +21,10 @@ export const RegisterStyleDefault = ({ form, onFinish, isLoading, projectInfo }:
                 <div style={{ textAlign: 'center', marginBottom: 32 }}>
                     {!bgImage && projectInfo?.tenantConfig?.logoStandard && (
                         <div style={{ marginBottom: 20 }}>
-                            <img 
-                                src={projectInfo.tenantConfig.logoStandard} 
-                                alt="logo" 
-                                style={{ height: 64, objectFit: 'contain' }} 
+                            <img
+                                src={projectInfo.tenantConfig.logoStandard}
+                                alt="logo"
+                                style={{ height: 64, objectFit: 'contain' }}
                             />
                         </div>
                     )}
@@ -117,19 +117,31 @@ export const RegisterStyleDefault = ({ form, onFinish, isLoading, projectInfo }:
                         <Input prefix={<UserAddOutlined />} placeholder="Mã giới thiệu (nếu có)" size="large" />
                     </Form.Item>
 
-                    <Form.Item
-                        name="terms"
-                        valuePropName="checked"
-                        rules={[
-                            {
-                                validator: (_, value) =>
-                                    value ? Promise.resolve() : Promise.reject(new Error('Vui lòng đồng ý với điều khoản và chính sách!')),
-                            },
-                        ]}
-                    >
-                        <Checkbox>
-                            Tôi đồng ý với <Link to="/terms">điều khoản và chính sách</Link>
-                        </Checkbox>
+                    <Form.Item className="register-terms-item">
+                        <div className="register-terms-row">
+                            <Form.Item
+                                name="terms"
+                                valuePropName="checked"
+                                noStyle
+                                rules={[
+                                    {
+                                        validator: (_, value) =>
+                                            value ? Promise.resolve() : Promise.reject(new Error('Vui lòng đồng ý với điều khoản và chính sách!')),
+                                    },
+                                ]}
+                            >
+                                <Checkbox id="register-terms-checkbox" className="register-terms-checkbox" />
+                            </Form.Item>
+                            <label className="register-terms-content" htmlFor="register-terms-checkbox">
+                                {!serviceAgreementUrl ? (
+                                    <>
+                                        Tôi đồng ý với <Link to="/terms">điều khoản và chính sách</Link>
+                                    </>
+                                ) : (
+                                    <span dangerouslySetInnerHTML={{ __html: serviceAgreementUrl }} />
+                                )}
+                            </label>
+                        </div>
                     </Form.Item>
 
                     <Form.Item>

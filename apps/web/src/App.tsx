@@ -85,7 +85,10 @@ function AppContent() {
       .then((data) => {
         setGlobalTenantConfig(data);
         localStorage.setItem("full-tenant-data", JSON.stringify(data));
-        localStorage.setItem("currentProjectInfo", JSON.stringify(data));
+        const currentProjectInfo = parseLocalStorageJson("currentProjectInfo");
+        if (isFullProjectInfo(data) || !isFullProjectInfo(currentProjectInfo)) {
+          localStorage.setItem("currentProjectInfo", JSON.stringify(data));
+        }
       })
       .catch((err) => {
         // API failed — apply fallback so the app still renders correctly
@@ -139,6 +142,21 @@ function AppContent() {
       </AntdApp>
     </ConfigProvider>
   );
+}
+
+function parseLocalStorageJson(key: string) {
+  const value = localStorage.getItem(key);
+  if (!value) return null;
+
+  try {
+    return JSON.parse(value);
+  } catch {
+    return null;
+  }
+}
+
+function isFullProjectInfo(projectInfo: any) {
+  return Boolean(projectInfo?.tenantConfig?.generalConfig);
 }
 
 function App() {

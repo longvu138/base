@@ -53,6 +53,7 @@ export const RegisterPage = () => {
         setCurrentTenant(value);
         dispatchTenantChange(value);
     };
+    const projectInfo = isFullProjectInfo(logic.projectInfo) ? logic.projectInfo : tenantConfig || logic.projectInfo;
 
     return (
         <>
@@ -95,7 +96,7 @@ export const RegisterPage = () => {
                 featureName="Register"
                 componentProps={{
                     ...logic,
-                    projectInfo: tenantConfig || logic.projectInfo,
+                    projectInfo,
                     form
                 }}
             />
@@ -104,3 +105,7 @@ export const RegisterPage = () => {
 };
 
 export default RegisterPage;
+
+function isFullProjectInfo(projectInfo: any) {
+    return Boolean(projectInfo?.tenantConfig?.generalConfig);
+}
