@@ -1,6 +1,17 @@
 import { Form, Input, Button, Typography, Checkbox } from 'antd';
 import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined, IdcardOutlined, ArrowLeftOutlined, UserAddOutlined } from '@ant-design/icons';
 import { Link, useNavigate } from 'react-router-dom';
+import {
+    confirmPasswordRules,
+    emailRules,
+    fullnameRules,
+    normalizePhone,
+    passwordRules,
+    phoneRules,
+    RegisterTermsContent,
+    termsRules,
+    usernameRules,
+} from './RegisterShared';
 
 const { Title, Text } = Typography;
 
@@ -45,7 +56,7 @@ export const RegisterStyleDefault = ({ form, onFinish, isLoading, projectInfo }:
             >
                 <Form.Item
                     name="fullname"
-                    rules={[{ required: true, message: 'Vui lòng nhập họ và tên!' }]}
+                    rules={fullnameRules}
                 >
                     <Input 
                         prefix={<IdcardOutlined className="text-gray-400" />} 
@@ -57,7 +68,7 @@ export const RegisterStyleDefault = ({ form, onFinish, isLoading, projectInfo }:
 
                 <Form.Item
                     name="username"
-                    rules={[{ required: true, message: 'Vui lòng nhập tên đăng nhập!' }]}
+                    rules={usernameRules}
                 >
                     <Input 
                         prefix={<UserOutlined className="text-gray-400" />} 
@@ -69,10 +80,7 @@ export const RegisterStyleDefault = ({ form, onFinish, isLoading, projectInfo }:
 
                 <Form.Item
                     name="email"
-                    rules={[
-                        { required: true, message: 'Vui lòng nhập email!' },
-                        { type: 'email', message: 'Email không hợp lệ!' }
-                    ]}
+                    rules={emailRules}
                 >
                     <Input 
                         prefix={<MailOutlined className="text-gray-400" />} 
@@ -84,7 +92,8 @@ export const RegisterStyleDefault = ({ form, onFinish, isLoading, projectInfo }:
 
                 <Form.Item
                     name="phone"
-                    rules={[{ required: true, message: 'Vui lòng nhập số điện thoại!' }]}
+                    getValueFromEvent={normalizePhone}
+                    rules={phoneRules}
                 >
                     <Input 
                         prefix={<PhoneOutlined className="text-gray-400" />} 
@@ -96,7 +105,7 @@ export const RegisterStyleDefault = ({ form, onFinish, isLoading, projectInfo }:
 
                 <Form.Item
                     name="password"
-                    rules={[{ required: true, message: 'Vui lòng nhập mật khẩu!' }]}
+                    rules={passwordRules}
                 >
                     <Input.Password 
                         prefix={<LockOutlined className="text-gray-400" />} 
@@ -109,17 +118,7 @@ export const RegisterStyleDefault = ({ form, onFinish, isLoading, projectInfo }:
                 <Form.Item
                     name="confirm"
                     dependencies={['password']}
-                    rules={[
-                        { required: true, message: 'Vui lòng xác nhận mật khẩu!' },
-                        ({ getFieldValue }) => ({
-                            validator(_, value) {
-                                if (!value || getFieldValue('password') === value) {
-                                    return Promise.resolve();
-                                }
-                                return Promise.reject(new Error('Mật khẩu xác nhận không khớp!'));
-                            },
-                        }),
-                    ]}
+                    rules={confirmPasswordRules}
                 >
                     <Input.Password 
                         prefix={<LockOutlined className="text-gray-400" />} 
@@ -143,15 +142,10 @@ export const RegisterStyleDefault = ({ form, onFinish, isLoading, projectInfo }:
                 <Form.Item
                     name="terms"
                     valuePropName="checked"
-                    rules={[
-                        {
-                            validator: (_, value) =>
-                                value ? Promise.resolve() : Promise.reject(new Error('Vui lòng đồng ý với điều khoản và chính sách!')),
-                        },
-                    ]}
+                    rules={termsRules}
                 >
                     <Checkbox>
-                        Tôi đồng ý với <Link to="/terms" className="text-primary font-bold">điều khoản và chính sách</Link>
+                        <RegisterTermsContent projectInfo={projectInfo} linkClassName="text-primary font-bold" />
                     </Checkbox>
                 </Form.Item>
 

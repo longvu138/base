@@ -1,6 +1,17 @@
 import { Form, Input, Button, Checkbox } from 'antd';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Lock, User, Mail, Phone, BadgeInfo, UserPlus } from 'lucide-react';
+import {
+    confirmPasswordRules,
+    emailRules,
+    fullnameRules,
+    normalizePhone,
+    passwordRules,
+    phoneRules,
+    RegisterTermsContent,
+    termsRules,
+    usernameRules,
+} from './RegisterShared';
 
 /**
  * RegisterStyleThanhla — Giao diện cho Thanhla (thanhla)
@@ -75,7 +86,7 @@ export const RegisterStyleThanhla = ({ onFinish, isLoading, projectInfo }: any) 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <Form.Item
                                 name="username"
-                                rules={[{ required: true, message: 'Vui lòng nhập tên đăng nhập!' }]}
+                                rules={usernameRules}
                                 className="mb-0"
                             >
                                 <Input
@@ -87,7 +98,7 @@ export const RegisterStyleThanhla = ({ onFinish, isLoading, projectInfo }: any) 
 
                             <Form.Item
                                 name="fullname"
-                                rules={[{ required: true, message: 'Vui lòng nhập họ và tên!' }]}
+                                rules={fullnameRules}
                                 className="mb-0"
                             >
                                 <Input
@@ -100,10 +111,7 @@ export const RegisterStyleThanhla = ({ onFinish, isLoading, projectInfo }: any) 
 
                         <Form.Item
                             name="email"
-                            rules={[
-                                { required: true, message: 'Vui lòng nhập email!' },
-                                { type: 'email', message: 'Email không hợp lệ!' }
-                            ]}
+                            rules={emailRules}
                             className="mb-0"
                         >
                             <Input
@@ -115,7 +123,8 @@ export const RegisterStyleThanhla = ({ onFinish, isLoading, projectInfo }: any) 
 
                         <Form.Item
                             name="phone"
-                            rules={[{ required: true, message: 'Vui lòng nhập số điện thoại!' }]}
+                            getValueFromEvent={normalizePhone}
+                            rules={phoneRules}
                             className="mb-0"
                         >
                             <Input
@@ -127,7 +136,7 @@ export const RegisterStyleThanhla = ({ onFinish, isLoading, projectInfo }: any) 
 
                         <Form.Item
                             name="password"
-                            rules={[{ required: true, message: 'Vui lòng nhập mật khẩu!' }]}
+                            rules={passwordRules}
                             className="mb-0"
                         >
                             <Input.Password
@@ -140,17 +149,7 @@ export const RegisterStyleThanhla = ({ onFinish, isLoading, projectInfo }: any) 
                         <Form.Item
                             name="confirm"
                             dependencies={['password']}
-                            rules={[
-                                { required: true, message: 'Vui lòng xác nhận mật khẩu!' },
-                                ({ getFieldValue }) => ({
-                                    validator(_, value) {
-                                        if (!value || getFieldValue('password') === value) {
-                                            return Promise.resolve();
-                                        }
-                                        return Promise.reject(new Error('Mật khẩu xác nhận không khớp!'));
-                                    },
-                                }),
-                            ]}
+                            rules={confirmPasswordRules}
                             className="mb-0"
                         >
                             <Input.Password
@@ -174,16 +173,11 @@ export const RegisterStyleThanhla = ({ onFinish, isLoading, projectInfo }: any) 
                         <Form.Item
                             name="terms"
                             valuePropName="checked"
-                            rules={[
-                                {
-                                    validator: (_, value) =>
-                                        value ? Promise.resolve() : Promise.reject(new Error('Vui lòng đồng ý với điều khoản và chính sách!')),
-                                },
-                            ]}
+                            rules={termsRules}
                             className="mb-0"
                         >
                             <Checkbox className="dark:text-gray-400">
-                                Tôi đồng ý với <Link to="/terms" className="text-primary font-medium">điều khoản và chính sách</Link>
+                                <RegisterTermsContent projectInfo={projectInfo} linkClassName="text-primary font-medium" />
                             </Checkbox>
                         </Form.Item>
 
