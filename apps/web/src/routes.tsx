@@ -20,7 +20,7 @@ import { Packages } from "./pages/Packages";
 import Profile from "./pages/Profile";
 import Notifications from "./pages/Notifications";
 import { Carts } from "./pages/Carts";
-import CartCheckout from "./pages/Carts/CartCheckout";
+import CartCheckout from "./pages/CartCheckout";
 
 import ThemeConfigurator from "./pages/ThemeConfigurator";
 

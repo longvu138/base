@@ -48,7 +48,10 @@ type DepositModalProps = {
 
 const sumCartDeposit = (items: any[] = [], emdPercent = 100) =>
   moneyCeil(
-    items.reduce((total, item) => total + Number(item?.exchangedTotalValue || 0), 0) *
+    items.reduce(
+      (total, item) => total + Number(item?.exchangedTotalValue || 0),
+      0,
+    ) *
       (emdPercent / 100),
   );
 
@@ -57,8 +60,12 @@ const sumAvailableOrderPayment = (orders: any[] = []) => {
   const orderPackages = packages.filter((item) => !item.isShipment);
   const shipmentPackages = packages.filter((item) => item.isShipment);
 
-  const orderCodes = Array.from(new Set(orderPackages.map((item) => item.orderCode)));
-  const shipmentCodes = Array.from(new Set(shipmentPackages.map((item) => item.orderCode)));
+  const orderCodes = Array.from(
+    new Set(orderPackages.map((item) => item.orderCode)),
+  );
+  const shipmentCodes = Array.from(
+    new Set(shipmentPackages.map((item) => item.orderCode)),
+  );
 
   const orderTotal = orderCodes.reduce((total, code) => {
     const order = orders.find((item) => item.code === code);
@@ -67,11 +74,16 @@ const sumAvailableOrderPayment = (orders: any[] = []) => {
 
   const shipmentTotal = shipmentCodes.reduce((total, code) => {
     const shipment = orders.find((item) => item.code === code);
-    const selectedPackages = shipmentPackages.filter((item) => item.orderCode === code);
+    const selectedPackages = shipmentPackages.filter(
+      (item) => item.orderCode === code,
+    );
     const selectedCodes = new Set(selectedPackages.map((item) => item.code));
     const unselectedShippingFee = (shipment?.packages || [])
       .filter((item: any) => !selectedCodes.has(item.code))
-      .reduce((sum: number, item: any) => sum + Number(item.shippingFee || 0), 0);
+      .reduce(
+        (sum: number, item: any) => sum + Number(item.shippingFee || 0),
+        0,
+      );
     return total + Number(shipment?.needToPaid || 0) - unselectedShippingFee;
   }, 0);
 
@@ -95,21 +107,32 @@ export const DepositModal = ({
   const generalConfig = tenantConfig?.tenantConfig?.generalConfig || {};
   const depositWizardMax = Number(generalConfig.depositWizardMax || 0);
   const { data: profile } = useCustomerProfile();
-  const { data: balanceData, isLoading: isBalanceLoading } = useCustomerBalance();
-  const { data: carts = [], isLoading: isCartLoading } = useCartItemsQuery(open);
+  const { data: balanceData, isLoading: isBalanceLoading } =
+    useCustomerBalance();
+  const { data: cartItemsResult, isLoading: isCartLoading } =
+    useCartItemsQuery({}, open);
+  const carts = cartItemsResult?.data || [];
   const { data: availableOrders = [], isLoading: isOrdersLoading } =
     useAvailableDeliveryOrdersQuery();
 
   const orderCodes = useMemo(
-    () => availableOrders.map((item: any) => item?.code).filter(Boolean).join(","),
+    () =>
+      availableOrders
+        .map((item: any) => item?.code)
+        .filter(Boolean)
+        .join(","),
     [availableOrders],
   );
-  const { data: thirdPartyLoans, isLoading: isLoansLoading } = useThirdPartyLoansQuery(
-    orderCodes,
-    open && !!orderCodes,
+  const { data: thirdPartyLoans, isLoading: isLoansLoading } =
+    useThirdPartyLoansQuery(orderCodes, open && !!orderCodes);
+  const {
+    data: depositQr,
+    isLoading: isQrLoading,
+    isError: isQrError,
+  } = useDepositQrQuery(
+    infoPayment?.money,
+    open && current === 1 && !!infoPayment?.money,
   );
-  const { data: depositQr, isLoading: isQrLoading, isError: isQrError } =
-    useDepositQrQuery(infoPayment?.money, open && current === 1 && !!infoPayment?.money);
 
   const balance = Number(balanceData?.balance ?? profile?.balance ?? 0);
   const emdPercent = Number(profile?.customerGroup?.emdPercent || 100);
@@ -120,7 +143,9 @@ export const DepositModal = ({
     ),
   );
 
-  const packageAmount = moneyCeil(sumAvailableOrderPayment(availableOrders) - balance + loanCredits);
+  const packageAmount = moneyCeil(
+    sumAvailableOrderPayment(availableOrders) - balance + loanCredits,
+  );
   const orderAmount = moneyCeil(sumCartDeposit(carts, emdPercent) - balance);
 
   const options = [
@@ -165,7 +190,14 @@ export const DepositModal = ({
       return;
     }
     notification.error({ message: t("deposit.depositUnavailable") });
-  }, [current, generalConfig.enableCashCollectionRequest, infoPayment?.money, isQrError, open, t]);
+  }, [
+    current,
+    generalConfig.enableCashCollectionRequest,
+    infoPayment?.money,
+    isQrError,
+    open,
+    t,
+  ]);
 
   const reset = () => {
     onClose();
@@ -185,7 +217,9 @@ export const DepositModal = ({
 
     if (depositWizardMax > 0 && Number(infoPayment.money) > depositWizardMax) {
       notification.error({
-        message: t("deposit.maxAmountError", { amount: moneyFormat(depositWizardMax) }),
+        message: t("deposit.maxAmountError", {
+          amount: moneyFormat(depositWizardMax),
+        }),
       });
       return;
     }
@@ -212,11 +246,25 @@ export const DepositModal = ({
         maskClosable={maskClosable}
         width={680}
         footer={[
-          <Button key="back" onClick={() => (current === 0 || data?.hideStep ? reset() : setCurrent(0))}>
-            {current === 0 || data?.hideStep ? t("button.cancel") : t("button.back")}
+          <Button
+            key="back"
+            onClick={() =>
+              current === 0 || data?.hideStep ? reset() : setCurrent(0)
+            }
+          >
+            {current === 0 || data?.hideStep
+              ? t("button.cancel")
+              : t("button.back")}
           </Button>,
-          <Button key="continue" type="primary" disabled={!infoPayment?.money} onClick={handleContinue}>
-            {current === 1 ? t("deposit.depositDone") : t("deposit.depositContinue")}
+          <Button
+            key="continue"
+            type="primary"
+            disabled={!infoPayment?.money}
+            onClick={handleContinue}
+          >
+            {current === 1
+              ? t("deposit.depositDone")
+              : t("deposit.depositContinue")}
           </Button>,
         ]}
       >
@@ -235,7 +283,11 @@ export const DepositModal = ({
         )}
 
         {current === 0 ? (
-          <Space direction="vertical" size={token.margin} style={{ width: "100%" }}>
+          <Space
+            direction="vertical"
+            size={token.margin}
+            style={{ width: "100%" }}
+          >
             <Typography.Paragraph>
               <span
                 dangerouslySetInnerHTML={{
@@ -247,10 +299,18 @@ export const DepositModal = ({
             </Typography.Paragraph>
             <Radio.Group value={infoPayment?.type} style={{ width: "100%" }}>
               <List
-                loading={isBalanceLoading || isCartLoading || isOrdersLoading || isLoansLoading}
+                loading={
+                  isBalanceLoading ||
+                  isCartLoading ||
+                  isOrdersLoading ||
+                  isLoansLoading
+                }
                 dataSource={options}
                 renderItem={(item) => (
-                  <List.Item onClick={() => selectOption(item)} style={{ cursor: "pointer" }}>
+                  <List.Item
+                    onClick={() => selectOption(item)}
+                    style={{ cursor: "pointer" }}
+                  >
                     <List.Item.Meta
                       title={
                         <Row align="middle" gutter={token.marginSM}>
@@ -258,11 +318,19 @@ export const DepositModal = ({
                             <Radio value={item.type} />
                           </Col>
                           <Col flex="auto">
-                            <Flex justify="space-between" align="center" gap={token.margin}>
+                            <Flex
+                              justify="space-between"
+                              align="center"
+                              gap={token.margin}
+                            >
                               <Space direction="vertical" size={0}>
                                 <Typography.Text>{item.title}</Typography.Text>
-                                <Typography.Text type="secondary">{item.info}</Typography.Text>
-                                <Typography.Text strong>{item.subtitle}</Typography.Text>
+                                <Typography.Text type="secondary">
+                                  {item.info}
+                                </Typography.Text>
+                                <Typography.Text strong>
+                                  {item.subtitle}
+                                </Typography.Text>
                               </Space>
                               {item.extend && (
                                 <Form form={form}>
@@ -271,7 +339,9 @@ export const DepositModal = ({
                                       min={0}
                                       controls={false}
                                       placeholder={t("deposit.anotherNumber")}
-                                      onClick={(event) => event.stopPropagation()}
+                                      onClick={(event) =>
+                                        event.stopPropagation()
+                                      }
                                       onChange={(value) =>
                                         setInfoPayment({
                                           type: "other",
@@ -294,21 +364,38 @@ export const DepositModal = ({
           </Space>
         ) : (
           <Spin spinning={isQrLoading}>
-            <Space direction="vertical" size={token.margin} style={{ width: "100%" }}>
+            <Space
+              direction="vertical"
+              size={token.margin}
+              style={{ width: "100%" }}
+            >
               <Flex justify="space-between">
-                <Typography.Text type="secondary">{t("deposit.money")}</Typography.Text>
+                <Typography.Text type="secondary">
+                  {t("deposit.money")}
+                </Typography.Text>
                 <Typography.Text strong style={{ color: token.colorPrimary }}>
                   {moneyFormat(infoPayment?.money || 0)}
                 </Typography.Text>
               </Flex>
               <Flex justify="space-between">
-                <Typography.Text type="secondary">{t("deposit.content")}</Typography.Text>
+                <Typography.Text type="secondary">
+                  {t("deposit.content")}
+                </Typography.Text>
                 <Typography.Text>{depositQr?.content || "---"}</Typography.Text>
               </Flex>
-              <div style={{ borderTop: `1px dashed ${token.colorBorder}`, marginBlock: token.margin }} />
+              <div
+                style={{
+                  borderTop: `1px dashed ${token.colorBorder}`,
+                  marginBlock: token.margin,
+                }}
+              />
               {depositQr?.imageUrl ? (
                 <Flex justify="center">
-                  <img alt="qrcode" src={depositQr.imageUrl} style={{ width: 260, height: 260 }} />
+                  <img
+                    alt="qrcode"
+                    src={depositQr.imageUrl}
+                    style={{ width: 260, height: 260 }}
+                  />
                 </Flex>
               ) : (
                 !isQrLoading && <Empty description={t("common.no_data")} />
@@ -326,7 +413,9 @@ export const DepositModal = ({
         cancelButtonProps={{ style: { display: "none" } }}
         centered
       >
-        <Typography.Paragraph style={{ textAlign: "center", marginTop: token.marginLG }}>
+        <Typography.Paragraph
+          style={{ textAlign: "center", marginTop: token.marginLG }}
+        >
           {t("deposit.successContent")}
         </Typography.Paragraph>
       </Modal>

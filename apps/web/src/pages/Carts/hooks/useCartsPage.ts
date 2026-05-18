@@ -207,7 +207,9 @@ export const useCartsPage = () => {
       });
 
       Object.keys(next).forEach((groupId) => {
-        if (!normalizedGroups.some((group: any) => String(group.id) === groupId)) {
+        if (
+          !normalizedGroups.some((group: any) => String(group.id) === groupId)
+        ) {
           delete next[groupId];
           changed = true;
         }
@@ -236,7 +238,9 @@ export const useCartsPage = () => {
       });
 
       Object.keys(next).forEach((groupId) => {
-        if (!normalizedGroups.some((group: any) => String(group.id) === groupId)) {
+        if (
+          !normalizedGroups.some((group: any) => String(group.id) === groupId)
+        ) {
           delete next[groupId];
           changed = true;
         }
@@ -432,7 +436,11 @@ export const useCartsPage = () => {
     notification.success({ message: "Lưu dịch vụ làm mặc định thành công" });
   };
 
-  const changeCartGroupDraft = (groupId: string, field: string, value: string) => {
+  const changeCartGroupDraft = (
+    groupId: string,
+    field: string,
+    value: string,
+  ) => {
     if (value !== "" && value.trim() === "") return;
     setCartGroupDrafts((current) => ({
       ...current,
@@ -509,10 +517,7 @@ export const useCartsPage = () => {
     }, SKU_NOTE_UPDATE_DEBOUNCE_MS);
   };
 
-  const saveSkuNoteField = async (
-    sku: any,
-    field: "note" | "remark",
-  ) => {
+  const saveSkuNoteField = async (sku: any, field: "note" | "remark") => {
     const skuId = String(sku.id);
     const timerKey = `${skuId}-${field}`;
     const value = skuNoteDrafts[skuId]?.[field] || "";
@@ -561,10 +566,11 @@ export const useCartsPage = () => {
     );
 
     const groupWithoutServices = selectedGroups.find(
-      (group: any) => !Array.isArray(group.services) || group.services.length === 0,
+      (group: any) =>
+        !Array.isArray(group.services) || group.services.length === 0,
     );
     if (groupWithoutServices) {
-      notification.error({ description: "Vui lòng chọn dịch vụ" });
+      notification.error({ message: "Vui lòng chọn dịch vụ" });
       return;
     }
 
@@ -654,7 +660,9 @@ export const useCartsPage = () => {
     saveSkuToWishlist,
     savedSkuIds,
     savingSkuId,
-    orderServices: orderServices.filter((service: any) => service.onlyStaff !== true),
+    orderServices: orderServices.filter(
+      (service: any) => service.onlyStaff !== true,
+    ),
     orderServiceGroups,
     serviceDrafts,
     toggleCartService,

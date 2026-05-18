@@ -284,7 +284,7 @@ export const CartsStyleDefault = () => {
       width: 140,
       onCell: (sku: any) =>
         sku.__rowType === "quantityWarning" ? { colSpan: 0 } : {},
-      render: (quantity: number, sku: any) => {
+      render: (_quantity: number, sku: any) => {
         const displayQuantity = logic.getDisplayQuantity(sku);
         const warnings = getQuantityWarnings(sku, (item) =>
           String(item.id) === String(sku.id)
