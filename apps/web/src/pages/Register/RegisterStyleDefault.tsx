@@ -34,7 +34,7 @@ export const RegisterStyleDefault = ({ form, onFinish, isLoading, projectInfo }:
 
                 <Form
                     form={form}
-                    name="register_style1"
+                    name="register_default"
                     layout="vertical"
                     onFinish={onFinish}
                     autoComplete="off"

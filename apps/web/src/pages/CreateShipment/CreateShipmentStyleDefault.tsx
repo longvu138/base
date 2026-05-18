@@ -46,14 +46,14 @@ import {
 
 const { Text, Title } = Typography;
 
-export type CreateShipmentUiStyle = "style1" | "style-thanhla" | "style-gobiz";
+export type CreateShipmentUiStyle = "style-default" | "style-thanhla" | "style-gobiz";
 
 interface CreateShipmentViewProps {
   uiStyle?: CreateShipmentUiStyle;
   logic: CreateShipmentPageLogic;
 }
 
-export const CreateShipmentView = ({ uiStyle = "style1", logic }: CreateShipmentViewProps) => {
+export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateShipmentViewProps) => {
   const pageLogic = logic;
   const {
     t,
@@ -711,7 +711,7 @@ export const CreateShipmentView = ({ uiStyle = "style1", logic }: CreateShipment
 export const CreateShipmentStyleDefault = () => {
   const logic = useCreateShipmentPage();
 
-  return <CreateShipmentView uiStyle="style1" logic={logic} />;
+  return <CreateShipmentView uiStyle="style-default" logic={logic} />;
 };
 
 export const CreateShipment = CreateShipmentStyleDefault;

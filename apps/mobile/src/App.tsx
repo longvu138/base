@@ -46,7 +46,7 @@ async function fetchAppData(tenantKey: string): Promise<FullTenantResponse> {
 }
 
 function AppContent() {
-  const { theme: themeMode, setUiLib, tenantConfig: globalTenantConfig, setTenantConfig: setGlobalTenantConfig } = useTheme();
+  const { theme: themeMode, tenantConfig: globalTenantConfig, setTenantConfig: setGlobalTenantConfig } = useTheme();
   const isDark = themeMode === 'dark';
 
   const [selectedTenantId, setSelectedTenantId] = useState<string>(
@@ -66,9 +66,6 @@ function AppContent() {
       .then(data => {
         setGlobalTenantConfig(data);
         localStorage.setItem('full-tenant-data', JSON.stringify(data));
-
-        const uiLib = data.tenantConfig?.themeConfig?.uiLib;
-        if (uiLib) setUiLib(uiLib);
       })
       .catch(err => {
         console.warn('[Tenant] Failed to load config, using fallback:', err.message);
@@ -85,7 +82,7 @@ function AppContent() {
 
         setGlobalTenantConfig(FALLBACK_TENANT_CONFIG);
       });
-  }, [selectedTenantId, setGlobalTenantConfig, setUiLib]);
+  }, [selectedTenantId, setGlobalTenantConfig]);
 
   const themeConfig = globalTenantConfig?.tenantConfig?.themeConfig;
 

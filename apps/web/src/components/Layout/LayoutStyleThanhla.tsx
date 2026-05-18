@@ -165,7 +165,7 @@ export const LayoutStyleThanhla: React.FC = () => {
             </Content>
 
             <Footer className="text-center text-gray-400 bg-transparent pb-6">
-                Thanhla Logistics ©{new Date().getFullYear()} Created with Style 2
+                Thanhla Logistics ©{new Date().getFullYear()} Thanhla UI
             </Footer>
             {isDepositModalOpen && (
                 <DepositModal

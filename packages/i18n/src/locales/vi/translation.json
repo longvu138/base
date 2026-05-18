@@ -327,19 +327,6 @@
     "logout": "Đăng xuất"
   },
   "ui": {
-    "switchStyle": "Chuyển đổi Giao diện",
-    "style1": "Phong cách 1",
-    "style1Desc": "Chuyên nghiệp & Truyền thống",
-    "style2": "Phong cách 2",
-    "style2Desc": "Hiện đại & Glassmorphism",
-    "sameHook": "Cùng Hook",
-    "differentUI": "Giao diện khác",
-    "usingSharedHook": "Đang dùng hook useLogin chung",
-    "bothUse": "Cả hai đều dùng",
-    "professionalStyle": "Phong cách Chuyên nghiệp",
-    "modernStyle": "Phong cách Hiện đại",
-    "professionalDesc": "Components Ant Design với layout truyền thống",
-    "modernDesc": "HTML/CSS tùy chỉnh với hiệu ứng glassmorphism",
     "valid": "Hợp lệ",
     "ready": "Sẵn sàng",
     "loading": "Đang tải"

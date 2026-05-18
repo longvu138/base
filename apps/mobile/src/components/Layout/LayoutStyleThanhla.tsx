@@ -19,7 +19,7 @@ import { useLanguage } from "@repo/i18n";
 const { Header, Content } = AntLayout;
 
 /**
- * LayoutStyleThanhla (Mobile Style 2)
+ * LayoutStyleThanhla (Mobile Thanhla)
  * Thiết kế hiện đại với Tab Bar bo tròn và Header trong suốt (Glassmorphism).
  */
 export const LayoutStyleThanhla = () => {

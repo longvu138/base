@@ -36,7 +36,6 @@ const PLAN_PRESETS = {
   free: {
     tenantConfig: {
       themeConfig: {
-        uiLib: "antd",
         colorPrimary: "#1677ff",
         colorBgLayout: "#f5f8ff",
         colorBorder: "#d9d9d9",
@@ -48,7 +47,6 @@ const PLAN_PRESETS = {
   paid: {
     tenantConfig: {
       themeConfig: {
-        uiLib: "antd",
         colorPrimary: "#722ed1",
         colorBgLayout: "#f9f5ff",
         colorBorder: "#c7b5eb",

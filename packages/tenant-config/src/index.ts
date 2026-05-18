@@ -16,10 +16,8 @@ export interface MenuConfig {
  * Extends AntD ThemeConfig and adds:
  * - *Dark variants: separate values applied when dark mode is active
  * - variants: per-page component name overrides
- * - uiLib: which UI library to use (antd | mui)
  */
 export interface SimpleTenantConfig extends ThemeConfig {
-    uiLib?: 'antd' | 'mui';
     /** Per-page component overrides. E.g. { orders: 'OrdersStyleGobizCombined', login: 'LoginStyleGobiz' } */
     variants?: Record<string, string>;
     menu?: MenuConfig;

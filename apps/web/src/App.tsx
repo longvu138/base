@@ -57,11 +57,9 @@ async function fetchAppData(tenantKey: string): Promise<FullTenantResponse> {
 function AppContent() {
   const {
     theme: themeMode,
-    setUiLib,
     tenantConfig: globalTenantConfig,
     setTenantConfig: setGlobalTenantConfig,
   } = useTheme();
-  console.log("appConfig.be", appConfig.be);
 
   const isDark = themeMode === "dark";
 
@@ -88,9 +86,6 @@ function AppContent() {
         setGlobalTenantConfig(data);
         localStorage.setItem("full-tenant-data", JSON.stringify(data));
         localStorage.setItem("currentProjectInfo", JSON.stringify(data));
-
-        const uiLib = data.tenantConfig?.themeConfig?.uiLib;
-        if (uiLib) setUiLib(uiLib);
       })
       .catch((err) => {
         // API failed — apply fallback so the app still renders correctly
@@ -117,7 +112,7 @@ function AppContent() {
 
         setGlobalTenantConfig(FALLBACK_TENANT_CONFIG);
       });
-  }, [selectedTenantId, setGlobalTenantConfig, setUiLib]);
+  }, [selectedTenantId, setGlobalTenantConfig]);
 
   const themeConfig = globalTenantConfig?.tenantConfig?.themeConfig;
 

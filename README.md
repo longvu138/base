@@ -1,85 +1,222 @@
-# Hệ Thống Quản Trị Đa Giao Diện & Đa Tenant (Ant Design)
+# Multi-Tenant UI Monorepo
 
-Tài liệu này giải thích cấu trúc mã nguồn và cách triển khai bài toán **Multi-Tenant** (Nhiều khách hàng) kết hợp **Multi-Variant** (Nhiều bộ giao diện) trong cùng một dự án.
+Repo này là một monorepo React/Vite cho bài toán multi-tenant UI, gồm:
 
----
+- `apps/web`: web app
+- `apps/mobile`: mobile web app
+- `apps/tenant-server`: mock backend trả tenant config
+- `packages/*`: theme, hooks, API client, UI shared components
 
-## 🏗 1. Cấu trúc Source Code
+Source hiện tại đã được refactor theo hướng:
 
-Dự án được tổ chức theo mô hình **Monorepo** (Quản lý nhiều gói trong một kho lưu trữ):
+- backend trả `variantCode` + `themeConfig`
+- frontend tự resolve UI theo naming convention
+- không còn map thủ công toàn bộ page kiểu `gd1 -> style1`, `gd2 -> style2`
+- `variantDefaults.ts` chỉ giữ exception thật sự
 
-### 📂 `apps/` (Ứng dụng chính)
-*   **`web/`**: Ứng dụng React frontend chính. 
-    *   `src/components/Layout/`: Chứa các biến thể Layout (Sidebar dọc, Giao diện bo tròn, v.v.)
-    *   `src/pages/`: Chứa logic nghiệp vụ. Mỗi trang quan trọng (như Orders) đều có một "Factory index" để chọn style.
-*   **`tenant-server/`**: Mock API cung cấp cấu hình cho từng Tenant.
+## Cấu trúc chính
 
-### 📂 `packages/` (Code dùng chung)
-*   **`theme-provider/`**: Quản lý Context về giao diện, mã màu và cung cấp hook `useVariant()`.
-*   **`tenant-config/`**: Định nghĩa cấu trúc cấu hình và các tiện ích để "nhuộm màu" (CSS Variables).
-*   **`ui/`**: Các thành phần giao diện dùng chung (Table, Filter, Pagination).
+### `apps/`
 
----
+- `web/`
+  web app chạy ở `http://localhost:3000`
+- `mobile/`
+  mobile app chạy ở `http://localhost:3001`
+- `tenant-server/`
+  mock API tenant config chạy ở `http://localhost:3003`
 
-## 🎨 2. Ba lớp triển khai Đa giao diện
+### `packages/`
 
-### Lớp 1: Lớp Cấu hình (API Driven)
-Mọi thông số của một Tenant được quyết định tại server. 
-- **Variant**: Quyết định *kiểu dáng* (ví dụ: `gd1` là chuẩn, `gd3` là hiện đại).
-- **Theme**: Quyết định *màu sắc* (mã màu Hex).
+- `theme-provider/`
+  chứa `ThemeProvider`, `useTheme()`, `useVariant()`, `variantDefaults.ts`
+- `tenant-config/`
+  type tenant config, apply AntD theme, sync CSS variables, tenant selector helpers
+- `ui/`
+  `DynamicVariant` và shared UI components
+- `hooks/`, `api/`, `util/`, `config/`
+  logic và tiện ích dùng chung
 
-### Lớp 2: Lớp Điều phối (Factory Pattern)
-Chúng ta sử dụng các "Xưởng sản xuất" để chọn Component dựa trên mã `variant` từ API.
+## Cách source hoạt động
 
-*Ví dụ tại `Orders/index.tsx`:*
-```tsx
-const VARIANTS = {
-    'standard': OrdersStyle1,
-    'modern': OrdersStyle3,
-    'combined': OrdersCombined 
-};
+Luồng chính:
+
+```txt
+User chọn tenant
+  -> localStorage("selected-tenant")
+  -> app fetch /api/tenants/:id/config
+  -> ThemeProvider nhận tenantConfig
+  -> applyTenantConfig + updateTenantCSSVariables
+  -> page/layout gọi useVariant(pageKey, fallbackName)
+  -> DynamicVariant load file component đúng variant
+  -> nếu thiếu file thì fallback về StyleDefault
 ```
-Hệ thống sẽ tự động bốc Component tương ứng ra hiển thị mà không cần viết `if/else` chằng chịt.
 
-### Lớp 3: Lớp Nhuộm màu (Tokens & Biến CSS)
-Sử dụng **CSS Variables** để đồng bộ hóa màu sắc.
-- Khi Tenant thay đổi, mã màu từ API được nạp vào biến `--ant-primary-color`.
-- Toàn bộ code UI sử dụng biến này thay vì mã màu cố định.
-- Ant Design `ConfigProvider` nhận mã màu này để cập nhật toàn bộ thư viện component.
+### `variantCode` dùng để làm gì
 
----
+`variantCode` quyết định naming convention của UI.
 
-## 🛠 3. Cách chạy dự án
+Ví dụ:
 
-1.  **Cài đặt dependencies**:
-    ```bash
-    pnpm install
-    ```
+- `orders` + `thanhla` -> `OrdersStyleThanhla`
+- `layout` + `gobiz` -> `LayoutStyleGobiz`
+- `login` + `default` -> `LoginStyleDefault`
 
-2.  **Khởi chạy toàn bộ hệ thống** (bao gồm Web và Mock Server):
-    ```bash
-    pnpm dev
-    ```
-    *   Web chạy tại: `http://localhost:3000`
-    *   Mock Server chạy tại: `http://localhost:3003`
+Convention hiện tại:
 
----
+```txt
+{PageKeyPascal}Style{VariantCodePascal}.tsx
+```
 
-## 🚀 4. Cách thêm một Tenant hoặc Giao diện mới
+### `variantDefaults.ts` dùng để làm gì
 
-### Thêm Tenant mới (Cùng giao diện cũ, màu khác)
-1.  Mở `apps/tenant-server/src/index.js`.
-2.  Thêm một object khách hàng mới với `variant` có sẵn và `colorPrimary` tùy chọn.
-3.  Cập nhật danh sách dropdown tại `packages/tenant-config/src/index.ts`.
+File:
 
-### Thêm Giao diện mới (Style hoàn toàn mới)
-1.  Tạo file Style mới trong thư mục trang tương ứng (ví dụ: `OrdersNewStyle.tsx`).
-2.  Đăng ký mã variant mới vào file `index.tsx` của trang đó.
-3.  Cập nhật cấu hình trên Server để sử dụng mã variant mới này.
+- `packages/theme-provider/src/variantDefaults.ts`
 
----
+File này không còn là nơi map tất cả page.
 
-## 💡 5. Tại sao cách này lại hiệu quả?
-- **Tái sử dụng tối đa**: 100 Tenant có thể dùng chung 1 bộ code giao diện mà vẫn có màu sắc/thương hiệu riêng.
-- **Dễ bảo trì**: Sửa logic nghiệp vụ chỉ cần sửa 1 nơi, giao diện nào cũng được hưởng lợi.
-- **Tốc độ**: Thêm khách hàng mới chỉ mất 1 phút cấu hình JSON, không cần code lại UI.
+Nó chỉ giữ:
+
+- default behavior chung của variant
+- exception mặc định theo variant
+- menu preset mặc định theo variant
+
+Ví dụ hiện tại:
+
+- `gobiz.orders -> OrdersStyleGobizCombined`
+- `gobiz.menu.preset -> gobiz`
+
+Nếu tenant đi đúng convention thì không cần thêm vào file này.
+
+### `themeConfig` dùng để làm gì
+
+Backend có thể trả:
+
+- token màu như `colorPrimary`, `colorBorder`, `colorBgLayout`
+- `menu.hiddenKeys`
+- `menu.labelOverrides`
+- `variants`
+
+`themeConfig.variants` là override mạnh nhất ở frontend, nhưng chỉ nên dùng cho exception cụ thể. Không nên dùng để map toàn bộ page của tenant mới.
+
+## Cài đặt và chạy dự án
+
+Yêu cầu:
+
+- Node.js `>= 18`
+- `pnpm`
+
+Cài dependencies:
+
+```bash
+pnpm install
+```
+
+Chạy toàn bộ workspace:
+
+```bash
+pnpm dev
+```
+
+Thông thường:
+
+- web: `http://localhost:3000`
+- mobile: `http://localhost:3001`
+- tenant-server: `http://localhost:3003`
+
+Chạy kiểm tra type:
+
+```bash
+pnpm check-types
+```
+
+Build toàn bộ repo:
+
+```bash
+pnpm build
+```
+
+## Cách thêm tenant mới
+
+### Trường hợp 1: chỉ đổi màu, tái sử dụng UI cũ
+
+Đây là hướng nên ưu tiên.
+
+Backend:
+
+1. Thêm tenant vào `apps/tenant-server/src/index.js`
+2. Chọn `planCode`
+3. Chọn `variantCode` dùng lại như `default`, `thanhla` hoặc `gobiz`
+4. Trả `themeConfig` nếu cần đổi màu/token/menu
+
+Ví dụ:
+
+```js
+newclient: {
+  name: "New Client Logistics",
+  planCode: "paid",
+  variantCode: "thanhla",
+  override: {
+    tenantConfig: {
+      themeConfig: {
+        colorPrimary: "#0ea5e9",
+        colorBorder: "#7dd3fc",
+        borderRadius: 10,
+      },
+    },
+  },
+}
+```
+
+Frontend:
+
+- không cần tạo file UI mới nếu tenant chỉ đổi theme
+
+### Trường hợp 2: dùng lại variant cũ nhưng có vài page riêng
+
+Frontend:
+
+1. Tạo file page theo convention hoặc tên special-case
+2. Nếu không theo convention, thêm exception ở `variantDefaults.ts` hoặc backend `themeConfig.variants`
+
+Ví dụ:
+
+```txt
+apps/web/src/pages/Orders/OrdersStyleNewclientCombined.tsx
+```
+
+### Trường hợp 3: tạo variant mới hoàn toàn
+
+Backend:
+
+1. Thêm tenant vào `tenants`
+2. Dùng `variantCode: "newclient"`
+3. Thêm `newclient` vào `VARIANT_NAMES`
+
+Nếu không thêm vào `VARIANT_NAMES`, backend sẽ fallback `variantCode` về `default`.
+
+Frontend:
+
+1. Tạo layout nếu cần:
+   `LayoutStyleNewclient.tsx`
+2. Tạo page style theo convention:
+   `OrdersStyleNewclient.tsx`, `LoginStyleNewclient.tsx`, `ProfileStyleNewclient.tsx`
+3. Chỉ thêm vào `variantDefaults.ts` khi có exception thật sự
+
+## Nguyên tắc mở rộng nên giữ
+
+- Ưu tiên đổi `themeConfig` trước khi tạo UI mới
+- Ưu tiên tái sử dụng `default`, `thanhla`, `gobiz`
+- Chỉ tạo page mới cho màn thật sự khác
+- Chỉ thêm mapping vào `variantDefaults.ts` khi convention không đủ
+- Luôn đảm bảo mỗi page/layout dispatcher có fallback `StyleDefault` hợp lệ
+
+## Tài liệu chính
+
+Doc chi tiết nhất cho flow hiện tại:
+
+- [docs/DOCS_REFACTORED_TENANT_FLOW.md](docs/DOCS_REFACTORED_TENANT_FLOW.md)
+
+Reference token AntD:
+
+- [docs/ANTD_COMPONENT_TOKENS.csv](docs/ANTD_COMPONENT_TOKENS.csv)

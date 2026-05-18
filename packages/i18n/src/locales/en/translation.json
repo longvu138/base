@@ -327,19 +327,6 @@
     "logout": "Logout"
   },
   "ui": {
-    "switchStyle": "Switch UI Style",
-    "style1": "Style 1",
-    "style1Desc": "Classic & Professional",
-    "style2": "Style 2",
-    "style2Desc": "Modern & Glassmorphism",
-    "sameHook": "Same Hook",
-    "differentUI": "Different UI",
-    "usingSharedHook": "Using shared useLogin hook",
-    "bothUse": "Both use",
-    "professionalStyle": "Professional Style",
-    "modernStyle": "Modern Style",
-    "professionalDesc": "Ant Design components with traditional layout",
-    "modernDesc": "Custom HTML/CSS with glassmorphism effects",
     "valid": "Valid",
     "ready": "Ready",
     "loading": "Loading"

@@ -50,7 +50,7 @@ export const LoginStyleThanhla = () => {
                         <span className="text-primary">Next Generation.</span>
                     </h1>
                     <p className="text-lg text-gray-600 dark:text-gray-400">
-                        Quản lý vận đơn, đơn hàng, và tài chính trong một nền tảng duy nhất với giao diện Thanhla Style 2.
+                        Quản lý vận đơn, đơn hàng, và tài chính trong một nền tảng duy nhất với giao diện Thanhla.
                     </p>
                 </div>
 

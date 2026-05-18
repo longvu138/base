@@ -25,7 +25,7 @@ export interface MenuItem {
 }
 
 /**
- * Menu dùng chung cho tất cả variant (Style 1, 2, ...).
+ * Menu dùng chung cho tất cả tenant variant.
  */
 const BASE_MENU_ITEMS: MenuItem[] = [
   {
