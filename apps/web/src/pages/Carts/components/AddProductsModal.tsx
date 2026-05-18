@@ -16,7 +16,6 @@ import {
   Row,
   Segmented,
   Space,
-  Table,
   Typography,
   Upload,
 } from "antd";
@@ -458,6 +457,7 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
         body: {
           maxHeight: "calc(100vh - 220px)",
           overflowY: "auto",
+          overflowX: "hidden",
         },
       }}
       footer={
@@ -587,8 +587,13 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
                   return false;
                 }}
                 onRemove={(removedFile) => {
+                  const removedOrigin = removedFile.originFileObj;
                   setImages((current) =>
-                    current.filter((file) => file.uid !== removedFile.uid),
+                    current.filter((file) =>
+                      removedOrigin
+                        ? file !== removedOrigin
+                        : file.name !== removedFile.name,
+                    ),
                   );
                 }}
               >
@@ -664,7 +669,7 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
             )}
           </Space>
         ) : (
-          <Space direction="vertical" size="middle">
+          <Space direction="vertical" size="middle" className="w-full">
             <Input.Search
               value={link}
               onChange={(event) => setLink(event.target.value)}
@@ -674,8 +679,16 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
               onSearch={fetchProduct}
             />
             {product && (
-              <Row gutter={[24, 24]} style={{ overflowX: "hidden" }}>
-                <Col xs={24} md={10} style={{ minWidth: 0 }}>
+              <Row
+                gutter={[24, 24]}
+                style={{
+                  marginLeft: 0,
+                  marginRight: 0,
+                  overflowX: "hidden",
+                  width: "100%",
+                }}
+              >
+                <Col xs={24} md={10} style={{ minWidth: 0, paddingLeft: 0 }}>
                   <Image
                     width="100%"
                     preview={false}
@@ -685,13 +698,21 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
                     }
                   />
                 </Col>
-                <Col xs={24} md={14} style={{ minWidth: 0 }} flex={1}>
+                <Col xs={24} md={14} style={{ minWidth: 0, paddingRight: 0 }}>
                   <Space
                     direction="vertical"
                     size="middle"
                     style={{ width: "100%", minWidth: 0, overflowX: "hidden" }}
                   >
-                    <Typography.Text strong style={{ fontSize: 16 }}>
+                    <Typography.Text
+                      strong
+                      ellipsis
+                      style={{
+                        display: "block",
+                        fontSize: 16,
+                        maxWidth: "100%",
+                      }}
+                    >
                       {product.subject || product.title}
                     </Typography.Text>
                     {product?.productSaleInfo?.priceRangeList?.length > 1 && (
@@ -714,13 +735,13 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
                         )}
                       </Flex>
                     )}
-                      <div
-                        style={{
-                          maxHeight: 340,
-                          overflowY: "auto",
-                          overflowX: "hidden",
-                        }}
-                      >
+                    <div
+                      style={{
+                        maxHeight: 340,
+                        overflowY: "auto",
+                        overflowX: "hidden",
+                      }}
+                    >
                       {skuRows.map((row: any) => {
                         const attributes =
                           row?.skuAttributes || row?.variantProperties || [];
@@ -737,16 +758,18 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
                             style={{
                               padding: "8px 0",
                               borderBottom: "1px solid rgba(5,5,5,0.06)",
+                              minWidth: 0,
+                              width: "100%",
                             }}
                           >
-                              <Flex
-                                align="center"
-                                gap={8}
-                                style={{
-                                  flex: "1 1 180px",
-                                  minWidth: 0,
-                                  overflow: "hidden",
-                                }}
+                            <Flex
+                              align="center"
+                              gap={8}
+                              style={{
+                                flex: "1 1 180px",
+                                minWidth: 0,
+                                overflow: "hidden",
+                              }}
                             >
                               {previewImage ? (
                                 <Image
@@ -765,7 +788,11 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
                               <Space
                                 direction="vertical"
                                 size={2}
-                                style={{ minWidth: 0, maxWidth: "100%" }}
+                                style={{
+                                  minWidth: 0,
+                                  maxWidth: "100%",
+                                  overflow: "hidden",
+                                }}
                               >
                                 {attributes.length > 0 ? (
                                   attributes.map(
@@ -773,6 +800,7 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
                                       <Typography.Text
                                         key={attribute.id || index}
                                         ellipsis
+                                        style={{ maxWidth: "100%" }}
                                       >
                                         {attribute.attributeName ||
                                           attribute.originalName}
@@ -834,7 +862,7 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
                         );
                       })}
                     </div>
-                    <Flex justify="space-between" align="start">
+                    <Flex justify="space-between" align="start" gap={12} wrap>
                       <Space direction="vertical" size={0}>
                         <Typography.Text>
                           Tổng số lượng: {totalSelectedQuantity} sản phẩm
