@@ -3,9 +3,7 @@ import {
   Button,
   Card,
   Col,
-  Empty,
   Flex,
-  Image,
   Row,
   Space,
   Spin,
@@ -19,14 +17,12 @@ import {
   PlusOutlined,
   WalletOutlined,
   BankOutlined,
-  ExportOutlined,
 } from "@ant-design/icons";
 import { Link } from "react-router-dom";
 import { formatCurrency } from "@repo/util";
 import DepositModal from "../../components/DepositModal";
 import { useDashboardPage } from "./hooks/useDashboardPage";
 import type {
-  DashboardProduct,
   DashboardStatusAmountConfig,
 } from "./hooks/useDashboardPage";
 
