@@ -3,9 +3,7 @@ import {
   Button,
   Card,
   Col,
-  Empty,
   Flex,
-  Image,
   Progress,
   Row,
   Space,
@@ -17,7 +15,6 @@ import {
 import {
   ArrowRightOutlined,
   BankOutlined,
-  ExportOutlined,
   ShoppingCartOutlined,
   WalletOutlined,
 } from "@ant-design/icons";
@@ -25,7 +22,6 @@ import { Link } from "react-router-dom";
 import { formatCurrency } from "@repo/util";
 import DepositModal from "../../components/DepositModal";
 import { useDashboardPage } from "./hooks/useDashboardPage";
-import type { DashboardProduct } from "./hooks/useDashboardPage";
 
 export const DashboardStyleThanhla = () => {
   const { token } = theme.useToken();
@@ -34,9 +30,7 @@ export const DashboardStyleThanhla = () => {
     balance,
     deliveryReadyCount,
     visibleOrderStatuses,
-    suggestProducts,
     isLoading,
-    isSuggestLoading,
     isDepositModalOpen,
     setDepositModalOpen,
     getOrderStatusStatistic,

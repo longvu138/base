@@ -3,7 +3,6 @@ import {
   Button,
   Card,
   Col,
-  Empty,
   Flex,
   List,
   Row,
@@ -24,7 +23,6 @@ import { Link } from "react-router-dom";
 import { formatCurrency } from "@repo/util";
 import DepositModal from "../../components/DepositModal";
 import { useDashboardPage } from "./hooks/useDashboardPage";
-import type { DashboardProduct } from "./hooks/useDashboardPage";
 
 export const DashboardStyleGobiz = () => {
   const { token } = theme.useToken();
@@ -33,9 +31,7 @@ export const DashboardStyleGobiz = () => {
     balance,
     deliveryReadyCount,
     visibleOrderStatuses,
-    suggestProducts,
     isLoading,
-    isSuggestLoading,
     isDepositModalOpen,
     setDepositModalOpen,
     getOrderStatusStatistic,
