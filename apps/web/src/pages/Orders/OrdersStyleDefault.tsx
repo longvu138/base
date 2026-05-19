@@ -177,7 +177,7 @@ export const OrdersStyleDefault = () => {
                   <Space wrap>
                     {statusOptions.map((item: any) => (
                       <Checkbox key={item.value} value={item.value}>
-                        {item.label} ({item.count})
+                        {item.label}  {item.count > 0 ? ` (${item.count})` : ""}
                       </Checkbox>
                     ))}
                   </Space>
@@ -277,7 +277,7 @@ export const OrdersStyleDefault = () => {
           secondaryContent={
             <div style={{ marginTop: 16 }}>
               <Row gutter={[16, 16]}>
-                <Col xs={24} md={12}>
+                <Col xs={24} md={24}>
                   <Form.Item
                     name="marketplaces"
                     label={t("orders.filters.source")}
@@ -294,7 +294,7 @@ export const OrdersStyleDefault = () => {
                     </Checkbox.Group>
                   </Form.Item>
                 </Col>
-                <Col xs={24} md={12}>
+                <Col xs={24} md={24}>
                   <Form.Item
                     name="services"
                     label={t("orders.filters.services")}
@@ -711,7 +711,7 @@ export const OrdersStyleDefault = () => {
                                     style={metricValueStyle}
                                   >
                                     {record?.actualWeight ||
-                                    record?.chargeableWeight
+                                      record?.chargeableWeight
                                       ? `${record.actualWeight || record.chargeableWeight}kg`
                                       : "---"}
                                   </Typography.Paragraph>
@@ -749,8 +749,8 @@ export const OrdersStyleDefault = () => {
                                   >
                                     {record?.createdAt
                                       ? dayjs(record.createdAt).format(
-                                          "HH:mm DD/MM/YYYY",
-                                        )
+                                        "HH:mm DD/MM/YYYY",
+                                      )
                                       : "---"}
                                   </Typography.Paragraph>
                                 </div>

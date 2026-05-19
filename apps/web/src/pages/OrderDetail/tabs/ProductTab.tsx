@@ -143,69 +143,79 @@ export const ProductTab = ({ orderCode, order }: ProductTabProps) => {
     <>
       <List
         header={
-        <Row
-          align="middle"
-          style={{
-            background: token.colorFillAlter,
-            border: `1px solid ${token.colorBorderSecondary}`,
-            padding: `${token.paddingXS}px ${token.padding}px`,
-          }}
-        >
-          <Col span={10}>
-            <Text>{t("order.products")}</Text>
-          </Col>
-          <Col span={14}>
-            <Row align="middle">
-              <Col span={6}>
-                <Space size={4}>
-                  <Text>
-                    {quantity(totalQuantity)}/{quantity(purchasedQuantity)}
-                    {hasInspection ? `/${receivedQuantity > 0 ? quantity(receivedQuantity) : "---"}` : "---"}
-                  </Text>
-                  <Tooltip title={t("order.order_buy_receive")} color={token.colorPrimary}>
-                    <QuestionCircleOutlined style={{ color: token.colorTextTertiary }} />
-                  </Tooltip>
-                </Space>
-              </Col>
-              <Col span={6}>
-                <Text>{t("order.sale_price")}</Text>
-              </Col>
-              <Col span={6}>
-                <Text>{t("order.total_price")}</Text>
-              </Col>
-              <Col span={6} style={{ textAlign: "right" }}>
-                <Button icon={<DownloadOutlined />} size="small" onClick={() => setExportOpen(true)}>
-                  {t("button.csv")}
-                </Button>
-              </Col>
-            </Row>
-          </Col>
-        </Row>
+          <Row
+            align="middle"
+            style={{
+              background: token.colorFillAlter,
+              border: `1px solid ${token.colorBorderSecondary}`,
+              padding: `${token.paddingXS}px ${token.padding}px`,
+            }}
+          >
+            <Col span={10}>
+              <Text>{t("order.products")}</Text>
+            </Col>
+            <Col span={14}>
+              <Row align="middle">
+                <Col span={6}>
+                  <Space size={4}>
+                    <Text>
+                      {quantity(totalQuantity)}/{purchasedQuantity > 0 ? quantity(purchasedQuantity) : "---"}
+                      {hasInspection ? `/${receivedQuantity > 0 ? quantity(receivedQuantity) : "---"}` : "---"}
+                    </Text>
+                    <Tooltip title={t("order.order_buy_receive")} color={token.colorPrimary}>
+                      <QuestionCircleOutlined style={{ color: token.colorTextTertiary }} />
+                    </Tooltip>
+                  </Space>
+                </Col>
+                <Col span={6}>
+                  <Text>{t("order.sale_price")}</Text>
+                </Col>
+                <Col span={6}>
+                  <Text>{t("order.total_price")}</Text>
+                </Col>
+                <Col span={6} style={{ textAlign: "right" }}>
+                  <Button icon={<DownloadOutlined />} size="small" onClick={() => setExportOpen(true)}>
+                    {t("button.csv")}
+                  </Button>
+                </Col>
+              </Row>
+            </Col>
+          </Row>
         }
         dataSource={products}
         renderItem={(product: any) => {
-        const id = product.id || product.code;
-        const code = productCode(product);
-        const currency = product.currency?.code || product.currency || "¥";
-        const image = productImage(product);
-        const name = product.name || product.originalName;
-        const actualPrice = product.actualPrice ?? product.price;
-        const exchangedActualPrice = product.exchangedActualPrice ?? product.unitPrice;
-        const totalAmount = product.totalAmount ?? product.amount;
-        const exchangedTotalAmount =
-          product.exchangedTotalAmount ??
-          product.totalPrice ??
-          (exchangedActualPrice && product.quantity ? exchangedActualPrice * product.quantity : undefined);
+          const id = product.id || product.code;
+          const code = productCode(product);
+          const currency = product.currency?.code || product.currency || "¥";
+          const image = productImage(product);
+          const name = product.name || product.originalName;
+          const actualPrice = product.actualPrice ?? product.price;
+          const exchangedActualPrice = product.exchangedActualPrice ?? product.unitPrice;
+          const totalAmount = product.totalAmount ?? product.amount;
+          const exchangedTotalAmount =
+            product.exchangedTotalAmount ??
+            product.totalPrice ??
+            (exchangedActualPrice && product.quantity ? exchangedActualPrice * product.quantity : undefined);
 
-        return (
-          <List.Item
-          >
-            <Row gutter={token.marginSM} style={{ width: "100%" }}>
-              <Col span={10}>
-                <Flex align="flex-start" gap={token.marginSM}>
-                  <Space direction="vertical" size={token.marginXS} style={{ flex: "0 0 88px" }}>
-                    {product.productUrl ? (
-                      <a href={product.productUrl} target="_blank" rel="noreferrer">
+          return (
+            <List.Item
+            >
+              <Row gutter={token.marginSM} style={{ width: "100%" }}>
+                <Col span={10}>
+                  <Flex align="flex-start" gap={token.marginSM}>
+                    <Space direction="vertical" size={token.marginXS} style={{ flex: "0 0 88px" }}>
+                      {product.productUrl ? (
+                        <a href={product.productUrl} target="_blank" rel="noreferrer">
+                          <Image
+                            src={image}
+                            width={80}
+                            height={80}
+                            preview={false}
+                            referrerPolicy="no-referrer"
+                            style={{ objectFit: "cover" }}
+                          />
+                        </a>
+                      ) : (
                         <Image
                           src={image}
                           width={80}
@@ -214,109 +224,99 @@ export const ProductTab = ({ orderCode, order }: ProductTabProps) => {
                           referrerPolicy="no-referrer"
                           style={{ objectFit: "cover" }}
                         />
-                      </a>
-                    ) : (
-                      <Image
-                        src={image}
-                        width={80}
-                        height={80}
-                        preview={false}
-                        referrerPolicy="no-referrer"
-                        style={{ objectFit: "cover" }}
-                      />
-                    )}
-                    <Flex align="center" gap={token.marginXXS} wrap="nowrap">
-                      <Text style={{ whiteSpace: "nowrap" }}>#{display(code)}</Text>
-                      <Button
-                        type="text"
-                        size="small"
-                        icon={<CopyOutlined />}
-                        onClick={() => handleCopy(code)}
-                        style={{ flex: "0 0 auto" }}
-                      />
-                    </Flex>
-                  </Space>
-
-                  <Space direction="vertical" size={token.marginXS} style={{ minWidth: 0 }}>
-                    {product.productUrl ? (
-                      <a href={product.productUrl} target="_blank" rel="noreferrer">
-                        <Text strong>{display(name)}</Text>
-                      </a>
-                    ) : (
-                      <Text strong>{display(name)}</Text>
-                    )}
-                    <Space wrap size={token.marginSM}>
-                      {propertyValues(product).map((value: string, index: number) => (
-                        <Text key={`${value}-${index}`} type="secondary">
-                          {value}
-                        </Text>
-                      ))}
-                    </Space>
-                  </Space>
-                </Flex>
-              </Col>
-
-              <Col span={14}>
-                <Row>
-                  <Col span={6}>
-                    <Text strong>
-                      {quantity(product.quantity)}/{quantity(product.purchasedQuantity ?? product.actualQuantity)}
-                      {hasInspection ? `/${quantity(product.receivedQuantity)}` : "---"}
-                    </Text>
-                  </Col>
-                  <Col span={6}>
-                    <Space direction="vertical" size={0}>
-                      <Text strong>{moneyFormat(exchangedActualPrice)}</Text>
-                      {product.noBargainPrice ? (
-                        <Text type="secondary">
-                          <Text delete type="secondary">
-                            {moneyFormat(product.noBargainPrice, currency)}
-                          </Text>{" "}
-                          / <Text strong>{moneyFormat(actualPrice, currency)}</Text>
-                        </Text>
-                      ) : (
-                        <Text type="secondary">{moneyFormat(actualPrice, currency)}</Text>
                       )}
+                      <Flex align="center" gap={token.marginXXS} wrap="nowrap">
+                        <Text style={{ whiteSpace: "nowrap" }}>#{display(code)}</Text>
+                        <Button
+                          type="text"
+                          size="small"
+                          icon={<CopyOutlined />}
+                          onClick={() => handleCopy(code)}
+                          style={{ flex: "0 0 auto" }}
+                        />
+                      </Flex>
                     </Space>
-                  </Col>
-                  <Col span={6}>
-                    <Space direction="vertical" size={0}>
-                      <Text strong>{moneyFormat(exchangedTotalAmount)}</Text>
-                      <Text type="secondary">{moneyFormat(totalAmount, currency)}</Text>
-                    </Space>
-                  </Col>
-                  <Col span={6} style={{ textAlign: "right" }}>
-                    <Button
-                      type="link"
-                      icon={<HeartOutlined />}
-                      loading={savingProductId === id}
-                      onClick={() => handleSave(id)}
-                    >
-                      {t("button.save")}
-                    </Button>
-                  </Col>
-                </Row>
 
-                <Row style={{ marginTop: token.marginMD }}>
-                  <Col span={24}>
-                    <Space size={4} align="start">
-                      <Link>{t("order.remark")}:</Link>
-                      <Text type="secondary">{display(product.remark)}</Text>
+                    <Space direction="vertical" size={token.marginXS} style={{ minWidth: 0 }}>
+                      {product.productUrl ? (
+                        <a href={product.productUrl} target="_blank" rel="noreferrer">
+                          <Text strong>{display(name)}</Text>
+                        </a>
+                      ) : (
+                        <Text strong>{display(name)}</Text>
+                      )}
+                      <Space wrap size={token.marginSM}>
+                        {propertyValues(product).map((value: string, index: number) => (
+                          <Text key={`${value}-${index}`} type="secondary">
+                            {value}
+                          </Text>
+                        ))}
+                      </Space>
                     </Space>
-                  </Col>
-                  <Col span={24}>
-                    <Space size={4}>
-                      <Text type="secondary">{product.note || t("order.note")}</Text>
-                      <Tooltip title={t("product_tab.personal_note_content")} color={token.colorPrimary}>
-                        <QuestionCircleOutlined style={{ color: token.colorTextTertiary }} />
-                      </Tooltip>
-                    </Space>
-                  </Col>
-                </Row>
-              </Col>
-            </Row>
-          </List.Item>
-        );
+                  </Flex>
+                </Col>
+
+                <Col span={14}>
+                  <Row>
+                    <Col span={6}>
+                      <Text strong>
+                        {quantity(product.quantity)}/{quantity(product.purchasedQuantity ?? product.actualQuantity)}
+                        {hasInspection ? `/${quantity(product.receivedQuantity)}` : "---"}
+                      </Text>
+                    </Col>
+                    <Col span={6}>
+                      <Space direction="vertical" size={0}>
+                        <Text strong>{moneyFormat(exchangedActualPrice)}</Text>
+                        {product.noBargainPrice ? (
+                          <Text type="secondary">
+                            <Text delete type="secondary">
+                              {moneyFormat(product.noBargainPrice, currency)}
+                            </Text>{" "}
+                            / <Text strong>{moneyFormat(actualPrice, currency)}</Text>
+                          </Text>
+                        ) : (
+                          <Text type="secondary">{moneyFormat(actualPrice, currency)}</Text>
+                        )}
+                      </Space>
+                    </Col>
+                    <Col span={6}>
+                      <Space direction="vertical" size={0}>
+                        <Text strong>{moneyFormat(exchangedTotalAmount)}</Text>
+                        <Text type="secondary">{moneyFormat(totalAmount, currency)}</Text>
+                      </Space>
+                    </Col>
+                    <Col span={6} style={{ textAlign: "right" }}>
+                      <Button
+                        type="link"
+                        icon={<HeartOutlined />}
+                        loading={savingProductId === id}
+                        onClick={() => handleSave(id)}
+                      >
+                        {t("button.save")}
+                      </Button>
+                    </Col>
+                  </Row>
+
+                  <Row style={{ marginTop: token.marginMD }}>
+                    <Col span={24}>
+                      <Space size={4} align="start">
+                        <Link>{t("order.remark")}:</Link>
+                        <Text type="secondary">{display(product.remark)}</Text>
+                      </Space>
+                    </Col>
+                    <Col span={24}>
+                      <Space size={4}>
+                        <Text type="secondary">{product.note || t("order.note")}</Text>
+                        <Tooltip title={t("product_tab.personal_note_content")} color={token.colorPrimary}>
+                          <QuestionCircleOutlined style={{ color: token.colorTextTertiary }} />
+                        </Tooltip>
+                      </Space>
+                    </Col>
+                  </Row>
+                </Col>
+              </Row>
+            </List.Item>
+          );
         }}
       />
       <Modal
