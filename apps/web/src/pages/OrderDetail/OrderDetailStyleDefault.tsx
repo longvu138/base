@@ -134,6 +134,7 @@ export const OrderDetailStyleDefault = () => {
     order,
     services,
     statusInfo,
+    memberLevelName,
   } = useOrderDetailPage();
 
   if (detailQuery.isLoading) {
@@ -191,6 +192,7 @@ export const OrderDetailStyleDefault = () => {
     try {
       await handleReorder();
       notification.success({ message: t("orderDetail.re_order_success") });
+      navigate(`/carts`);
     } catch {
       notification.error({ message: t("message.update_failed") });
     }
@@ -199,11 +201,7 @@ export const OrderDetailStyleDefault = () => {
   const metricRow1 = [
     {
       label: t("orderDetail.member"),
-      value:
-        order.customerGroup?.name ||
-        order.customerLevel?.name ||
-        order.customer?.username ||
-        "---",
+      value: memberLevelName,
       span: 5,
     },
     {

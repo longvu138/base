@@ -442,7 +442,7 @@ export const OrdersStyleDefault = () => {
           </Space>
         }
         extra={
-          <Button icon={<DownloadOutlined />}>{t("common.export")}</Button>
+          <Button icon={<DownloadOutlined />}>{t("button.csv")}</Button>
         }
         styles={{ body: { padding: "0 12px" } }}
       >
