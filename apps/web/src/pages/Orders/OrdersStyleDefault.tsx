@@ -1,4 +1,4 @@
-import { type ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 import dayjs from "dayjs";
 import {
   Alert,
@@ -14,11 +14,13 @@ import {
   Input,
   List,
   Pagination,
+  Popover,
   Row,
   Select,
   Space,
   Spin,
   Tag,
+  Timeline,
   Tooltip,
   Typography,
   theme,
@@ -32,6 +34,101 @@ import {
 import { formatCurrency, quantityFormat } from "@repo/util";
 import { FilterPanel, PinModal } from "@repo/ui";
 import { useOrdersPage } from "./hooks/useOrdersPage";
+import { useOrderMilestonesQuery } from "@repo/hooks";
+
+const OrderStatusPopover = ({
+  code,
+  status,
+  statusData = [],
+  t,
+}: {
+  code: string;
+  status?: string;
+  statusData?: any[];
+  t: (key: string) => string;
+}) => {
+  const [open, setOpen] = useState(false);
+  const { data: milestones = [], isLoading } = useOrderMilestonesQuery(
+    open ? code : "",
+  );
+  const currentStatus =
+    statusData.find((item: any) => item.code === status) || {};
+
+  return (
+    <Popover
+      trigger="click"
+      placement="left"
+      open={open}
+      onOpenChange={setOpen}
+      content={
+        <Space
+          direction="vertical"
+          size={0}
+          style={{ width: 200 }}
+        >
+          {isLoading ? (
+            <Flex justify="center" align="center" style={{ minHeight: 140 }}>
+              <Spin />
+            </Flex>
+          ) : Array.isArray(milestones) && milestones.length > 0 ? (
+            <div
+              style={{
+                overflowY: "auto",
+                paddingInlineEnd: 8,
+                paddingTop: 4,
+              }}
+            >
+              <Timeline
+                items={milestones.map((item: any, index: number) => {
+                  const milestoneStatus = statusData.find(
+                    (statusItem: any) => statusItem.code === item.status,
+                  );
+                  const handlingTime =
+                    item.handlingTime === null ||
+                      item.handlingTime === undefined
+                      ? t("shipments.undefined_handling_time") || "Chưa xác định"
+                      : `${item.handlingTime} ${Number(item.handlingTime) > 1 ? t("shipments.days") || "ngày" : t("shipments.day") || "ngày"}`;
+                  return {
+                    color: index === 0 ? "green" : "gray",
+                    style:
+                      index === milestones.length - 1
+                        ? { paddingBottom: 0 }
+                        : undefined,
+                    children: (
+                      <Space direction="vertical" size={2}>
+                        <Typography.Text strong>
+                          {milestoneStatus?.name || item.status || "---"}
+                        </Typography.Text>
+                        <Typography.Text type="secondary">
+                          {item.timestamp ? dayjs(item.timestamp).format("HH:mm DD/MM/YYYY") : "---"}
+                        </Typography.Text>
+                        <Typography.Text type="secondary">({handlingTime})</Typography.Text>
+                      </Space>
+                    ),
+                  };
+                })}
+              />
+            </div>
+          ) : (
+            <Empty
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+              description={t("common.no_data")}
+              style={{ margin: 0 }}
+            />
+          )}
+        </Space>
+      }
+    >
+      <Tag
+        color={currentStatus?.color || "default"}
+        style={{ cursor: "pointer" }}
+        icon={<InfoCircleOutlined />}
+      >
+        {currentStatus?.name || status}
+      </Tag>
+    </Popover>
+  );
+};
 
 const getStatusMeta = (statuses: any[] = [], code?: string) =>
   statuses.find((item) => item.code === code) || { name: code || "---" };
@@ -537,12 +634,12 @@ export const OrdersStyleDefault = () => {
                           </Typography.Text>
                         </Space>
                       </Space>
-                      <Tag
-                        color={status?.color || "default"}
-                        icon={<InfoCircleOutlined />}
-                      >
-                        {status?.name}
-                      </Tag>
+                      <OrderStatusPopover
+                        code={record?.code}
+                        status={record?.status}
+                        statusData={statusData}
+                        t={t}
+                      />
                     </Flex>
 
                     <div
