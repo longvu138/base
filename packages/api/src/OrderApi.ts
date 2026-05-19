@@ -75,4 +75,10 @@ export const OrderApi = {
             },
         });
     },
+    exportOrders: (params: any, data: { secret?: string }) => {
+        return ApiClient.auth.post(`customer/orders/export_excel`, data, {
+            params,
+            responseType: 'blob',
+        });
+    },
 };

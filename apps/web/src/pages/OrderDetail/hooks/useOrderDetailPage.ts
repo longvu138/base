@@ -6,6 +6,7 @@ import {
   useOrderStatusesQuery,
   useReorderMutation,
   useUpdateOrderMutation,
+  useCustomerLevelsQuery,
 } from "@repo/hooks";
 import { moneyFormat } from "@repo/util";
 
@@ -59,8 +60,22 @@ export const useOrderDetailPage = () => {
   const updateMutation = useUpdateOrderMutation();
   const cancelMutation = useCancelOrderMutation(code);
   const reorderMutation = useReorderMutation(code);
+  const customerLevelsQuery = useCustomerLevelsQuery();
 
   const order = detailQuery.data;
+  const customerLevels = customerLevelsQuery.data || [];
+
+  const memberLevelName = useMemo(() => {
+    if (!order) return DISPLAY_EMPTY;
+    if (order.customerGroup?.name && order.customerGroup?.code !== "default") {
+      return order.customerGroup.name;
+    }
+    if (order.customerLevelId === null || order.customerLevelId === undefined) {
+      return "Chưa có cấp";
+    }
+    const level = customerLevels.find((l: any) => l.id === order.customerLevelId);
+    return level ? level.name : "Chưa có cấp";
+  }, [order, customerLevels]);
 
   const statusInfo = useMemo(
     () =>
@@ -130,5 +145,6 @@ export const useOrderDetailPage = () => {
     order,
     services,
     statusInfo,
+    memberLevelName,
   };
 };

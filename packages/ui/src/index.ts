@@ -7,3 +7,4 @@ export * from './FilterPanel';
 export * from './Dashboard';
 export * from './StatusFilter';
 export * from './DynamicVariant';
+export * from './PinModal';

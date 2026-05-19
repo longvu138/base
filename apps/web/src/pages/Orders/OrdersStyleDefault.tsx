@@ -1,4 +1,4 @@
-import { type ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 import dayjs from "dayjs";
 import {
   Alert,
@@ -14,11 +14,13 @@ import {
   Input,
   List,
   Pagination,
+  Popover,
   Row,
   Select,
   Space,
   Spin,
   Tag,
+  Timeline,
   Tooltip,
   Typography,
   theme,
@@ -30,11 +32,104 @@ import {
   SearchOutlined,
 } from "@ant-design/icons";
 import { formatCurrency, quantityFormat } from "@repo/util";
-import { FilterPanel } from "@repo/ui";
+import { FilterPanel, PinModal } from "@repo/ui";
 import { useOrdersPage } from "./hooks/useOrdersPage";
+import { useOrderMilestonesQuery } from "@repo/hooks";
 
-const getStatusMeta = (statuses: any[] = [], code?: string) =>
-  statuses.find((item) => item.code === code) || { name: code || "---" };
+const OrderStatusPopover = ({
+  code,
+  status,
+  statusData = [],
+  t,
+}: {
+  code: string;
+  status?: string;
+  statusData?: any[];
+  t: (key: string) => string;
+}) => {
+  const [open, setOpen] = useState(false);
+  const { data: milestones = [], isLoading } = useOrderMilestonesQuery(
+    open ? code : "",
+  );
+  const currentStatus =
+    statusData.find((item: any) => item.code === status) || {};
+
+  return (
+    <Popover
+      trigger="click"
+      placement="left"
+      open={open}
+      onOpenChange={setOpen}
+      content={
+        <Space
+          direction="vertical"
+          size={0}
+          style={{ width: 200 }}
+        >
+          {isLoading ? (
+            <Flex justify="center" align="center" style={{ minHeight: 140 }}>
+              <Spin />
+            </Flex>
+          ) : Array.isArray(milestones) && milestones.length > 0 ? (
+            <div
+              style={{
+                overflowY: "auto",
+                paddingInlineEnd: 8,
+                paddingTop: 4,
+              }}
+            >
+              <Timeline
+                items={milestones.map((item: any, index: number) => {
+                  const milestoneStatus = statusData.find(
+                    (statusItem: any) => statusItem.code === item.status,
+                  );
+                  const handlingTime =
+                    item.handlingTime === null ||
+                      item.handlingTime === undefined
+                      ? t("shipments.undefined_handling_time") || "Chưa xác định"
+                      : `${item.handlingTime} ${Number(item.handlingTime) > 1 ? t("shipments.days") || "ngày" : t("shipments.day") || "ngày"}`;
+                  return {
+                    color: index === 0 ? "green" : "gray",
+                    style:
+                      index === milestones.length - 1
+                        ? { paddingBottom: 0 }
+                        : undefined,
+                    children: (
+                      <Space direction="vertical" size={2}>
+                        <Typography.Text strong>
+                          {milestoneStatus?.name || item.status || "---"}
+                        </Typography.Text>
+                        <Typography.Text type="secondary">
+                          {item.timestamp ? dayjs(item.timestamp).format("HH:mm DD/MM/YYYY") : "---"}
+                        </Typography.Text>
+                        <Typography.Text type="secondary">({handlingTime})</Typography.Text>
+                      </Space>
+                    ),
+                  };
+                })}
+              />
+            </div>
+          ) : (
+            <Empty
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+              description={t("common.no_data")}
+              style={{ margin: 0 }}
+            />
+          )}
+        </Space>
+      }
+    >
+      <Tag
+        color={currentStatus?.color || "default"}
+        style={{ cursor: "pointer" }}
+        icon={<InfoCircleOutlined />}
+      >
+        {currentStatus?.name || status}
+      </Tag>
+    </Popover>
+  );
+};
+
 
 const metricTextStyle = { margin: 0 };
 const metricColStyle = {
@@ -72,6 +167,11 @@ export const OrdersStyleDefault = () => {
     navigateToDetail,
     navigateToCreateDelivery,
     deliveryReadyCount,
+    exportOpen,
+    setExportOpen,
+    handleExport,
+    closeExportModal,
+    exportMutation
   } = useOrdersPage();
 
   const orders = orderData?.data || [];
@@ -79,12 +179,13 @@ export const OrdersStyleDefault = () => {
   const isApprovalService = (service: any) =>
     service.needApprove === true || service.approved === null;
 
-  const renderServiceNames = (services: any[]) => (
-    <Space wrap split={<Typography.Text type="secondary">|</Typography.Text>}>
+  const renderServiceNames = (services: any[], type?: any) => (
+    <Space wrap split={<Typography.Text type={type || "secondary"}>|</Typography.Text>}>
       {services.map((service: any, index: number) => (
         <Typography.Text
           key={`${service.code || service.name || index}`}
           delete={service.approved === false}
+          type={type}
         >
           {service.name}
         </Typography.Text>
@@ -116,20 +217,20 @@ export const OrdersStyleDefault = () => {
     );
 
     return (
-      <Space direction="vertical" size={2}>
+      <Space
+        direction="horizontal"
+        size={token.marginXS}
+        split={<span style={{ color: token.colorBorder }}>|</span>}
+        wrap
+      >
         {normalServices.length > 0 &&
           renderServiceLine(
             t("orders.filters.services"),
             renderServiceNames(normalServices),
           )}
         {approvalServices.length > 0 &&
-          renderServiceLine(
-            t("orders.service_waiting_approval"),
-            <Typography.Text type="warning">
-              {renderServiceNames(approvalServices)}
-            </Typography.Text>,
-            true,
-          )}
+          renderServiceNames(approvalServices, "warning")
+        }
       </Space>
     );
   };
@@ -177,7 +278,7 @@ export const OrdersStyleDefault = () => {
                   <Space wrap>
                     {statusOptions.map((item: any) => (
                       <Checkbox key={item.value} value={item.value}>
-                        {item.label} ({item.count})
+                        {item.label}  {item.count > 0 ? ` (${item.count})` : ""}
                       </Checkbox>
                     ))}
                   </Space>
@@ -277,7 +378,7 @@ export const OrdersStyleDefault = () => {
           secondaryContent={
             <div style={{ marginTop: 16 }}>
               <Row gutter={[16, 16]}>
-                <Col xs={24} md={12}>
+                <Col xs={24} md={24}>
                   <Form.Item
                     name="marketplaces"
                     label={t("orders.filters.source")}
@@ -294,7 +395,7 @@ export const OrdersStyleDefault = () => {
                     </Checkbox.Group>
                   </Form.Item>
                 </Col>
-                <Col xs={24} md={12}>
+                <Col xs={24} md={24}>
                   <Form.Item
                     name="services"
                     label={t("orders.filters.services")}
@@ -441,7 +542,9 @@ export const OrdersStyleDefault = () => {
           </Space>
         }
         extra={
-          <Button icon={<DownloadOutlined />}>{t("common.export")}</Button>
+          <Button icon={<DownloadOutlined />} onClick={() => setExportOpen(true)}>
+            {t("button.csv")}
+          </Button>
         }
         styles={{ body: { padding: "0 12px" } }}
       >
@@ -457,7 +560,6 @@ export const OrdersStyleDefault = () => {
               ),
             }}
             renderItem={(record: any) => {
-              const status = getStatusMeta(statusData, record?.status);
               const hasInspection = record?.services?.some(
                 (item: any) => item.code === "inspection",
               );
@@ -487,7 +589,6 @@ export const OrdersStyleDefault = () => {
                         split={
                           <span style={{ color: token.colorBorder }}>|</span>
                         }
-                        wrap
                       >
                         <Typography.Paragraph
                           copyable={{ text: record?.code }}
@@ -530,12 +631,12 @@ export const OrdersStyleDefault = () => {
                           </Typography.Text>
                         </Space>
                       </Space>
-                      <Tag
-                        color={status?.color || "default"}
-                        icon={<InfoCircleOutlined />}
-                      >
-                        {status?.name}
-                      </Tag>
+                      <OrderStatusPopover
+                        code={record?.code}
+                        status={record?.status}
+                        statusData={statusData}
+                        t={t}
+                      />
                     </Flex>
 
                     <div
@@ -711,7 +812,7 @@ export const OrdersStyleDefault = () => {
                                     style={metricValueStyle}
                                   >
                                     {record?.actualWeight ||
-                                    record?.chargeableWeight
+                                      record?.chargeableWeight
                                       ? `${record.actualWeight || record.chargeableWeight}kg`
                                       : "---"}
                                   </Typography.Paragraph>
@@ -749,8 +850,8 @@ export const OrdersStyleDefault = () => {
                                   >
                                     {record?.createdAt
                                       ? dayjs(record.createdAt).format(
-                                          "HH:mm DD/MM/YYYY",
-                                        )
+                                        "HH:mm DD/MM/YYYY",
+                                      )
                                       : "---"}
                                   </Typography.Paragraph>
                                 </div>
@@ -780,6 +881,14 @@ export const OrdersStyleDefault = () => {
           />
         </Flex>
       </Card>
+
+      <PinModal
+        open={exportOpen}
+        confirmLoading={exportMutation.isPending}
+        onConfirm={handleExport}
+        onCancel={closeExportModal}
+        t={t}
+      />
     </Space>
   );
 };

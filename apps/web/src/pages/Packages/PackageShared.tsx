@@ -1,13 +1,11 @@
 import {
-    Form,
-    Input,
-    Modal,
     Space,
     Tag,
     Typography,
     theme,
 } from 'antd';
 import { BarcodeOutlined } from '@ant-design/icons';
+import { PinModal } from '@repo/ui';
 
 const { Link, Paragraph } = Typography;
 
@@ -100,31 +98,13 @@ export const PackageStatusTag = ({
 };
 
 export const PackageExportModal = ({ page }: { page: any }) => {
-    const [form] = Form.useForm();
-
     return (
-        <Modal
-            title={page.t('Xác nhận mã pin của bạn')}
+        <PinModal
             open={page.exportOpen}
-            onCancel={() => page.setExportOpen(false)}
-            okText={page.t('common.export')}
-            cancelText={page.t('common.cancel')}
             confirmLoading={page.isExporting}
-            onOk={async () => {
-                const values = await form.validateFields();
-                await page.handleExport(values.secret);
-                form.resetFields();
-            }}
-        >
-            <Form form={form} layout="vertical">
-                <Form.Item
-                    name="secret"
-                    label={page.t('Vui lòng nhập mã PIN để thực hiện thao tác này')}
-                    rules={[{ required: true, message: page.t('message.required') }]}
-                >
-                    <Input.Password />
-                </Form.Item>
-            </Form>
-        </Modal>
+            onConfirm={page.handleExport}
+            onCancel={() => page.setExportOpen(false)}
+            t={page.t}
+        />
     );
 };
