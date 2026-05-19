@@ -6,6 +6,7 @@ export * from './useTransactionHooks';
 export * from './useClaimHooks';
 export * from './useWishlistHooks';
 export * from './useWithdrawalSlipHooks';
+export * from './useStatisticHooks';
 
 // Page Level Logic Hooks
 export * from './pages/orders';

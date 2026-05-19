@@ -18,3 +18,4 @@ export * from './WishlistApi';
 export * from './FaqApi';
 export * from './TenantApi';
 export * from './NotificationApi';
+export * from './StatisticApi';

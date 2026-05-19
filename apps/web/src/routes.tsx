@@ -18,6 +18,7 @@ import CreateClaim from "./pages/CreateClaim";
 import WithdrawalSlips from "./pages/WithdrawalSlips";
 import { Packages } from "./pages/Packages";
 import Profile from "./pages/Profile";
+import Statistics from "./pages/Statistics";
 import Notifications from "./pages/Notifications";
 import { Carts } from "./pages/Carts";
 import CartCheckout from "./pages/CartCheckout";
@@ -58,6 +59,7 @@ function AppRoutes() {
           <Route path="withdrawal-slips" element={<WithdrawalSlips />} />
           <Route path="packages" element={<Packages />} />
           <Route path="profile" element={<Profile />} />
+          <Route path="statistics" element={<Statistics />} />
           <Route
             path="vouchers"
             element={<Navigate to="/profile?tab=vouchers" replace />}

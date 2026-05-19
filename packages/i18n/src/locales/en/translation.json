@@ -819,6 +819,21 @@
     "new": "New",
     "statistics": "Spending statistics"
   },
+  "statistic": {
+    "order": "Purchase orders",
+    "shipment": "Consignments",
+    "request_payment": "Payment requests",
+    "title": "Spending statistics {{date}}",
+    "totalOrder": "Total orders",
+    "orders": "orders",
+    "increaseCompare": "Increase {{value}}% compared to {{date}}",
+    "decreaseCompare": "Decrease {{value}}% compared to {{date}}",
+    "totalMoney": "Total spending",
+    "currency": "đ",
+    "momentFormatMonthYear": "MMMM YYYY",
+    "momentFormatYear": "YYYY",
+    "no_enabled_tabs": "No spending statistics configuration"
+  },
   "notifications": {
     "title": "Notification",
     "mark_as_read_all": "Mark as read",

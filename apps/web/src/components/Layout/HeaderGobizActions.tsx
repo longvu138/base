@@ -180,7 +180,7 @@ export const profileMenuItems = ({
   {
     key: "spending",
     icon: <LineChartOutlined />,
-    label: <Link to="/profile?tab=transactions">{t("header.statistics")}</Link>,
+    label: <Link to="/statistics">{t("header.statistics")}</Link>,
   },
   { type: "divider" },
   {
