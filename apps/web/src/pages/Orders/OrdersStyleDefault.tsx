@@ -130,8 +130,6 @@ const OrderStatusPopover = ({
   );
 };
 
-const getStatusMeta = (statuses: any[] = [], code?: string) =>
-  statuses.find((item) => item.code === code) || { name: code || "---" };
 
 const metricTextStyle = { margin: 0 };
 const metricColStyle = {
@@ -562,7 +560,6 @@ export const OrdersStyleDefault = () => {
               ),
             }}
             renderItem={(record: any) => {
-              const status = getStatusMeta(statusData, record?.status);
               const hasInspection = record?.services?.some(
                 (item: any) => item.code === "inspection",
               );
