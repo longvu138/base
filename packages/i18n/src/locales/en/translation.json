@@ -17,6 +17,17 @@
     "all": "All",
     "copied": "Copied"
   },
+  "error": {
+    "requiresMessage": "To select <strong>{{service}}</strong> you need to select the service <strong>{{services}}</strong>",
+    "requireGroupsMessage": "To select <strong>{{service}}</strong> you need to select at least 1 service from <strong>{{serviceGroup}}</strong>"
+  },
+  "orderServiceGroup": {
+    "service": "service",
+    "approved_privilege": "approved privilege",
+    "choose_error": "Please choose least one in service group",
+    "other_service": "Other services",
+    "choose_service": "Choose services"
+  },
   "button": {
     "add_address": "Add address",
     "add_products": "Add products",
@@ -94,6 +105,15 @@
     "note": "Personal notes for this product",
     "note_keydown": "Press Ctrl/Shift/Alt/Command + Enter to save note",
     "order_buy_receive": "order/buy/receive",
+    "order_status": "Status",
+    "order_cut_off_time": "Order stops in status",
+    "cut_off_range": "About",
+    "cut_off_equal": "Is",
+    "cut_off_from": "After",
+    "cut_off_to": "Before",
+    "cut_off_days": "Number of days",
+    "cut_off_days_from": "From",
+    "cut_off_days_to": "To",
     "data_sent_email": "The system will send data file to your email. Please check in a few minutes.",
     "need_payment": "Need payment",
     "excess_cash": "Excess cash",
@@ -141,6 +161,7 @@
     "delete_confirm": "Are you sure you want to delete?",
     "delete_failed": "Delete failed",
     "delete_success": "Deleted successfully",
+    "system_error_contact_technical": "System error, please contact technical support",
     "update_failed": "Update failed",
     "shipment_status_not_allow": "The consignment order status does not allow this action",
     "empty": "No data",
@@ -339,6 +360,7 @@
   "orders": {
     "title": "Orders List",
     "search_placeholder": "Enter order code, shop name...",
+    "service_waiting_approval": "Need approval",
     "filters": {
       "status": "Order Status",
       "note": "Note",
@@ -879,6 +901,7 @@
     "service_requires": "This service requires",
     "service_group_requires": "This service requires service group",
     "service_need_approve": "Service {{service}} requires privilege approval",
+    "service_waiting_approval": "Service waiting for approval",
     "save_draft_shipment": "Save selected service",
     "receiving_address": "Receiving address",
     "choose_address": "Please choose a receiving address",
@@ -975,6 +998,14 @@
       "total_fee": "Total fee",
       "total_unpaid": "Need to pay"
     }
+  },
+  "footer": {
+    "contact": "Contact",
+    "phone": "Phone number",
+    "address": "Address",
+    "bank_info": "Transfer information",
+    "change_mobile_version": "Use mobile version",
+    "change_web_version": "Use the desktop version"
   },
   "createDelivery": {
     "errorCantCreateDelivery": "Can't create delivery request"

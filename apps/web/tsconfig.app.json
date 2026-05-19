@@ -5,7 +5,7 @@
     "useDefineForClassFields": true,
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
-    "types": ["vite/client"],
+    "types": ["vite/client", "react", "react-dom"],
     "skipLibCheck": true,
 
     /* Bundler mode */
@@ -34,6 +34,8 @@
       "@repo/util/*": ["../../packages/util/src/*"],
       "@repo/i18n": ["../../packages/i18n/src"],
       "@repo/i18n/*": ["../../packages/i18n/src/*"],
+      "@repo/react-query-provider": ["../../packages/react-query-provider/src"],
+      "@repo/react-query-provider/*": ["../../packages/react-query-provider/src/*"],
       "@repo/antd-config": ["../../packages/antd-config/src"],
       "@repo/antd-config/*": ["../../packages/antd-config/src/*"],
       "@repo/tenant-config": ["../../packages/tenant-config/src"],
@@ -42,6 +44,7 @@
       "@repo/theme-provider/*": ["../../packages/theme-provider/src/*"],
       "@repo/tailwind-config": ["../../packages/tailwind-config/src"],
       "@repo/tailwind-config/*": ["../../packages/tailwind-config/src/*"],
+      "@tanstack/react-query": ["./node_modules/@tanstack/react-query"],
       "antd": ["./node_modules/antd"],
       "antd/*": ["./node_modules/antd/*"]
     },

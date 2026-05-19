@@ -1,9 +1,9 @@
 import { App as AntdApp, ConfigProvider, theme } from "antd";
 import viVN from "antd/locale/vi_VN";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter } from "react-router-dom";
 import { useState, useEffect, useMemo } from "react";
 import { webAntdTheme, webDarkAntdTheme } from "@repo/antd-config";
+import { AppQueryProvider } from "@repo/react-query-provider";
 import { ThemeProvider, useTheme } from "@repo/theme-provider";
 import {
   applyTenantConfig,
@@ -13,18 +13,8 @@ import {
 } from "@repo/tenant-config";
 import AppRoutes from "./routes";
 import { appConfig } from "@repo/config";
-import { I18nextProvider } from "react-i18next";
+import { I18nextProvider, useTranslation } from "react-i18next";
 import { i18n } from "@repo/i18n";
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-      retry: 1,
-      staleTime: 5 * 60 * 1000,
-    },
-  },
-});
 
 const antdLocale = {
   ...viVN,
@@ -64,6 +54,7 @@ async function fetchAppData(tenantKey: string): Promise<FullTenantResponse> {
 }
 
 function AppContent() {
+  const { t } = useTranslation();
   const {
     theme: themeMode,
     tenantConfig: globalTenantConfig,
@@ -145,9 +136,13 @@ function AppContent() {
   return (
     <ConfigProvider theme={antdTheme} locale={antdLocale}>
       <AntdApp>
-        <BrowserRouter>
-          <AppRoutes />
-        </BrowserRouter>
+        <AppQueryProvider
+          systemErrorMessage={t("message.system_error_contact_technical")}
+        >
+          <BrowserRouter>
+            <AppRoutes />
+          </BrowserRouter>
+        </AppQueryProvider>
       </AntdApp>
     </ConfigProvider>
   );
@@ -171,11 +166,9 @@ function isFullProjectInfo(projectInfo: any) {
 function App() {
   return (
     <I18nextProvider i18n={i18n}>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider>
-          <AppContent />
-        </ThemeProvider>
-      </QueryClientProvider>
+      <ThemeProvider>
+        <AppContent />
+      </ThemeProvider>
     </I18nextProvider>
   );
 }

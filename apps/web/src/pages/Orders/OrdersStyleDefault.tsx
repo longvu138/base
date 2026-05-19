@@ -1,3 +1,4 @@
+import { type ReactNode } from "react";
 import dayjs from "dayjs";
 import {
   Alert,
@@ -74,6 +75,64 @@ export const OrdersStyleDefault = () => {
   } = useOrdersPage();
 
   const orders = orderData?.data || [];
+
+  const isApprovalService = (service: any) =>
+    service.needApprove === true || service.approved === null;
+
+  const renderServiceNames = (services: any[]) => (
+    <Space wrap split={<Typography.Text type="secondary">|</Typography.Text>}>
+      {services.map((service: any, index: number) => (
+        <Typography.Text
+          key={`${service.code || service.name || index}`}
+          delete={service.approved === false}
+        >
+          {service.name}
+        </Typography.Text>
+      ))}
+    </Space>
+  );
+
+  const renderServiceLine = (
+    label: ReactNode,
+    value: ReactNode,
+    warningLabel = false,
+  ) => (
+    <Flex align="start" gap={token.marginXS} wrap>
+      <Typography.Text type={warningLabel ? "warning" : "secondary"}>
+        {label}:
+      </Typography.Text>
+      {value}
+    </Flex>
+  );
+
+  const renderOrderServices = (services?: any[]) => {
+    if (!services?.length) {
+      return renderServiceLine(t("orders.filters.services"), "---");
+    }
+
+    const approvalServices = services.filter(isApprovalService);
+    const normalServices = services.filter(
+      (service: any) => !isApprovalService(service),
+    );
+
+    return (
+      <Space direction="vertical" size={2}>
+        {normalServices.length > 0 &&
+          renderServiceLine(
+            t("orders.filters.services"),
+            renderServiceNames(normalServices),
+          )}
+        {approvalServices.length > 0 &&
+          renderServiceLine(
+            t("orders.service_waiting_approval"),
+            <Typography.Text type="warning">
+              {renderServiceNames(approvalServices)}
+            </Typography.Text>,
+            true,
+          )}
+      </Space>
+    );
+  };
 
   return (
     <Space direction="vertical" size="large" style={{ width: "100%" }}>
@@ -532,31 +591,7 @@ export const OrdersStyleDefault = () => {
                               </Typography.Text>
                             </Flex>
 
-                            <Space wrap size={[token.marginXS, token.marginXS]}>
-                              <Typography.Text type="secondary">
-                                {t("orders.filters.services")}:
-                              </Typography.Text>
-                              {record?.services?.length
-                                ? record.services.map((item: any) => (
-                                    <Tag
-                                      key={item.code}
-                                      color={
-                                        item.approved === false
-                                          ? "default"
-                                          : "blue"
-                                      }
-                                      style={{
-                                        textDecoration:
-                                          item.approved === false
-                                            ? "line-through"
-                                            : undefined,
-                                      }}
-                                    >
-                                      {item.name}
-                                    </Tag>
-                                  ))
-                                : "---"}
-                            </Space>
+                            {renderOrderServices(record?.services)}
 
                             <Row gutter={[24, 16]}>
                               <Col xs={24} sm={12} md={6}>

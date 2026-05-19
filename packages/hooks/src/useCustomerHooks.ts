@@ -391,6 +391,21 @@ export const useNavigationMenus = () => {
     });
 };
 
+export const useCustomerArticles = () => {
+    return useQuery({
+        queryKey: ['customer.article'],
+        queryFn: async () => {
+            const res = await CustomerApi.getArticles();
+            const articles = Array.isArray(res.data) ? res.data.filter((item: any) => item?.purpose !== 'WELCOME') : [];
+            localStorage.setItem('articleList', JSON.stringify(articles));
+            return articles;
+        },
+        enabled: !!localStorage.getItem('access_token'),
+        staleTime: 10 * 60 * 1000,
+        retry: false,
+    });
+};
+
 export const useNotificationUnreadCount = () => {
     return useQuery({
         queryKey: ['customer.notifications.unread_count'],

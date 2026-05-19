@@ -16,6 +16,7 @@
     "@repo/config": "workspace:*",
     "@repo/hooks": "workspace:*",
     "@repo/i18n": "workspace:*",
+    "@repo/react-query-provider": "workspace:*",
     "@repo/tailwind-config": "workspace:*",
     "@repo/tenant-config": "workspace:*",
     "@repo/theme-provider": "workspace:*",

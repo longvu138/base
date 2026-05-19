@@ -61,6 +61,7 @@ export const useShipmentsLogic = ({ page, pageSize, filters }: UseShipmentsLogic
                 label: s.name,
                 value: s.code,
                 count,
+                hasStatistic: Boolean(statistic),
             };
         });
     }, [statusData, statisticData]);

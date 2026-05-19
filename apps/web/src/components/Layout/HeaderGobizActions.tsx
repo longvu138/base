@@ -4,7 +4,6 @@ import { Button, Dropdown, Space, Typography, theme } from "antd";
 import type { MenuProps } from "antd";
 import {
   DownOutlined,
-  HomeOutlined,
   LineChartOutlined,
   LogoutOutlined,
   SolutionOutlined,
@@ -31,16 +30,24 @@ export const HeaderExchangeRate = () => {
   const projectConfig: any = tenantConfig?.tenantConfig || {};
   const orderConfig = projectConfig.orderConfig || {};
   const shipmentConfig = projectConfig.shipmentConfig || {};
-  const defaultCurrency = projectConfig.defaultCurrency || projectConfig.currency?.code || "VND";
+  const defaultCurrency =
+    projectConfig.defaultCurrency || projectConfig.currency?.code || "VND";
   const rate =
     rates.find((item: any) => item?.exchange === defaultCurrency) || rates[0];
 
-  if (!rate || rates.length >= 2 || (!shipmentConfig.enable && orderConfig.disable)) {
+  if (
+    !rate ||
+    rates.length >= 2 ||
+    (!shipmentConfig.enable && orderConfig.disable)
+  ) {
     return null;
   }
 
   return (
-    <Typography.Text type="secondary" style={{ whiteSpace: "nowrap", fontSize: token.fontSizeSM }}>
+    <Typography.Text
+      type="secondary"
+      style={{ whiteSpace: "nowrap", fontSize: token.fontSizeSM }}
+    >
       {t("header.exchange")}{" "}
       <Typography.Text strong>
         {moneyFormat(1, rate.base)} = {moneyFormat(rate.rate, rate.exchange)}
@@ -54,16 +61,18 @@ export const HeaderSupportMenu = () => {
   const { t } = useTranslation();
   const { data: menuFooter = [] } = useNavigationMenus();
 
-  const items: MenuProps["items"] = menuFooter.map((item: any, index: number) => ({
-    key: item.id || item.href || index,
-    label: (
-      <a href={item.href} target={item.target || "_blank"} rel="noreferrer">
-        <Typography.Text ellipsis style={{ maxWidth: 220 }}>
-          {item.name}
-        </Typography.Text>
-      </a>
-    ),
-  }));
+  const items: MenuProps["items"] = menuFooter.map(
+    (item: any, index: number) => ({
+      key: item.id || item.href || index,
+      label: (
+        <a href={item.href} target={item.target || "_blank"} rel="noreferrer">
+          <Typography.Text ellipsis style={{ maxWidth: 220 }}>
+            {item.name}
+          </Typography.Text>
+        </a>
+      ),
+    }),
+  );
 
   if (!items.length) return null;
 
@@ -101,14 +110,12 @@ export const HeaderHomeLink = () => {
   const { t } = useTranslation();
   const { tenantConfig } = useTheme();
   const projectConfig: any = tenantConfig?.tenantConfig || {};
-  const homePageLink =
-    projectConfig.internalLink?.poseidon?.landing ||
-    (tenantConfig?.domain ? `//${tenantConfig.domain}` : "");
+  const homePageLink = projectConfig.internalLink?.poseidon?.landing;
 
   if (!homePageLink) return null;
 
   return (
-    <Button type="link" size="small" href={homePageLink} target="_blank" icon={<HomeOutlined />}>
+    <Button type="text" size="small" href={homePageLink} target="_blank">
       {t("header.homepage")}
     </Button>
   );
@@ -118,7 +125,8 @@ export const HeaderDepositButton = () => {
   const { t } = useTranslation();
   const { tenantConfig } = useTheme();
   const [open, setOpen] = useState(false);
-  const depositWizard = tenantConfig?.tenantConfig?.generalConfig?.depositWizard;
+  const depositWizard =
+    tenantConfig?.tenantConfig?.generalConfig?.depositWizard;
 
   if (depositWizard === false) return null;
 
@@ -138,11 +146,11 @@ export const HeaderDepositButton = () => {
 };
 
 export const HeaderGobizActions = () => (
-  <>
+  <Space size="middle">
     <HeaderHomeLink />
     <HeaderSupportMenu />
     <HeaderExchangeRate />
-  </>
+  </Space>
 );
 
 export const profileMenuItems = ({
@@ -162,7 +170,11 @@ export const profileMenuItems = ({
   {
     key: "topup",
     icon: <WalletOutlined />,
-    label: onDeposit ? t("header.deposit") : <Link to="/profile?tab=transactions">{t("header.deposit")}</Link>,
+    label: onDeposit ? (
+      t("header.deposit")
+    ) : (
+      <Link to="/profile?tab=transactions">{t("header.deposit")}</Link>
+    ),
     onClick: onDeposit,
   },
   {

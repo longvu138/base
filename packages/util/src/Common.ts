@@ -284,12 +284,57 @@ export const moneyCeil = (value: number) => {
   return value
 }
 
-export const quantityFormat = (value: unknown, noNegative?: boolean) => {
+let numeralLocaleRegistered = false
+
+const registerNumeralLocales = () => {
+  if (numeralLocaleRegistered) return
+
+  if (!(numeral as any).locales?.vi) {
+    numeral.register("locale", "vi", {
+      delimiters: {
+        thousands: ".",
+        decimal: ",",
+      },
+      abbreviations: {
+        thousand: "k",
+        million: "m",
+        billion: "b",
+        trillion: "t",
+      },
+      ordinal: () => ".",
+      currency: {
+        symbol: "₫",
+      },
+    })
+  }
+
+  numeralLocaleRegistered = true
+}
+
+const getCurrentLanguageCode = () => {
+  const legacyLanguage = LocalStoreUtil.getJson("currentLanguage")
+  const detectedLanguage =
+    typeof legacyLanguage?.languageCode === "string"
+      ? legacyLanguage.languageCode
+      : LocalStoreUtil.getItem("i18nextLng")
+
+  return String(detectedLanguage || "vi").split("-")[0]
+}
+
+const syncNumeralLocale = () => {
+  registerNumeralLocales()
+  numeral.locale(getCurrentLanguageCode() === "vi" ? "vi" : "en")
+}
+
+export const quantityFormat = (value: unknown, unit: string | boolean = "", noNegative?: boolean) => {
   if (value === null || value === undefined || value === "") return "---"
+  syncNumeralLocale()
+
+  const shouldRemoveNegative = typeof unit === "boolean" ? unit : noNegative
   //loại bỏ tất cả các ký tự ',' trong value
   const temp = value.toString().replace(/[,-]/g, "")
   let result = `${numeral(parseFloat(temp)).format("0,0.[0000]")}`
-  if (noNegative) {
+  if (shouldRemoveNegative) {
     result = result.replace("-", "")
   }
   return result
@@ -334,7 +379,7 @@ export const moneyFormat = (value: unknown, unit: string | undefined = undefined
   return (
     (!noNegative && parseFloat(String(value)) < 0 ? "-" : "") +
     (unitCurrency.prefix || "") +
-    quantityFormat(value, true) +
+    quantityFormat(value, "", true) +
     (unitCurrency.suffix || "")
   )
 }

@@ -14,7 +14,8 @@ apiClientAuth.interceptors.response.use(
     return response
   },
   function (error) {
-    if (error?.status === 403 || error?.status === 401) {
+    const status = error?.response?.status || error?.status
+    if (status === 403 || status === 401) {
       onLogout()
     }
     return Promise.reject(error)

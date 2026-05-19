@@ -16,9 +16,6 @@ import {
 } from "@repo/hooks";
 import { useCreateShipmentFinancialFields } from "./useCreateShipmentFinancialFields";
 
-export const money = (value?: number | string) =>
-  new Intl.NumberFormat("vi-VN").format(Number(value || 0));
-
 export const sortByPosition = (items: any[] = []) =>
   [...items].sort((a, b) => Number(a.position || 0) - Number(b.position || 0));
 
@@ -59,13 +56,19 @@ export const useCreateShipmentPage = () => {
   const deleteAddressMutation = useDeleteAddressMutation();
   const updateProfileMutation = useUpdateCustomerProfile();
 
-  const expectedPackagesValue = Form.useWatch("expectedPackages", form);
-  const refTrackingNumbersValue = Form.useWatch("refTrackingNumbers", form);
-  const refShipmentCodeValue = Form.useWatch("refShipmentCode", form);
-  const refCustomerCodeValue = Form.useWatch("refCustomerCode", form);
-  const remarkValue = Form.useWatch("remark", form);
-  const noteValue = Form.useWatch("note", form);
   const financialFields = useCreateShipmentFinancialFields();
+
+  const disableCustomerOrderNote = useMemo(() => {
+    const currentProjectInfo = localStorage.getItem("currentProjectInfo");
+    if (!currentProjectInfo) return false;
+
+    try {
+      const data = JSON.parse(currentProjectInfo);
+      return Boolean(data?.tenantConfig?.generalConfig?.disableCustomerOrderNote);
+    } catch {
+      return false;
+    }
+  }, []);
 
   useEffect(() => {
     if (!draft) return;
@@ -405,12 +408,13 @@ export const useCreateShipmentPage = () => {
     createShipmentMutation,
     deleteAddressMutation,
     updateProfileMutation,
-    expectedPackagesValue,
-    refTrackingNumbersValue,
-    refShipmentCodeValue,
-    refCustomerCodeValue,
-    remarkValue,
-    noteValue,
+    expectedPackagesValue: financialFields.financialFieldValues.expectedPackages,
+    refTrackingNumbersValue: financialFields.financialFieldValues.refTrackingNumbers,
+    refShipmentCodeValue: financialFields.financialFieldValues.refShipmentCode,
+    refCustomerCodeValue: financialFields.financialFieldValues.refCustomerCode,
+    remarkValue: financialFields.financialFieldValues.remark,
+    noteValue: financialFields.financialFieldValues.note,
+    disableCustomerOrderNote,
     notification,
     ...financialFields,
     setAddressModalOpen,

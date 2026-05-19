@@ -27,24 +27,24 @@ import {
 } from "antd";
 import {
   ArrowLeftOutlined,
-  EditOutlined,
   ExclamationCircleOutlined,
   GlobalOutlined,
   HomeOutlined,
   MessageOutlined,
   PhoneOutlined,
   QuestionCircleOutlined,
+  WarningOutlined,
 } from "@ant-design/icons";
+import { checkIsLink, linkify, moneyCeil, moneyFormat, quantityFormat } from "@repo/util";
 import { ProfileAddressModal } from "../Profile/ProfileAddressModal";
 import {
   addressLocation,
   type CreateShipmentPageLogic,
-  money,
   sortByPosition,
   useCreateShipmentPage,
 } from "./hooks/useCreateShipmentPage";
 
-const { Text, Title } = Typography;
+const { Paragraph, Text, Title } = Typography;
 
 export type CreateShipmentUiStyle = "style-default" | "style-thanhla" | "style-gobiz";
 
@@ -85,7 +85,9 @@ export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateS
     refTrackingNumbersValue,
     refShipmentCodeValue,
     refCustomerCodeValue,
+    remarkValue,
     noteValue,
+    disableCustomerOrderNote,
     notification,
     editingFinancialFields,
     finishFinancialFieldEditing,
@@ -152,16 +154,48 @@ export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateS
     </Card>
   );
 
+  const renderDisplayValue = (value: any, name: string) => {
+    if (name === "expectedPackages") return quantityFormat(value);
+    if (typeof value === "string" && checkIsLink(value)) {
+      return (
+        <Text
+          type="secondary"
+          dangerouslySetInnerHTML={{ __html: linkify(value) }}
+          style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}
+        />
+      );
+    }
+    return value;
+  };
+
+  const updateParagraphValue = (name: string, nextValue: string) => {
+    const value = nextValue.trim();
+    const normalizedValue =
+      name === "expectedPackages" && value
+        ? Number(value.replace(/[^\d]/g, ""))
+        : value;
+
+    form.setFieldValue(name, normalizedValue);
+    finishFinancialFieldEditing(name, normalizedValue);
+
+    if (name === "refTrackingNumbers") {
+      validateTrackingNumbers(String(normalizedValue || ""));
+    }
+  };
+
   const renderFieldValue = (label: ReactNode, value: any, name: string) => (
     <div style={{ marginBottom: 15 }}>
-      <Text type="secondary" strong>{label}:</Text>{" "}
-      <Text type="secondary" style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
-        {name === "expectedPackages" ? money(value) : value}
-      </Text>{" "}
-      <EditOutlined
-        style={{ color: "#1677ff", cursor: "pointer" }}
-        onClick={() => setFinancialFieldEditing(name, true)}
-      />
+      <Text type="secondary" strong>{label}:</Text>
+      <Paragraph
+        editable={{
+          onChange: (nextValue) => updateParagraphValue(name, nextValue),
+          text: String(value ?? ""),
+        }}
+        style={{ display: "inline", marginBottom: 0, marginLeft: 5, whiteSpace: "pre-wrap", wordBreak: "break-word" }}
+        type="secondary"
+      >
+        {renderDisplayValue(value, name)}
+      </Paragraph>
     </div>
   );
 
@@ -176,59 +210,117 @@ export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateS
     return <div style={{ marginBottom: 15 }}>{input}</div>;
   };
 
+  const finishTextField = (name: string, rawValue: any) => {
+    const value = String(rawValue || "").trim();
+    form.setFieldValue(name, value);
+    finishFinancialFieldEditing(name, value);
+    return value;
+  };
+
+  const finishTrackingField = (rawValue: any) => {
+    const value = finishTextField("refTrackingNumbers", rawValue);
+    validateTrackingNumbers(value);
+    return value;
+  };
+
   const personalNoteLabel = (
     <Space size={4}>
-      <span>{t("shipments.personal_note")}</span>
+      <Text>{t("shipments.personal_note_for_order")}</Text>
       <Tooltip title={t("shipments.personal_note_content")}>
         <QuestionCircleOutlined style={{ color: "#1677ff" }} />
       </Tooltip>
     </Space>
   );
 
-  const renderServiceDescription = (service: any) => {
-    const requiresMissing = Array.isArray(service.requires)
+  const renderServiceDescription = (service: any): ReactNode[] => {
+    const requiresMissingCodes = Array.isArray(service.requires)
       ? service.requires.filter((code: string) => !selectedServices.includes(code))
       : [];
-    const requireGroupsMissing = Array.isArray(service.requireGroups)
+    const requireGroupsMissingCodes = Array.isArray(service.requireGroups)
       ? service.requireGroups.filter((groupCode: string) => !selectedServiceObjects.some((item: any) => item.serviceGroup?.code === groupCode))
       : [];
+    const requiresMissingNames = requiresMissingCodes
+      .map((code: string) => serviceOptions.find((item: any) => item.code === code)?.name)
+      .filter(Boolean)
+      .join(", ");
+    const requireGroupsMissingNames = requireGroupsMissingCodes
+      .map((code: string) => visibleGroups.find((item: any) => item.code === code)?.name)
+      .filter(Boolean)
+      .join(", ");
 
-    if (!selectedServices.includes(service.code)) return null;
+    if (!selectedServices.includes(service.code)) return [];
 
-    return (
-      <Space direction="vertical" size={4} style={{ display: "flex", margin: "0 0 8px 24px" }}>
-        {requiresMissing.length > 0 && (
-          <Text type="danger">
-            <ExclamationCircleOutlined /> {t("shipments.service_requires")} {requiresMissing.join(", ")}
-          </Text>
-        )}
-        {requireGroupsMissing.length > 0 && (
-          <Text type="danger">
-            <ExclamationCircleOutlined /> {t("shipments.service_group_requires")} {requireGroupsMissing.join(", ")}
-          </Text>
-        )}
-        {service.description && (
-          <Text type="secondary">{service.name}: {service.description}</Text>
-        )}
-        {service.needApprove && (
-          <Text type="warning">{t("shipments.service_need_approve", { service: service.name })}</Text>
-        )}
-      </Space>
-    );
+    const messages: ReactNode[] = [];
+
+    if (requiresMissingNames) {
+      messages.push(
+        <Paragraph key={`${service.code}-requires`} type="danger" className="mb-2.5 text-xs last:mb-0">
+          <ExclamationCircleOutlined className="me-1" />
+          <span
+            dangerouslySetInnerHTML={{
+              __html: t("error.requiresMessage", {
+                service: service.name,
+                services: requiresMissingNames,
+              }),
+            }}
+          />
+        </Paragraph>,
+      );
+    }
+
+    if (requireGroupsMissingNames) {
+      messages.push(
+        <Paragraph key={`${service.code}-requireGroups`} type="danger" className="mb-2.5 text-xs last:mb-0">
+          <ExclamationCircleOutlined className="me-1" />
+          <span
+            dangerouslySetInnerHTML={{
+              __html: t("error.requireGroupsMessage", {
+                service: service.name,
+                serviceGroup: requireGroupsMissingNames,
+              }),
+            }}
+          />
+        </Paragraph>,
+      );
+    }
+
+    if (service.description) {
+      messages.push(
+        <Paragraph key={`${service.code}-description`} type="secondary" className="mb-2.5 text-xs last:mb-0">
+          <Text>{service.name}</Text>: <Text type="secondary">{service.description}</Text>
+        </Paragraph>,
+      );
+    }
+
+    if (service.needApprove) {
+      messages.push(
+        <Paragraph key={`${service.code}-needApprove`} type="warning" className="mb-2.5 text-xs last:mb-0">
+          <WarningOutlined className="me-1" />
+          {t("orderServiceGroup.service")} {service.name} {t("orderServiceGroup.approved_privilege")}
+        </Paragraph>,
+      );
+    }
+
+    return messages;
   };
 
   const renderServiceCheckbox = (service: any) => (
-    <Space key={service.code} direction="vertical" size={4}>
-      <Checkbox
-        checked={selectedServices.includes(service.code)}
-        disabled={isServiceDisabled(service)}
-        onChange={(event) => onServiceToggle(service, event.target.checked)}
-      >
-        {service.name}
-      </Checkbox>
-      {renderServiceDescription(service)}
-    </Space>
+    <Checkbox
+      key={service.code}
+      checked={selectedServices.includes(service.code)}
+      disabled={isServiceDisabled(service)}
+      onChange={(event) => onServiceToggle(service, event.target.checked)}
+    >
+      <Text>{service.name}</Text>
+    </Checkbox>
   );
+
+  const renderServiceDescriptions = (services: any[]) => {
+    const messages = services.flatMap(renderServiceDescription);
+    if (!messages.length) return null;
+
+    return <div style={{ marginTop: 8 }}>{messages}</div>;
+  };
 
   const renderServiceGroup = (group: any) => {
     const groupServices = sortByPosition(serviceOptions.filter((service: any) => service.serviceGroup?.code === group.code));
@@ -253,22 +345,26 @@ export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateS
                 <Space wrap align="start">
                   {groupServices.map((service: any) => (
                     <Radio key={service.code} value={service.code} disabled={isServiceDisabled(service)}>
-                      {service.name}
+                      <Text>{service.name}</Text>
                     </Radio>
                   ))}
                 </Space>
               </Radio.Group>
-              {groupServices.map(renderServiceDescription)}
+              {renderServiceDescriptions(groupServices)}
             </>
           ) : (
-            <Space wrap align="start">
-              {groupServices.map(renderServiceCheckbox)}
-            </Space>
+            <>
+              <Space wrap align="start">
+                {groupServices.map(renderServiceCheckbox)}
+              </Space>
+              {renderServiceDescriptions(groupServices)}
+            </>
           )}
           {serviceGroupErrors[group.code] && (
-            <Text type="danger">
-              <ExclamationCircleOutlined /> {t("shipments.choose_group_error")} {group.name}
-            </Text>
+            <Paragraph type="danger" style={{ marginTop: 10, marginBottom: 0 }}>
+              <ExclamationCircleOutlined style={{ marginInlineEnd: 5 }} />
+              {t("orderServiceGroup.choose_error")} {group.name}
+            </Paragraph>
           )}
         </Col>
       </Row>
@@ -369,7 +465,7 @@ export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateS
         <Link to="/shipments">
           <Space>
             <ArrowLeftOutlined />
-            <span>{t("shipments.list_title")}</span>
+            <Text>{t("shipments.list_title")}</Text>
           </Space>
         </Link>
 
@@ -405,24 +501,22 @@ export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateS
                           <Text strong>{t("shipments.other_service")}:</Text>
                         </Col>
                         <Col xs={24} md={18}>
-                          <Space wrap align="start">
-                            {sortByPosition(serviceOptions.filter((service: any) => !service.serviceGroup)).map(renderServiceCheckbox)}
-                          </Space>
+                          {(() => {
+                            const noGroupServices = sortByPosition(serviceOptions.filter((service: any) => !service.serviceGroup));
+                            return (
+                              <>
+                                <Space wrap align="start">
+                                  {noGroupServices.map(renderServiceCheckbox)}
+                                </Space>
+                                {renderServiceDescriptions(noGroupServices)}
+                              </>
+                            );
+                          })()}
                         </Col>
                       </Row>
                     )}
                     {visibleGroups.map(renderServiceGroup)}
                   </Space>
-                  {!selectedServices.length && (
-                    <Text type="danger" style={{ display: "block", marginTop: 12 }}>
-                      <ExclamationCircleOutlined /> {t("shipments.choose_service_first")}
-                    </Text>
-                  )}
-                  {serviceGroupErrors.__requires && (
-                    <Text type="danger" style={{ display: "block", marginTop: 12 }}>
-                      <ExclamationCircleOutlined /> {t("shipments.service_dependency_error")}
-                    </Text>
-                  )}
                 </Card>
 
                 <Collapse defaultActiveKey={["address"]}>
@@ -491,13 +585,13 @@ export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateS
                   {fees.map((item: any) => (
                     <Flex key={item.feeType} justify="space-between" gap={12}>
                       <Text type="secondary">- {item.name}</Text>
-                      <Text>{money(item.provisionalAmount)}</Text>
+                      <Text>{moneyFormat(moneyCeil(item.provisionalAmount))}</Text>
                     </Flex>
                   ))}
                   <Divider style={{ margin: "8px 0" }} />
                   <Flex justify="space-between" gap={12}>
                     <Text strong>{t("shipments.provisional_fee")}</Text>
-                    <Text strong>{money(draftShipment?.totalFee)}</Text>
+                    <Text strong>{moneyFormat(moneyCeil(draftShipment?.totalFee))}</Text>
                   </Flex>
 
                   <Form form={form} layout="vertical">
@@ -546,16 +640,11 @@ export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateS
                               }
                             }}
                             onBlur={(event) => {
-                              const value = event.target.value.trim();
-                              form.setFieldValue("refTrackingNumbers", value);
-                              validateTrackingNumbers(value);
-                              finishFinancialFieldEditing("refTrackingNumbers", value);
+                              finishTrackingField(event.target.value);
                             }}
                             onKeyDown={(event) => {
                               if (event.key === "Enter") {
-                                const value = form.getFieldValue("refTrackingNumbers");
-                                validateTrackingNumbers(value);
-                                finishFinancialFieldEditing("refTrackingNumbers", value);
+                                finishTrackingField(event.currentTarget.value);
                               }
                             }}
                           />
@@ -568,20 +657,18 @@ export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateS
 
                     {renderEditableInput(
                       "refShipmentCode",
-                      t("shipments.filters.your_order_code"),
+                      t("shipments.refShipmentCode"),
                       refShipmentCodeValue,
                       <Form.Item name="refShipmentCode" noStyle>
                         <Input
                           maxLength={1000}
-                          placeholder={t("shipments.filters.your_order_code")}
+                          placeholder={t("shipments.refShipmentCode")}
                           onBlur={(event) => {
-                            const value = event.target.value.trim();
-                            form.setFieldValue("refShipmentCode", value);
-                            finishFinancialFieldEditing("refShipmentCode", value);
+                            finishTextField("refShipmentCode", event.target.value);
                           }}
                           onKeyDown={(event) => {
                             if (event.key === "Enter") {
-                              finishFinancialFieldEditing("refShipmentCode", form.getFieldValue("refShipmentCode"));
+                              finishTextField("refShipmentCode", event.currentTarget.value);
                             }
                           }}
                         />
@@ -590,24 +677,48 @@ export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateS
 
                     {renderEditableInput(
                       "refCustomerCode",
-                      t("shipments.filters.your_customer_code"),
+                      t("shipments.refCustomerCode"),
                       refCustomerCodeValue,
                       <Form.Item name="refCustomerCode" noStyle>
                         <Input
                           maxLength={1000}
-                          placeholder={t("shipments.filters.your_customer_code")}
+                          placeholder={t("shipments.refCustomerCode")}
                           onBlur={(event) => {
-                            const value = event.target.value.trim();
-                            form.setFieldValue("refCustomerCode", value);
-                            finishFinancialFieldEditing("refCustomerCode", value);
+                            finishTextField("refCustomerCode", event.target.value);
                           }}
                           onKeyDown={(event) => {
                             if (event.key === "Enter") {
-                              finishFinancialFieldEditing("refCustomerCode", form.getFieldValue("refCustomerCode"));
+                              finishTextField("refCustomerCode", event.currentTarget.value);
                             }
                           }}
                         />
                       </Form.Item>,
+                    )}
+
+                    {!disableCustomerOrderNote && renderEditableInput(
+                      "remark",
+                      t("shipments.order_note"),
+                      remarkValue,
+                      <div>
+                        <Form.Item name="remark" noStyle>
+                          <Input.TextArea
+                            autoSize={{ minRows: 1, maxRows: 3 }}
+                            maxLength={1000}
+                            placeholder={t("shipments.order_note")}
+                            onBlur={(event) => {
+                              finishTextField("remark", event.target.value);
+                            }}
+                            onKeyDown={(event) => {
+                              if ((event.metaKey || event.shiftKey || event.altKey || event.ctrlKey) && event.key === "Enter") {
+                                finishTextField("remark", event.currentTarget.value);
+                              }
+                            }}
+                          />
+                        </Form.Item>
+                        <Text type="secondary" style={{ display: "block", marginTop: 5, fontSize: 12 }}>
+                          {t("shipments.manipulation_note")}
+                        </Text>
+                      </div>,
                     )}
 
                     {editingFinancialFields.note ? (
@@ -616,15 +727,13 @@ export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateS
                           <Input.TextArea
                             autoSize={{ minRows: 1, maxRows: 3 }}
                             maxLength={1000}
-                            placeholder={t("shipments.personal_note")}
+                            placeholder={t("shipments.personal_note_for_order")}
                             onBlur={(event) => {
-                              const value = event.target.value.trim();
-                              form.setFieldValue("note", value);
-                              finishFinancialFieldEditing("note", value);
+                              finishTextField("note", event.target.value);
                             }}
                             onKeyDown={(event) => {
                               if ((event.metaKey || event.shiftKey || event.altKey || event.ctrlKey) && event.key === "Enter") {
-                                finishFinancialFieldEditing("note", form.getFieldValue("note"));
+                                finishTextField("note", event.currentTarget.value);
                               }
                             }}
                           />
@@ -661,7 +770,7 @@ export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateS
         <Modal
           title={
             <Space>
-              <span>{t("customerAddress.address_list")}</span>
+              <Text>{t("customerAddress.address_list")}</Text>
               <Button type="link" onClick={() => openAddressForm()}>
                 {t("customerAddress.new_address")}
               </Button>

@@ -2114,25 +2114,17 @@ export const ShipmentDetailContent = ({
                         />
                       </Fragment>
                     ) : (
-                      <Row>
-                        <Col span={10}>
-                          <Empty
-                            image={Empty.PRESENTED_IMAGE_SIMPLE}
-                            description={false}
-                          />
-                        </Col>
-                        <Col span={14}>
-                          <Flex align="center" style={{ height: "100%" }}>
-                            <Link
-                              to={`/tickets/create?orderCode=${shipment.code}&isShipment=true`}
-                            >
-                              <Button type="primary">
-                                {t("tickets.create")}
-                              </Button>
-                            </Link>
-                          </Flex>
-                        </Col>
-                      </Row>
+                      <Flex vertical align="center" gap={token.marginSM}>
+                        <Empty
+                          image={Empty.PRESENTED_IMAGE_SIMPLE}
+                          description={false}
+                        />
+                        <Link
+                          to={`/tickets/create?orderCode=${shipment.code}&isShipment=true`}
+                        >
+                          <Button type="primary">{t("tickets.create")}</Button>
+                        </Link>
+                      </Flex>
                     )}
                   </div>
                 </Spin>

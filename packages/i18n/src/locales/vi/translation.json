@@ -17,6 +17,17 @@
     "all": "Tất cả",
     "copied": "Đã sao chép"
   },
+  "error": {
+    "requiresMessage": "Để chọn <strong>{{service}}</strong> bạn cần chọn dịch vụ <strong>{{services}}</strong>",
+    "requireGroupsMessage": "Để chọn <strong>{{service}}</strong> bạn cần chọn ít  nhất 1 dịch vụ trong nhóm <strong>{{serviceGroup}}</strong>"
+  },
+  "orderServiceGroup": {
+    "service": "Dịch vụ",
+    "approved_privilege": "cần được duyệt trước",
+    "choose_error": "Bạn phải chọn ít nhất 1 dịch vụ trong nhóm",
+    "other_service": "Dịch vụ khác",
+    "choose_service": "Chọn dịch vụ"
+  },
   "button": {
     "add_address": "Thêm địa chỉ",
     "add_products": "Thêm sản phẩm",
@@ -94,6 +105,15 @@
     "note": "Ghi chú cá nhân cho sản phẩm này",
     "note_keydown": "Nhấn Ctrl/Shift/Alt/Command + Enter để lưu ghi chú",
     "order_buy_receive": "Đặt/Mua/Nhận",
+    "order_status": "Trạng thái đơn",
+    "order_cut_off_time": "Đơn dừng ở trạng thái",
+    "cut_off_range": "Khoảng",
+    "cut_off_equal": "Bằng",
+    "cut_off_from": "Lớn hơn",
+    "cut_off_to": "Nhỏ hơn",
+    "cut_off_days": "Số ngày",
+    "cut_off_days_from": "Từ",
+    "cut_off_days_to": "Đến",
     "data_sent_email": "Hệ thống sẽ gửi file dữ liệu về e-mail của bạn, vui lòng kiểm tra sau ít phút.",
     "need_payment": "Cần thanh toán",
     "excess_cash": "Tiền thừa",
@@ -141,6 +161,7 @@
     "delete_confirm": "Bạn có chắc chắn muốn xóa?",
     "delete_failed": "Xóa thất bại",
     "delete_success": "Xóa thành công",
+    "system_error_contact_technical": "Lỗi hệ thống, vui lòng liên hệ kỹ thuật",
     "update_failed": "Cập nhật thất bại",
     "shipment_status_not_allow": "Trạng thái đơn ký gửi không cho phép thực hiện thao tác này",
     "empty": "Không có dữ liệu",
@@ -339,6 +360,7 @@
   "orders": {
     "title": "Danh sách Đơn hàng",
     "search_placeholder": "Nhập mã đơn, tên shop...",
+    "service_waiting_approval": "Cần duyệt",
     "filters": {
       "status": "Trạng thái đơn",
       "note": "Ghi chú",
@@ -810,6 +832,7 @@
     "service_requires": "Dịch vụ này yêu cầu",
     "service_group_requires": "Dịch vụ này yêu cầu nhóm dịch vụ",
     "service_need_approve": "Dịch vụ {{service}} cần được phê duyệt đặc quyền",
+    "service_waiting_approval": "Dịch vụ cần duyệt",
     "save_draft_shipment": "Lưu dịch vụ đã chọn",
     "receiving_address": "Địa chỉ nhận hàng",
     "choose_address": "Vui lòng chọn địa chỉ nhận hàng",
@@ -975,6 +998,14 @@
     "shipping_method": "Hình thức giao",
     "notePlaceholder": "Ghi chú yêu cầu giao",
     "note": "Ghi chú"
+  },
+  "footer": {
+    "contact": "Liên hệ",
+    "phone": "Số điện thoại",
+    "address": "Địa chỉ",
+    "bank_info": "Thông tin chuyển khoản",
+    "change_mobile_version": "Sử dụng phiên bản mobile",
+    "change_web_version": "Sử dụng phiên bản desktop"
   },
   "createDelivery": {
     "errorCantCreateDelivery": "Không thể tạo yêu cầu giao"

@@ -59,8 +59,7 @@ const formatNumber = (value?: number | string) => {
 
 // Keep shipment list amounts aligned with the legacy shipment screen,
 // where Math.round coerces null, empty strings, and numeric strings.
-const roundShipmentMoney = (value: unknown) =>
-  Math.round(value as number);
+const roundShipmentMoney = (value: unknown) => Math.round(value as number);
 
 const getFirstValue = (record: Record<string, any>, keys: string[]) => {
   for (const key of keys) {
@@ -212,6 +211,9 @@ export const ShipmentsView = ({
   } = logic;
   const total = shipmentData?.total || 0;
   const pageGap = dense ? 12 : 16;
+  const cutOffTypeSearch = Form.useWatch("typeSearch", form);
+  const handlingTimeFrom = Form.useWatch("handlingTimeFrom", form);
+  const handlingTimeTo = Form.useWatch("handlingTimeTo", form);
 
   const renderMetric = (
     label: string,
@@ -231,12 +233,117 @@ export const ShipmentsView = ({
     </Space>
   );
 
-  const renderLine = (label: string, value?: React.ReactNode) => (
+  const renderLine = (
+    label: React.ReactNode,
+    value?: React.ReactNode,
+  ) => (
     <Flex gap={8} wrap>
       <Text type="secondary">{label}:</Text>
       <Text>{value || "---"}</Text>
     </Flex>
   );
+
+  const isApprovalService = (service: any) =>
+    service.needApprove === true || service.approved === null;
+
+  const renderServiceNames = (services: any[]) => (
+    <Space wrap split={<Text type="secondary">|</Text>}>
+      {services.map((service: any, index: number) => (
+        <Text
+          key={`${service.code || service.name || index}`}
+          delete={service.approved === false}
+        >
+          {service.name}
+        </Text>
+      ))}
+    </Space>
+  );
+
+  const getShipmentServiceGroups = (services: any[] | null) => {
+    if (!services?.length) return "---";
+
+    const approvalServices = services.filter(isApprovalService);
+    const normalServices = services.filter(
+      (service: any) => !isApprovalService(service),
+    );
+
+    return {
+      normalServices,
+      approvalServices,
+    };
+  };
+
+  const renderCutOffHandlingInput = () => {
+    const commonInputProps = {
+      allowClear: true,
+      onPressEnter: handleSearch,
+    };
+
+    if (cutOffTypeSearch === "equal") {
+      return (
+        <Input
+          {...commonInputProps}
+          placeholder={t("order.cut_off_days")}
+          value={handlingTimeFrom}
+          onChange={(event) =>
+            form.setFieldsValue({
+              handlingTimeFrom: event.target.value,
+              handlingTimeTo: event.target.value,
+            })
+          }
+        />
+      );
+    }
+
+    if (cutOffTypeSearch === "from") {
+      return (
+        <Input
+          {...commonInputProps}
+          placeholder={t("order.cut_off_days")}
+          value={handlingTimeFrom}
+          onChange={(event) =>
+            form.setFieldsValue({ handlingTimeFrom: event.target.value })
+          }
+        />
+      );
+    }
+
+    if (cutOffTypeSearch === "to") {
+      return (
+        <Input
+          {...commonInputProps}
+          placeholder={t("order.cut_off_days")}
+          value={handlingTimeTo}
+          onChange={(event) =>
+            form.setFieldsValue({ handlingTimeTo: event.target.value })
+          }
+        />
+      );
+    }
+
+    return (
+      <Input.Group compact>
+        <Input
+          {...commonInputProps}
+          style={{ width: "50%" }}
+          placeholder={t("order.cut_off_days_from")}
+          value={handlingTimeFrom}
+          onChange={(event) =>
+            form.setFieldsValue({ handlingTimeFrom: event.target.value })
+          }
+        />
+        <Input
+          {...commonInputProps}
+          style={{ width: "50%" }}
+          placeholder={t("order.cut_off_days_to")}
+          value={handlingTimeTo}
+          onChange={(event) =>
+            form.setFieldsValue({ handlingTimeTo: event.target.value })
+          }
+        />
+      </Input.Group>
+    );
+  };
 
   const renderShipmentItem = (item: any) => {
     const merchant = getFirstValue(item, ["merchantName", "shopName"]);
@@ -246,15 +353,11 @@ export const ShipmentsView = ({
       Array.isArray(item.waybillCodes) && item.waybillCodes.length > 0
         ? item.waybillCodes
         : [];
-    const serviceNames =
-      Array.isArray(item.services) && item.services.length > 0
-        ? [...item.services]
-            .sort(
-              (a: any, b: any) =>
-                Number(a.position || 0) - Number(b.position || 0),
-            )
-            .map((service: any) => service.name || service.code)
-        : [];
+    const shipmentServices = Array.isArray(item.services)
+      ? [...item.services].sort(
+          (a: any, b: any) => Number(a.position || 0) - Number(b.position || 0),
+        )
+      : null;
 
     return (
       <List.Item style={{ paddingInline: 0 }}>
@@ -314,16 +417,33 @@ export const ShipmentsView = ({
               t("shipments.filters.your_order_code"),
               refShipmentCode,
             )}
-            {renderLine(
-              t("shipments.filters.services"),
-              serviceNames.length > 0 ? (
-                <Space wrap split={<Text type="secondary">|</Text>}>
-                  {serviceNames.map((name: string) => (
-                    <Text key={name}>{name}</Text>
-                  ))}
+            {(() => {
+              const serviceGroups = getShipmentServiceGroups(shipmentServices);
+              if (serviceGroups === "---") {
+                return renderLine(t("shipments.filters.services"), "---");
+              }
+
+              const { normalServices, approvalServices } = serviceGroups;
+
+              return (
+                <Space direction="vertical" size={2}>
+                  {normalServices.length > 0 &&
+                    renderLine(
+                      t("shipments.filters.services"),
+                      renderServiceNames(normalServices),
+                    )}
+                  {approvalServices.length > 0 &&
+                    renderLine(
+                      <Text type="warning">
+                        {t("shipments.service_waiting_approval")}
+                      </Text>,
+                      <Text type="warning">
+                        {renderServiceNames(approvalServices)}
+                      </Text>,
+                    )}
                 </Space>
-              ) : undefined,
-            )}
+              );
+            })()}
             <Row gutter={[16, 16]} align="middle">
               <Col xs={24} md={5}>
                 <Space>
@@ -345,7 +465,10 @@ export const ShipmentsView = ({
               <Col xs={12} md={4}>
                 {renderMetric(
                   t("shipments.columns.total_value"),
-                  moneyFormat(roundShipmentMoney(item.totalValue), item.currency),
+                  moneyFormat(
+                    roundShipmentMoney(item.totalValue),
+                    item.currency,
+                  ),
                 )}
               </Col>
               <Col xs={12} md={4}>
@@ -410,7 +533,10 @@ export const ShipmentsView = ({
                   <Space wrap>
                     {statusOptions.map((option: any) => (
                       <Checkbox key={option.value} value={option.value}>
-                        {option.label} ({option.count})
+                        {option.label}
+                        {option.hasStatistic
+                          ? ` (${quantityFormat(option.count)})`
+                          : ""}
                       </Checkbox>
                     ))}
                   </Space>
@@ -475,7 +601,7 @@ export const ShipmentsView = ({
                       label={t("shipments.filters.original_invoice")}
                       style={{ marginBottom: 0 }}
                     >
-                      <Input allowClear />
+                      <Input allowClear onPressEnter={handleSearch} />
                     </Form.Item>
                   </Col>
                   <Col xs={24} md={8}>
@@ -484,7 +610,7 @@ export const ShipmentsView = ({
                       label={t("shipments.filters.waybill")}
                       style={{ marginBottom: 0 }}
                     >
-                      <Input allowClear />
+                      <Input allowClear onPressEnter={handleSearch} />
                     </Form.Item>
                   </Col>
                   <Col xs={24} md={8}>
@@ -493,7 +619,7 @@ export const ShipmentsView = ({
                       label={t("shipments.filters.shop_name")}
                       style={{ marginBottom: 0 }}
                     >
-                      <Input allowClear />
+                      <Input allowClear onPressEnter={handleSearch} />
                     </Form.Item>
                   </Col>
                   <Col xs={24} md={12}>
@@ -502,7 +628,7 @@ export const ShipmentsView = ({
                       label={t("shipments.filters.your_order_code")}
                       style={{ marginBottom: 0 }}
                     >
-                      <Input allowClear />
+                      <Input allowClear onPressEnter={handleSearch} />
                     </Form.Item>
                   </Col>
                   <Col xs={24} md={12}>
@@ -511,7 +637,7 @@ export const ShipmentsView = ({
                       label={t("shipments.filters.your_customer_code")}
                       style={{ marginBottom: 0 }}
                     >
-                      <Input allowClear />
+                      <Input allowClear onPressEnter={handleSearch} />
                     </Form.Item>
                   </Col>
                 </Row>
@@ -536,71 +662,64 @@ export const ShipmentsView = ({
                   </Form.Item>
                 )}
 
+                <Form.Item
+                  label={t("order.order_cut_off_time")}
+                  style={{ marginBottom: 0 }}
+                >
+                  <Row gutter={[10, 8]}>
+                    <Col xs={24} md={6}>
+                      <Form.Item name="cutOffStatus" noStyle>
+                        <Select
+                          showSearch
+                          placeholder={t("order.order_status")}
+                          optionFilterProp="label"
+                          options={(statusData || []).map((status: any) => ({
+                            label: status.name,
+                            value: status.code,
+                          }))}
+                        />
+                      </Form.Item>
+                    </Col>
+                    <Col xs={24} md={6}>
+                      <Form.Item name="typeSearch" noStyle>
+                        <Select
+                          showSearch
+                          placeholder={t("order.cut_off_range")}
+                          optionFilterProp="label"
+                          onChange={(value) => {
+                            form.setFieldsValue({
+                              typeSearch: value,
+                              handlingTimeFrom: "",
+                              handlingTimeTo: "",
+                            });
+                          }}
+                          options={[
+                            {
+                              label: t("order.cut_off_range"),
+                              value: "range",
+                            },
+                            {
+                              label: t("order.cut_off_equal"),
+                              value: "equal",
+                            },
+                            {
+                              label: t("order.cut_off_from"),
+                              value: "from",
+                            },
+                            {
+                              label: t("order.cut_off_to"),
+                              value: "to",
+                            },
+                          ]}
+                        />
+                      </Form.Item>
+                    </Col>
+                    <Col xs={24} md={12}>
+                      {renderCutOffHandlingInput()}
+                    </Col>
+                  </Row>
+                </Form.Item>
                 <Row gutter={[16, 8]}>
-                  <Col xs={24} md={6}>
-                    <Form.Item
-                      name="cutOffStatus"
-                      label={t("shipments.filters.stuck_at")}
-                      style={{ marginBottom: 0 }}
-                    >
-                      <Select
-                        allowClear
-                        showSearch
-                        optionFilterProp="label"
-                        options={(statusData || []).map((status: any) => ({
-                          label: status.name,
-                          value: status.code,
-                        }))}
-                      />
-                    </Form.Item>
-                  </Col>
-                  <Col xs={24} md={6}>
-                    <Form.Item
-                      name="typeSearch"
-                      label={t("shipments.filters.period")}
-                      style={{ marginBottom: 0 }}
-                    >
-                      <Select
-                        allowClear
-                        options={[
-                          {
-                            label: t("orders.filters.time_range"),
-                            value: "range",
-                          },
-                          {
-                            label: t("orders.filters.cut_off_equal"),
-                            value: "equal",
-                          },
-                          {
-                            label: t("orders.filters.cut_off_from"),
-                            value: "from",
-                          },
-                          {
-                            label: t("orders.filters.cut_off_to"),
-                            value: "to",
-                          },
-                        ]}
-                      />
-                    </Form.Item>
-                  </Col>
-                  <Col xs={24} md={6}>
-                    <Form.Item
-                      name="handlingTimeFrom"
-                      label={t("shipments.filters.from")}
-                      style={{ marginBottom: 0 }}
-                    >
-                      <Input allowClear type="number" />
-                    </Form.Item>
-                  </Col>
-                  <Col xs={24} md={6}>
-                    <Form.Item
-                      name="handlingTimeTo"
-                      label={t("shipments.filters.to")}
-                      style={{ marginBottom: 0 }}
-                    >
-                      <Input allowClear type="number" />
-                    </Form.Item>
-                  </Col>
                   <Col span={24}>
                     <Form.Item
                       name="existsProduct"

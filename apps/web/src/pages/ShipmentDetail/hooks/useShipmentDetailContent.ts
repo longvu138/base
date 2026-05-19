@@ -634,7 +634,7 @@ export const useShipmentDetailContent = ({
   const validTabKeys = useMemo(
     () => [
       "PRODUCT",
-      "WAYBILLS",
+      "SHIPPING",
       ...(shipment.contractWithShopkeeper ? ["CREDIT"] : []),
       "FEES",
       "FINANCE",
@@ -644,8 +644,10 @@ export const useShipmentDetailContent = ({
     ],
     [shipment.contractWithShopkeeper],
   );
-  const activeTab = validTabKeys.includes(searchParams.get("tab") || "")
-    ? searchParams.get("tab") || "PRODUCT"
+  const requestedTab = searchParams.get("tab") || "";
+  const normalizedTab = requestedTab === "WAYBILLS" ? "SHIPPING" : requestedTab;
+  const activeTab = validTabKeys.includes(normalizedTab)
+    ? normalizedTab || "PRODUCT"
     : "PRODUCT";
   const visibleProductRows = isProductExpanded
     ? productRows

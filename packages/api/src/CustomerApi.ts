@@ -124,6 +124,9 @@ export const CustomerApi = {
             params: { orderCodes },
         });
     },
+    getArticles: () => {
+        return ApiClient.auth.get("customer/article");
+    },
     register: (payload: any) => {
         return ApiClient.noAuth.post("api/customer/profile/register", payload);
     },
