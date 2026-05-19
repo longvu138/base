@@ -37,13 +37,13 @@ const HandlingTimeInput = ({ typeSearch }: { typeSearch?: string }) => {
     if (typeSearch === 'from') {
         return (
             <Form.Item name="handlingTimeFrom" noStyle>
-                <InputNumber style={{ width: '100%' }} placeholder="Từ" />
+                <InputNumber style={{ width: '100%' }} placeholder="Số ngày" />
             </Form.Item>
         );
     }
     return (
         <Form.Item name="handlingTimeTo" noStyle>
-            <InputNumber style={{ width: '100%' }} placeholder="Đến" />
+            <InputNumber style={{ width: '100%' }} placeholder="Số ngày" />
         </Form.Item>
     );
 };
