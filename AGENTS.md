@@ -1,5 +1,13 @@
 # Project Instructions
 
+## UI Implementation
+
+- Build UI with Ant Design components first. Prefer Ant Design over custom HTML and custom styling.
+- Use Ant Design layout/data/display components where appropriate, especially `Layout`, `Card`, `Space`, `Flex`, `Row`, `Col`, `Typography`, `Form`, `Table`, `Button`, `Modal`, `Drawer`, `Tabs`, `Menu`, `Dropdown`, `Tag`, `Alert`, and `Statistic`.
+- Avoid custom CSS unless the requested UI cannot be expressed cleanly with Ant Design components and props.
+- Use Ant Design theme tokens via `theme.useToken()` for spacing, colors, font sizes, border radius, and shadows instead of hard-coded values.
+- If custom styling is necessary, use Tailwind utility classes and keep them narrowly scoped to the component.
+
 ## Money Display
 
 - For any monetary value rendered in UI, use the shared helpers from `@repo/util`.
