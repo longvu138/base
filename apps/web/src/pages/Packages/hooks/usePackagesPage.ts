@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Form } from 'antd';
+import { Form, App } from 'antd';
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -30,6 +30,7 @@ const downloadBlob = (blob: Blob, filename: string) => {
  */
 export const usePackagesPage = () => {
     const { t } = useTranslation();
+    const { notification } = App.useApp();
     const navigate = useNavigate();
     const [form] = Form.useForm();
     const [exportOpen, setExportOpen] = useState(false);
@@ -81,15 +82,39 @@ export const usePackagesPage = () => {
     };
 
     const handleExport = async (secret: string) => {
-        const res = await exportMutation.mutateAsync({
-            params: logic.apiParams,
-            secret,
-        });
-        downloadBlob(
-            res.data,
-            getExportFilename(res.headers) || `packages-${dayjs().format('YYYYMMDD-HHmm')}.xlsx`,
-        );
-        setExportOpen(false);
+        if (!secret) {
+            notification.error({ message: t("cartCheckout.incorrect_pin") });
+            return;
+        }
+
+        try {
+            const res = await exportMutation.mutateAsync({
+                params: logic.apiParams,
+                secret,
+            });
+            downloadBlob(
+                res.data,
+                getExportFilename(res.headers) || `packages-${dayjs().format('YYYYMMDD-HHmm')}.xlsx`,
+            );
+            setExportOpen(false);
+        } catch (error: any) {
+            const data = error?.response?.data;
+            let title = "";
+            if (data instanceof Blob) {
+                try {
+                    const text = await data.text();
+                    title = JSON.parse(text)?.title;
+                } catch {}
+            } else {
+                title = data?.title || error?.title;
+            }
+            notification.error({
+                message:
+                    title === "invalid_pin" || title === "invalid_password"
+                        ? t("cartCheckout.incorrect_pin")
+                        : t("shipments.export_error") || "Lỗi xuất file"
+            });
+        }
     };
 
     const navigateToOrder = (record: any) => {

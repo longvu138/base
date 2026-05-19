@@ -1,11 +1,13 @@
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { Form } from 'antd';
+import { Form, App } from 'antd';
 import dayjs from 'dayjs';
 import { 
     useFilterWithURL, 
     usePaginationWithURL,
-    useOrdersLogic 
+    useOrdersLogic,
+    useCustomerProfile,
+    useExportOrdersMutation
 } from '@repo/hooks';
 import { useTranslation } from '@repo/i18n';
 
@@ -16,9 +18,11 @@ import { useTranslation } from '@repo/i18n';
  */
 export const useOrdersPage = () => {
     const { t } = useTranslation();
+    const { notification } = App.useApp();
     const navigate = useNavigate();
     const [form] = Form.useForm();
     const [isAdvancedFilterOpen, setAdvancedFilterOpen] = useState(false);
+    const [exportOpen, setExportOpen] = useState(false);
 
     const { page, pageSize, setPage, setPageSize } = usePaginationWithURL({
         defaultPage: 1,
@@ -96,6 +100,63 @@ export const useOrdersPage = () => {
         setAdvancedFilterOpen(open => !open);
     };
 
+    const { data: profile } = useCustomerProfile();
+    const exportMutation = useExportOrdersMutation();
+
+    const closeExportModal = () => {
+        setExportOpen(false);
+    };
+
+    const handleExport = async (secret: string) => {
+        if (!secret) {
+            notification.error({ message: t("cartCheckout.incorrect_pin") });
+            return;
+        }
+
+        try {
+            const username = profile?.username || "";
+            const response = await exportMutation.mutateAsync({
+                params: {
+                    ...logic.apiParams,
+                    refCustomerCode: username,
+                },
+                secret,
+            });
+
+            // download blob
+            const disposition = response.headers?.["content-disposition"] || "";
+            const fileName =
+                disposition.split("filename=")[1]?.replaceAll('"', "") || `orders_${Date.now()}.xlsx`;
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute("download", decodeURIComponent(fileName));
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+
+            setExportOpen(false);
+        } catch (error: any) {
+            const data = error?.response?.data;
+            let title = "";
+            if (data instanceof Blob) {
+                try {
+                    const text = await data.text();
+                    title = JSON.parse(text)?.title;
+                } catch {}
+            } else {
+                title = data?.title || error?.title;
+            }
+            notification.error({
+                message:
+                    title === "invalid_pin" || title === "invalid_password"
+                        ? t("cartCheckout.incorrect_pin")
+                        : t("shipments.export_error") || "Lỗi xuất file"
+            });
+        }
+    };
+
     const syncFiltersToForm = () => {
         form.resetFields();
         form.setFieldsValue(filters);
@@ -117,6 +178,11 @@ export const useOrdersPage = () => {
         navigateToDetail,
         navigateToCreateDelivery,
         isAdvancedFilterOpen,
-        toggleAdvancedFilter
+        toggleAdvancedFilter,
+        exportOpen,
+        setExportOpen,
+        handleExport,
+        closeExportModal,
+        exportMutation
     };
 };

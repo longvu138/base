@@ -332,3 +332,17 @@ export const useUpdateOrderMutation = () => {
         },
     });
 };
+
+export const useExportOrdersMutation = () => {
+    return useMutation({
+        mutationFn: async ({
+            params,
+            secret,
+        }: {
+            params: any;
+            secret?: string;
+        }) => {
+            return OrderApi.exportOrders(params, { secret });
+        },
+    });
+};

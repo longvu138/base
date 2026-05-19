@@ -30,7 +30,7 @@ import {
   SearchOutlined,
 } from "@ant-design/icons";
 import { formatCurrency, quantityFormat } from "@repo/util";
-import { FilterPanel } from "@repo/ui";
+import { FilterPanel, PinModal } from "@repo/ui";
 import { useOrdersPage } from "./hooks/useOrdersPage";
 
 const getStatusMeta = (statuses: any[] = [], code?: string) =>
@@ -72,6 +72,11 @@ export const OrdersStyleDefault = () => {
     navigateToDetail,
     navigateToCreateDelivery,
     deliveryReadyCount,
+    exportOpen,
+    setExportOpen,
+    handleExport,
+    closeExportModal,
+    exportMutation
   } = useOrdersPage();
 
   const orders = orderData?.data || [];
@@ -442,7 +447,9 @@ export const OrdersStyleDefault = () => {
           </Space>
         }
         extra={
-          <Button icon={<DownloadOutlined />}>{t("button.csv")}</Button>
+          <Button icon={<DownloadOutlined />} onClick={() => setExportOpen(true)}>
+            {t("button.csv")}
+          </Button>
         }
         styles={{ body: { padding: "0 12px" } }}
       >
@@ -780,6 +787,14 @@ export const OrdersStyleDefault = () => {
           />
         </Flex>
       </Card>
+
+      <PinModal
+        open={exportOpen}
+        confirmLoading={exportMutation.isPending}
+        onConfirm={handleExport}
+        onCancel={closeExportModal}
+        t={t}
+      />
     </Space>
   );
 };
