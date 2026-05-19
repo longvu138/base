@@ -99,12 +99,18 @@ const InfoLine = ({
   label: ReactNode;
   children: ReactNode;
 }) => (
-  <Row>
-    <Col span={24}>
-      <Space align="start" size={4} wrap>
-        <Text type="secondary">{label}:</Text>
-        <span>{children}</span>
-      </Space>
+  <Row wrap={false} align="top" style={{ width: "100%", margin: "4px 0" }}>
+    <style>{`
+      .info-line-value .ant-typography-edit-content {
+        margin-inline-start: 0px !important;
+        inset-inline-start: 0px !important;
+      }
+    `}</style>
+    <Col flex="none" style={{ marginRight: 8, whiteSpace: "nowrap" }}>
+      <Text type="secondary">{label}:</Text>
+    </Col>
+    <Col flex="auto" style={{ minWidth: 0, position: "relative" }} className="info-line-value">
+      {children}
     </Col>
   </Row>
 );
@@ -314,8 +320,8 @@ export const OrderDetailStyleDefault = () => {
             >
               <Link to="/orders">
                 <Space>
-                  <ArrowLeftOutlined />
-                  <Text>{t("orderDetail.order_list")}</Text>
+                  <ArrowLeftOutlined className="text-primary" />
+                  <Text className="text-primary">{t("orderDetail.order_list")}</Text>
                 </Space>
               </Link>
               <Button

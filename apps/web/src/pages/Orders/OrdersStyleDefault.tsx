@@ -79,12 +79,13 @@ export const OrdersStyleDefault = () => {
   const isApprovalService = (service: any) =>
     service.needApprove === true || service.approved === null;
 
-  const renderServiceNames = (services: any[]) => (
-    <Space wrap split={<Typography.Text type="secondary">|</Typography.Text>}>
+  const renderServiceNames = (services: any[], type?: any) => (
+    <Space wrap split={<Typography.Text type={type || "secondary"}>|</Typography.Text>}>
       {services.map((service: any, index: number) => (
         <Typography.Text
           key={`${service.code || service.name || index}`}
           delete={service.approved === false}
+          type={type}
         >
           {service.name}
         </Typography.Text>
@@ -116,20 +117,20 @@ export const OrdersStyleDefault = () => {
     );
 
     return (
-      <Space direction="vertical" size={2}>
+      <Space
+        direction="horizontal"
+        size={token.marginXS}
+        split={<span style={{ color: token.colorBorder }}>|</span>}
+        wrap
+      >
         {normalServices.length > 0 &&
           renderServiceLine(
             t("orders.filters.services"),
             renderServiceNames(normalServices),
           )}
         {approvalServices.length > 0 &&
-          renderServiceLine(
-            t("orders.service_waiting_approval"),
-            <Typography.Text type="warning">
-              {renderServiceNames(approvalServices)}
-            </Typography.Text>,
-            true,
-          )}
+          renderServiceNames(approvalServices, "warning")
+        }
       </Space>
     );
   };
@@ -487,7 +488,6 @@ export const OrdersStyleDefault = () => {
                         split={
                           <span style={{ color: token.colorBorder }}>|</span>
                         }
-                        wrap
                       >
                         <Typography.Paragraph
                           copyable={{ text: record?.code }}
