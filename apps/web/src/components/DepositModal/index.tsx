@@ -5,7 +5,6 @@ import {
   Empty,
   Flex,
   Form,
-  InputNumber,
   List,
   Modal,
   notification,
@@ -27,6 +26,7 @@ import {
   useDepositQrQuery,
 } from "@repo/hooks";
 import { moneyCeil, moneyFormat } from "@repo/util";
+import { LocaleInputNumber } from "../Common/LocaleInputNumber";
 
 type DepositInfo = {
   type: "package" | "order" | "other";
@@ -130,6 +130,7 @@ export const DepositModal = ({
     sumAvailableOrderPayment(availableOrders) - balance,
   );
   const orderAmount = moneyCeil(sumCartDeposit(carts, emdPercent) - balance);
+  const canContinue = Number(infoPayment?.money || 0) > 0;
 
   const options = [
     {
@@ -196,7 +197,7 @@ export const DepositModal = ({
       return;
     }
 
-    if (!infoPayment) return;
+    if (!infoPayment || Number(infoPayment.money || 0) <= 0) return;
 
     if (depositWizardMax > 0 && Number(infoPayment.money) > depositWizardMax) {
       notification.error({
@@ -242,7 +243,7 @@ export const DepositModal = ({
           <Button
             key="continue"
             type="primary"
-            disabled={!infoPayment?.money}
+            disabled={!canContinue}
             onClick={handleContinue}
           >
             {current === 1
@@ -280,7 +281,16 @@ export const DepositModal = ({
                 }}
               />
             </Typography.Paragraph>
-            <Radio.Group value={infoPayment?.type} style={{ width: "100%" }}>
+            <Radio.Group
+              value={infoPayment?.type}
+              style={{ width: "100%" }}
+              onChange={(event) => {
+                const option = options.find(
+                  (item) => item.type === event.target.value,
+                );
+                if (option) selectOption(option);
+              }}
+            >
               <List
                 loading={
                   isBalanceLoading ||
@@ -288,59 +298,100 @@ export const DepositModal = ({
                   isOrdersLoading
                 }
                 dataSource={options}
-                renderItem={(item) => (
-                  <List.Item
-                    onClick={() => selectOption(item)}
-                    style={{ cursor: "pointer" }}
-                  >
-                    <List.Item.Meta
-                      title={
-                        <Row align="middle" gutter={token.marginSM}>
-                          <Col>
-                            <Radio value={item.type} />
-                          </Col>
-                          <Col flex="auto">
-                            <Flex
-                              justify="space-between"
-                              align="center"
-                              gap={token.margin}
+                split={false}
+                renderItem={(item) => {
+                  const selected = infoPayment?.type === item.type;
+
+                  return (
+                    <List.Item
+                      onClick={() => selectOption(item)}
+                      style={{
+                        cursor: "pointer",
+                        padding: token.paddingMD,
+                        marginBottom: token.marginSM,
+                        border: `1px solid ${
+                          selected ? token.colorPrimaryBorder : token.colorBorder
+                        }`,
+                        borderRadius: token.borderRadiusLG,
+                        background: selected
+                          ? token.colorPrimaryBg
+                          : token.colorBgContainer,
+                      }}
+                    >
+                      <Flex
+                        align="center"
+                        gap={token.marginSM}
+                        style={{ width: "100%" }}
+                      >
+                        <Radio value={item.type} />
+                        <Flex
+                          justify="space-between"
+                          align="center"
+                          gap={token.margin}
+                          wrap="wrap"
+                          style={{ flex: 1, minWidth: 0 }}
+                        >
+                          <Space direction="vertical" size={2}>
+                            <Typography.Text strong>
+                              {item.title}
+                            </Typography.Text>
+                            {item.info && (
+                              <Typography.Text type="secondary">
+                                {item.info}
+                              </Typography.Text>
+                            )}
+                            {!item.extend && (
+                              <Typography.Text
+                                strong
+                                style={{ color: token.colorPrimary }}
+                              >
+                                {item.subtitle}
+                              </Typography.Text>
+                            )}
+                            {item.extend && (
+                              <Typography.Text type="secondary">
+                                {item.subtitle}
+                              </Typography.Text>
+                            )}
+                          </Space>
+                          {item.extend && (
+                            <Form
+                              form={form}
+                              style={{ width: 200, maxWidth: "100%" }}
                             >
-                              <Space direction="vertical" size={0}>
-                                <Typography.Text>{item.title}</Typography.Text>
-                                <Typography.Text type="secondary">
-                                  {item.info}
-                                </Typography.Text>
-                                <Typography.Text strong>
-                                  {item.subtitle}
-                                </Typography.Text>
-                              </Space>
-                              {item.extend && (
-                                <Form form={form}>
-                                  <Form.Item name="money" noStyle>
-                                    <InputNumber
-                                      min={0}
-                                      controls={false}
-                                      placeholder={t("deposit.anotherNumber")}
-                                      onClick={(event) =>
-                                        event.stopPropagation()
-                                      }
-                                      onChange={(value) =>
-                                        setInfoPayment({
-                                          type: "other",
-                                          money: Number(value || 0),
-                                        })
-                                      }
-                                    />
-                                  </Form.Item>
-                                </Form>
-                              )}
-                            </Flex>
-                          </Col>
-                        </Row>
-                      }
-                    />
-                  </List.Item>
-                )}
+                              <Form.Item name="money" noStyle>
+                                <LocaleInputNumber
+                                  min={0}
+                                  precision={0}
+                                  controls={false}
+                                  placeholder={t("deposit.anotherNumber")}
+                                  suffix="₫"
+                                  style={{ width: "100%" }}
+                                  onClick={(event) => event.stopPropagation()}
+                                  onFocus={() =>
+                                    setInfoPayment({
+                                      type: "other",
+                                      money: Number(
+                                        form.getFieldValue("money") || 0,
+                                      ),
+                                    })
+                                  }
+                                  onPressEnter={handleContinue}
+                                  onChange={(value) =>
+                                    setInfoPayment({
+                                      type: "other",
+                                      money: Number(value || 0),
+                                    })
+                                  }
+                                />
+                              </Form.Item>
+                            </Form>
+                          )}
+                        </Flex>
+                      </Flex>
+                    </List.Item>
+                  );
+                }}
               />
             </Radio.Group>
           </Space>

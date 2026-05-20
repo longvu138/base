@@ -359,7 +359,7 @@ const fallbackCurrencyUnit = (unit?: string) => {
   return { prefix: "", suffix: ` ${currency}` }
 }
 
-const getNumberLocale = () => (getCurrentLanguageCode() === "vi" ? "vi-VN" : "en-US")
+export const getNumberLocale = () => (getCurrentLanguageCode() === "vi" ? "vi-VN" : "en-US")
 
 const parseMoneyValue = (value: unknown) => {
   if (typeof value === "number") return value

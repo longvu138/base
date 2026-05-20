@@ -12,6 +12,7 @@
 
 - For any monetary value rendered in UI, use the shared helpers from `@repo/util`.
 - Prefer `moneyFormat(...)` for display. Do not build money strings with `Intl.NumberFormat`, manual currency suffixes, or page-local `formatMoney` helpers.
+- For any input that accepts a monetary amount, use the shared `LocaleInputNumber` component from `apps/web/src/components/Common/LocaleInputNumber.tsx` instead of raw Ant Design `InputNumber` or page-local formatters. Pass normal Ant Design `InputNumber` props through it, including `suffix`, `precision`, `min`, `max`, `controls`, `placeholder`, `formatter`, and `parser` when needed.
 - `moneyFormat(...)` and `quantityFormat(...)` must preserve the legacy `gobiz-amphitrite` number delimiters: Vietnamese uses `.` for thousands and `,` for decimals, while non-Vietnamese uses the English numeral locale.
 - Do not register or override number locales inside screens. Keep delimiter behavior centralized in `@repo/util`.
 - When an existing screen rounds monetary values before display, preserve that contract explicitly and keep the rounding logic visible near the call site or in a shared helper. Do not silently replace existing `moneyFormat(...)` usage with ad hoc formatting.
