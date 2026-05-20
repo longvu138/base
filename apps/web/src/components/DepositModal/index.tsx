@@ -26,6 +26,7 @@ import {
   useDepositQrQuery,
 } from "@repo/hooks";
 import { moneyCeil, moneyFormat } from "@repo/util";
+import depositSuccessImage from "../../assets/deposit-success.svg";
 import { LocaleInputNumber } from "../Common/LocaleInputNumber";
 
 type DepositInfo = {
@@ -187,13 +188,13 @@ export const DepositModal = ({
     onClose();
     setCurrent(0);
     setInfoPayment(null);
+    setSuccessOpen(false);
     form.resetFields();
   };
 
   const handleContinue = () => {
     if (current === 1) {
-      reset();
-      setTimeout(() => setSuccessOpen(true), 300);
+      setSuccessOpen(true);
       return;
     }
 
@@ -224,7 +225,7 @@ export const DepositModal = ({
     <>
       <Modal
         title={t("deposit.depositToAccount")}
-        open={open}
+        open={open && !successOpen}
         onCancel={reset}
         destroyOnClose
         maskClosable={maskClosable}
@@ -364,6 +365,7 @@ export const DepositModal = ({
                                   min={0}
                                   precision={0}
                                   controls={false}
+                                  disabled={infoPayment?.type !== "other"}
                                   placeholder={t("deposit.anotherNumber")}
                                   suffix="₫"
                                   style={{ width: "100%" }}
@@ -440,12 +442,19 @@ export const DepositModal = ({
 
       <Modal
         open={successOpen}
-        onCancel={() => setSuccessOpen(false)}
-        onOk={() => setSuccessOpen(false)}
+        onCancel={reset}
+        onOk={reset}
         okText={t("button.close")}
         cancelButtonProps={{ style: { display: "none" } }}
         centered
       >
+        <Flex justify="center" style={{ marginBottom: token.marginLG }}>
+          <img
+            src={depositSuccessImage}
+            alt=""
+            style={{ width: 124, height: 125 }}
+          />
+        </Flex>
         <Typography.Paragraph
           style={{ textAlign: "center", marginTop: token.marginLG }}
         >
