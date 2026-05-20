@@ -3,7 +3,8 @@ import {
     useListShipmentQuery, 
     useShipmentStatusesQuery, 
     useShipmentStatisticQuery, 
-    useShipmentServicesQuery 
+    useShipmentServicesQuery,
+    useShipmentThirdPartyLoansByCodesQuery
 } from '../useShipmentHooks';
 
 export interface UseShipmentsLogicProps {
@@ -46,10 +47,22 @@ export const useShipmentsLogic = ({ page, pageSize, filters }: UseShipmentsLogic
     }, [page, pageSize, filters]);
 
     // 2. Fetch data
-    const { data: shipmentData, isLoading: isShipmentLoading } = useListShipmentQuery(apiParams);
+    const {
+        data: shipmentData,
+        isLoading: isShipmentLoading,
+        isFetching: isShipmentFetching,
+    } = useListShipmentQuery(apiParams);
     const { data: statusData } = useShipmentStatusesQuery();
     const { data: statisticData } = useShipmentStatisticQuery();
     const { data: servicesData, isLoading: isServicesLoading } = useShipmentServicesQuery();
+    const shipmentCodes = useMemo(
+        () => (shipmentData?.data || []).map((item: any) => item?.code).filter(Boolean).join(','),
+        [shipmentData?.data],
+    );
+    const { data: loanCredits = [] } = useShipmentThirdPartyLoansByCodesQuery(
+        shipmentCodes,
+        Boolean(shipmentCodes),
+    );
 
     // 3. Derived State: Status Options with counts
     const statusOptions = useMemo(() => {
@@ -69,10 +82,12 @@ export const useShipmentsLogic = ({ page, pageSize, filters }: UseShipmentsLogic
     return {
         shipmentData,
         isShipmentLoading,
+        isShipmentFetching,
         statusData,
         statisticData,
         servicesData,
         isServicesLoading,
+        loanCredits,
         statusOptions,
         apiParams
     };

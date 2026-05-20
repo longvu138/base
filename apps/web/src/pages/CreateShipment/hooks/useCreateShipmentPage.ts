@@ -70,6 +70,18 @@ export const useCreateShipmentPage = () => {
     }
   }, []);
 
+  const isWarehouseEnabled = useMemo(() => {
+    const currentProjectInfo = localStorage.getItem("currentProjectInfo");
+    if (!currentProjectInfo) return false;
+
+    try {
+      const data = JSON.parse(currentProjectInfo);
+      return Boolean(data?.tenantConfig?.generalConfig?.customerWarehouseEnabled);
+    } catch {
+      return false;
+    }
+  }, []);
+
   useEffect(() => {
     if (!draft) return;
     setDraftShipment(draft);
@@ -337,29 +349,44 @@ export const useCreateShipmentPage = () => {
       notification.error({ message: t("shipments.choose_address") });
       return;
     }
-    const values = await form.validateFields();
-    if (!validateTrackingNumbers(values.refTrackingNumbers)) return;
+    await form.validateFields();
+
+    const formValues = form.getFieldsValue(true);
+    const fieldValues = financialFields.financialFieldValues;
+    const getFieldValue = (name: string) =>
+      formValues[name] !== undefined ? formValues[name] : fieldValues[name];
+    const normalizeText = (value: any) =>
+      value === undefined || value === null ? null : String(value).trim();
+
+    const refTrackingNumbers = normalizeText(getFieldValue("refTrackingNumbers")) || "";
+    if (!validateTrackingNumbers(refTrackingNumbers)) return;
 
     const trackingNumbers = Array.from(
       new Set(
-        String(values.refTrackingNumbers || "")
+        refTrackingNumbers
           .split(",")
           .map((item) => item.trim())
           .filter(Boolean),
       ),
     );
+    const expectedPackages = getFieldValue("expectedPackages");
+
+    const payload = {
+        draftShipmentId: draftShipment.id,
+        note: normalizeText(getFieldValue("note")),
+        remark: normalizeText(getFieldValue("remark")),
+        refShipmentCode: normalizeText(getFieldValue("refShipmentCode")),
+        refCustomerCode: normalizeText(getFieldValue("refCustomerCode")),
+        expectedPackages:
+          expectedPackages === undefined || expectedPackages === null || expectedPackages === ""
+            ? null
+            : Number(expectedPackages),
+        trackingNumbers,
+        ...(isWarehouseEnabled && selectedWarehouse ? { receivingWarehouse: selectedWarehouse } : {}),
+      };
 
     try {
-      await createShipmentMutation.mutateAsync({
-        draftShipmentId: draftShipment.id,
-        note: values.note,
-        remark: values.remark,
-        refShipmentCode: values.refShipmentCode,
-        refCustomerCode: values.refCustomerCode,
-        expectedPackages: values.expectedPackages,
-        trackingNumbers,
-        ...(selectedWarehouse ? { receivingWarehouse: selectedWarehouse } : {}),
-      });
+      await createShipmentMutation.mutateAsync(payload);
       notification.success({ message: t("shipments.create_success") });
       navigate("/shipments");
     } catch (error: any) {
@@ -396,6 +423,7 @@ export const useCreateShipmentPage = () => {
     selectedServices,
     selectedServiceObjects,
     selectedWarehouse,
+    isWarehouseEnabled,
     serviceOptions,
     visibleGroups,
     serviceGroupErrors,

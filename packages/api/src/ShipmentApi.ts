@@ -135,11 +135,11 @@ export const ShipmentApi = {
       payload,
     );
   },
-  deleteShipmentOriginalReceipt: (code: string, payload: any) => {
+  deleteShipmentOriginalReceipt: (code: string, receiptCodes: string[]) => {
     return ApiClient.auth.delete(
       `customer/shipments/${code}/original_receipts`,
       {
-        data: payload,
+        data: receiptCodes,
       },
     );
   },

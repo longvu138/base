@@ -69,6 +69,7 @@ export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateS
     selectedServices,
     selectedServiceObjects,
     selectedWarehouse,
+    isWarehouseEnabled,
     serviceOptions,
     visibleGroups,
     serviceGroupErrors,
@@ -536,7 +537,7 @@ export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateS
                   </Collapse.Panel>
                 </Collapse>
 
-                {Array.isArray(draftShipment?.sourceWarehouses) && draftShipment.sourceWarehouses.length > 0 && (
+                {isWarehouseEnabled && Array.isArray(draftShipment?.sourceWarehouses) && draftShipment.sourceWarehouses.length > 0 && (
                   <Collapse defaultActiveKey={["warehouse"]}>
                     <Collapse.Panel
                       key="warehouse"

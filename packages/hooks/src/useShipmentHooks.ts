@@ -71,7 +71,6 @@ export const useCreateShipmentMutation = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["shipments.list"] });
       queryClient.invalidateQueries({ queryKey: ["shipments.statistic"] });
-      queryClient.invalidateQueries({ queryKey: ["shipments.draft"] });
     },
   });
 };
@@ -463,10 +462,10 @@ export const useAddShipmentOriginalReceiptMutation = (code: string) => {
 export const useDeleteShipmentOriginalReceiptMutation = (code: string) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (payload: any) => {
+    mutationFn: async (receiptCodes: string[]) => {
       const res = await ShipmentApi.deleteShipmentOriginalReceipt(
         code,
-        payload,
+        receiptCodes,
       );
       return res.data;
     },
@@ -525,5 +524,19 @@ export const useShipmentThirdPartyLoansQuery = (
       return res.data?.loanCredits ?? res.data ?? [];
     },
     enabled: !!code && enabled,
+  });
+};
+
+export const useShipmentThirdPartyLoansByCodesQuery = (
+  orderCodes: string,
+  enabled = true,
+) => {
+  return useQuery({
+    queryKey: ["shipments.thirdPartyLoans.list", orderCodes],
+    queryFn: async () => {
+      const res = await ShipmentApi.getShipmentThirdPartyLoans(orderCodes);
+      return res.data?.loanCredits ?? res.data ?? [];
+    },
+    enabled: !!orderCodes && enabled,
   });
 };

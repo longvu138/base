@@ -934,7 +934,12 @@
     "hsCode": "Commodity group",
     "peerPaymentCode": "Peer payment request code",
     "actualPackages": "Actual packages",
+    "editOriginalReceipt": "Edit original receipt",
     "originalReceipts": "Original receipts",
+    "originalReceipt_enter": "Enter original invoice code",
+    "add_OriginalReceipt": "Add original receipt",
+    "OriginalReceipt_duplicate_code": "Original receipt duplicate",
+    "OriginalReceipt_duplicate_code_with_code": "Original receipt {{code}} duplicate",
     "provisional_fee": "Provisional fee",
     "expectedPackages": "Expected packages",
     "tracking_numbers": "Tracking numbers",
@@ -1013,6 +1018,9 @@
       "total_fee": "Total fee",
       "total_unpaid": "Need to pay"
     }
+  },
+  "waybill": {
+    "action_do_not_allow": "You cannot perform this operation because there has been a change of order"
   },
   "footer": {
     "contact": "Contact",

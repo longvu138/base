@@ -372,6 +372,8 @@ export const ShipmentDetailContent = ({
     setOriginalReceiptModalOpen,
     originalReceiptCode,
     setOriginalReceiptCode,
+    originalReceiptDrafts,
+    isOriginalReceiptSaving,
     productModalOpen,
     currentProduct,
     productDraft,
@@ -426,7 +428,6 @@ export const ShipmentDetailContent = ({
     claims,
     coupons,
     milestones,
-    originalReceipts,
     hsList,
     credits,
     loans,
@@ -442,7 +443,6 @@ export const ShipmentDetailContent = ({
     isActivitiesLoading,
     isCreditsLoading,
     isLoansLoading,
-    addOriginalReceipt,
     createProduct,
     updateProduct,
     createWaybill,
@@ -451,7 +451,9 @@ export const ShipmentDetailContent = ({
     saveShipmentField,
     cancelShipmentOrder,
     addReceipt,
-    removeReceipt,
+    markReceiptForDelete,
+    closeOriginalReceiptModal,
+    saveOriginalReceiptModal,
     openProductModal,
     closeProductModal,
     updateProductDraft,
@@ -2488,43 +2490,50 @@ export const ShipmentDetailContent = ({
       </Modal>
 
       <Modal
-        title="Hóa đơn gốc"
+        title={t("shipments.editOriginalReceipt")}
         open={originalReceiptModalOpen}
-        onCancel={() => setOriginalReceiptModalOpen(false)}
-        footer={null}
+        onCancel={closeOriginalReceiptModal}
+        onOk={saveOriginalReceiptModal}
+        okText={t("button.save")}
+        cancelText={t("button.cancel")}
+        confirmLoading={isOriginalReceiptSaving}
       >
         <Space direction="vertical" size="middle" style={styles.fullWidth}>
           <Flex gap={token.marginXS}>
             <Input
               value={originalReceiptCode}
-              placeholder="Nhập mã hóa đơn gốc"
+              placeholder={t("shipments.originalReceipt_enter")}
+              disabled={isOriginalReceiptSaving}
               onChange={(event) => setOriginalReceiptCode(event.target.value)}
               onPressEnter={addReceipt}
             />
             <Button
               type="primary"
-              loading={addOriginalReceipt.isPending}
+              disabled={isOriginalReceiptSaving}
               onClick={addReceipt}
             >
-              Thêm
+              {t("shipments.add_OriginalReceipt")}
             </Button>
           </Flex>
           <Flex wrap="wrap" gap={token.marginXS}>
-            {asArray(originalReceipts).length > 0 ? (
-              asArray(originalReceipts).map((receipt) => (
+            {asArray(originalReceiptDrafts).length > 0 ? (
+              asArray(originalReceiptDrafts).map((receipt) => (
                 <Tag
                   key={receipt.id ?? receipt.code}
                   closable
+                  color={receipt.draft ? "processing" : undefined}
                   onClose={(event) => {
                     event.preventDefault();
-                    removeReceipt(receipt);
+                    markReceiptForDelete(receipt);
                   }}
                 >
                   {display(receipt.code)}
                 </Tag>
               ))
             ) : (
-              <Empty description="Chưa có hóa đơn gốc" />
+              <Flex justify="center" style={styles.fullWidth}>
+                <Empty description={t("message.empty")} />
+              </Flex>
             )}
           </Flex>
         </Space>

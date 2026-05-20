@@ -91,7 +91,9 @@ const feeMoney = (value: any, noNegative?: boolean): string =>
 const errorTitle = (error: any) =>
   error?.response?.data?.title ||
   error?.response?.data?.message ||
+  error?.response?.data?.code ||
   error?.title ||
+  error?.code ||
   error?.message;
 
 const logActor = (item: AnyRecord) => ({
@@ -498,6 +500,10 @@ export const useShipmentDetailContent = ({
   const [originalReceiptModalOpen, setOriginalReceiptModalOpen] =
     useState(false);
   const [originalReceiptCode, setOriginalReceiptCode] = useState("");
+  const [originalReceiptsDelete, setOriginalReceiptsDelete] = useState<
+    AnyRecord[]
+  >([]);
+  const [originalReceiptsAdd, setOriginalReceiptsAdd] = useState<string[]>([]);
   const [productModalOpen, setProductModalOpen] = useState(false);
   const [currentProduct, setCurrentProduct] = useState<AnyRecord | null>(null);
   const [productDraft, setProductDraft] = useState<AnyRecord>({});
@@ -603,6 +609,22 @@ export const useShipmentDetailContent = ({
   const receiptText = asArray(originalReceipts)
     .map((item) => item.code)
     .join(", ");
+  const originalReceiptDrafts = useMemo(() => {
+    const deleteCodes = new Set(
+      originalReceiptsDelete.map((item) => String(item.code || "")),
+    );
+    const currentReceipts = asArray(originalReceipts).filter(
+      (receipt) => !deleteCodes.has(String(receipt.code || "")),
+    );
+    const newReceipts = originalReceiptsAdd.map((receiptCode) => ({
+      code: receiptCode,
+      draft: true,
+    }));
+
+    return [...currentReceipts, ...newReceipts];
+  }, [originalReceipts, originalReceiptsAdd, originalReceiptsDelete]);
+  const isOriginalReceiptSaving =
+    addOriginalReceipt.isPending || deleteOriginalReceipt.isPending;
   const services = asArray(shipment.services);
   const totalValueProduct = productRows.reduce(
     (sum, item) =>
@@ -750,11 +772,14 @@ export const useShipmentDetailContent = ({
       notification.success({ message: "Cập nhật thành công" });
       cancelEdit();
     } catch (error: any) {
+      const title = errorTitle(error);
       notification.error({
         message:
-          error?.response?.data?.message ||
-          error?.message ||
-          "Cập nhật thất bại",
+          title === "shipment_status_not_allow"
+            ? t("message.shipment_status_not_allow")
+            : title
+              ? t(`message.${title}`)
+              : t("message.update_failed"),
       });
     }
   };
@@ -778,33 +803,118 @@ export const useShipmentDetailContent = ({
     }
   };
 
-  const addReceipt = async () => {
+  const addReceipt = () => {
     const nextCode = originalReceiptCode.trim();
     if (!nextCode) return;
-    try {
-      await addOriginalReceipt.mutateAsync({ code: nextCode });
-      notification.success({ message: "Cập nhật thành công" });
-      setOriginalReceiptCode("");
-    } catch (error: any) {
+
+    const isExisting = asArray(originalReceipts).some(
+      (receipt) => String(receipt.code || "").trim() === nextCode,
+    );
+    const isDrafted = originalReceiptsAdd.some(
+      (receiptCode) => receiptCode === nextCode,
+    );
+    const isDeleted = originalReceiptsDelete.some(
+      (receipt) => String(receipt.code || "").trim() === nextCode,
+    );
+
+    if ((isExisting && !isDeleted) || isDrafted) {
       notification.error({
-        message:
-          error?.response?.data?.message ||
-          error?.message ||
-          "Cập nhật thất bại",
+        message: t("shipments.OriginalReceipt_duplicate_code"),
       });
+      return;
     }
+
+    if (isDeleted) {
+      setOriginalReceiptsDelete((current) =>
+        current.filter((receipt) => String(receipt.code || "").trim() !== nextCode),
+      );
+    } else {
+      setOriginalReceiptsAdd((current) => [...current, nextCode]);
+    }
+
+    setOriginalReceiptCode("");
   };
 
-  const removeReceipt = async (receipt: AnyRecord) => {
+  const markReceiptForDelete = (receipt: AnyRecord) => {
+    const receiptCode = String(receipt.code || "").trim();
+    if (!receiptCode) return;
+
+    if (receipt.draft) {
+      setOriginalReceiptsAdd((current) =>
+        current.filter((item) => item !== receiptCode),
+      );
+      return;
+    }
+
+    setOriginalReceiptsDelete((current) =>
+      current.some((item) => item.code === receiptCode)
+        ? current
+        : [...current, { ...receipt, code: receiptCode }],
+    );
+  };
+
+  const closeOriginalReceiptModal = () => {
+    setOriginalReceiptModalOpen(false);
+    setOriginalReceiptCode("");
+    setOriginalReceiptsDelete([]);
+    setOriginalReceiptsAdd([]);
+  };
+
+  const saveOriginalReceiptModal = async () => {
+    if (!originalReceiptsDelete.length && !originalReceiptsAdd.length) {
+      closeOriginalReceiptModal();
+      return;
+    }
+
     try {
-      await deleteOriginalReceipt.mutateAsync({ code: receipt.code });
+      const receiptCodes = originalReceiptsDelete
+        .map((item) => String(item.code || "").trim())
+        .filter(Boolean);
+
+      if (receiptCodes.length) {
+        await deleteOriginalReceipt.mutateAsync(receiptCodes);
+      }
+
+      for (const receiptCode of originalReceiptsAdd) {
+        try {
+          await addOriginalReceipt.mutateAsync({ code: receiptCode });
+        } catch (error: any) {
+          const title = errorTitle(error);
+          const errorMessage =
+            title === "duplicate_code"
+              ? t("shipments.OriginalReceipt_duplicate_code_with_code", {
+                  code: receiptCode,
+                  defaultValue: `Hóa đơn gốc ${receiptCode} đã tồn tại`,
+                })
+              : title === "action_do_not_allow"
+                ? t("waybill.action_do_not_allow")
+                : error?.response?.data?.message ||
+                  error?.message ||
+                  t("message.update_failed");
+
+          notification.error({
+            message:
+              title === "duplicate_code"
+                ? errorMessage
+                : `${receiptCode}: ${errorMessage}`,
+          });
+          return;
+        }
+      }
+
       notification.success({ message: "Cập nhật thành công" });
+      closeOriginalReceiptModal();
     } catch (error: any) {
+      const title = errorTitle(error);
       notification.error({
         message:
-          error?.response?.data?.message ||
-          error?.message ||
-          "Cập nhật thất bại",
+          title === "duplicate_code"
+            ? t("shipments.OriginalReceipt_duplicate_code")
+            : title === "action_do_not_allow"
+              ? t("waybill.action_do_not_allow")
+              : error?.response?.data?.message ||
+                error?.message ||
+                t("message.update_failed"),
       });
     }
   };
@@ -937,6 +1047,9 @@ export const useShipmentDetailContent = ({
     setOriginalReceiptModalOpen,
     originalReceiptCode,
     setOriginalReceiptCode,
+    originalReceiptsDelete,
+    originalReceiptDrafts,
+    isOriginalReceiptSaving,
     productModalOpen,
     currentProduct,
     productDraft,
@@ -1028,7 +1141,9 @@ export const useShipmentDetailContent = ({
     saveShipmentField,
     cancelShipmentOrder,
     addReceipt,
-    removeReceipt,
+    markReceiptForDelete,
+    closeOriginalReceiptModal,
+    saveOriginalReceiptModal,
     openProductModal,
     closeProductModal,
     updateProductDraft,

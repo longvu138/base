@@ -181,6 +181,7 @@ export const ShipmentsView = ({
     setPageSize,
     shipmentData,
     isShipmentLoading,
+    isShipmentFetching,
     statusData,
     servicesData,
     isServicesLoading,
@@ -208,6 +209,7 @@ export const ShipmentsView = ({
     handleExport,
     closeExportModal,
     exportMutation,
+    loanCredits,
   } = logic;
   const total = shipmentData?.total || 0;
   const pageGap = dense ? 12 : 16;
@@ -243,35 +245,22 @@ export const ShipmentsView = ({
     </Flex>
   );
 
-  const isApprovalService = (service: any) =>
-    service.needApprove === true || service.approved === null;
-
   const renderServiceNames = (services: any[]) => (
     <Space wrap split={<Text type="secondary">|</Text>}>
-      {services.map((service: any, index: number) => (
-        <Text
-          key={`${service.code || service.name || index}`}
-          delete={service.approved === false}
-        >
-          {service.name}
-        </Text>
-      ))}
+      {services.map((service: any, index: number) => {
+        const needApprove = service.needApprove === true || service.approved === null;
+
+        return (
+          <Text
+            key={`${service.code || service.name || index}`}
+            type={needApprove ? "warning" : undefined}
+          >
+            {service.name}
+          </Text>
+        );
+      })}
     </Space>
   );
-
-  const getShipmentServiceGroups = (services: any[] | null) => {
-    if (!services?.length) return "---";
-
-    const approvalServices = services.filter(isApprovalService);
-    const normalServices = services.filter(
-      (service: any) => !isApprovalService(service),
-    );
-
-    return {
-      normalServices,
-      approvalServices,
-    };
-  };
 
   const renderCutOffHandlingInput = () => {
     const commonInputProps = {
@@ -358,6 +347,12 @@ export const ShipmentsView = ({
           (a: any, b: any) => Number(a.position || 0) - Number(b.position || 0),
         )
       : null;
+    const loanCredit = (loanCredits || []).find(
+      (credit: any) => credit?.shipmentCode === item?.code,
+    );
+    const bifinAmount =
+      loanCredit?.status === "ACTIVE" ? Number(loanCredit?.totalAmountPay || 0) : 0;
+    const totalNeedPay = Number(item?.totalUnpaid || 0) + bifinAmount;
 
     return (
       <List.Item style={{ paddingInline: 0 }}>
@@ -417,33 +412,30 @@ export const ShipmentsView = ({
               t("shipments.filters.your_order_code"),
               refShipmentCode,
             )}
-            {(() => {
-              const serviceGroups = getShipmentServiceGroups(shipmentServices);
-              if (serviceGroups === "---") {
-                return renderLine(t("shipments.filters.services"), "---");
-              }
-
-              const { normalServices, approvalServices } = serviceGroups;
-
-              return (
-                <Space direction="vertical" size={2}>
-                  {normalServices.length > 0 &&
-                    renderLine(
-                      t("shipments.filters.services"),
-                      renderServiceNames(normalServices),
-                    )}
-                  {approvalServices.length > 0 &&
-                    renderLine(
-                      <Text type="warning">
-                        {t("shipments.service_waiting_approval")}
-                      </Text>,
-                      <Text type="warning">
-                        {renderServiceNames(approvalServices)}
-                      </Text>,
-                    )}
-                </Space>
-              );
-            })()}
+            {renderLine(
+              t("shipments.filters.services"),
+              shipmentServices?.length
+                ? renderServiceNames(shipmentServices)
+                : "---",
+            )}
+            {totalNeedPay > 0 && (
+              <Flex vertical gap={token.marginXS}>
+                {item.contractWithShopkeeper && (
+                  <Flex gap={token.marginXS} wrap>
+                    <Text type="secondary">{t("orderDetail.bifin")}:</Text>
+                    <Text strong style={{ color: token.colorPrimary }}>
+                      {moneyFormat(roundShipmentMoney(bifinAmount), undefined, true)}
+                    </Text>
+                  </Flex>
+                )}
+                <Flex gap={token.marginXS} wrap>
+                  <Text type="secondary">{t("orderDetail.total_need_payment")}:</Text>
+                  <Text strong style={{ color: token.colorPrimary }}>
+                    {moneyFormat(roundShipmentMoney(totalNeedPay), undefined, true)}
+                  </Text>
+                </Flex>
+              </Flex>
+            )}
             <Row gutter={[16, 16]} align="middle">
               <Col xs={24} md={5}>
                 <Space>
@@ -771,7 +763,10 @@ export const ShipmentsView = ({
       >
         <List
           dataSource={shipmentData?.data || []}
-          loading={isShipmentLoading}
+          loading={{
+            spinning: isShipmentLoading || isShipmentFetching,
+            tip: t("common.loading"),
+          }}
           rowKey={(record: any) => record.id || record.code}
           renderItem={renderShipmentItem}
           locale={{
@@ -785,6 +780,7 @@ export const ShipmentsView = ({
             pageSize={pageSize}
             total={total}
             showSizeChanger
+            disabled={isShipmentLoading || isShipmentFetching}
             onChange={(nextPage, nextPageSize) => {
               setPage(nextPage);
               if (nextPageSize !== pageSize) setPageSize(nextPageSize);

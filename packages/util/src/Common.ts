@@ -359,6 +359,13 @@ const fallbackCurrencyUnit = (unit?: string) => {
   return { prefix: "", suffix: ` ${currency}` }
 }
 
+const getNumberLocale = () => (getCurrentLanguageCode() === "vi" ? "vi-VN" : "en-US")
+
+const parseMoneyValue = (value: unknown) => {
+  if (typeof value === "number") return value
+  return Number(String(value).replace(/,/g, ""))
+}
+
 export const moneyFormat = (value: unknown, unit: string | undefined = undefined, noNegative?: boolean) => {
   const currentProjectInfo = LocalStoreUtil.getJson("currentProjectInfo") || {}
   const currencies = LocalStoreUtil.getJson("currencies") || []
@@ -376,10 +383,15 @@ export const moneyFormat = (value: unknown, unit: string | undefined = undefined
       fallbackCurrencyUnit(currencyCode)
     : defaultCurrency
 
+  const numberValue = parseMoneyValue(value)
+  const formattedValue = Math.abs(numberValue).toLocaleString(getNumberLocale(), {
+    maximumFractionDigits: 4,
+  })
+
   return (
-    (!noNegative && parseFloat(String(value)) < 0 ? "-" : "") +
+    (!noNegative && numberValue < 0 ? "-" : "") +
     (unitCurrency.prefix || "") +
-    quantityFormat(value, "", true) +
+    formattedValue +
     (unitCurrency.suffix || "")
   )
 }

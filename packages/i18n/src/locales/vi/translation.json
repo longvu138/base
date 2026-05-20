@@ -850,7 +850,12 @@
     "hsCode": "Nhóm ngành hàng",
     "peerPaymentCode": "Mã yêu cầu thanh toán",
     "actualPackages": "Số kiện thực tế",
+    "editOriginalReceipt": "Chỉnh sửa hóa đơn gốc",
     "originalReceipts": "Hóa đơn gốc",
+    "originalReceipt_enter": "Nhập mã hóa đơn gốc",
+    "add_OriginalReceipt": "Thêm hóa đơn gốc",
+    "OriginalReceipt_duplicate_code": "Hóa đơn gốc đã tồn tại",
+    "OriginalReceipt_duplicate_code_with_code": "Hóa đơn gốc {{code}} đã tồn tại",
     "provisional_fee": "Tạm tính phí",
     "expectedPackages": "Số kiện dự kiến",
     "tracking_numbers": "Mã vận đơn",
@@ -929,6 +934,9 @@
       "total_fee": "Tổng chi phí",
       "total_unpaid": "Cần thanh toán"
     }
+  },
+  "waybill": {
+    "action_do_not_allow": "Bạn không thể thực hiện thao tác này vì đã có sự thay đổi thông tin đơn"
   },
   "header": {
     "homepage": "Trang chủ",
