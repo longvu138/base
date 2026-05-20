@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Button,
   Col,
@@ -25,7 +25,6 @@ import {
   useCustomerBalance,
   useCustomerProfile,
   useDepositQrQuery,
-  useThirdPartyLoansQuery,
 } from "@repo/hooks";
 import { moneyCeil, moneyFormat } from "@repo/util";
 
@@ -115,16 +114,6 @@ export const DepositModal = ({
   const { data: availableOrders = [], isLoading: isOrdersLoading } =
     useAvailableDeliveryOrdersQuery();
 
-  const orderCodes = useMemo(
-    () =>
-      availableOrders
-        .map((item: any) => item?.code)
-        .filter(Boolean)
-        .join(","),
-    [availableOrders],
-  );
-  const { data: thirdPartyLoans, isLoading: isLoansLoading } =
-    useThirdPartyLoansQuery(orderCodes, open && !!orderCodes);
   const {
     data: depositQr,
     isLoading: isQrLoading,
@@ -136,15 +125,9 @@ export const DepositModal = ({
 
   const balance = Number(balanceData?.balance ?? profile?.balance ?? 0);
   const emdPercent = Number(profile?.customerGroup?.emdPercent || 100);
-  const loanCredits = moneyCeil(
-    (thirdPartyLoans?.loanCredits || []).reduce(
-      (total: number, item: any) => total + Number(item?.totalAmountPay || 0),
-      0,
-    ),
-  );
 
   const packageAmount = moneyCeil(
-    sumAvailableOrderPayment(availableOrders) - balance + loanCredits,
+    sumAvailableOrderPayment(availableOrders) - balance,
   );
   const orderAmount = moneyCeil(sumCartDeposit(carts, emdPercent) - balance);
 
@@ -302,8 +285,7 @@ export const DepositModal = ({
                 loading={
                   isBalanceLoading ||
                   isCartLoading ||
-                  isOrdersLoading ||
-                  isLoansLoading
+                  isOrdersLoading
                 }
                 dataSource={options}
                 renderItem={(item) => (

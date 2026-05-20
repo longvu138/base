@@ -79,10 +79,13 @@ export const ShipmentDetailStyleGobiz = () => {
           <Flex align="center" justify="space-between" gap={16} wrap="wrap">
             <Flex align="center" gap={16}>
               <Button
-                shape="circle"
+                type="link"
                 icon={<ArrowLeftOutlined />}
                 onClick={goToShipments}
-              />
+                style={{ color: token.colorPrimary, paddingInline: 0 }}
+              >
+                {t("shipments.shipment_list")}
+              </Button>
               <Avatar
                 size={48}
                 icon={<RocketOutlined />}

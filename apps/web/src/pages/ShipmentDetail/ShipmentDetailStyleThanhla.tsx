@@ -1,4 +1,4 @@
-import { Button, Card, Flex, Skeleton, Tag, Typography } from "antd";
+import { Button, Card, Flex, Skeleton, Tag, Typography, theme } from "antd";
 import { ArrowLeftOutlined, RocketOutlined } from "@ant-design/icons";
 import { useTranslation } from "@repo/i18n";
 import { ChatPanel } from "../../components/Common/ChatPanel";
@@ -12,6 +12,7 @@ const { Text, Title } = Typography;
  * Phong cách Modern Card.
  */
 export const ShipmentDetailStyleThanhla = () => {
+  const { token } = theme.useToken();
   const { t } = useTranslation();
   const { code, shipment, statusData, isLoading, isError, goToShipments } =
     useShipmentDetailPage();
@@ -45,8 +46,13 @@ export const ShipmentDetailStyleThanhla = () => {
         <div className="mb-6 rounded-lg border border-blue-100 bg-blue-50/50 p-4 transition-colors duration-200 dark:border-gray-700 dark:bg-filter-dark">
           <Flex align="center" justify="space-between" gap={16} wrap="wrap">
             <Flex align="center" gap={14}>
-              <Button icon={<ArrowLeftOutlined />} onClick={goToShipments}>
-                {/*{t("shipments.shipment_list")}*/}
+              <Button
+                type="link"
+                icon={<ArrowLeftOutlined />}
+                onClick={goToShipments}
+                style={{ color: token.colorPrimary, paddingInline: 0 }}
+              >
+                {t("shipments.shipment_list")}
               </Button>
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
                 <RocketOutlined className="text-xl" />

@@ -3,8 +3,8 @@ import {
     useListShipmentQuery, 
     useShipmentStatusesQuery, 
     useShipmentStatisticQuery, 
+    useShipmentServiceGroupsQuery,
     useShipmentServicesQuery,
-    useShipmentThirdPartyLoansByCodesQuery
 } from '../useShipmentHooks';
 
 export interface UseShipmentsLogicProps {
@@ -55,15 +55,8 @@ export const useShipmentsLogic = ({ page, pageSize, filters }: UseShipmentsLogic
     const { data: statusData } = useShipmentStatusesQuery();
     const { data: statisticData } = useShipmentStatisticQuery();
     const { data: servicesData, isLoading: isServicesLoading } = useShipmentServicesQuery();
-    const shipmentCodes = useMemo(
-        () => (shipmentData?.data || []).map((item: any) => item?.code).filter(Boolean).join(','),
-        [shipmentData?.data],
-    );
-    const { data: loanCredits = [] } = useShipmentThirdPartyLoansByCodesQuery(
-        shipmentCodes,
-        Boolean(shipmentCodes),
-    );
-
+    const { data: serviceGroupsData, isLoading: isServiceGroupsLoading } =
+        useShipmentServiceGroupsQuery();
     // 3. Derived State: Status Options with counts
     const statusOptions = useMemo(() => {
         if (!statusData) return [];
@@ -86,8 +79,8 @@ export const useShipmentsLogic = ({ page, pageSize, filters }: UseShipmentsLogic
         statusData,
         statisticData,
         servicesData,
-        isServicesLoading,
-        loanCredits,
+        serviceGroupsData,
+        isServicesLoading: isServicesLoading || isServiceGroupsLoading,
         statusOptions,
         apiParams
     };

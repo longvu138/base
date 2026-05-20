@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import dayjs from "dayjs";
 import { Link } from "react-router-dom";
 import {
@@ -39,13 +39,20 @@ import {
   QuestionCircleOutlined,
   ShopOutlined,
   UploadOutlined,
+  WarningOutlined,
 } from "@ant-design/icons";
 import { useShipmentMilestonesQuery } from "@repo/hooks";
 import { FilterPanel } from "@repo/ui";
 import { moneyFormat, quantityFormat } from "@repo/util";
+import {
+  getCustomerVisibleShipmentServices,
+  getShipmentServicesInGroup,
+  getShipmentServicesWithoutGroup,
+  getVisibleShipmentServiceGroups,
+} from "../../components/Common/shipmentServices";
 import { useShipmentsPage } from "./hooks/useShipmentsPage";
 
-const { Text } = Typography;
+const { Paragraph, Text } = Typography;
 
 const formatDate = (value?: string) =>
   value ? dayjs(value).format("HH:mm DD/MM/YYYY") : "---";
@@ -184,6 +191,7 @@ export const ShipmentsView = ({
     isShipmentFetching,
     statusData,
     servicesData,
+    serviceGroupsData,
     isServicesLoading,
     statusOptions,
     handleSearch,
@@ -209,13 +217,145 @@ export const ShipmentsView = ({
     handleExport,
     closeExportModal,
     exportMutation,
-    loanCredits,
   } = logic;
   const total = shipmentData?.total || 0;
   const pageGap = dense ? 12 : 16;
   const cutOffTypeSearch = Form.useWatch("typeSearch", form);
   const handlingTimeFrom = Form.useWatch("handlingTimeFrom", form);
   const handlingTimeTo = Form.useWatch("handlingTimeTo", form);
+  const importServiceOptions = useMemo(
+    () => getCustomerVisibleShipmentServices(servicesData || []),
+    [servicesData],
+  );
+  const importNoGroupServices = useMemo(
+    () => getShipmentServicesWithoutGroup(importServiceOptions),
+    [importServiceOptions],
+  );
+  const importVisibleGroups = useMemo(
+    () =>
+      getVisibleShipmentServiceGroups(
+        serviceGroupsData || [],
+        importServiceOptions,
+      ),
+    [importServiceOptions, serviceGroupsData],
+  );
+  const importSelectedServiceObjects = useMemo(
+    () =>
+      importServices
+        .map((code) =>
+          importServiceOptions.find((service: any) => service.code === code),
+        )
+        .filter(Boolean),
+    [importServiceOptions, importServices],
+  );
+
+  const renderImportServiceDescription = (service: any) => {
+    if (!importServices.includes(service.code)) return [];
+
+    const requiresMissingNames = Array.isArray(service.requires)
+      ? service.requires
+          .filter((code: string) => !importServices.includes(code))
+          .map(
+            (code: string) =>
+              importServiceOptions.find((item: any) => item.code === code)
+                ?.name,
+          )
+          .filter(Boolean)
+          .join(", ")
+      : "";
+    const requireGroupsMissingNames = Array.isArray(service.requireGroups)
+      ? service.requireGroups
+          .filter(
+            (groupCode: string) =>
+              !importSelectedServiceObjects.some(
+                (item: any) => item.serviceGroup?.code === groupCode,
+              ),
+          )
+          .map(
+            (code: string) =>
+              importVisibleGroups.find((item: any) => item.code === code)?.name,
+          )
+          .filter(Boolean)
+          .join(", ")
+      : "";
+    const messages: React.ReactNode[] = [];
+
+    if (requiresMissingNames) {
+      messages.push(
+        <Paragraph
+          key={`${service.code}-requires`}
+          type="danger"
+          className="mb-2.5 text-xs last:mb-0"
+        >
+          <InfoCircleOutlined className="me-1" />
+          <span
+            dangerouslySetInnerHTML={{
+              __html: t("error.requiresMessage", {
+                service: service.name,
+                services: requiresMissingNames,
+              }),
+            }}
+          />
+        </Paragraph>,
+      );
+    }
+
+    if (requireGroupsMissingNames) {
+      messages.push(
+        <Paragraph
+          key={`${service.code}-requireGroups`}
+          type="danger"
+          className="mb-2.5 text-xs last:mb-0"
+        >
+          <InfoCircleOutlined className="me-1" />
+          <span
+            dangerouslySetInnerHTML={{
+              __html: t("error.requireGroupsMessage", {
+                service: service.name,
+                serviceGroup: requireGroupsMissingNames,
+              }),
+            }}
+          />
+        </Paragraph>,
+      );
+    }
+
+    if (service.description) {
+      messages.push(
+        <Paragraph
+          key={`${service.code}-description`}
+          type="secondary"
+          className="mb-2.5 text-xs last:mb-0"
+        >
+          <Text>{service.name}</Text>:{" "}
+          <Text type="secondary">{service.description}</Text>
+        </Paragraph>,
+      );
+    }
+
+    if (service.needApprove) {
+      messages.push(
+        <Paragraph
+          key={`${service.code}-needApprove`}
+          type="warning"
+          className="mb-2.5 text-xs last:mb-0"
+        >
+          <WarningOutlined className="me-1" />
+          {t("orderServiceGroup.service")} {service.name}{" "}
+          {t("orderServiceGroup.approved_privilege")}
+        </Paragraph>,
+      );
+    }
+
+    return messages;
+  };
+
+  const renderImportServiceDescriptions = (services: any[]) => {
+    const messages = services.flatMap(renderImportServiceDescription);
+    if (!messages.length) return null;
+
+    return <div style={{ marginTop: 8 }}>{messages}</div>;
+  };
 
   const renderMetric = (
     label: string,
@@ -347,12 +487,7 @@ export const ShipmentsView = ({
           (a: any, b: any) => Number(a.position || 0) - Number(b.position || 0),
         )
       : null;
-    const loanCredit = (loanCredits || []).find(
-      (credit: any) => credit?.shipmentCode === item?.code,
-    );
-    const bifinAmount =
-      loanCredit?.status === "ACTIVE" ? Number(loanCredit?.totalAmountPay || 0) : 0;
-    const totalNeedPay = Number(item?.totalUnpaid || 0) + bifinAmount;
+    const totalNeedPay = Number(item?.totalUnpaid || 0);
 
     return (
       <List.Item style={{ paddingInline: 0 }}>
@@ -420,14 +555,6 @@ export const ShipmentsView = ({
             )}
             {totalNeedPay > 0 && (
               <Flex vertical gap={token.marginXS}>
-                {item.contractWithShopkeeper && (
-                  <Flex gap={token.marginXS} wrap>
-                    <Text type="secondary">{t("orderDetail.bifin")}:</Text>
-                    <Text strong style={{ color: token.colorPrimary }}>
-                      {moneyFormat(roundShipmentMoney(bifinAmount), undefined, true)}
-                    </Text>
-                  </Flex>
-                )}
                 <Flex gap={token.marginXS} wrap>
                   <Text type="secondary">{t("orderDetail.total_need_payment")}:</Text>
                   <Text strong style={{ color: token.colorPrimary }}>
@@ -858,12 +985,52 @@ export const ShipmentsView = ({
                 value={importServices}
                 onChange={(value) => setImportServices(value as string[])}
               >
-                <Space wrap>
-                  {(servicesData || []).map((service: any) => (
-                    <Checkbox key={service.code} value={service.code}>
-                      {service.name}
-                    </Checkbox>
-                  ))}
+                <Space
+                  direction="vertical"
+                  size="middle"
+                  style={{ width: "100%" }}
+                >
+                  {importNoGroupServices.length > 0 && (
+                    <Row gutter={[16, 8]}>
+                      <Col xs={24} md={6}>
+                        <Text strong>{t("shipments.other_service")}:</Text>
+                      </Col>
+                      <Col xs={24} md={18}>
+                        <Space wrap align="start">
+                          {importNoGroupServices.map((service: any) => (
+                            <Checkbox key={service.code} value={service.code}>
+                              {service.name}
+                            </Checkbox>
+                          ))}
+                        </Space>
+                        {renderImportServiceDescriptions(importNoGroupServices)}
+                      </Col>
+                    </Row>
+                  )}
+                  {importVisibleGroups.map((group: any) => {
+                    const groupServices = getShipmentServicesInGroup(
+                      importServiceOptions,
+                      group.code,
+                    );
+
+                    return (
+                      <Row key={group.code} gutter={[16, 8]}>
+                        <Col xs={24} md={6}>
+                          <Text strong>{group.name}:</Text>
+                        </Col>
+                        <Col xs={24} md={18}>
+                          <Space wrap align="start">
+                            {groupServices.map((service: any) => (
+                              <Checkbox key={service.code} value={service.code}>
+                                {service.name}
+                              </Checkbox>
+                            ))}
+                          </Space>
+                          {renderImportServiceDescriptions(groupServices)}
+                        </Col>
+                      </Row>
+                    );
+                  })}
                 </Space>
               </Checkbox.Group>
             </Form.Item>

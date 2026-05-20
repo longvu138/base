@@ -14,10 +14,12 @@ import {
   useShipmentServicesQuery,
   useUpdateCustomerProfile,
 } from "@repo/hooks";
+import {
+  getCustomerVisibleShipmentServices,
+  getVisibleShipmentServiceGroups,
+  sortByPosition,
+} from "../../../components/Common/shipmentServices";
 import { useCreateShipmentFinancialFields } from "./useCreateShipmentFinancialFields";
-
-export const sortByPosition = (items: any[] = []) =>
-  [...items].sort((a, b) => Number(a.position || 0) - Number(b.position || 0));
 
 export const addressLocation = (item: any) =>
   item.location?.display || item.location?.displayName || item.locationName || "";
@@ -95,7 +97,7 @@ export const useCreateShipmentPage = () => {
   }, [draft]);
 
   const serviceOptions = useMemo(() => {
-    return sortByPosition(services).filter((item: any) => item.onlyStaff !== true);
+    return getCustomerVisibleShipmentServices(services);
   }, [services]);
 
   const selectedAddressItem = useMemo(() => {
@@ -119,9 +121,7 @@ export const useCreateShipmentPage = () => {
   }, [selectedServices, serviceOptions]);
 
   const visibleGroups = useMemo(() => {
-    return sortByPosition(serviceGroups).filter((group: any) =>
-      serviceOptions.some((service: any) => service.serviceGroup?.code === group.code),
-    );
+    return getVisibleShipmentServiceGroups(serviceGroups, serviceOptions);
   }, [serviceGroups, serviceOptions]);
 
   const fees = useMemo(() => {

@@ -341,18 +341,6 @@ export const useCreateCustomerOrderMutation = () => {
     });
 };
 
-export const useThirdPartyLoansQuery = (orderCodes: string, enabled = true) => {
-    return useQuery({
-        queryKey: ['customer.third_party_loans', orderCodes],
-        queryFn: async () => {
-            const res = await CustomerApi.getThirdPartyLoans(orderCodes);
-            return res.data;
-        },
-        enabled: !!localStorage.getItem('access_token') && enabled && !!orderCodes,
-        retry: false,
-    });
-};
-
 export const useCurrentExchangeRate = () => {
     return useQuery({
         queryKey: ['categories.exchange_rates.current'],

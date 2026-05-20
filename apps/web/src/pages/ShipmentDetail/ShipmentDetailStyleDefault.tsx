@@ -1,4 +1,4 @@
-import { Button, Skeleton } from "antd";
+import { Button, Skeleton, theme } from "antd";
 import { ArrowLeftOutlined, RocketOutlined } from "@ant-design/icons";
 import { useTranslation } from "@repo/i18n";
 import { ChatPanel } from "../../components/Common/ChatPanel";
@@ -6,6 +6,7 @@ import { ShipmentDetailContent } from "./ShipmentDetailContent";
 import { useShipmentDetailPage } from "./hooks/useShipmentDetailPage";
 
 export const ShipmentDetailStyleDefault = () => {
+  const { token } = theme.useToken();
   const { t } = useTranslation();
   const { code, shipment, statusData, isLoading, isError, goToShipments } =
     useShipmentDetailPage();
@@ -34,9 +35,10 @@ export const ShipmentDetailStyleDefault = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-6 py-3 flex items-center justify-between sticky top-0 z-10">
         <Button
-          type="text"
+          type="link"
           icon={<ArrowLeftOutlined />}
           onClick={goToShipments}
+          style={{ color: token.colorPrimary, paddingInline: 0 }}
         >
           {t("shipments.shipment_list")}
         </Button>

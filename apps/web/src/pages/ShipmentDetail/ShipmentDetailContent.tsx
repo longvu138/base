@@ -416,7 +416,6 @@ export const ShipmentDetailContent = ({
     freePackages,
     showPackageAlert,
     taxFreeThreshHold,
-    activeThirdPartyLoan,
     totalNeedPay,
     waybillRows,
     parcelStatuses,
@@ -641,26 +640,7 @@ export const ShipmentDetailContent = ({
               }
             }}
           />
-          <Flex justify="space-between" align="center" gap={token.marginXS}>
-            <Text type="secondary">{t("shipments.note_keydown")}</Text>
-            <Space size={token.marginXS}>
-              <Button
-                size="small"
-                type="primary"
-                icon={<SaveOutlined />}
-                onMouseDown={() => saveShipmentField("note", draftValue ?? "")}
-              >
-                {t("common.save")}
-              </Button>
-              <Button
-                size="small"
-                icon={<CloseOutlined />}
-                onClick={cancelEdit}
-              >
-                {t("common.cancel")}
-              </Button>
-            </Space>
-          </Flex>
+          <Text type="secondary">{t("shipments.note_keydown")}</Text>
         </Space>
       );
     }
@@ -1286,19 +1266,6 @@ export const ShipmentDetailContent = ({
               <Fragment>
                 <Divider />
                 <Space direction="vertical" size={8}>
-                  {shipment.contractWithShopkeeper && (
-                    <InfoLine
-                      label="BiFin"
-                      value={money(
-                        roundShipmentMoney(
-                          activeThirdPartyLoan?.totalAmountPay ?? 0,
-                        ),
-                        undefined,
-                        true,
-                      )}
-                      accent
-                    />
-                  )}
                   <InfoLine
                     label={t("orderDetail.total_need_payment")}
                     value={roundedMoney(totalNeedPay, undefined, true)}

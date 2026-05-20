@@ -152,9 +152,4 @@ export const ShipmentApi = {
   getShipmentLoans: (code: string) => {
     return ApiClient.auth.get(`customer/shipments/${code}/loans`);
   },
-  getShipmentThirdPartyLoans: (code: string) => {
-    return ApiClient.auth.get(`customer/third-parties/shopkeeper/loans`, {
-      params: { orderCodes: code },
-    });
-  },
 };

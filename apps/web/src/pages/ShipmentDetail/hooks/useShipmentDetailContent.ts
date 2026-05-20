@@ -29,7 +29,6 @@ import {
   useShipmentOriginalReceiptsQuery,
   useShipmentParcelsQuery,
   useShipmentProductsQuery,
-  useShipmentThirdPartyLoansQuery,
   useShipmentWaybillsQuery,
   useUpdateShipmentMutation,
   useUpdateShipmentProductMutation,
@@ -570,11 +569,6 @@ export const useShipmentDetailContent = ({
     code,
     showCreditTab,
   );
-  const { data: thirdPartyLoans = [] } = useShipmentThirdPartyLoansQuery(
-    code,
-    showCreditTab,
-  );
-
   const updateShipment = useUpdateShipmentMutation(code);
   const cancelShipment = useCancelShipmentMutation(code);
   const addOriginalReceipt = useAddShipmentOriginalReceiptMutation(code);
@@ -637,14 +631,7 @@ export const useShipmentDetailContent = ({
     : 0;
   const showPackageAlert =
     !!numericTaxFreeThreshHold && totalValueProduct > numericTaxFreeThreshHold;
-  const activeThirdPartyLoan = asArray(thirdPartyLoans).find(
-    (item) => item.status === "ACTIVE",
-  );
-  const totalNeedPay =
-    (Number(shipment.totalUnpaid) || 0) +
-    (activeThirdPartyLoan
-      ? Number(activeThirdPartyLoan.totalAmountPay) || 0
-      : 0);
+  const totalNeedPay = Number(shipment.totalUnpaid) || 0;
   const waybillRows = useMemo(
     () => buildWaybillRows(asArray(waybills), parcelRows, statusInfo),
     [parcelRows, statusInfo, waybills],
@@ -878,6 +865,9 @@ export const useShipmentDetailContent = ({
       for (const receiptCode of originalReceiptsAdd) {
         try {
           await addOriginalReceipt.mutateAsync({ code: receiptCode });
+          setOriginalReceiptsAdd((current) =>
+            current.filter((item) => item !== receiptCode),
+          );
         } catch (error: any) {
           const title = errorTitle(error);
           const errorMessage =
@@ -1094,7 +1084,6 @@ export const useShipmentDetailContent = ({
     freePackages,
     showPackageAlert,
     taxFreeThreshHold,
-    activeThirdPartyLoan,
     totalNeedPay,
     waybillRows,
     products,
@@ -1115,7 +1104,6 @@ export const useShipmentDetailContent = ({
     warehouses,
     credits,
     loans,
-    thirdPartyLoans,
     isProductsLoading,
     isWaybillsLoading,
     isParcelsLoading,

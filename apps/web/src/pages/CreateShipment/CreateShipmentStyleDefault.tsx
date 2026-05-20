@@ -40,9 +40,12 @@ import { ProfileAddressModal } from "../Profile/ProfileAddressModal";
 import {
   addressLocation,
   type CreateShipmentPageLogic,
-  sortByPosition,
   useCreateShipmentPage,
 } from "./hooks/useCreateShipmentPage";
+import {
+  getShipmentServicesInGroup,
+  getShipmentServicesWithoutGroup,
+} from "../../components/Common/shipmentServices";
 
 const { Paragraph, Text, Title } = Typography;
 
@@ -324,7 +327,7 @@ export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateS
   };
 
   const renderServiceGroup = (group: any) => {
-    const groupServices = sortByPosition(serviceOptions.filter((service: any) => service.serviceGroup?.code === group.code));
+    const groupServices = getShipmentServicesInGroup(serviceOptions, group.code);
     if (!groupServices.length) return null;
     const current = groupServices.find((service: any) => selectedServices.includes(service.code));
 
@@ -503,7 +506,7 @@ export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateS
                         </Col>
                         <Col xs={24} md={18}>
                           {(() => {
-                            const noGroupServices = sortByPosition(serviceOptions.filter((service: any) => !service.serviceGroup));
+                            const noGroupServices = getShipmentServicesWithoutGroup(serviceOptions);
                             return (
                               <>
                                 <Space wrap align="start">

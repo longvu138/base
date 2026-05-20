@@ -119,11 +119,6 @@ export const CustomerApi = {
     trackAddToCart: () => {
         return ApiClient.auth.post("tenants/current/tracking-add-to-cart");
     },
-    getThirdPartyLoans: (orderCodes: string) => {
-        return ApiClient.auth.get("customer/third-parties/shopkeeper/loans", {
-            params: { orderCodes },
-        });
-    },
     getArticles: () => {
         return ApiClient.auth.get("customer/article");
     },

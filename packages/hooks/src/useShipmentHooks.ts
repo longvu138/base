@@ -512,31 +512,3 @@ export const useShipmentLoansQuery = (code: string, enabled = true) => {
     enabled: !!code && enabled,
   });
 };
-
-export const useShipmentThirdPartyLoansQuery = (
-  code: string,
-  enabled = true,
-) => {
-  return useQuery({
-    queryKey: ["shipments.thirdPartyLoans", code],
-    queryFn: async () => {
-      const res = await ShipmentApi.getShipmentThirdPartyLoans(code);
-      return res.data?.loanCredits ?? res.data ?? [];
-    },
-    enabled: !!code && enabled,
-  });
-};
-
-export const useShipmentThirdPartyLoansByCodesQuery = (
-  orderCodes: string,
-  enabled = true,
-) => {
-  return useQuery({
-    queryKey: ["shipments.thirdPartyLoans.list", orderCodes],
-    queryFn: async () => {
-      const res = await ShipmentApi.getShipmentThirdPartyLoans(orderCodes);
-      return res.data?.loanCredits ?? res.data ?? [];
-    },
-    enabled: !!orderCodes && enabled,
-  });
-};
