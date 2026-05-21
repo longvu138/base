@@ -7,6 +7,7 @@ export * from './useClaimHooks';
 export * from './useWishlistHooks';
 export * from './useWithdrawalSlipHooks';
 export * from './useStatisticHooks';
+export * from './usePeerPaymentHooks';
 
 // Page Level Logic Hooks
 export * from './pages/orders';
@@ -23,6 +24,7 @@ export * from './pages/address';
 export * from './pages/wishlist';
 export * from './pages/vouchers';
 export * from './pages/faqs';
+export * from './pages/peerPayments';
 
 export * from './useCustomerHooks';
 export * from './useLogin';

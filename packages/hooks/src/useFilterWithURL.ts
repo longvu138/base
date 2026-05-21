@@ -70,7 +70,7 @@ function deserializeFromURL(urlParams: URLSearchParams): Record<string, any> {
         if (NON_FILTER_KEYS.has(key)) return;
 
         // Reconstruct date range pair: timestampXFrom + timestampXTo → xDateRange
-        if (key.startsWith('timestamp') && key.endsWith('From')) {
+        if (key.startsWith('timestamp') && key.endsWith('From') && key !== 'timestampFrom') {
             const base = key.replace('timestamp', '').replace('From', '');
             const toKey = `timestamp${base}To`;
             const toValue = urlParams.get(toKey);
