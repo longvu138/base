@@ -63,7 +63,7 @@ const BASE_MENU_ITEMS: MenuItem[] = [
   {
     key: "/cash-request",
     icon: React.createElement(DollarCircleOutlined),
-    label: "Thu tiền mặt",
+    label: "Yêu Cầu Thu Tiền Mặt",
     path: "/cash-request",
   },
   {
@@ -108,24 +108,24 @@ const BASE_MENU_ITEMS: MenuItem[] = [
     label: "Rút tiền",
     path: "/withdrawal-slips",
   },
-  {
-    key: "/vouchers",
-    icon: React.createElement(GiftOutlined),
-    label: "Mã giảm giá",
-    path: "/profile?tab=vouchers",
-  },
-  {
-    key: "/address",
-    icon: React.createElement(EnvironmentOutlined),
-    label: "Địa chỉ nhận hàng",
-    path: "/profile?tab=address",
-  },
-  {
-    key: "/wishlist",
-    icon: React.createElement(HeartOutlined),
-    label: "Sản phẩm đã lưu",
-    path: "/profile?tab=saved-products",
-  },
+  // {
+  //   key: "/vouchers",
+  //   icon: React.createElement(GiftOutlined),
+  //   label: "Mã giảm giá",
+  //   path: "/profile?tab=vouchers",
+  // },
+  // {
+  //   key: "/address",
+  //   icon: React.createElement(EnvironmentOutlined),
+  //   label: "Địa chỉ nhận hàng",
+  //   path: "/profile?tab=address",
+  // },
+  // {
+  //   key: "/wishlist",
+  //   icon: React.createElement(HeartOutlined),
+  //   label: "Sản phẩm đã lưu",
+  //   path: "/profile?tab=saved-products",
+  // },
   {
     key: "/faqs",
     icon: React.createElement(QuestionCircleOutlined),
@@ -167,7 +167,7 @@ const GOBIZ_MENU_ITEMS: MenuItem[] = [
   {
     key: "/cash-request",
     icon: React.createElement(DollarCircleOutlined),
-    label: "Thu tiền mặt",
+    label: "Yêu Cầu Thu Tiền Mặt",
     path: "/cash-request",
   },
   {
