@@ -15,6 +15,7 @@ import {
   HeartOutlined,
   QuestionCircleOutlined,
   PayCircleOutlined,
+  DollarCircleOutlined,
 } from "@ant-design/icons";
 import { useTheme, getVariantDefaults } from "@repo/theme-provider";
 
@@ -58,6 +59,12 @@ const BASE_MENU_ITEMS: MenuItem[] = [
     icon: React.createElement(PayCircleOutlined),
     label: "Yêu cầu thanh toán",
     path: "/peer-payments",
+  },
+  {
+    key: "/cash-request",
+    icon: React.createElement(DollarCircleOutlined),
+    label: "Thu tiền mặt",
+    path: "/cash-request",
   },
   {
     key: "/packages",
@@ -156,6 +163,12 @@ const GOBIZ_MENU_ITEMS: MenuItem[] = [
     icon: React.createElement(PayCircleOutlined),
     label: "Yêu cầu thanh toán",
     path: "/peer-payments",
+  },
+  {
+    key: "/cash-request",
+    icon: React.createElement(DollarCircleOutlined),
+    label: "Thu tiền mặt",
+    path: "/cash-request",
   },
   {
     key: "/packages",

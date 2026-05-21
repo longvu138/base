@@ -11,5 +11,6 @@ export const appConfig = {
   notificationWss: import.meta.env.APP_NOTIFICATION_WSS,
   goodwayUrl: import.meta.env.APP_GOODWAY_URL,
   be: import.meta.env.APP_BE || "http://localhost:3003",
-  enableTenantSelector: true
-}
+  appM2: import.meta.env.APP_M2,
+  enableTenantSelector: true,
+};

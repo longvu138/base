@@ -20,3 +20,4 @@ export * from './TenantApi';
 export * from './NotificationApi';
 export * from './StatisticApi';
 export * from './PeerPaymentApi';
+export * from './CashRequestApi';

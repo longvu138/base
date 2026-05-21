@@ -23,6 +23,7 @@ import Statistics from "./pages/Statistics";
 import Notifications from "./pages/Notifications";
 import { Carts } from "./pages/Carts";
 import CartCheckout from "./pages/CartCheckout";
+import CashRequest from "./pages/CashRequest";
 
 import ThemeConfigurator from "./pages/ThemeConfigurator";
 
@@ -59,6 +60,7 @@ function AppRoutes() {
           <Route path="claims" element={<Claims />} />
           <Route path="tickets/create" element={<CreateClaim />} />
           <Route path="withdrawal-slips" element={<WithdrawalSlips />} />
+          <Route path="cash-request" element={<CashRequest />} />
           <Route path="packages" element={<Packages />} />
           <Route path="profile" element={<Profile />} />
           <Route path="statistics" element={<Statistics />} />
