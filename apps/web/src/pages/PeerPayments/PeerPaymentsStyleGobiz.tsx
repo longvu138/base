@@ -181,7 +181,7 @@ const renderBillRef = (record: any) => {
   );
 };
 
-export const PeerPaymentsStyleDefault = () => {
+export const PeerPaymentsStyleGobiz = () => {
   const { token } = theme.useToken();
   const [exchangeRatesByCode, setExchangeRatesByCode] = useState<Record<string, any>>({});
   const [loadingExchangeCode, setLoadingExchangeCode] = useState<string>();
@@ -964,13 +964,67 @@ export const PeerPaymentsStyleDefault = () => {
     if (isSuccess) setExportOpen(false);
   };
 
+  const listTotal = hasMore ? `${quantityFormat(currentPage * pageSize)}+` : quantityFormat(payments.length);
+
   return (
-    <Space direction="vertical" size={16} style={{ width: "100%" }}>
-      <Flex justify="space-between" align="center" gap={12} wrap>
-        <Title level={3} style={{ margin: 0 }}>
-          {t("peer_payment.title_page")}
-        </Title>
-      </Flex>
+    <Space direction="vertical" size="large" style={{ width: "100%" }}>
+      <Card style={{ boxShadow: token.boxShadowTertiary }}>
+        <Flex justify="space-between" align="center" gap={token.marginMD} wrap>
+          <div>
+            <Space size="small" align="center">
+              <Title level={3} style={{ margin: 0 }}>
+                {t("peer_payment.title_page")}
+              </Title>
+              <Tag color="blue">{listTotal}</Tag>
+            </Space>
+            <Text type="secondary">Gobiz Logistics</Text>
+          </div>
+          <Space wrap>
+            <Button
+              type="default"
+              icon={<InfoCircleOutlined />}
+              onClick={() => setRateModalOpen(true)}
+              disabled={!firstExchangeRate}
+            >
+              {exchangeRangeText}
+            </Button>
+            <Button
+              icon={<WalletOutlined />}
+              disabled={isInSuspensionSchedule || selectedRowKeys.length === 0}
+              onClick={openBulkModal}
+              className="_btn-payment btn btn--peer-payment-pay"
+            >
+              {t("peer_payment.btnPayment")}
+            </Button>
+            {isShowBtnPayment && peerPaymentType === "payment" && (
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={() => openCreateModal("payment")}
+              >
+                {t("peer_payment.create_request_for_pay")}
+              </Button>
+            )}
+            {isShowBtnTransfer && peerPaymentType === "transfer" && (
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={() => openCreateModal("transfer")}
+              >
+                {t("peer_payment.create_transfer")}
+              </Button>
+            )}
+            <Button
+              type="default"
+              className="_btn-export-csv rounded"
+              loading={exportMutation.isPending}
+              onClick={openExportModal}
+            >
+              {t("shipment.btn_export_csv")}
+            </Button>
+          </Space>
+        </Flex>
+      </Card>
 
       {dailyMessage && (
         <Alert
@@ -992,7 +1046,12 @@ export const PeerPaymentsStyleDefault = () => {
         />
       )}
 
-      <Card>
+      <Card
+        style={{
+          borderColor: token.colorPrimaryBorder,
+          boxShadow: token.boxShadowTertiary,
+        }}
+      >
         <Form form={form} layout="vertical" onFinish={handleSearch}>
           <Row gutter={[16, 8]}>
             <Col xs={24} md={8}>
@@ -1146,50 +1205,11 @@ export const PeerPaymentsStyleDefault = () => {
 
       <Card>
         <Flex justify="space-between" align="center" gap={12} wrap style={{ marginBottom: 12 }}>
-          <div />
-          <Space wrap>
-            <Button
-              type="link"
-              icon={<InfoCircleOutlined />}
-              onClick={() => setRateModalOpen(true)}
-              disabled={!firstExchangeRate}
-            >
-              {exchangeRangeText}
-            </Button>
-            <Button
-              icon={<WalletOutlined />}
-              disabled={isInSuspensionSchedule || selectedRowKeys.length === 0}
-              onClick={openBulkModal}
-              className="_btn-payment btn btn--peer-payment-pay"
-            >
-              {t("peer_payment.btnPayment")}
-            </Button>
-            {isShowBtnPayment && peerPaymentType === "payment" && (
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={() => openCreateModal("payment")}
-              >
-                {t("peer_payment.create_request_for_pay")}
-              </Button>
-            )}
-            {isShowBtnTransfer && peerPaymentType === "transfer" && (
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={() => openCreateModal("transfer")}
-              >
-                {t("peer_payment.create_transfer")}
-              </Button>
-            )}
-            <Button
-              type="default"
-              className="_btn-export-csv rounded"
-              loading={exportMutation.isPending}
-              onClick={openExportModal}
-            >
-              {t("shipment.btn_export_csv")}
-            </Button>
+          <Space size="small" align="center">
+            <Text strong>{t("peer_payment.title_page")}</Text>
+            <Tag color={selectedRowKeys.length > 0 ? "processing" : "default"}>
+              {quantityFormat(selectedRowKeys.length)}/{listTotal}
+            </Tag>
           </Space>
         </Flex>
 
@@ -2041,4 +2061,4 @@ export const PeerPaymentsStyleDefault = () => {
   );
 };
 
-export default PeerPaymentsStyleDefault;
+export default PeerPaymentsStyleGobiz;

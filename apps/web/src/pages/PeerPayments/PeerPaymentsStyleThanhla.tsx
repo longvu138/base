@@ -37,20 +37,19 @@ import {
   CheckOutlined,
   CloseOutlined,
   CreditCardOutlined,
+  DownloadOutlined,
   InfoCircleFilled,
   InfoCircleOutlined,
   PercentageOutlined,
   PayCircleOutlined,
   PlusOutlined,
-  ReloadOutlined,
   SearchOutlined,
   SwapOutlined,
-  SwapRightOutlined,
   UploadOutlined,
   WalletOutlined,
 } from "@ant-design/icons";
 import { LocalStoreUtil, moneyFormat, quantityFormat } from "@repo/util";
-import { PinModal } from "@repo/ui";
+import { FilterPanel, PinModal } from "@repo/ui";
 import { usePeerPaymentsPage } from "./hooks/usePeerPaymentsPage";
 
 const { Text, Title, Paragraph } = Typography;
@@ -181,7 +180,7 @@ const renderBillRef = (record: any) => {
   );
 };
 
-export const PeerPaymentsStyleDefault = () => {
+export const PeerPaymentsStyleThanhla = () => {
   const { token } = theme.useToken();
   const [exchangeRatesByCode, setExchangeRatesByCode] = useState<Record<string, any>>({});
   const [loadingExchangeCode, setLoadingExchangeCode] = useState<string>();
@@ -964,12 +963,34 @@ export const PeerPaymentsStyleDefault = () => {
     if (isSuccess) setExportOpen(false);
   };
 
+  const listTotal = hasMore ? `${quantityFormat(currentPage * pageSize)}+` : quantityFormat(payments.length);
+
   return (
-    <Space direction="vertical" size={16} style={{ width: "100%" }}>
+    <Space direction="vertical" size="large" style={{ width: "100%" }}>
       <Flex justify="space-between" align="center" gap={12} wrap>
         <Title level={3} style={{ margin: 0 }}>
           {t("peer_payment.title_page")}
         </Title>
+        <Space wrap>
+          <Button
+            icon={<WalletOutlined />}
+            disabled={isInSuspensionSchedule || selectedRowKeys.length === 0}
+            onClick={openBulkModal}
+            className="_btn-payment btn btn--peer-payment-pay"
+          >
+            {t("peer_payment.btnPayment")}
+          </Button>
+          {isShowBtnPayment && peerPaymentType === "payment" && (
+            <Button type="primary" icon={<PlusOutlined />} onClick={() => openCreateModal("payment")}>
+              {t("peer_payment.create_request_for_pay")}
+            </Button>
+          )}
+          {isShowBtnTransfer && peerPaymentType === "transfer" && (
+            <Button type="primary" icon={<PlusOutlined />} onClick={() => openCreateModal("transfer")}>
+              {t("peer_payment.create_transfer")}
+            </Button>
+          )}
+        </Space>
       </Flex>
 
       {dailyMessage && (
@@ -992,198 +1013,187 @@ export const PeerPaymentsStyleDefault = () => {
         />
       )}
 
-      <Card>
-        <Form form={form} layout="vertical" onFinish={handleSearch}>
-          <Row gutter={[16, 8]}>
-            <Col xs={24} md={8}>
-              <Form.Item name="query" label={t("peer_payment.code")}>
-                <Input placeholder={t("peer_payment.code")} allowClear />
-              </Form.Item>
-            </Col>
-            {peerPaymentType !== "transfer" ? (
-              <Col xs={24} md={8}>
-                <Form.Item name="paymentAccount" label={t("peer_payment.paymentAccount")}>
-                  <Select
-                    allowClear
-                    showSearch
-                    optionFilterProp="label"
-                    placeholder={t("peer_payment.select_paymentAccount")}
-                    options={paymentAccounts.map((item: any) => ({
-                      value: item.account || item.code || item.id,
-                      label: item.displayName || item.account || item.name || item.code,
-                    }))}
-                  />
-                </Form.Item>
-              </Col>
-            ) : (
-              <Col xs={24} md={8}>
-                <Form.Item name="beneficiaryAccount" label={t("peer_payment.beneficiaryAccount")}>
-                  <Input placeholder={t("peer_payment.beneficiaryAccount")} allowClear />
-                </Form.Item>
-              </Col>
-            )}
-            <Col xs={24} md={8}>
-              <Form.Item label={t("peer_payment.trxTime")}>
-                <Space.Compact style={{ width: "100%" }}>
-                  <Form.Item name="timestampFrom" noStyle>
+      <Card className="mb-4 shadow-sm">
+        <FilterPanel
+          form={form}
+          onSearch={handleSearch}
+          onReset={handleReset}
+          loading={isLoading || isFetching}
+          searchText={t("orders.buttons.search")}
+          resetText={t("orders.buttons.reset")}
+          showCollapseAll={true}
+          primaryContent={
+            <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+              <Row gutter={[16, 16]}>
+                <Col xs={24} md={6}>
+                  <Form.Item name="query" label={t("peer_payment.code")} style={{ marginBottom: 0 }}>
+                    <Input
+                      allowClear
+                      prefix={<SearchOutlined />}
+                      placeholder={t("peer_payment.code")}
+                      onPressEnter={handleSearch}
+                    />
+                  </Form.Item>
+                </Col>
+                {peerPaymentType !== "transfer" ? (
+                  <Col xs={24} md={6}>
+                    <Form.Item name="paymentAccount" label={t("peer_payment.paymentAccount")} style={{ marginBottom: 0 }}>
+                      <Select
+                        allowClear
+                        showSearch
+                        optionFilterProp="label"
+                        placeholder={t("peer_payment.select_paymentAccount")}
+                        options={paymentAccounts.map((item: any) => ({
+                          value: item.account || item.code || item.id,
+                          label: item.displayName || item.account || item.name || item.code,
+                        }))}
+                      />
+                    </Form.Item>
+                  </Col>
+                ) : (
+                  <Col xs={24} md={6}>
+                    <Form.Item name="beneficiaryAccount" label={t("peer_payment.beneficiaryAccount")} style={{ marginBottom: 0 }}>
+                      <Input placeholder={t("peer_payment.beneficiaryAccount")} allowClear />
+                    </Form.Item>
+                  </Col>
+                )}
+                <Col xs={24} md={6}>
+                  <Form.Item name="timestampFrom" label={t("peer_payment.trxTime")} style={{ marginBottom: 0 }}>
                     <DatePicker
-                      style={{ width: "50%" }}
+                      style={{ width: "100%" }}
                       format="DD/MM/YYYY"
                       placeholder={t("peer_payment.filterMilestoneFrom")}
                     />
                   </Form.Item>
-                  <Form.Item name="timestampTo" noStyle>
+                </Col>
+                <Col xs={24} md={6}>
+                  <Form.Item name="timestampTo" label=" " style={{ marginBottom: 0 }}>
                     <DatePicker
-                      style={{ width: "50%" }}
+                      style={{ width: "100%" }}
                       format="DD/MM/YYYY"
                       placeholder={t("peer_payment.filterMilestoneTo")}
                     />
                   </Form.Item>
-                </Space.Compact>
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={4}>
-              <Form.Item name="originalReceiptCode" label={t("peer_payment.originalReceiptCode")}>
-                <Input placeholder={t("peer_payment.originalReceiptCode")} allowClear />
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={4}>
-              <Form.Item name="billTo" label={t("peer_payment.billTo")}>
-                <Input placeholder={t("peer_payment.billTo_enter")} allowClear />
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={16}>
-              <Form.Item label={t("peer_payment.filterByMilestoneStatusTime")}>
-                <Flex gap={8} align="center" wrap="wrap">
-                  <Form.Item name="milestoneStatus" noStyle>
+                </Col>
+              </Row>
+
+              <Row gutter={[16, 16]}>
+                <Col xs={24} md={6}>
+                  <Form.Item name="originalReceiptCode" label={t("peer_payment.originalReceiptCode")} style={{ marginBottom: 0 }}>
+                    <Input placeholder={t("peer_payment.originalReceiptCode")} allowClear />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={6}>
+                  <Form.Item name="billTo" label={t("peer_payment.billTo")} style={{ marginBottom: 0 }}>
+                    <Input placeholder={t("peer_payment.billTo_enter")} allowClear />
+                  </Form.Item>
+                </Col>
+                {peerPaymentType === "payment" && isEnabledBiffin && (
+                  <>
+                    <Col xs={24} md={6}>
+                      <Form.Item name="hasCollateral" label={t("peer_payment.qualifyLoan")} style={{ marginBottom: 0 }}>
+                        <Select allowClear options={qualifyLoanOptions} />
+                      </Form.Item>
+                    </Col>
+                    <Col xs={24} md={6}>
+                      <Form.Item name="contractWithShopkeeper" label={t("peer_payment.loanStatus")} style={{ marginBottom: 0 }}>
+                        <Select allowClear options={bifinOptions} />
+                      </Form.Item>
+                    </Col>
+                  </>
+                )}
+              </Row>
+            </Space>
+          }
+          secondaryContent={
+            <div style={{ marginTop: token.marginMD }}>
+              <Row gutter={[16, 16]}>
+                <Col xs={24} md={6}>
+                  <Form.Item name="milestoneStatus" label={t("peer_payment.filterByMilestoneStatusTime")} style={{ marginBottom: 0 }}>
                     <Select
                       allowClear
                       placeholder={t("peer_payment.filterByMilestoneStatusTime")}
-                      style={{ flex: "1 1 220px", minWidth: 220 }}
                       options={statuses.map((status: any) => ({
                         value: status.code,
                         label: status.name,
                       }))}
                     />
                   </Form.Item>
-                  <Form.Item name="milestoneFrom" noStyle>
+                </Col>
+                <Col xs={24} md={6}>
+                  <Form.Item name="milestoneFrom" label={t("peer_payment.filterMilestoneFrom")} style={{ marginBottom: 0 }}>
                     <DatePicker
                       showTime={{ format: "HH:mm" }}
                       format="HH:mm DD-MM-YYYY"
                       placeholder={t("peer_payment.filterMilestoneFrom")}
-                      style={{ flex: "1 1 220px", minWidth: 220 }}
+                      style={{ width: "100%" }}
                     />
                   </Form.Item>
-                  <SwapRightOutlined style={{ color: token.colorTextSecondary }} />
-                  <Form.Item name="milestoneTo" noStyle>
+                </Col>
+                <Col xs={24} md={6}>
+                  <Form.Item name="milestoneTo" label={t("peer_payment.filterMilestoneTo")} style={{ marginBottom: 0 }}>
                     <DatePicker
                       showTime={{ format: "HH:mm" }}
                       format="HH:mm DD-MM-YYYY"
                       placeholder={t("peer_payment.filterMilestoneTo")}
-                      style={{ flex: "1 1 220px", minWidth: 220 }}
+                      style={{ width: "100%" }}
                     />
                   </Form.Item>
-                </Flex>
-              </Form.Item>
-            </Col>
-            {peerPaymentType === "payment" && isEnabledBiffin && (
-              <>
-                <Col xs={24} md={8}>
-                  <Form.Item name="hasCollateral" label={t("peer_payment.qualifyLoan")}>
-                    <Select allowClear options={qualifyLoanOptions} />
+                </Col>
+              </Row>
+
+              <Row gutter={[16, 16]} style={{ marginTop: token.marginMD }}>
+                <Col xs={24} md={12}>
+                  <Form.Item name="statuses" label={t("tickets.status")} style={{ marginBottom: 0 }}>
+                    <Checkbox.Group
+                      onChange={() => {
+                        form.setFieldValue("paymentAccount", undefined);
+                      }}
+                    >
+                      <Space wrap>
+                        {statuses.map((status: any) => (
+                          <Checkbox key={status.code} value={status.code}>
+                            {status.name}
+                          </Checkbox>
+                        ))}
+                      </Space>
+                    </Checkbox.Group>
                   </Form.Item>
                 </Col>
-                <Col xs={24} md={8}>
-                  <Form.Item name="contractWithShopkeeper" label={t("peer_payment.loanStatus")}>
-                    <Select allowClear options={bifinOptions} />
+                <Col xs={24} md={12}>
+                  <Form.Item name="paymentMethod" label={t("peer_payment.payment_method")} style={{ marginBottom: 0 }}>
+                    <Checkbox.Group>
+                      <Space wrap>
+                        {paymentMethods.map((method: any) => (
+                          <Checkbox key={method.code} value={method.code}>
+                            {method.name}
+                          </Checkbox>
+                        ))}
+                      </Space>
+                    </Checkbox.Group>
                   </Form.Item>
                 </Col>
-              </>
-            )}
-            <Col xs={24}>
-              <Form.Item name="statuses" label={t("tickets.status")}>
-                <Checkbox.Group
-                  onChange={() => {
-                    form.setFieldValue("paymentAccount", undefined);
-                  }}
-                >
-                  <Space wrap>
-                    {statuses.map((status: any) => (
-                      <Checkbox key={status.code} value={status.code}>
-                        {status.name}
-                      </Checkbox>
-                    ))}
-                  </Space>
-                </Checkbox.Group>
-              </Form.Item>
-            </Col>
-            <Col xs={24}>
-              <Form.Item name="paymentMethod" label={t("peer_payment.payment_method")}>
-                <Checkbox.Group>
-                  <Space wrap>
-                    {paymentMethods.map((method: any) => (
-                      <Checkbox key={method.code} value={method.code}>
-                        {method.name}
-                      </Checkbox>
-                    ))}
-                  </Space>
-                </Checkbox.Group>
-              </Form.Item>
-            </Col>
-            <Col xs={24}>
-              <Space wrap>
-                <Button type="primary" htmlType="submit" icon={<SearchOutlined />}>
-                  {t("orders.buttons.search")}
-                </Button>
-                <Button onClick={handleReset} icon={<ReloadOutlined />}>
-                  {t("orders.buttons.reset")}
-                </Button>
-              </Space>
-            </Col>
-          </Row>
-        </Form>
+              </Row>
+            </div>
+          }
+        />
       </Card>
 
-      <Card>
-        <Flex justify="space-between" align="center" gap={12} wrap style={{ marginBottom: 12 }}>
-          <div />
+      <Card
+        title={
+          <Space size="small">
+            <Text strong>{t("peer_payment.title_page")}</Text>
+            <Tag color="blue">{listTotal}</Tag>
+          </Space>
+        }
+        extra={
           <Space wrap>
-            <Button
-              type="link"
-              icon={<InfoCircleOutlined />}
-              onClick={() => setRateModalOpen(true)}
-              disabled={!firstExchangeRate}
-            >
+            <Button type="link" icon={<InfoCircleOutlined />} onClick={() => setRateModalOpen(true)} disabled={!firstExchangeRate}>
               {exchangeRangeText}
             </Button>
             <Button
-              icon={<WalletOutlined />}
-              disabled={isInSuspensionSchedule || selectedRowKeys.length === 0}
-              onClick={openBulkModal}
-              className="_btn-payment btn btn--peer-payment-pay"
-            >
-              {t("peer_payment.btnPayment")}
-            </Button>
-            {isShowBtnPayment && peerPaymentType === "payment" && (
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={() => openCreateModal("payment")}
-              >
-                {t("peer_payment.create_request_for_pay")}
-              </Button>
-            )}
-            {isShowBtnTransfer && peerPaymentType === "transfer" && (
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={() => openCreateModal("transfer")}
-              >
-                {t("peer_payment.create_transfer")}
-              </Button>
-            )}
-            <Button
               type="default"
+              icon={<DownloadOutlined />}
               className="_btn-export-csv rounded"
               loading={exportMutation.isPending}
               onClick={openExportModal}
@@ -1191,12 +1201,13 @@ export const PeerPaymentsStyleDefault = () => {
               {t("shipment.btn_export_csv")}
             </Button>
           </Space>
-        </Flex>
-
+        }
+      >
         <Tabs
           activeKey={peerPaymentType}
           onChange={handleTabChange}
-          size="large"
+          size="middle"
+          type="card"
           items={[
             {
               key: "payment",
@@ -1230,19 +1241,24 @@ export const PeerPaymentsStyleDefault = () => {
             }),
           }}
           locale={{
-            emptyText: <Empty description={t("common.no_data")} />,
+            emptyText: (
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description={t("common.no_data")}
+              />
+            ),
           }}
         />
-        <Flex justify="end" style={{ marginTop: 16 }}>
+        <Flex justify="flex-end" style={{ marginTop: token.marginLG }}>
           <Pagination
             current={currentPage}
             pageSize={pageSize}
             total={hasMore ? currentPage * pageSize + 1 : currentPage * pageSize}
+            showSizeChanger
             onChange={(nextPage, nextPageSize) => {
               setPage(nextPage);
               if (nextPageSize !== pageSize) setPageSize(nextPageSize);
             }}
-            showSizeChanger
           />
         </Flex>
       </Card>
@@ -2041,4 +2057,4 @@ export const PeerPaymentsStyleDefault = () => {
   );
 };
 
-export default PeerPaymentsStyleDefault;
+export default PeerPaymentsStyleThanhla;
