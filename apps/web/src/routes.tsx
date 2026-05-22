@@ -11,6 +11,7 @@ import { CreateShipment } from "./pages/CreateShipment";
 import { CreateDelivery } from "./pages/CreateDelivery";
 import { DeliveryRequests } from "./pages/DeliveryRequests";
 import { PeerPayments } from "./pages/PeerPayments";
+import { PeerPaymentDetail } from "./pages/PeerPaymentDetail";
 import { DeliveryNotes } from "./pages/DeliveryNotes";
 import { Waybills } from "./pages/Waybills";
 import { Lieferscheine } from "./pages/Lieferscheine";
@@ -52,6 +53,7 @@ function AppRoutes() {
           <Route path="delivery" element={<DeliveryRequests />} />
           <Route path="delivery-requests" element={<DeliveryRequests />} />
           <Route path="peer-payments" element={<PeerPayments />} />
+          <Route path="peer-payments/:id" element={<PeerPaymentDetail />} />
           <Route path="delivery/create" element={<CreateDelivery />} />
           <Route path="delivery-notes" element={<DeliveryNotes />} />
           <Route path="waybills" element={<Waybills />} />

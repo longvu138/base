@@ -130,6 +130,7 @@
     "data_sent_email": "The system will send data file to your email. Please check in a few minutes.",
     "need_payment": "Need payment",
     "excess_cash": "Excess cash",
+    "totalClaim": "Total claim",
     "notification": "Notification",
     "discountAmount": "Discount Amount",
     "search": "Search",
@@ -139,7 +140,9 @@
   },
   "peerPayment": {
     "minPayment": "Please submit a payment request with minimum value {{value}} ¥",
-    "minTransfer": "Please submit a transfer request with minimum value {{value}} ¥"
+    "minTransfer": "Please submit a transfer request with minimum value {{value}} ¥",
+    "loanApproved": "Advance approved",
+    "loanCanceled": "Advance canceled"
   },
   "cartCheckout": {
     "provisional_cal": "provisional",
@@ -181,6 +184,7 @@
     "delete_success": "Deleted successfully",
     "system_error_contact_technical": "System error, please contact technical support",
     "update_failed": "Update failed",
+    "update_success": "Updated successfully",
     "shipment_status_not_allow": "The consignment order status does not allow this action",
     "empty": "No data",
     "deleted_comment": "Deleted comment",
@@ -817,6 +821,7 @@
   },
   "peer_payment": {
     "title_page": "Payment requests",
+    "title_page_TBG": "TBG payment requests",
     "request_payment": "Payment request",
     "request_transfer": "Transfer request",
     "request_payment_TBG": "TBG payment request",
@@ -827,7 +832,10 @@
     "exchage_rate": "Adjusted exchange rate",
     "btnPayment": "Payment",
     "rowPayment": "payment",
-    "payment_action_confirm": "Are you sure delete?",
+    "cancel_action": "Cancel",
+    "payment_action_confirm": "Are you sure you want to perform this action?",
+    "credit": "Credit",
+    "teller": "Operator",
     "code": "Request code",
     "trxTime": "Request time",
     "amount": "Foreign currency amount",
@@ -911,6 +919,38 @@
     "daily_message": "Today {{date}}, you sent {{paymentNum}} payment requests with value {{paymentAmount}}, {{transferNum}} transfer requests with value {{transferAmount}} for {{tenantName}}, thank you",
     "maxPeerPaymentCharge10Item": "Pay only up to 10 requests at a time",
     "suspension_notify": "Suspension notice"
+  },
+  "mainLayout": {
+    "exchange_rate": "Exchange rate"
+  },
+  "eventGroup": {
+    "FINANCIAL": "Financial"
+  },
+  "log_tab": {
+    "log": "Log"
+  },
+  "logPeerPayment": {
+    "PEER_PAYMENT_FEE_CREATE": "Additonal fee ${name} with amount ${amount} with reason ${reason}",
+    "PEER_PAYMENT_FEE_UPDATE": "Change ${field} of ${feeName} from ${oldValue} to ${newValue}",
+    "staff": "Staff",
+    "system": "System",
+    "customer": "Customer",
+    "fieldChange": "Change ${field} from ${oldValue} to ${newValue}",
+    "amount": "Amount",
+    "reason": "Reason",
+    "nullValue": "Null",
+    "fee": "Fee paid by turn",
+    "free": "Free",
+    "notFree": "No free",
+    "status": "Status",
+    "exchangeRate": "Currency",
+    "teller": "Receiver",
+    "PEER_PAYMENT_CREATE": "${peerPaymentType} ${code} is created",
+    "peerPaymentTypeTransfer": "Transfer request",
+    "peerPaymentTypePayment": "Payment request",
+    "staffNote": "Staff note",
+    "PEER_PAYMENT_ORIGINAL_RECEIPT_DELETE": "Remove orignal invoice code ${originalReceiptCode}",
+    "PEER_PAYMENT_ORIGINAL_RECEIPT_CREATE": "Add original invoice code ${originalReceiptCode}"
   },
   "package_tab": {
     "package": "Package",

@@ -27,6 +27,7 @@ import {
   Table,
   Tabs,
   Tag,
+  Tooltip,
   Typography,
   Upload,
   theme,
@@ -43,6 +44,7 @@ import {
   PercentageOutlined,
   PayCircleOutlined,
   PlusOutlined,
+  QrcodeOutlined,
   SearchOutlined,
   SwapOutlined,
   UploadOutlined,
@@ -146,7 +148,9 @@ const renderAccount = (record: any, peerPaymentType?: string) => {
   }
 
   return record.qrcode ? (
-    <Tag color="processing">QR</Tag>
+    <Tooltip placement="top" title={<span>YCTT này tạo với QR Code</span>}>
+      <QrcodeOutlined />
+    </Tooltip>
   ) : record.paymentAccount ? (
     <Paragraph copyable={{ text: record.paymentAccount }} style={{ marginBottom: 0 }}>
       {record.paymentAccount}
@@ -480,11 +484,13 @@ export const PeerPaymentsStyleThanhla = () => {
       fixed: "left",
       render: (code: string) =>
         code ? (
-          <Paragraph copyable={{ text: code }} style={{ marginBottom: 0 }}>
-            <Text strong style={{ color: token.colorPrimary }}>
-              {code}
-            </Text>
-          </Paragraph>
+          <Text copyable={{ text: code }} strong>
+            <RouterLink to={`/peer-payments/${code}`} onClick={(event) => event.stopPropagation()}>
+              <Text strong style={{ color: token.colorPrimary }}>
+                {code}
+              </Text>
+            </RouterLink>
+          </Text>
         ) : (
           "---"
         ),

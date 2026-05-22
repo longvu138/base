@@ -130,6 +130,7 @@
     "data_sent_email": "Hệ thống sẽ gửi file dữ liệu về e-mail của bạn, vui lòng kiểm tra sau ít phút.",
     "need_payment": "Cần thanh toán",
     "excess_cash": "Tiền thừa",
+    "totalClaim": "Tổng tiền khiếu nại",
     "notification": "Thông báo",
     "discountAmount": "Giảm giá từ NCC",
     "search": "Tìm kiếm",
@@ -139,7 +140,9 @@
   },
   "peerPayment": {
     "minPayment": "Vui lòng gửi YCTT có giá trị tối thiểu {{value}} ¥",
-    "minTransfer": "Vui lòng gửi YCCT có giá trị tối thiểu {{value}} ¥"
+    "minTransfer": "Vui lòng gửi YCCT có giá trị tối thiểu {{value}} ¥",
+    "loanApproved": "Đã duyệt khoản ứng vốn",
+    "loanCanceled": "Đã hủy khoản ứng vốn"
   },
   "cartCheckout": {
     "provisional_cal": "Tạm tính",
@@ -181,6 +184,7 @@
     "delete_success": "Xóa thành công",
     "system_error_contact_technical": "Lỗi hệ thống, vui lòng liên hệ kỹ thuật",
     "update_failed": "Cập nhật thất bại",
+    "update_success": "Cập nhật thành công",
     "shipment_status_not_allow": "Trạng thái đơn ký gửi không cho phép thực hiện thao tác này",
     "empty": "Không có dữ liệu",
     "deleted_comment": "Comment đã bị xóa",
@@ -817,6 +821,7 @@
   },
   "peer_payment": {
     "title_page": "Yêu cầu thanh toán",
+    "title_page_TBG": "Yêu cầu thanh toán TBG",
     "request_payment": "Yêu cầu thanh toán hộ",
     "request_transfer": "Yêu cầu chuyển tiền",
     "request_payment_TBG": "Yêu cầu thanh toán hộ TBG",
@@ -827,7 +832,10 @@
     "exchage_rate": "Tỷ giá điều chỉnh",
     "btnPayment": "Thanh toán",
     "rowPayment": "Thanh Toán",
+    "cancel_action": "Hủy bỏ",
     "payment_action_confirm": "Bạn có chắc muốn thực hiện thao tác này?",
+    "credit": "Tín dụng",
+    "teller": "Người thực hiện",
     "code": "Mã yêu cầu",
     "trxTime": "Thời gian yêu cầu",
     "amount": "Số tiền ngoại tệ",
@@ -911,6 +919,38 @@
     "daily_message": "Hôm nay <strong>{{date}}</strong>, quý khách đã gửi <strong>{{paymentNum}}</strong> YCTT với giá trị <strong>{{paymentAmount}}</strong>, <strong>{{transferNum}}</strong> YCCT với giá trị <strong>{{transferAmount}}</strong> cho <strong>{{tenantName}}</strong>, cảm ơn quý khách đã tin tưởng sử dụng dịch vụ\n\n",
     "maxPeerPaymentCharge10Item": "Chỉ thanh toán 10 yêu cầu trong một thời điểm",
     "suspension_notify": "Thông báo tạm dừng"
+  },
+  "mainLayout": {
+    "exchange_rate": "Tỷ giá"
+  },
+  "eventGroup": {
+    "FINANCIAL": "Tài chính"
+  },
+  "log_tab": {
+    "log": "Log"
+  },
+  "logPeerPayment": {
+    "PEER_PAYMENT_FEE_CREATE": "Thêm phí ${name} với số tiền ${amount} với lý do ${reason}",
+    "PEER_PAYMENT_FEE_UPDATE": "Thay đổi ${field} của ${feeName} từ ${oldValue} thành ${newValue}",
+    "staff": "Nhân viên",
+    "system": "Hệ thống",
+    "customer": "Khách hàng",
+    "fieldChange": "Thay đổi ${field} từ ${oldValue} thành ${newValue}",
+    "amount": "Số tiền",
+    "reason": "Lý do",
+    "nullValue": "Trống",
+    "fee": "Phí tính theo lượt",
+    "free": "Miễn phí",
+    "notFree": "Không miễn phí",
+    "status": "Trạng thái",
+    "exchangeRate": "Tỷ giá",
+    "teller": "Người tiếp nhận",
+    "PEER_PAYMENT_CREATE": "${peerPaymentType} ${code} đã được tạo",
+    "peerPaymentTypeTransfer": "Yêu cầu chuyển tiền",
+    "peerPaymentTypePayment": "Yêu cầu thanh toán",
+    "staffNote": "Ghi chú nhân viên",
+    "PEER_PAYMENT_ORIGINAL_RECEIPT_DELETE": "Xoá mã hoá đơn gốc ${originalReceiptCode}",
+    "PEER_PAYMENT_ORIGINAL_RECEIPT_CREATE": "Thêm mã hoá đơn gốc ${originalReceiptCode}"
   },
   "package_tab": {
     "package": "Kiện hàng",

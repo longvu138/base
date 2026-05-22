@@ -17,6 +17,13 @@ const johnBaseUrl = (path: string) => {
     : `john/${path.replace(/^\/+/, "")}`;
 };
 
+const barryBaseUrl = (path: string) => {
+  const paymentApi = trimTrailingSlash(appConfig.apiPayment);
+  return paymentApi && !paymentApi.startsWith("undefined")
+    ? `${paymentApi}/barry/${path.replace(/^\/+/, "")}`
+    : `barry/${path.replace(/^\/+/, "")}`;
+};
+
 const currentTenantCode = () => {
   const currentProjectInfo = LocalStoreUtil.getJson("currentProjectInfo") || {};
   return (
@@ -36,6 +43,61 @@ export const PeerPaymentApi = {
   getPeerPayments: (params: Record<string, any>) =>
     ApiClient.auth.get(clarkBaseUrl("payment/peer_payments"), {
       params,
+      headers: tenantHeaders(),
+    }),
+
+  getPeerPayment: (code: string) =>
+    ApiClient.auth.get(clarkBaseUrl(`payment/peer_payments/${code}`), {
+      headers: tenantHeaders(),
+    }),
+
+  cancelPeerPayment: (code: string) =>
+    ApiClient.auth.post(clarkBaseUrl(`payment/peer_payments/${code}/cancel`), undefined, {
+      headers: tenantHeaders(),
+    }),
+
+  getOriginalReceipts: (code: string) =>
+    ApiClient.auth.get(clarkBaseUrl(`payment/peer_payments/${code}/original_receipts`), {
+      headers: tenantHeaders(),
+    }),
+
+  addOriginalReceipt: (code: string, data: Record<string, any>) =>
+    ApiClient.auth.post(clarkBaseUrl(`payment/peer_payments/${code}/original_receipts`), data, {
+      headers: tenantHeaders(),
+    }),
+
+  deleteOriginalReceipts: (code: string, listCodes: string[]) =>
+    ApiClient.auth.delete(clarkBaseUrl(`payment/peer_payments/${code}/original_receipts`), {
+      params: { listCodes: listCodes.join(",") },
+      headers: tenantHeaders(),
+    }),
+
+  getFinancials: (code: string, params?: Record<string, any>) =>
+    ApiClient.auth.get(clarkBaseUrl(`payment/peer_payments/${code}/financials`), {
+      params,
+      headers: tenantHeaders(),
+    }),
+
+  getMilestones: (code: string) =>
+    ApiClient.auth.get(clarkBaseUrl(`payment/peer_payments/${code}/milestones`), {
+      params: { sort: "timestamp:desc" },
+      headers: tenantHeaders(),
+    }),
+
+  getLogs: (code: string, params?: Record<string, any>) =>
+    ApiClient.auth.get(barryBaseUrl(`payment/peer_payments/${code}/logs`), {
+      params,
+      headers: tenantHeaders(),
+    }),
+
+  getDetailFees: (code: string) =>
+    ApiClient.auth.get(johnBaseUrl(`customer/peer_payments/${code}/fees`), {
+      headers: tenantHeaders(),
+    }),
+
+  getFinancialTypes: () =>
+    ApiClient.auth.get("categories/financial_types", {
+      params: { size: 1000 },
       headers: tenantHeaders(),
     }),
 
