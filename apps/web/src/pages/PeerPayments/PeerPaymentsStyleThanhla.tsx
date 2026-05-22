@@ -666,19 +666,21 @@ export const PeerPaymentsStyleThanhla = () => {
     return response || {};
   };
 
-  const buildCreatePaymentPayload = (values: Record<string, any>, exchangeRate?: any) => ({
-    ...values,
-    amount: Number(values.amount || 0),
-    paymentMethodCode: values.paymentMethodCode || "alipay",
-    requestForPayType: createPaymentType,
-    exchangeRate: exchangeRate?.rate,
-    originalReceipts: [
-      {
-        code: typeof values.originalReceipts === "string" ? values.originalReceipts.trim() : values.originalReceipts,
-        billTo: values.billTo,
-      },
-    ],
-  });
+  const buildCreatePaymentPayload = (values: Record<string, any>, exchangeRate?: any) => {
+    const { requestForPayType: _requestForPayType, ...payloadValues } = values;
+    return {
+      ...payloadValues,
+      amount: Number(values.amount || 0),
+      paymentMethodCode: values.paymentMethodCode || "alipay",
+      exchangeRate: exchangeRate?.rate,
+      originalReceipts: [
+        {
+          code: typeof values.originalReceipts === "string" ? values.originalReceipts.trim() : values.originalReceipts,
+          billTo: values.billTo,
+        },
+      ],
+    };
+  };
 
   const submitCreatePaymentStepOne = async () => {
     const values = await createForm.validateFields();
@@ -753,8 +755,9 @@ export const PeerPaymentsStyleThanhla = () => {
 
   const submitCreateBetterOffer = async () => {
     const code = createPaymentDraftValues.originalReceipts;
+    const { requestForPayType: _requestForPayType, ...draftValues } = createPaymentDraftValues;
     const payload = {
-      ...createPaymentDraftValues,
+      ...draftValues,
       paymentMethodCode: createPaymentDraftValues.paymentMethodCode || "alipay",
       paymentAccount: createPaymentDraftValues.billTo,
       originalReceipts: code
@@ -795,7 +798,7 @@ export const PeerPaymentsStyleThanhla = () => {
       resetCreateModal();
     } catch (error: any) {
       if (error?.errorFields) return;
-      if (createModalType === "transfer" && (error?.response?.data?.title || error?.title) === "insufficient_balance") {
+      if ((error?.response?.data?.title || error?.title) === "insufficient_balance") {
         notification.success({ message: t("message.success") });
         resetCreateModal();
         return;

@@ -33,7 +33,8 @@ export const usePeerPaymentsPage = () => {
   });
   const { applyFilters, clearFilters, filters } = useFilterWithURL({ form });
   const logic = usePeerPaymentsLogic({ page, pageSize, filters });
-  const { data: userBalance = {}, refetch: refetchUserBalance } = useCustomerBalance();
+  const { data: userBalance = {}, refetch: refetchUserBalance } =
+    useCustomerBalance();
   const chargeMutation = useChargePeerPaymentMutation();
   const exchangeRateMutation = usePeerPaymentExchangeRateMutation();
   const exchangeRatesBatchMutation = usePeerPaymentExchangeRatesBatchMutation();
@@ -52,11 +53,13 @@ export const usePeerPaymentsPage = () => {
 
   const hydrateFiltersForForm = (values: Record<string, any>) => {
     const next = { ...values };
-    ["timestampFrom", "timestampTo", "milestoneFrom", "milestoneTo"].forEach((key) => {
-      if (next[key] && !dayjs.isDayjs(next[key])) {
-        next[key] = dayjs(next[key]);
-      }
-    });
+    ["timestampFrom", "timestampTo", "milestoneFrom", "milestoneTo"].forEach(
+      (key) => {
+        if (next[key] && !dayjs.isDayjs(next[key])) {
+          next[key] = dayjs(next[key]);
+        }
+      },
+    );
     return next;
   };
 
@@ -131,11 +134,17 @@ export const usePeerPaymentsPage = () => {
       if (title === "invalid_amount") {
         notification.error({ message: t("peer_payment.invalid_amount") });
       } else if (title === "insufficient_balance") {
-        const totalMoney = Number(row?.totalFee || 0) + Number(row?.exchangedAmount || 0);
+        const totalMoney =
+          Number(row?.totalFee || 0) + Number(row?.exchangedAmount || 0);
         const topUpMoney =
-          totalMoney - (Number(latestBalance?.balance || 0) + Number(latestBalance?.creditLimit || 0));
+          totalMoney -
+          (Number(latestBalance?.balance || 0) +
+            Number(latestBalance?.creditLimit || 0));
         notification.error({
-          message: t("cartCheckout.notEnoughMoney").replace("${money}", moneyFormat(topUpMoney)),
+          message: t("cartCheckout.notEnoughMoney").replace(
+            "${money}",
+            moneyFormat(topUpMoney),
+          ),
         });
       } else {
         const status = error?.response?.status;
@@ -179,8 +188,8 @@ export const usePeerPaymentsPage = () => {
     };
 
     const needPayOnRequest =
-      LocalStoreUtil.getJson("currentProjectInfo")?.tenantConfig?.peerPaymentConfig
-        ?.needPayOnRequest;
+      LocalStoreUtil.getJson("currentProjectInfo")?.tenantConfig
+        ?.peerPaymentConfig?.needPayOnRequest;
     const isCompany = requestForPayType === "company";
     if (isCompany) {
       if (needPayOnRequest) {
@@ -210,7 +219,11 @@ export const usePeerPaymentsPage = () => {
       return false;
     }
 
-    const params: Record<string, any> = { ...logic.apiParams, page: page - 1, size: pageSize };
+    const params: Record<string, any> = {
+      ...logic.apiParams,
+      page: page - 1,
+      size: pageSize,
+    };
     delete params.offset;
     delete params.limit;
 
@@ -222,7 +235,8 @@ export const usePeerPaymentsPage = () => {
       const blob = new Blob([response.data]);
       const url = window.URL.createObjectURL(blob);
       const disposition = response.headers?.["content-disposition"] || "";
-      const fileName = disposition.split("filename=")[1] || "peer-payments.xlsx";
+      const fileName =
+        disposition.split("filename=")[1] || "peer-payments.xlsx";
       const link = document.createElement("a");
       link.href = url;
       link.download = decodeURIComponent(fileName.replaceAll('"', ""));
