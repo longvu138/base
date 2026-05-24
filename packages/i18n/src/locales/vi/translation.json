@@ -403,7 +403,8 @@
       "cut_off_to": "Đến",
       "time_range": "Mốc thời gian",
       "start_date": "Bắt đầu",
-      "end_date": "Kết thúc"
+      "end_date": "Kết thúc",
+      "days": "Số ngày"
     },
     "columns": {
       "code": "Mã đơn hàng",
