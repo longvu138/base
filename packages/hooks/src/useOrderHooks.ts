@@ -1,5 +1,5 @@
 import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { OrderApi } from '@repo/api';
+import { CategoryApi, OrderApi } from '@repo/api';
 import { notification } from 'antd';
 
 export const useListOrderQuery = (params: any) => {
@@ -276,6 +276,23 @@ export const useOrderCouponsQuery = (code: string) => {
     });
 };
 
+export const useApplyOrderCouponMutation = (code: string) => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (body: { couponCode?: string }) => {
+            const res = await OrderApi.applyOrderCoupon(code, body);
+            return res.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['orders.detail', code] });
+            queryClient.invalidateQueries({ queryKey: ['orders.coupons', code] });
+            queryClient.invalidateQueries({ queryKey: ['orders.fees', code] });
+            queryClient.invalidateQueries({ queryKey: ['orders.logs', code] });
+            queryClient.invalidateQueries({ queryKey: ['orders.financials', code] });
+        },
+    });
+};
+
 export const useOrderFeesConfigGroupQuery = (configGroupId?: string | number) => {
     return useQuery({
         queryKey: ['orders.fees_config_group', configGroupId],
@@ -284,6 +301,25 @@ export const useOrderFeesConfigGroupQuery = (configGroupId?: string | number) =>
             return res.data;
         },
         enabled: !!configGroupId,
+        retry: false,
+    });
+};
+
+export const useOrderShippingFeesQuery = (
+    configGroupId?: string | number,
+    shippingClass?: string | number,
+    enabled = true,
+) => {
+    return useQuery({
+        queryKey: ['orders.shipping_fees', configGroupId, shippingClass],
+        queryFn: async () => {
+            const res = await CategoryApi.getOrderShippingFees(
+                configGroupId as string | number,
+                shippingClass as string | number,
+            );
+            return res.data ?? [];
+        },
+        enabled: !!configGroupId && !!shippingClass && enabled,
         retry: false,
     });
 };

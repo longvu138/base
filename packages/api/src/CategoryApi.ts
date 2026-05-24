@@ -28,4 +28,12 @@ export const CategoryApi = {
       params: { configGroupId, shippingClass },
     });
   },
+  getOrderShippingFees: (
+    configGroupId: string | number,
+    shippingClass: string | number,
+  ) => {
+    return ApiClient.auth.get("categories/shipping_fees", {
+      params: { configGroupId, shippingClass },
+    });
+  },
 };

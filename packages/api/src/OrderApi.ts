@@ -68,6 +68,9 @@ export const OrderApi = {
     getOrderCoupons: (code: string) => {
         return ApiClient.auth.get(`customer/orders/${code}/coupons`);
     },
+    applyOrderCoupon: (code: string, body: { couponCode?: string }) => {
+        return ApiClient.auth.post(`customer/orders/${code}/apply_coupon`, body);
+    },
     getOrderFeesConfigGroup: (configGroupId: string | number) => {
         return ApiClient.auth.get(`categories/fees`, {
             params: {
