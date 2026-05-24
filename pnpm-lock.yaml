@@ -353,9 +353,15 @@ importers:
 
   packages/features:
     dependencies:
+      '@ant-design/icons':
+        specifier: ^5.5.2
+        version: 5.6.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@repo/hooks':
         specifier: workspace:*
         version: link:../hooks
+      '@repo/i18n':
+        specifier: workspace:*
+        version: link:../i18n
       '@repo/util':
         specifier: workspace:*
         version: link:../util
@@ -374,6 +380,9 @@ importers:
       react-dom:
         specifier: ^18.3.1
         version: 18.3.1(react@18.3.1)
+      react-router-dom:
+        specifier: ^7.3.0
+        version: 7.12.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
     devDependencies:
       '@repo/typescript-config':
         specifier: workspace:*
