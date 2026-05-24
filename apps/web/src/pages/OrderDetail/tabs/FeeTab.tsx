@@ -1,25 +1,21 @@
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import {
-  Alert,
   Button,
   Card,
   Col,
   Divider,
   Empty,
   Flex,
-  Input,
   Modal,
   Row,
   Skeleton,
   Space,
-  Table,
   Tooltip,
   Typography,
   notification,
   theme,
 } from "antd";
-import dayjs from "dayjs";
 import {
   DollarOutlined,
   InfoCircleOutlined,
@@ -32,10 +28,15 @@ import {
   useOrderCouponsQuery,
   useOrderFeesConfigGroupQuery,
   useOrderFeesQuery,
-  useOrderShippingFeesQuery,
 } from "@repo/hooks";
-import { moneyFormat, quantityFormat } from "@repo/util";
+import { moneyFormat } from "@repo/util";
 import { useTranslation } from "react-i18next";
+import {
+  CouponModal,
+  FeeTableContent,
+  createOrderCouponCheckPayload,
+  getErrorTitle,
+} from "@repo/features/order-detail";
 
 interface FeeTabProps {
   orderCode: string;
@@ -88,15 +89,6 @@ const absoluteMoneyValue = (value: any) =>
     Number.isNaN(Number(value))
     ? "---"
     : moneyFormat(value, undefined, true);
-
-const dateTime = (value: any) =>
-  value ? dayjs(value).format("HH:mm DD/MM/YYYY") : "---";
-
-const errorTitle = (error: any) =>
-  error?.response?.data?.title ||
-  error?.response?.data?.message ||
-  error?.title ||
-  error?.message;
 
 const sortFees = (fees: any[]) =>
   [...fees].sort(
@@ -345,407 +337,6 @@ const FeeGroupRow = ({
   );
 };
 
-const makeRangeColumns = (sample: any) =>
-  Object.keys(sample || {}).map((key) => ({
-    title: key,
-    dataIndex: key,
-    key,
-    render: (value: any) =>
-      typeof value === "number" ? money(value) : String(value ?? "---"),
-  }));
-
-const numericSort = (left: any, right: any) => Number(left) - Number(right);
-
-const quantity = (value: any) => {
-  if (value === null || value === undefined || value === "") return "---";
-  const numericValue = Number(value);
-  if (Number.isNaN(numericValue)) return String(value);
-  return new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 2 }).format(
-    numericValue,
-  );
-};
-
-const display = (value: any) =>
-  value === null || value === undefined || value === "" ? "---" : String(value);
-
-const buildRanges = (data: any, emptyKey: string) =>
-  Object.keys(data || {})
-    .sort(numericSort)
-    .map((key, index, keys) => {
-      if (key === emptyKey) {
-        return { key, from: null, to: null, value: data[key], empty: true };
-      }
-
-      const nextKey = keys[index + 1];
-      return {
-        key,
-        from: Number(key),
-        to:
-          nextKey && nextKey !== emptyKey
-            ? Number(nextKey)
-            : index === keys.length - 1
-              ? null
-              : Number(key),
-        value: data[key],
-        empty: false,
-      };
-    });
-
-const rangeText = (
-  range: any,
-  {
-    emptyText,
-    moneyUnit,
-  }: { emptyText: string; moneyUnit?: string },
-) => {
-  if (range.empty) return emptyText;
-  const formatValue = (value: any) => {
-    const formattedValue = moneyUnit ? moneyFormat(value, moneyUnit) : quantity(value);
-    return String(formattedValue).replace(/\+/g, "");
-  };
-  if (range.to === null || range.to === undefined) {
-    return tRangeFrom(formatValue(range.from));
-  }
-  return `${tRangeFrom(formatValue(range.from))} ${tRangeTo(formatValue(range.to))}`;
-};
-
-const tRangeFrom = (value: string) => `Từ ${value}`;
-const tRangeTo = (value: string) => `đến dưới ${value}`;
-
-const normalizeTableRows = (data: any) => {
-  if (Array.isArray(data)) return data;
-  if (!data || typeof data !== "object") return [];
-
-  if (Array.isArray(data.ranges)) return data.ranges;
-  if (Array.isArray(data.rows)) return data.rows;
-  if (Array.isArray(data.table)) return data.table;
-
-  const rangeKeys = Object.keys(data).filter(
-    (key) => typeof data[key] === "object",
-  );
-  return rangeKeys.map((key) => ({ range: key, ...data[key] }));
-};
-
-const renderFeeDataFallback = (data: any, emptyText: ReactNode) => {
-  const rows = normalizeTableRows(data);
-
-  if (rows.length > 0) {
-    return (
-      <Table
-        size="small"
-        bordered
-        pagination={false}
-        rowKey={(_, index) => String(index)}
-        columns={makeRangeColumns(rows[0])}
-        dataSource={rows}
-      />
-    );
-  }
-
-  if (data && typeof data === "object" && Object.keys(data).length > 0) {
-    return (
-      <Input.TextArea
-        value={JSON.stringify(data, null, 2)}
-        disabled
-        autoSize={{ minRows: 6, maxRows: 16 }}
-      />
-    );
-  }
-
-  return <Empty description={emptyText} />;
-};
-
-const asArray = (value: any): any[] => (Array.isArray(value) ? value : []);
-
-const getShippingFees = (feeConfig: any, data: any) => {
-  if (asArray(feeConfig.shippingFees).length > 0) {
-    return asArray(feeConfig.shippingFees);
-  }
-  if (asArray(data.shippingFees).length > 0) {
-    return asArray(data.shippingFees);
-  }
-  if (Array.isArray(data)) {
-    return data;
-  }
-  return [];
-};
-
-const getLocationCode = (item: any) =>
-  display(item.location?.code ?? item.locationCode ?? item.code);
-
-const getLocationName = (location: any) =>
-  display(location.display ?? location.name ?? location.code);
-
-const getLocationFromShippingFee = (item: any) => {
-  if (item.location && typeof item.location === "object") return item.location;
-  return {
-    code: item.locationCode ?? item.location ?? item.code,
-    display: item.locationName ?? item.name,
-  };
-};
-
-const getWeightKey = (item: any) =>
-  `${display(item.minWeight)}-${display(item.maxWeight)}`;
-
-const FeeTableContent = ({
-  feeConfig,
-  order,
-}: {
-  feeConfig: any;
-  order: any;
-}) => {
-  const { t } = useTranslation();
-  const { token } = theme.useToken();
-  const metadata = feeConfig?.feeMetadata || {};
-  const template = metadata.template;
-  const marketplaceData = metadata.dataWithMarketPlace?.find(
-    (item: any) => item.marketplace === order?.marketplace?.code,
-  )?.data;
-  const data = marketplaceData || metadata.data || {};
-  const emptyText = t("config_group.empty_fee_table");
-  const localShippingFees = getShippingFees(feeConfig, data);
-  const shouldFetchShippingFees =
-    template === "shipping" && localShippingFees.length === 0;
-  const { data: fetchedShippingFees = [], isLoading: isShippingFeesLoading } =
-    useOrderShippingFeesQuery(
-      order?.configGroupId,
-      feeConfig?.shippingClass ?? metadata.shippingClass,
-      shouldFetchShippingFees,
-    );
-
-  if (template === "percentage_of_total_value") {
-    const rows = buildRanges(data, "empty_order").map((range) => ({
-      key: range.key,
-      orderValue: rangeText(range, {
-        emptyText: t("config_group.emptyOrderValue"),
-        moneyUnit: "VND",
-      }),
-      fee: range.value,
-    }));
-
-    if (rows.length === 0) {
-      return renderFeeDataFallback(data, emptyText);
-    }
-
-    return (
-      <Table
-        size="small"
-        bordered
-        pagination={false}
-        rowKey="key"
-        columns={[
-          {
-            title: t("config_group.orderValue"),
-            dataIndex: "orderValue",
-            width: 360,
-          },
-          {
-            title: t("config_group.serviceCharge"),
-            dataIndex: "fee",
-            render: (value: any) => <Input value={display(value)} disabled />,
-          },
-        ]}
-        dataSource={rows}
-      />
-    );
-  }
-
-  if (template === "inspection") {
-    const priceRanges = buildRanges(data, "empty_price");
-    const quantityRanges = priceRanges.reduce<any[]>((result, range) => {
-      Object.keys(range.value || {}).forEach((key) => {
-        if (!result.some((item) => item.key === key)) {
-          result.push(buildRanges({ [key]: null }, "empty_quantity")[0]);
-        }
-      });
-      return result;
-    }, []);
-    const rows = quantityRanges.map((quantityRange) => ({
-      key: quantityRange.key,
-      quantity: rangeText(quantityRange, {
-        emptyText: t("config_group.emptyQuantity"),
-      }),
-      ...priceRanges.reduce((result: any, priceRange) => {
-        result[priceRange.key] = priceRange.value?.[quantityRange.key];
-        return result;
-      }, {}),
-    }));
-
-    if (rows.length === 0 || priceRanges.length === 0) {
-      return renderFeeDataFallback(data, emptyText);
-    }
-
-    return (
-      <Table
-        size="small"
-        bordered
-        pagination={false}
-        rowKey="key"
-        columns={[
-          {
-            title: t("config_group.numberProducts"),
-            dataIndex: "quantity",
-            fixed: "left",
-            width: 260,
-          },
-          ...priceRanges.map((range) => ({
-            title: rangeText(range, {
-              emptyText: "Đơn giá",
-              moneyUnit: "CNY",
-            }),
-            dataIndex: range.key,
-            width: 260,
-            render: (value: any) => (
-              <Flex align="center" gap={token.marginXS}>
-                <Input
-                  value={
-                    value === null || value === undefined
-                      ? "---"
-                      : quantityFormat(value, true)
-                  }
-                  disabled
-                  style={{ flex: 1 }}
-                />
-                <Text strong>đ/sp</Text>
-              </Flex>
-            ),
-          })),
-        ]}
-        dataSource={rows}
-        scroll={{ x: "max-content" }}
-      />
-    );
-  }
-
-  if (template === "shipping") {
-    const shippingFees =
-      localShippingFees.length > 0
-        ? localShippingFees
-        : asArray(fetchedShippingFees);
-
-    if (isShippingFeesLoading) {
-      return <Skeleton active paragraph={{ rows: 4 }} />;
-    }
-
-    if (shippingFees.length === 0) {
-      return renderFeeDataFallback(data, emptyText);
-    }
-
-    const locations = shippingFees.reduce<any[]>((result, item) => {
-      const location = getLocationFromShippingFee(item);
-      const code = display(location.code);
-      if (!result.some((locationItem) => display(locationItem.code) === code)) {
-        result.push(location);
-      }
-      return result;
-    }, []);
-    const firstLocationCode = display(locations[0]?.code);
-    const weights = shippingFees
-      .filter((item) => getLocationCode(item) === firstLocationCode)
-      .sort(
-        (left, right) =>
-          Number(left.minWeight ?? 0) - Number(right.minWeight ?? 0),
-      );
-    const tableLocations =
-      locations.length > 0 ? locations : [{ code: "newLocation" }];
-    const tableWeights =
-      weights.length > 0
-        ? weights
-        : [
-            {
-              minWeight: undefined,
-              maxWeight: undefined,
-              price: null,
-              priceFormula: null,
-            },
-          ];
-
-    return (
-      <Table
-        size="small"
-        bordered
-        pagination={false}
-        rowKey={(record) => display(record.code)}
-        columns={[
-          {
-            title: t("config_group.location"),
-            dataIndex: "display",
-            fixed: "left",
-            width: 220,
-            render: (_text, record) => getLocationName(record),
-          },
-          ...tableWeights.map((weight) => ({
-            title: `${t("config_group.from")} ${quantity(
-              weight.minWeight,
-            )}(kg) ${t("config_group.to")} ${quantity(weight.maxWeight)} (kg)`,
-            dataIndex: getWeightKey(weight),
-            width: 220,
-            render: (_value: any, record: any) => {
-              const currentFee = shippingFees.find(
-                (item) =>
-                  getLocationCode(item) === display(record.code) &&
-                  item.minWeight === weight.minWeight &&
-                  item.maxWeight === weight.maxWeight,
-              );
-              const price = currentFee?.price;
-              return (
-                <Flex align="center" gap={token.marginXS}>
-                  <Input
-                    value={
-                      price === null || price === undefined || price === ""
-                        ? "---"
-                        : quantityFormat(price, true)
-                    }
-                    disabled
-                    style={{ flex: 1 }}
-                  />
-                  <Text strong>đ/kg</Text>
-                </Flex>
-              );
-            },
-          })),
-        ]}
-        dataSource={tableLocations}
-        scroll={{ x: 220 * tableWeights.length + 220 }}
-      />
-    );
-  }
-
-  if (template === "fixed_order" || template === "fixed_package") {
-    return (
-      <Row gutter={12} align="middle">
-        <Col span={8}>
-          <Text>{t("config_group.applied")}</Text>
-        </Col>
-        <Col span={10}>
-          <Input value={data.value ?? "---"} disabled />
-        </Col>
-        <Col span={6}>
-          <Text>
-            {template === "fixed_order"
-              ? `₫/${t("config_group.order")}`
-              : `₫/${t("config_group.package")}`}
-          </Text>
-        </Col>
-      </Row>
-    );
-  }
-
-  const rows = normalizeTableRows(data);
-  if (rows.length === 0) return renderFeeDataFallback(data, emptyText);
-
-  return (
-    <Table
-      size="small"
-      bordered
-      pagination={false}
-      rowKey={(_, index) => String(index)}
-      columns={makeRangeColumns(rows[0])}
-      dataSource={rows}
-    />
-  );
-};
-
 const SummaryLine = ({
   label,
   value,
@@ -878,11 +469,9 @@ export const FeeTab = ({ orderCode, order, statusInfo }: FeeTabProps) => {
     if (!nextCode) return;
 
     try {
-      const voucher = await checkVoucher.mutateAsync({
-        code: nextCode,
-        orderCode,
-        isShipment: false,
-      });
+      const voucher = await checkVoucher.mutateAsync(
+        createOrderCouponCheckPayload(nextCode, orderCode),
+      );
       if (voucher?.code) {
         setCouponValid(true);
         setCouponValidMessage(voucher.description || "");
@@ -893,7 +482,7 @@ export const FeeTab = ({ orderCode, order, statusInfo }: FeeTabProps) => {
         setCouponValidMessage(t("message.coupon_invalid_for_you"));
       }
     } catch (error: any) {
-      const title = errorTitle(error) || "coupon_invalid_for_you";
+      const title = getErrorTitle(error) || "coupon_invalid_for_you";
       setCouponValid(false);
       setCouponValidTo(null);
       setCouponValidMessage(t(`message.${title}`));
@@ -908,7 +497,7 @@ export const FeeTab = ({ orderCode, order, statusInfo }: FeeTabProps) => {
       notification.success({ message: t("message.coupon_apply_success") });
       closeCouponModal();
     } catch (error: any) {
-      const title = errorTitle(error) || "coupon_invalid_for_you";
+      const title = getErrorTitle(error) || "coupon_invalid_for_you";
       notification.error({ message: t(`message.${title}`) });
     }
   };
@@ -1140,56 +729,20 @@ export const FeeTab = ({ orderCode, order, statusInfo }: FeeTabProps) => {
       >
         <Empty description={t("fee_tab.empty_detail")} />
       </Modal>
-      <Modal
-        title={t("coupon.modalTitle")}
+      <CouponModal
         open={couponModalOpen}
-        footer={null}
-        width={600}
+        code={couponCode}
+        valid={couponValid}
+        validMessage={couponValidMessage}
+        validTo={couponValidTo}
+        checking={checkVoucher.isPending}
+        applying={applyOrderCoupon.isPending}
+        t={t}
+        onChangeCode={changeCouponCode}
+        onCheck={checkCouponCode}
+        onSubmit={submitCouponCode}
         onCancel={closeCouponModal}
-      >
-        <Space
-          direction="vertical"
-          size={token.marginMD}
-          style={{ width: "100%" }}
-        >
-          <Typography.Text>{t("coupon.inputVoucher")}</Typography.Text>
-          <Input.Search
-            value={couponCode}
-            placeholder={t("message.enter_coupon")}
-            enterButton={t("button.check")}
-            loading={checkVoucher.isPending}
-            onChange={(event) => changeCouponCode(event.target.value)}
-            onSearch={checkCouponCode}
-          />
-          {couponValidTo && (
-            <Alert
-              type="success"
-              showIcon
-              message={t("coupon.voucherValidTo", {
-                value: dateTime(couponValidTo),
-              })}
-            />
-          )}
-          {couponValidMessage && (
-            <Alert
-              type={couponValid ? "success" : "error"}
-              showIcon
-              message={couponValidMessage}
-            />
-          )}
-          <Flex justify="end" gap={token.marginSM}>
-            <Button onClick={closeCouponModal}>{t("button.cancel")}</Button>
-            <Button
-              type="primary"
-              disabled={!couponValid}
-              loading={applyOrderCoupon.isPending}
-              onClick={submitCouponCode}
-            >
-              {t("button.use")}
-            </Button>
-          </Flex>
-        </Space>
-      </Modal>
+      />
       <Modal
         title={t("config_group.feeTable")}
         open={!!feeTableConfig}
@@ -1200,7 +753,12 @@ export const FeeTab = ({ orderCode, order, statusInfo }: FeeTabProps) => {
         onCancel={() => setFeeTableConfig(null)}
       >
         {feeTableConfig && (
-          <FeeTableContent feeConfig={feeTableConfig} order={order} />
+          <FeeTableContent
+            feeConfig={feeTableConfig}
+            order={order}
+            t={t}
+            formatMoney={money}
+          />
         )}
       </Modal>
     </>

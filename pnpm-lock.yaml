@@ -30,6 +30,9 @@ importers:
       '@repo/config':
         specifier: workspace:*
         version: link:../../packages/config
+      '@repo/features':
+        specifier: workspace:*
+        version: link:../../packages/features
       '@repo/hooks':
         specifier: workspace:*
         version: link:../../packages/hooks
@@ -146,6 +149,9 @@ importers:
       '@repo/config':
         specifier: workspace:*
         version: link:../../packages/config
+      '@repo/features':
+        specifier: workspace:*
+        version: link:../../packages/features
       '@repo/hooks':
         specifier: workspace:*
         version: link:../../packages/hooks
@@ -344,6 +350,40 @@ importers:
       typescript-eslint:
         specifier: ^8.50.0
         version: 8.50.0(eslint@9.39.1(jiti@1.21.7))(typescript@5.9.2)
+
+  packages/features:
+    dependencies:
+      '@repo/hooks':
+        specifier: workspace:*
+        version: link:../hooks
+      '@repo/util':
+        specifier: workspace:*
+        version: link:../util
+      '@tanstack/react-query':
+        specifier: ^5.62.11
+        version: 5.90.19(react@18.3.1)
+      antd:
+        specifier: ^6.3.7
+        version: 6.3.7(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      dayjs:
+        specifier: ^1.11.10
+        version: 1.11.19
+      react:
+        specifier: ^18.3.1
+        version: 18.3.1
+      react-dom:
+        specifier: ^18.3.1
+        version: 18.3.1(react@18.3.1)
+    devDependencies:
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      '@types/react':
+        specifier: ^18.3.12
+        version: 18.3.27
+      typescript:
+        specifier: 5.9.2
+        version: 5.9.2
 
   packages/hooks:
     dependencies:

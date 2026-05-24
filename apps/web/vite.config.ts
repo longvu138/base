@@ -10,6 +10,7 @@ export default defineConfig({
     dedupe: ['react', 'react-dom', 'i18next', 'react-i18next'],
     alias: {
       '@': path.resolve(__dirname, '../../packages/ui/src'),
+      '@repo/features': path.resolve(__dirname, '../../packages/features/src'),
     },
   },
 })
