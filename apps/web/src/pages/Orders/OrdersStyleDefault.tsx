@@ -1,4 +1,4 @@
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import dayjs from "dayjs";
 import {
   Alert,
@@ -27,6 +27,7 @@ import {
 } from "antd";
 import {
   DownloadOutlined,
+  EditOutlined,
   InfoCircleOutlined,
   QuestionCircleOutlined,
   SearchOutlined,
@@ -175,6 +176,52 @@ export const OrdersStyleDefault = () => {
   } = useOrdersPage();
 
   const orders = orderData?.data || [];
+  const [editingNoteCode, setEditingNoteCode] = useState<string | null>(null);
+  const [editingNoteValue, setEditingNoteValue] = useState("");
+  const noteInputRef = useRef<any>(null);
+  const savingNoteCodeRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!editingNoteCode) return;
+
+    const animationFrame = window.requestAnimationFrame(() => {
+      const textArea =
+        noteInputRef.current?.resizableTextArea?.textArea ||
+        noteInputRef.current?.nativeElement ||
+        noteInputRef.current;
+      const length = textArea?.value?.length || 0;
+
+      textArea?.focus?.();
+      textArea?.setSelectionRange?.(length, length);
+    });
+
+    return () => window.cancelAnimationFrame(animationFrame);
+  }, [editingNoteCode]);
+
+  const startEditOrderNote = (record: any) => {
+    setEditingNoteCode(record?.code || null);
+    setEditingNoteValue(record?.note || "");
+  };
+
+  const saveOrderNote = (record: any) => {
+    if (!record?.code || savingNoteCodeRef.current === record.code) return;
+
+    savingNoteCodeRef.current = record.code;
+    if (editingNoteValue !== (record?.note || "")) {
+      updateOrderNote
+        .mutateAsync({
+          code: record.code,
+          note: editingNoteValue,
+        })
+        .finally(() => {
+          savingNoteCodeRef.current = null;
+        });
+    } else {
+      savingNoteCodeRef.current = null;
+    }
+    setEditingNoteCode(null);
+    setEditingNoteValue("");
+  };
 
   const isApprovalService = (service: any) =>
     service.needApprove === true || service.approved === null;
@@ -669,27 +716,65 @@ export const OrdersStyleDefault = () => {
                             size="middle"
                             style={{ width: "100%" }}
                           >
-                            <Flex align="start" gap={token.marginXS}>
-                              <Typography.Text type="secondary">
+                            <Flex
+                              align="start"
+                              gap={token.marginXS}
+                              style={{ width: "100%" }}
+                            >
+                              <Typography.Text
+                                type="secondary"
+                                style={{
+                                  flex: "0 0 56px",
+                                  whiteSpace: "nowrap",
+                                }}
+                              >
                                 {t("orders.columns.note")}:
                               </Typography.Text>
-                              <Typography.Text
-                                editable={{
-                                  text: record?.note || "",
-                                  onChange: (value) => {
-                                    if (value !== record?.note) {
-                                      updateOrderNote.mutateAsync({
-                                        code: record?.code,
-                                        note: value,
-                                      });
-                                    }
-                                  },
-                                  triggerType: ["icon", "text"],
-                                }}
+                              <div
+                                style={{ flex: 1, minWidth: 0 }}
                                 onClick={(event) => event.stopPropagation()}
                               >
-                                {record?.note || "---"}
-                              </Typography.Text>
+                                {editingNoteCode === record?.code ? (
+                                  <Input.TextArea
+                                    ref={noteInputRef}
+                                    autoSize={{ minRows: 1, maxRows: 3 }}
+                                    value={editingNoteValue}
+                                    onChange={(event) =>
+                                      setEditingNoteValue(event.target.value)
+                                    }
+                                    onBlur={() => saveOrderNote(record)}
+                                    onKeyDown={(event) => {
+                                      if (event.key === "Enter") {
+                                        event.preventDefault();
+                                        saveOrderNote(record);
+                                      }
+                                      if (event.key === "Escape") {
+                                        setEditingNoteCode(null);
+                                        setEditingNoteValue("");
+                                      }
+                                    }}
+                                    style={{ width: "100%" }}
+                                  />
+                                ) : (
+                                  <span>
+                                    <Typography.Text>
+                                      {record?.note || "---"}
+                                    </Typography.Text>
+                                    <Button
+                                      type="text"
+                                      size="small"
+                                      icon={<EditOutlined />}
+                                      aria-label={t("order.edit_note")}
+                                      onClick={() => startEditOrderNote(record)}
+                                      style={{
+                                        marginInlineStart: token.marginXXS,
+                                        paddingInline: token.paddingXXS,
+                                        verticalAlign: "baseline",
+                                      }}
+                                    />
+                                  </span>
+                                )}
+                              </div>
                             </Flex>
 
                             {renderOrderServices(record?.services)}

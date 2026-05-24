@@ -12,8 +12,8 @@ import {
 } from "antd";
 import dayjs from "dayjs";
 import { useTranslation } from "react-i18next";
-import { useOrderLogsInfiniteQuery } from "@repo/hooks";
-import { moneyFormat } from "@repo/util";
+import { useOrderLogsInfiniteQuery, usePackageStatusesQuery } from "@repo/hooks";
+import { moneyFormat, quantityFormat } from "@repo/util";
 
 interface LogTabProps {
   order: any;
@@ -55,6 +55,11 @@ const money = (value: any, currency?: any) => {
   return moneyFormat(value, currency);
 };
 
+const transactionAmount = (activity: string, amount: any) => {
+  const formattedAmount = money(amount);
+  return activity === "emd" ? formattedAmount.toString().replace("-", "") : formattedAmount;
+};
+
 const formatChangedValue = (value: any) => {
   if (value === null || value === undefined || value === "") return emptyValue;
   if (typeof value === "object")
@@ -62,10 +67,63 @@ const formatChangedValue = (value: any) => {
   return value;
 };
 
+const packageUpdateUnit = (property?: string) => {
+  if (property === "volumetric") return " cm3";
+  if (
+    property === "netWeight" ||
+    property === "dimensionalWeight" ||
+    property === "packagingWeight" ||
+    property === "actualWeight"
+  ) {
+    return " kg";
+  }
+  if (property === "length" || property === "width" || property === "height") {
+    return " cm";
+  }
+  return "";
+};
+
+const packageStatusName = (value: any, packageStatuses: any[] = []) => {
+  if (!value) return emptyValue;
+  if (value.name) return value.name;
+
+  const code = value.code || value;
+  return (
+    packageStatuses.find((status: any) => status.code === code)?.name ||
+    formatChangedValue(value)
+  );
+};
+
+const formatPackageChangedValue = (
+  property: string,
+  value: any,
+  packageStatuses: any[] = [],
+) => {
+  if (property === "status") return packageStatusName(value, packageStatuses);
+  if (value === null || value === undefined || value === "") return emptyValue;
+
+  const unit = packageUpdateUnit(property);
+  if (
+    unit &&
+    (typeof value === "number" ||
+      (typeof value === "string" && value.trim() !== "")) &&
+    !Number.isNaN(Number(value))
+  ) {
+    return `${quantityFormat(value)}${unit}`;
+  }
+
+  return formatChangedValue(value);
+};
+
 const roleLabelKey = (role?: string) =>
   role === "STAFF" ? "shipment_log.staff" : "shipment_log.customer";
 
-const parseLogItem = (item: any, order: any, t: any): LogContent[] => {
+const parseLogItem = (
+  item: any,
+  order: any,
+  t: any,
+  packageStatuses: any[] = [],
+): LogContent[] => {
   const base = {
     fullname: item?.actor?.fullname || emptyValue,
     role: item?.role,
@@ -335,8 +393,16 @@ const parseLogItem = (item: any, order: any, t: any): LogContent[] => {
           ...base,
           property: `ORDER_PACKAGE_UPDATE_${change.property}`,
           name: reference?.code,
-          oldValue: formatChangedValue(change.oldValue),
-          newValue: formatChangedValue(change.newValue),
+          oldValue: formatPackageChangedValue(
+            change.property,
+            change.oldValue,
+            packageStatuses,
+          ),
+          newValue: formatPackageChangedValue(
+            change.property,
+            change.newValue,
+            packageStatuses,
+          ),
         }));
 
     case "ORDER_SERVICE_UPDATE": {
@@ -381,7 +447,7 @@ const parseLogItem = (item: any, order: any, t: any): LogContent[] => {
         {
           ...base,
           property: item.activity,
-          amount: money(Math.abs(Number(item.amount || 0))),
+          amount: transactionAmount(item.activity, item.amount),
           reason: item.memo || emptyValue,
         },
       ];
@@ -425,9 +491,14 @@ const parseLogItem = (item: any, order: any, t: any): LogContent[] => {
   }
 };
 
-const parseLogs = (items: any[], order: any, t: any) =>
+const parseLogs = (
+  items: any[],
+  order: any,
+  t: any,
+  packageStatuses: any[] = [],
+) =>
   items
-    .flatMap((item) => parseLogItem(item, order, t))
+    .flatMap((item) => parseLogItem(item, order, t, packageStatuses))
     .filter((item) => item.property);
 
 const formatLogContent = (item: LogContent, t: any) => {
@@ -445,10 +516,12 @@ export const LogTab = ({ order, orderCode }: LogTabProps) => {
   const { t } = useTranslation();
   const { token } = theme.useToken();
   const logQuery = useOrderLogsInfiniteQuery(orderCode);
+  const { data: packageStatuses = [] } = usePackageStatusesQuery();
   const logs = parseLogs(
     logQuery.data?.pages.flatMap((page) => page.data) || [],
     order,
     t,
+    packageStatuses,
   );
 
   if (logQuery.isLoading) {
