@@ -12,6 +12,7 @@ import {
   Form,
   Image,
   Input,
+  InputNumber,
   List,
   Pagination,
   Popover,
@@ -147,6 +148,53 @@ const metricValueStyle = {
   whiteSpace: "nowrap",
 } as const;
 
+const HandlingTimeInput = ({
+  typeSearch,
+  t,
+}: {
+  typeSearch?: string;
+  t: (key: string) => string;
+}) => {
+  if (!typeSearch || typeSearch === "range") {
+    return (
+      <Space.Compact style={{ width: "100%" }}>
+        <Form.Item name="handlingTimeFrom" noStyle>
+          <InputNumber
+            style={{ width: "50%" }}
+            placeholder={t("orders.filters.from")}
+          />
+        </Form.Item>
+        <Form.Item name="handlingTimeTo" noStyle>
+          <InputNumber
+            style={{ width: "50%" }}
+            placeholder={t("orders.filters.to")}
+          />
+        </Form.Item>
+      </Space.Compact>
+    );
+  }
+
+  if (typeSearch === "equal" || typeSearch === "from") {
+    return (
+      <Form.Item name="handlingTimeFrom" noStyle>
+        <InputNumber
+          style={{ width: "100%" }}
+          placeholder={t("orders.filters.days")}
+        />
+      </Form.Item>
+    );
+  }
+
+  return (
+    <Form.Item name="handlingTimeTo" noStyle>
+      <InputNumber
+        style={{ width: "100%" }}
+        placeholder={t("orders.filters.days")}
+      />
+    </Form.Item>
+  );
+};
+
 export const OrdersStyleDefault = () => {
   const { token } = theme.useToken();
   const {
@@ -176,6 +224,7 @@ export const OrdersStyleDefault = () => {
   } = useOrdersPage();
 
   const orders = orderData?.data || [];
+  const typeSearch = Form.useWatch("typeSearch", form);
   const [editingNoteCode, setEditingNoteCode] = useState<string | null>(null);
   const [editingNoteValue, setEditingNoteValue] = useState("");
   const noteInputRef = useRef<any>(null);
@@ -461,74 +510,60 @@ export const OrdersStyleDefault = () => {
                 </Col>
               </Row>
 
-              <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
-                <Col xs={24} md={6}>
-                  <Form.Item
-                    name="cutOffStatus"
-                    label={t("orders.filters.stuck_status")}
-                    style={{ marginBottom: 0 }}
-                  >
-                    <Select
-                      allowClear
-                      showSearch
-                      placeholder={t("orders.filters.status")}
-                      optionFilterProp="label"
-                      options={statusData?.map((item: any) => ({
-                        label: item.name,
-                        value: item.code,
-                      }))}
-                    />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={6}>
-                  <Form.Item
-                    name="typeSearch"
-                    label={t("orders.filters.period")}
-                    style={{ marginBottom: 0 }}
-                  >
-                    <Select
-                      allowClear
-                      placeholder={t("orders.filters.period")}
-                      options={[
-                        {
-                          label: t("orders.filters.cut_off_range"),
-                          value: "range",
-                        },
-                        {
-                          label: t("orders.filters.cut_off_equal"),
-                          value: "equal",
-                        },
-                        {
-                          label: t("orders.filters.cut_off_from"),
-                          value: "from",
-                        },
-                        {
-                          label: t("orders.filters.cut_off_to"),
-                          value: "to",
-                        },
-                      ]}
-                    />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={6}>
-                  <Form.Item
-                    name="handlingTimeFrom"
-                    label={t("orders.filters.from")}
-                    style={{ marginBottom: 0 }}
-                  >
-                    <Input allowClear placeholder={t("orders.filters.from")} />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={6}>
-                  <Form.Item
-                    name="handlingTimeTo"
-                    label={t("orders.filters.to")}
-                    style={{ marginBottom: 0 }}
-                  >
-                    <Input allowClear placeholder={t("orders.filters.to")} />
-                  </Form.Item>
-                </Col>
-              </Row>
+              <Form.Item
+                label={t("orders.filters.stuck_status")}
+                style={{ marginBottom: 0, marginTop: 16 }}
+              >
+                <Row gutter={[10, 10]}>
+                  <Col xs={24} md={6}>
+                    <Form.Item name="cutOffStatus" noStyle>
+                      <Select
+                        allowClear
+                        showSearch
+                        placeholder={t("orders.filters.status")}
+                        optionFilterProp="label"
+                        options={statusData?.map((item: any) => ({
+                          label: item.name,
+                          value: item.code,
+                        }))}
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} md={6}>
+                    <Form.Item name="typeSearch" noStyle>
+                      <Select
+                        allowClear
+                        placeholder={t("orders.filters.period")}
+                        onChange={() => {
+                          form.setFieldValue("handlingTimeFrom", undefined);
+                          form.setFieldValue("handlingTimeTo", undefined);
+                        }}
+                        options={[
+                          {
+                            label: t("orders.filters.cut_off_range"),
+                            value: "range",
+                          },
+                          {
+                            label: t("orders.filters.cut_off_equal"),
+                            value: "equal",
+                          },
+                          {
+                            label: t("orders.filters.cut_off_from"),
+                            value: "from",
+                          },
+                          {
+                            label: t("orders.filters.cut_off_to"),
+                            value: "to",
+                          },
+                        ]}
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} md={12}>
+                    <HandlingTimeInput typeSearch={typeSearch} t={t} />
+                  </Col>
+                </Row>
+              </Form.Item>
 
               <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
                 <Col xs={24} md={6}>

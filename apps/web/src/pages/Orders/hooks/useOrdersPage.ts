@@ -65,6 +65,10 @@ export const useOrdersPage = () => {
             delete next.milestoneStatusTo;
         }
 
+        if (next.typeSearch === 'equal' && next.handlingTimeFrom !== undefined && next.handlingTimeFrom !== null && next.handlingTimeFrom !== '') {
+            next.handlingTimeTo = next.handlingTimeFrom;
+        }
+
         if (!next.handlingTimeFrom && !next.handlingTimeTo) {
             delete next.typeSearch;
             delete next.cutOffStatus;
@@ -144,7 +148,9 @@ export const useOrdersPage = () => {
                 try {
                     const text = await data.text();
                     title = JSON.parse(text)?.title;
-                } catch {}
+                } catch {
+                    title = "";
+                }
             } else {
                 title = data?.title || error?.title;
             }
