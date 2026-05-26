@@ -130,7 +130,7 @@ export const FooterStyleDefault = () => {
         <Text type="secondary">
           Copyright © {new Date().getFullYear()} {footer.projectName}
           {" - "}
-          {footer.companyDescription}. Powered By Gobiz.
+          {footer.companyDescription}. Powered By {footer.tenantName}.
         </Text>
       </Flex>
     </AntLayout.Footer>

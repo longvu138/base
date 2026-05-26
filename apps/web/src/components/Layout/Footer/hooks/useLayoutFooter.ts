@@ -61,6 +61,11 @@ export function useLayoutFooter() {
     return {
       t,
       projectName: projectInfo?.description || projectInfo?.name || "nhaphang.com",
+      tenantName:
+        projectInfo?.name ||
+        projectInfo?.tenantConfig?.generalConfig?.tenantName ||
+        window.localStorage.getItem("selected-tenant") ||
+        "Tenant",
       companyDescription: projectInfo?.description || "",
       emailContact: generalConfig.emailContact || "",
       phoneContacts: Array.isArray(generalConfig.phoneContacts)
