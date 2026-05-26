@@ -23,13 +23,15 @@ function parseStorageJson<T>(key: string): T | null {
 function getLatestFooterArticle(articles?: Article[] | null) {
   if (!Array.isArray(articles)) return null;
 
-  return [...articles]
-    .filter((article) => article?.purpose === "FOOTER" && article?.content)
-    .sort((a, b) => {
-      const first = new Date(a.publishDate || 0).getTime();
-      const second = new Date(b.publishDate || 0).getTime();
-      return second - first;
-    })[0] || null;
+  return (
+    [...articles]
+      .filter((article) => article?.purpose === "FOOTER" && article?.content)
+      .sort((a, b) => {
+        const first = new Date(a.publishDate || 0).getTime();
+        const second = new Date(b.publishDate || 0).getTime();
+        return second - first;
+      })[0] || null
+  );
 }
 
 export function useLayoutFooter() {
@@ -38,10 +40,11 @@ export function useLayoutFooter() {
   const { data: articles } = useCustomerArticles();
 
   return useMemo(() => {
-    const projectInfo = tenantConfig || parseStorageJson<any>("currentProjectInfo") || {};
+    const projectInfo =
+      tenantConfig || parseStorageJson<any>("currentProjectInfo") || {};
     const generalConfig = projectInfo?.tenantConfig?.generalConfig || {};
     const footerArticle = getLatestFooterArticle(
-      articles || parseStorageJson<Article[]>("articleList"),
+      articles || parseStorageJson<Article[]>("articleList")
     );
     const customFooterHtml =
       generalConfig.customFooterEnabled && footerArticle?.content
@@ -60,7 +63,8 @@ export function useLayoutFooter() {
 
     return {
       t,
-      projectName: projectInfo?.description || projectInfo?.name || "nhaphang.com",
+      projectName:
+        projectInfo?.description || projectInfo?.name || "nhaphang.com",
       tenantName:
         projectInfo?.name ||
         projectInfo?.tenantConfig?.generalConfig?.tenantName ||

@@ -10,7 +10,7 @@ export const appConfig = {
   platform: import.meta.env.APP_PLATFORM,
   notificationWss: import.meta.env.APP_NOTIFICATION_WSS,
   goodwayUrl: import.meta.env.APP_GOODWAY_URL,
-  be: import.meta.env.APP_BE || "http://localhost:3003",
+  be: import.meta.env.APP_BE,
   appM2: import.meta.env.APP_M2,
   enableTenantSelector: true,
 };

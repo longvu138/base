@@ -56,6 +56,11 @@ const LayoutStyleGobiz: React.FC = () => {
     return () => window.removeEventListener("app:tenant-changed", handleSync);
   }, []);
 
+  const handleTenantUpdate = (value: string) => {
+    setCurrentTenant(value);
+    dispatchTenantChange(value);
+  };
+
   const menuItems = useNavigation();
   const currentPath = `${location.pathname}${location.search}`;
   const activeMenu = menuItems.find(
@@ -150,7 +155,7 @@ const LayoutStyleGobiz: React.FC = () => {
               {appConfig.enableTenantSelector && (
                 <Select
                   value={currentTenant}
-                  onChange={(val) => dispatchTenantChange(val)}
+                  onChange={handleTenantUpdate}
                   options={getTenantOptions()}
                   style={{ width: 160 }}
                   variant="borderless"

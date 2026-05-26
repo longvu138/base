@@ -64,9 +64,9 @@ export const LayoutStyleThanhla: React.FC = () => {
     return (
         <AntLayout className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a]">
             {/* Header / Top Navigation */}
-            <Header className="sticky top-0 z-50 w-full flex items-center justify-between gap-4 px-6 bg-white dark:bg-[#141414] border-b border-gray-200 dark:border-gray-800 shadow-sm h-16 overflow-hidden">
+            <Header className="sticky top-0 z-50 w-full flex items-center justify-between px-6 bg-white dark:bg-[#141414] border-b border-gray-200 dark:border-gray-800 shadow-sm h-16 overflow-hidden">
                 
-                <div className="flex items-center gap-4 flex-1 min-w-0">
+                <div className="flex items-center gap-8 flex-1 min-w-0">
                     {/* Logo Area */}
                     <div
                         className="flex items-center gap-2 font-black text-2xl text-primary cursor-pointer tracking-tight"
@@ -76,6 +76,17 @@ export const LayoutStyleThanhla: React.FC = () => {
                         <span className="hidden md:inline-block">THANHLA</span>
                     </div>
 
+                    {/* Horizontal Menu */}
+                    <Menu
+                        mode="horizontal"
+                        selectedKeys={activeMenu ? [activeMenu.path] : []}
+                        items={antMenuItems}
+                        className="flex-1 min-w-0 border-b-0 bg-transparent dark:!bg-[#141414] font-medium"
+                    />
+                </div>
+
+                {/* Right Actions */}
+                <div className="flex items-center gap-4 ml-4">
                     <HeaderGobizActions />
 
                     <Select
@@ -105,6 +116,8 @@ export const LayoutStyleThanhla: React.FC = () => {
                             className="font-bold text-gray-800 dark:text-gray-200 bg-gray-50 dark:bg-gray-800 rounded-lg"
                         />
                     )}
+
+                    <ThemeSwitcher />
 
                     <HeaderNotificationLink />
 
@@ -141,19 +154,6 @@ export const LayoutStyleThanhla: React.FC = () => {
                             )}
                         </div>
                     </Dropdown>
-                </div>
-
-                <div className="flex items-center gap-4 shrink-0 min-w-0">
-                    {/* Horizontal Menu */}
-                    <Menu
-                        mode="horizontal"
-                        selectedKeys={activeMenu ? [activeMenu.path] : []}
-                        items={antMenuItems}
-                        className="min-w-0 border-b-0 bg-transparent dark:!bg-[#141414] font-medium"
-                        style={{ width: 420 }}
-                    />
-
-                    <ThemeSwitcher />
                 </div>
             </Header>
 

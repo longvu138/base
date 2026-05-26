@@ -28,6 +28,13 @@ export interface UseAppTenantThemeOptions {
   fetchTenantConfig: (tenantKey: string) => Promise<FullTenantResponse>;
 }
 
+export interface UseAppTenantThemeResult {
+  isDark: boolean;
+  selectedTenantId: string;
+  themeConfig: ThemeConfig;
+  tenantConfig: FullTenantResponse | null;
+}
+
 const parseLocalStorageJson = (key: string) => {
   const value = localStorage.getItem(key);
   if (!value) return null;
@@ -58,7 +65,7 @@ export const useAppTenantTheme = ({
   lightTheme,
   darkTheme,
   fetchTenantConfig,
-}: UseAppTenantThemeOptions) => {
+}: UseAppTenantThemeOptions): UseAppTenantThemeResult => {
   const {
     theme: themeMode,
     tenantConfig: globalTenantConfig,
@@ -95,7 +102,8 @@ export const useAppTenantTheme = ({
         );
 
         const cachedTenantConfig = parseLocalStorageJson(FULL_TENANT_DATA_KEY);
-        if (cachedTenantConfig) {
+        const cachedTenantId = cachedTenantConfig?.id || cachedTenantConfig?.tenant;
+        if (cachedTenantConfig && cachedTenantId === selectedTenantId) {
           setGlobalTenantConfig(cachedTenantConfig);
           persistTenantConfig(cachedTenantConfig);
           return;
@@ -111,7 +119,7 @@ export const useAppTenantTheme = ({
     updateTenantCSSVariables(tenantThemeConfig, isDark);
   }, [tenantThemeConfig, isDark]);
 
-  const themeConfig = useMemo(() => {
+  const themeConfig = useMemo<ThemeConfig>(() => {
     const baseTheme = isDark ? darkTheme : lightTheme;
     return {
       ...applyTenantConfig(baseTheme, tenantThemeConfig || undefined, isDark),
