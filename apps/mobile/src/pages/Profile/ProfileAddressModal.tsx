@@ -307,7 +307,15 @@ export const ProfileAddressModal: React.FC<ProfileAddressModalProps> = ({
       okText={okText}
       cancelText={cancelText}
       confirmLoading={createMutation.isPending || updateMutation.isPending}
-      width={760}
+      width="min(760px, calc(100vw - 32px))"
+      centered
+      styles={{
+        body: {
+          maxHeight: "calc(100vh - 220px)",
+          overflowX: "hidden",
+          overflowY: "auto",
+        },
+      }}
       destroyOnClose
     >
       <Form form={form} layout="vertical" onFinish={onFinish}>

@@ -20,22 +20,29 @@ import {
   Skeleton,
   Space,
   Spin,
-  Table,
   Tag,
   Tooltip,
   Typography,
+  theme,
 } from "antd";
 import {
   ArrowLeftOutlined,
   ExclamationCircleOutlined,
   GlobalOutlined,
   HomeOutlined,
+  MailOutlined,
   MessageOutlined,
   PhoneOutlined,
   QuestionCircleOutlined,
   WarningOutlined,
 } from "@ant-design/icons";
-import { checkIsLink, linkify, moneyCeil, moneyFormat, quantityFormat } from "@repo/util";
+import {
+  checkIsLink,
+  linkify,
+  moneyCeil,
+  moneyFormat,
+  quantityFormat,
+} from "@repo/util";
 import {
   addressLocation,
   getShipmentServicesInGroup,
@@ -47,14 +54,20 @@ import { ProfileAddressModal } from "../Profile/ProfileAddressModal";
 
 const { Paragraph, Text, Title } = Typography;
 
-export type CreateShipmentUiStyle = "style-default" | "style-thanhla" | "style-gobiz";
+export type CreateShipmentUiStyle =
+  | "style-default"
+  | "style-thanhla"
+  | "style-gobiz";
 
 interface CreateShipmentViewProps {
   uiStyle?: CreateShipmentUiStyle;
   logic: CreateShipmentPageLogic;
 }
 
-export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateShipmentViewProps) => {
+export const CreateShipmentView = ({
+  uiStyle = "style-default",
+  logic,
+}: CreateShipmentViewProps) => {
   const pageLogic = logic;
   const {
     t,
@@ -113,23 +126,28 @@ export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateS
   } = pageLogic;
   const isStyleThanhla = uiStyle === "style-thanhla";
   const isStyleGobiz = uiStyle === "style-gobiz";
-  const [addressPage, setAddressPage] = useState(1);
-  const [addressPageSize, setAddressPageSize] = useState(5);
+  const { token } = theme.useToken();
   const cardStyle = isStyleThanhla
     ? { borderRadius: 4, borderColor: "#d9d9d9" }
     : isStyleGobiz
       ? { borderRadius: 0, boxShadow: "none" }
       : undefined;
   const pageSpaceSize = isStyleGobiz ? 12 : 16;
+  const addresses = addressData?.data || [];
 
   const renderAddressBox = (address: any) => (
     <Card size="small" style={cardStyle}>
       <Space direction="vertical" size={8} style={{ width: "100%" }}>
         <Flex justify="space-between" gap={12} align="flex-start">
           <Text strong>
-            {address.fullname || address.fullName || address.contactName || "---"}{" "}
+            {address.fullname ||
+              address.fullName ||
+              address.contactName ||
+              "---"}{" "}
             {address.addressName || address.label ? (
-              <Text type="secondary">({address.addressName || address.label})</Text>
+              <Text type="secondary">
+                ({address.addressName || address.label})
+              </Text>
             ) : null}
           </Text>
           <Button type="link" size="small" onClick={openAddressList}>
@@ -189,13 +207,21 @@ export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateS
 
   const renderFieldValue = (label: ReactNode, value: any, name: string) => (
     <div style={{ marginBottom: 15 }}>
-      <Text type="secondary" strong>{label}:</Text>
+      <Text type="secondary" strong>
+        {label}:
+      </Text>
       <Paragraph
         editable={{
           onChange: (nextValue) => updateParagraphValue(name, nextValue),
           text: String(value ?? ""),
         }}
-        style={{ display: "inline", marginBottom: 0, marginLeft: 5, whiteSpace: "pre-wrap", wordBreak: "break-word" }}
+        style={{
+          display: "inline",
+          marginBottom: 0,
+          marginLeft: 5,
+          whiteSpace: "pre-wrap",
+          wordBreak: "break-word",
+        }}
         type="secondary"
       >
         {renderDisplayValue(value, name)}
@@ -207,7 +233,7 @@ export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateS
     name: string,
     label: ReactNode,
     value: any,
-    input: ReactNode,
+    input: ReactNode
   ) => {
     const isEditing = editingFinancialFields[name] || isEmptyField(value);
     if (!isEditing) return renderFieldValue(label, value, name);
@@ -238,17 +264,30 @@ export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateS
 
   const renderServiceDescription = (service: any): ReactNode[] => {
     const requiresMissingCodes = Array.isArray(service.requires)
-      ? service.requires.filter((code: string) => !selectedServices.includes(code))
+      ? service.requires.filter(
+          (code: string) => !selectedServices.includes(code)
+        )
       : [];
     const requireGroupsMissingCodes = Array.isArray(service.requireGroups)
-      ? service.requireGroups.filter((groupCode: string) => !selectedServiceObjects.some((item: any) => item.serviceGroup?.code === groupCode))
+      ? service.requireGroups.filter(
+          (groupCode: string) =>
+            !selectedServiceObjects.some(
+              (item: any) => item.serviceGroup?.code === groupCode
+            )
+        )
       : [];
     const requiresMissingNames = requiresMissingCodes
-      .map((code: string) => serviceOptions.find((item: any) => item.code === code)?.name)
+      .map(
+        (code: string) =>
+          serviceOptions.find((item: any) => item.code === code)?.name
+      )
       .filter(Boolean)
       .join(", ");
     const requireGroupsMissingNames = requireGroupsMissingCodes
-      .map((code: string) => visibleGroups.find((item: any) => item.code === code)?.name)
+      .map(
+        (code: string) =>
+          visibleGroups.find((item: any) => item.code === code)?.name
+      )
       .filter(Boolean)
       .join(", ");
 
@@ -258,7 +297,11 @@ export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateS
 
     if (requiresMissingNames) {
       messages.push(
-        <Paragraph key={`${service.code}-requires`} type="danger" className="mb-2.5 text-xs last:mb-0">
+        <Paragraph
+          key={`${service.code}-requires`}
+          type="danger"
+          className="mb-2.5 text-xs last:mb-0"
+        >
           <ExclamationCircleOutlined className="me-1" />
           <span
             dangerouslySetInnerHTML={{
@@ -268,13 +311,17 @@ export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateS
               }),
             }}
           />
-        </Paragraph>,
+        </Paragraph>
       );
     }
 
     if (requireGroupsMissingNames) {
       messages.push(
-        <Paragraph key={`${service.code}-requireGroups`} type="danger" className="mb-2.5 text-xs last:mb-0">
+        <Paragraph
+          key={`${service.code}-requireGroups`}
+          type="danger"
+          className="mb-2.5 text-xs last:mb-0"
+        >
           <ExclamationCircleOutlined className="me-1" />
           <span
             dangerouslySetInnerHTML={{
@@ -284,24 +331,34 @@ export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateS
               }),
             }}
           />
-        </Paragraph>,
+        </Paragraph>
       );
     }
 
     if (service.description) {
       messages.push(
-        <Paragraph key={`${service.code}-description`} type="secondary" className="mb-2.5 text-xs last:mb-0">
-          <Text>{service.name}</Text>: <Text type="secondary">{service.description}</Text>
-        </Paragraph>,
+        <Paragraph
+          key={`${service.code}-description`}
+          type="secondary"
+          className="mb-2.5 text-xs last:mb-0"
+        >
+          <Text>{service.name}</Text>:{" "}
+          <Text type="secondary">{service.description}</Text>
+        </Paragraph>
       );
     }
 
     if (service.needApprove) {
       messages.push(
-        <Paragraph key={`${service.code}-needApprove`} type="warning" className="mb-2.5 text-xs last:mb-0">
+        <Paragraph
+          key={`${service.code}-needApprove`}
+          type="warning"
+          className="mb-2.5 text-xs last:mb-0"
+        >
           <WarningOutlined className="me-1" />
-          {t("orderServiceGroup.service")} {service.name} {t("orderServiceGroup.approved_privilege")}
-        </Paragraph>,
+          {t("orderServiceGroup.service")} {service.name}{" "}
+          {t("orderServiceGroup.approved_privilege")}
+        </Paragraph>
       );
     }
 
@@ -327,9 +384,14 @@ export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateS
   };
 
   const renderServiceGroup = (group: any) => {
-    const groupServices = getShipmentServicesInGroup(serviceOptions, group.code);
+    const groupServices = getShipmentServicesInGroup(
+      serviceOptions,
+      group.code
+    );
     if (!groupServices.length) return null;
-    const current = groupServices.find((service: any) => selectedServices.includes(service.code));
+    const current = groupServices.find((service: any) =>
+      selectedServices.includes(service.code)
+    );
 
     return (
       <Row key={group.code} gutter={[16, 8]}>
@@ -342,13 +404,19 @@ export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateS
               <Radio.Group
                 value={current?.code || null}
                 onChange={(event) => {
-                  const service = groupServices.find((item: any) => item.code === event.target.value);
+                  const service = groupServices.find(
+                    (item: any) => item.code === event.target.value
+                  );
                   if (service) onServiceToggle(service, true);
                 }}
               >
                 <Space wrap align="start">
                   {groupServices.map((service: any) => (
-                    <Radio key={service.code} value={service.code} disabled={isServiceDisabled(service)}>
+                    <Radio
+                      key={service.code}
+                      value={service.code}
+                      disabled={isServiceDisabled(service)}
+                    >
                       <Text>{service.name}</Text>
                     </Radio>
                   ))}
@@ -375,111 +443,146 @@ export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateS
     );
   };
 
-  const addressColumns = [
-    {
-      title: "",
-      key: "radio",
-      width: 48,
-      render: (_: any, record: any) => <Radio value={record.id} />,
-    },
-    {
-      title: t("customerAddress.fullname"),
-      dataIndex: "fullname",
-      key: "fullname",
-      width: 160,
-      ellipsis: true,
-      render: (_: any, record: any) => record.fullname || record.fullName || record.contactName || "---",
-    },
-    {
-      title: t("customerAddress.phone"),
-      dataIndex: "phone",
-      key: "phone",
-      width: 140,
-      ellipsis: true,
-      render: (_: any, record: any) => record.phone || record.contactPhone || "---",
-    },
-    {
-      title: t("customerAddress.zipCode"),
-      dataIndex: "zipCode",
-      key: "zipCode",
-      width: 110,
-      ellipsis: true,
-      render: (value: string) => value || "---",
-    },
-    {
-      title: t("customerAddress.addressName"),
-      dataIndex: "addressName",
-      key: "addressName",
-      width: 160,
-      ellipsis: true,
-      render: (_: any, record: any) => record.addressName || record.label || "---",
-    },
-    {
-      title: t("customerAddress.address"),
-      dataIndex: "detail",
-      key: "detail",
-      width: 320,
-      ellipsis: true,
-      render: (_: any, record: any) => (
-        <Space direction="vertical" size={2}>
-          <Text ellipsis style={{ maxWidth: 300 }}>
-            {record.detail || record.address || "---"}
-          </Text>
-          <Text type="secondary" ellipsis style={{ maxWidth: 300 }}>
-            {addressLocation(record) || "---"}
-          </Text>
-        </Space>
-      ),
-    },
-    {
-      title: "",
-      key: "defaultAddress",
-      width: 100,
-      render: (_: any, record: any) =>
-        record.defaultAddress ? <Tag color="green">{t("customerAddress.default")}</Tag> : null,
-    },
-    {
-      title: "",
-      key: "action",
-      width: 120,
-      render: (_: any, record: any) => (
-        <Space split={<Divider type="vertical" />}>
-          <Button
-            type="link"
-            size="small"
-            onClick={(event) => {
-              event.stopPropagation();
-              openAddressForm(record);
-            }}
-          >
-            {t("button.edit")}
-          </Button>
-          {!record.defaultAddress && (
-            <Popconfirm
-              title={t("message.delete_confirm")}
-              okText={t("button.yes")}
-              cancelText={t("button.no")}
-              okButtonProps={{ loading: deleteAddressMutation.isPending }}
-              onConfirm={() => deleteAddress(record)}
-            >
+  const renderAddressOptionCard = (record: any) => {
+    const selected = String(addressDraftSelection) === String(record.id);
+
+    return (
+      <Card
+        key={record.id}
+        size="small"
+        onClick={() => setAddressDraftSelection(record.id)}
+        style={{
+          ...cardStyle,
+          cursor: "pointer",
+          borderColor: selected ? token.colorPrimary : cardStyle?.borderColor,
+          background: selected ? token.colorPrimaryBg : undefined,
+        }}
+        styles={{ body: { padding: token.paddingMD } }}
+      >
+        <Flex vertical gap={token.marginSM}>
+          <Flex align="center" gap={token.marginSM} style={{ width: "100%" }}>
+            <Radio value={record.id} style={{ flex: "0 0 auto" }} />
+            <Flex align="center" gap={token.marginXS} style={{ minWidth: 0, flex: 1 }}>
+              <Text strong ellipsis style={{ minWidth: 0, flex: "1 1 auto" }}>
+                {record.fullname ||
+                  record.fullName ||
+                  record.contactName ||
+                  "---"}
+              </Text>
+              {(record.addressName || record.label) && (
+                <Text
+                  type="secondary"
+                  ellipsis
+                  style={{ minWidth: 0, maxWidth: 120, flex: "0 1 auto" }}
+                >
+                  ({record.addressName || record.label})
+                </Text>
+              )}
+              <span style={{ flex: "0 0 auto" }}>
+                {record.defaultAddress ? (
+                  <Tag color="green" style={{ marginInlineEnd: 0 }}>
+                    {t("customerAddress.default")}
+                  </Tag>
+                ) : null}
+              </span>
+            </Flex>
+
+            <Flex align="center" gap={token.marginXS} style={{ flex: "0 0 auto" }}>
               <Button
                 type="link"
-                danger
                 size="small"
-                onClick={(event) => event.stopPropagation()}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  openAddressForm(record);
+                }}
               >
-                {t("button.delete")}
+                {t("button.edit")}
               </Button>
-            </Popconfirm>
-          )}
-        </Space>
-      ),
-    },
-  ];
+              {!record.defaultAddress && (
+                <Popconfirm
+                  title={t("message.delete_confirm")}
+                  okText={t("button.yes")}
+                  cancelText={t("button.no")}
+                  okButtonProps={{ loading: deleteAddressMutation.isPending }}
+                  onConfirm={() => deleteAddress(record)}
+                >
+                  <Button
+                    type="link"
+                    danger
+                    size="small"
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    {t("button.delete")}
+                  </Button>
+                </Popconfirm>
+              )}
+            </Flex>
+          </Flex>
+
+          <Space
+            direction="vertical"
+            size={token.marginXS}
+            style={{ width: "100%" }}
+          >
+            <Space align="start">
+              <HomeOutlined
+                style={{ color: token.colorTextSecondary, marginTop: 3 }}
+              />
+              <Text style={{ wordBreak: "break-word" }}>
+                {record.detail || record.address || "---"}
+              </Text>
+            </Space>
+            <Space align="start">
+              <PhoneOutlined
+                style={{ color: token.colorTextSecondary, marginTop: 3 }}
+              />
+              <Text>{record.phone || record.contactPhone || "---"}</Text>
+            </Space>
+            <Space align="start">
+              <GlobalOutlined
+                style={{ color: token.colorTextSecondary, marginTop: 3 }}
+              />
+              <Text type="secondary" style={{ wordBreak: "break-word" }}>
+                {addressLocation(record) || "---"}
+              </Text>
+            </Space>
+            {record.zipCode && (
+              <Space align="start">
+                <MailOutlined
+                  style={{ color: token.colorTextSecondary, marginTop: 3 }}
+                />
+                <Text type="secondary" style={{ wordBreak: "break-word" }}>
+                  {record.zipCode}
+                </Text>
+              </Space>
+            )}
+            {record.note && (
+              <Space align="start">
+                <MessageOutlined
+                  style={{ color: token.colorTextSecondary, marginTop: 3 }}
+                />
+                <Text type="secondary" style={{ wordBreak: "break-word" }}>
+                  {record.note}
+                </Text>
+              </Space>
+            )}
+          </Space>
+        </Flex>
+      </Card>
+    );
+  };
 
   return (
-    <Spin spinning={createDraftMutation.isPending || createShipmentMutation.isPending}>
-      <Space direction="vertical" size={pageSpaceSize} style={{ width: "100%" }}>
+    <Spin
+      spinning={
+        createDraftMutation.isPending || createShipmentMutation.isPending
+      }
+    >
+      <Space
+        direction="vertical"
+        size={pageSpaceSize}
+        style={{ width: "100%" }}
+      >
         <Link to="/shipments">
           <Space>
             <ArrowLeftOutlined />
@@ -488,39 +591,58 @@ export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateS
         </Link>
 
         <Flex justify="space-between" align="center" wrap gap={16}>
-          <Title level={3} style={{ margin: 0 }}>{t("shipments.create_shipment")}</Title>
+          <Title level={3} style={{ margin: 0 }}>
+            {t("shipments.create_shipment")}
+          </Title>
         </Flex>
 
         {isLoading ? (
-          <Card style={cardStyle}><Skeleton active /></Card>
+          <Card style={cardStyle}>
+            <Skeleton active />
+          </Card>
         ) : (
           <Row gutter={[20, 20]}>
             <Col xs={24} lg={16}>
-              <Space direction="vertical" size={pageSpaceSize} style={{ width: "100%" }}>
+              <Space
+                direction="vertical"
+                size={pageSpaceSize}
+                style={{ width: "100%" }}
+              >
                 <Card
                   style={cardStyle}
                   title={
                     <Flex justify="space-between" align="center" gap={16} wrap>
                       <Text strong>{t("shipments.choose_service")}</Text>
                       <Checkbox
-                        checked={!!profile?.customerAuthorities?.draftServicesEnable}
+                        checked={
+                          !!profile?.customerAuthorities?.draftServicesEnable
+                        }
                         disabled={updateProfileMutation.isPending}
-                        onChange={(event) => onSaveDraftServicesChange(event.target.checked)}
+                        onChange={(event) =>
+                          onSaveDraftServicesChange(event.target.checked)
+                        }
                       >
                         <Text>{t("shipments.save_draft_shipment")}</Text>
                       </Checkbox>
                     </Flex>
                   }
                 >
-                  <Space direction="vertical" size={pageSpaceSize} style={{ width: "100%" }}>
-                    {serviceOptions.some((service: any) => !service.serviceGroup) && (
+                  <Space
+                    direction="vertical"
+                    size={pageSpaceSize}
+                    style={{ width: "100%" }}
+                  >
+                    {serviceOptions.some(
+                      (service: any) => !service.serviceGroup
+                    ) && (
                       <Row gutter={[16, 8]}>
                         <Col xs={24} md={6}>
                           <Text strong>{t("shipments.other_service")}:</Text>
                         </Col>
                         <Col xs={24} md={18}>
                           {(() => {
-                            const noGroupServices = getShipmentServicesWithoutGroup(serviceOptions);
+                            const noGroupServices =
+                              getShipmentServicesWithoutGroup(serviceOptions);
                             return (
                               <>
                                 <Space wrap align="start">
@@ -540,13 +662,20 @@ export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateS
                 <Collapse defaultActiveKey={["address"]}>
                   <Collapse.Panel
                     key="address"
-                    header={<Text strong>{t("customerAddress.delivery_address")}</Text>}
+                    header={
+                      <Text strong>
+                        {t("customerAddress.delivery_address")}
+                      </Text>
+                    }
                   >
                     {selectedAddressItem ? (
                       renderAddressBox(selectedAddressItem)
                     ) : (
                       <Empty description={t("customerAddress.no_address")}>
-                        <Button type="primary" onClick={() => openAddressForm()}>
+                        <Button
+                          type="primary"
+                          onClick={() => openAddressForm()}
+                        >
                           {t("customerAddress.create_address")}
                         </Button>
                       </Empty>
@@ -554,46 +683,65 @@ export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateS
                   </Collapse.Panel>
                 </Collapse>
 
-                {isWarehouseEnabled && Array.isArray(draftShipment?.sourceWarehouses) && draftShipment.sourceWarehouses.length > 0 && (
-                  <Collapse defaultActiveKey={["warehouse"]}>
-                    <Collapse.Panel
-                      key="warehouse"
-                      header={<Text strong>{t("shipments.receivingWarehouse")}</Text>}
-                    >
-                      <Card size="small" style={cardStyle}>
-                        <Row align="middle" gutter={[16, 12]}>
-                          <Col xs={24} md={4}>
-                            <Text strong>{t("shipments.receivingWarehouseDisplayName")}</Text>
-                          </Col>
-                          <Col xs={24} md={20}>
-                            {draftShipment.sourceWarehouses.length <= 3 ? (
-                              <Radio.Group
-                                value={selectedWarehouse}
-                                onChange={(event) => setSelectedWarehouse(event.target.value)}
-                              >
-                                <Space wrap>
-                                  {draftShipment.sourceWarehouses.map((item: any) => (
-                                    <Radio key={item.code} value={item.code}>{item.displayName}</Radio>
-                                  ))}
-                                </Space>
-                              </Radio.Group>
-                            ) : (
-                              <Select
-                                value={selectedWarehouse}
-                                onChange={setSelectedWarehouse}
-                                style={{ width: 150 }}
-                                options={draftShipment.sourceWarehouses.map((item: any) => ({
-                                  value: item.code,
-                                  label: item.displayName,
-                                }))}
-                              />
-                            )}
-                          </Col>
-                        </Row>
-                      </Card>
-                    </Collapse.Panel>
-                  </Collapse>
-                )}
+                {isWarehouseEnabled &&
+                  Array.isArray(draftShipment?.sourceWarehouses) &&
+                  draftShipment.sourceWarehouses.length > 0 && (
+                    <Collapse defaultActiveKey={["warehouse"]}>
+                      <Collapse.Panel
+                        key="warehouse"
+                        header={
+                          <Text strong>
+                            {t("shipments.receivingWarehouse")}
+                          </Text>
+                        }
+                      >
+                        <Card size="small" style={cardStyle}>
+                          <Row align="middle" gutter={[16, 12]}>
+                            <Col xs={24} md={4}>
+                              <Text strong>
+                                {t("shipments.receivingWarehouseDisplayName")}
+                              </Text>
+                            </Col>
+                            <Col xs={24} md={20}>
+                              {draftShipment.sourceWarehouses.length <= 3 ? (
+                                <Radio.Group
+                                  value={selectedWarehouse}
+                                  onChange={(event) =>
+                                    setSelectedWarehouse(event.target.value)
+                                  }
+                                >
+                                  <Space wrap>
+                                    {draftShipment.sourceWarehouses.map(
+                                      (item: any) => (
+                                        <Radio
+                                          key={item.code}
+                                          value={item.code}
+                                        >
+                                          {item.displayName}
+                                        </Radio>
+                                      )
+                                    )}
+                                  </Space>
+                                </Radio.Group>
+                              ) : (
+                                <Select
+                                  value={selectedWarehouse}
+                                  onChange={setSelectedWarehouse}
+                                  style={{ width: 150 }}
+                                  options={draftShipment.sourceWarehouses.map(
+                                    (item: any) => ({
+                                      value: item.code,
+                                      label: item.displayName,
+                                    })
+                                  )}
+                                />
+                              )}
+                            </Col>
+                          </Row>
+                        </Card>
+                      </Collapse.Panel>
+                    </Collapse>
+                  )}
               </Space>
             </Col>
 
@@ -603,13 +751,17 @@ export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateS
                   {fees.map((item: any) => (
                     <Flex key={item.feeType} justify="space-between" gap={12}>
                       <Text type="secondary">- {item.name}</Text>
-                      <Text>{moneyFormat(moneyCeil(item.provisionalAmount))}</Text>
+                      <Text>
+                        {moneyFormat(moneyCeil(item.provisionalAmount))}
+                      </Text>
                     </Flex>
                   ))}
                   <Divider style={{ margin: "8px 0" }} />
                   <Flex justify="space-between" gap={12}>
                     <Text strong>{t("shipments.provisional_fee")}</Text>
-                    <Text strong>{moneyFormat(moneyCeil(draftShipment?.totalFee))}</Text>
+                    <Text strong>
+                      {moneyFormat(moneyCeil(draftShipment?.totalFee))}
+                    </Text>
                   </Flex>
 
                   <Form form={form} layout="vertical">
@@ -623,14 +775,22 @@ export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateS
                           precision={0}
                           placeholder={t("shipments.expectedPackages")}
                           style={{ width: "100%" }}
-                          onBlur={() => finishFinancialFieldEditing("expectedPackages", form.getFieldValue("expectedPackages"))}
+                          onBlur={() =>
+                            finishFinancialFieldEditing(
+                              "expectedPackages",
+                              form.getFieldValue("expectedPackages")
+                            )
+                          }
                           onKeyDown={(event) => {
                             if (event.key === "Enter") {
-                              finishFinancialFieldEditing("expectedPackages", form.getFieldValue("expectedPackages"));
+                              finishFinancialFieldEditing(
+                                "expectedPackages",
+                                form.getFieldValue("expectedPackages")
+                              );
                             }
                           }}
                         />
-                      </Form.Item>,
+                      </Form.Item>
                     )}
 
                     {renderEditableInput(
@@ -642,17 +802,25 @@ export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateS
                           name="refTrackingNumbers"
                           noStyle
                           validateStatus={trackingError ? "error" : undefined}
-                          help={trackingError ? t("shipments.invalid_tracking_numbers") : undefined}
+                          help={
+                            trackingError
+                              ? t("shipments.invalid_tracking_numbers")
+                              : undefined
+                          }
                         >
                           <Input.TextArea
                             rows={3}
                             placeholder={t("shipments.tracking_numbers")}
                             onChange={(event) => {
-                              const valid = /^[a-zA-Z0-9.,:_\-\s]*$/.test(event.target.value || "");
+                              const valid = /^[a-zA-Z0-9.,:_\-\s]*$/.test(
+                                event.target.value || ""
+                              );
                               setTrackingError(!valid);
                               if (!valid) {
                                 feedback.error({
-                                  message: t("shipments.invalid_tracking_numbers"),
+                                  message: t(
+                                    "shipments.invalid_tracking_numbers"
+                                  ),
                                   key: "errorTrackingnumber",
                                 });
                               }
@@ -670,7 +838,7 @@ export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateS
                         <Text type="secondary" italic style={{ fontSize: 12 }}>
                           {t("shipments.tracking_numbers_hint")}
                         </Text>
-                      </>,
+                      </>
                     )}
 
                     {renderEditableInput(
@@ -682,15 +850,21 @@ export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateS
                           maxLength={1000}
                           placeholder={t("shipments.refShipmentCode")}
                           onBlur={(event) => {
-                            finishTextField("refShipmentCode", event.target.value);
+                            finishTextField(
+                              "refShipmentCode",
+                              event.target.value
+                            );
                           }}
                           onKeyDown={(event) => {
                             if (event.key === "Enter") {
-                              finishTextField("refShipmentCode", event.currentTarget.value);
+                              finishTextField(
+                                "refShipmentCode",
+                                event.currentTarget.value
+                              );
                             }
                           }}
                         />
-                      </Form.Item>,
+                      </Form.Item>
                     )}
 
                     {renderEditableInput(
@@ -702,42 +876,65 @@ export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateS
                           maxLength={1000}
                           placeholder={t("shipments.refCustomerCode")}
                           onBlur={(event) => {
-                            finishTextField("refCustomerCode", event.target.value);
+                            finishTextField(
+                              "refCustomerCode",
+                              event.target.value
+                            );
                           }}
                           onKeyDown={(event) => {
                             if (event.key === "Enter") {
-                              finishTextField("refCustomerCode", event.currentTarget.value);
+                              finishTextField(
+                                "refCustomerCode",
+                                event.currentTarget.value
+                              );
                             }
                           }}
                         />
-                      </Form.Item>,
+                      </Form.Item>
                     )}
 
-                    {!disableCustomerOrderNote && renderEditableInput(
-                      "remark",
-                      t("shipments.order_note"),
-                      remarkValue,
-                      <div>
-                        <Form.Item name="remark" noStyle>
-                          <Input.TextArea
-                            autoSize={{ minRows: 1, maxRows: 3 }}
-                            maxLength={1000}
-                            placeholder={t("shipments.order_note")}
-                            onBlur={(event) => {
-                              finishTextField("remark", event.target.value);
+                    {!disableCustomerOrderNote &&
+                      renderEditableInput(
+                        "remark",
+                        t("shipments.order_note"),
+                        remarkValue,
+                        <div>
+                          <Form.Item name="remark" noStyle>
+                            <Input.TextArea
+                              autoSize={{ minRows: 1, maxRows: 3 }}
+                              maxLength={1000}
+                              placeholder={t("shipments.order_note")}
+                              onBlur={(event) => {
+                                finishTextField("remark", event.target.value);
+                              }}
+                              onKeyDown={(event) => {
+                                if (
+                                  (event.metaKey ||
+                                    event.shiftKey ||
+                                    event.altKey ||
+                                    event.ctrlKey) &&
+                                  event.key === "Enter"
+                                ) {
+                                  finishTextField(
+                                    "remark",
+                                    event.currentTarget.value
+                                  );
+                                }
+                              }}
+                            />
+                          </Form.Item>
+                          <Text
+                            type="secondary"
+                            style={{
+                              display: "block",
+                              marginTop: 5,
+                              fontSize: 12,
                             }}
-                            onKeyDown={(event) => {
-                              if ((event.metaKey || event.shiftKey || event.altKey || event.ctrlKey) && event.key === "Enter") {
-                                finishTextField("remark", event.currentTarget.value);
-                              }
-                            }}
-                          />
-                        </Form.Item>
-                        <Text type="secondary" style={{ display: "block", marginTop: 5, fontSize: 12 }}>
-                          {t("shipments.manipulation_note")}
-                        </Text>
-                      </div>,
-                    )}
+                          >
+                            {t("shipments.manipulation_note")}
+                          </Text>
+                        </div>
+                      )}
 
                     {editingFinancialFields.note ? (
                       <div style={{ marginTop: 10 }}>
@@ -750,20 +947,40 @@ export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateS
                               finishTextField("note", event.target.value);
                             }}
                             onKeyDown={(event) => {
-                              if ((event.metaKey || event.shiftKey || event.altKey || event.ctrlKey) && event.key === "Enter") {
-                                finishTextField("note", event.currentTarget.value);
+                              if (
+                                (event.metaKey ||
+                                  event.shiftKey ||
+                                  event.altKey ||
+                                  event.ctrlKey) &&
+                                event.key === "Enter"
+                              ) {
+                                finishTextField(
+                                  "note",
+                                  event.currentTarget.value
+                                );
                               }
                             }}
                           />
                         </Form.Item>
-                        <Text type="secondary" style={{ display: "block", marginTop: 5, fontSize: 12 }}>
+                        <Text
+                          type="secondary"
+                          style={{
+                            display: "block",
+                            marginTop: 5,
+                            fontSize: 12,
+                          }}
+                        >
                           {t("shipments.manipulation_note")}
                         </Text>
                       </div>
                     ) : noteValue ? (
                       renderFieldValue(personalNoteLabel, noteValue, "note")
                     ) : (
-                      <Button type="link" style={{ padding: 0 }} onClick={() => setFinancialFieldEditing("note", true)}>
+                      <Button
+                        type="link"
+                        style={{ padding: 0 }}
+                        onClick={() => setFinancialFieldEditing("note", true)}
+                      >
                         {personalNoteLabel}
                       </Button>
                     )}
@@ -773,7 +990,9 @@ export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateS
                     type="primary"
                     block
                     size="large"
-                    disabled={!draftShipment?.id || !selectedAddress || trackingError}
+                    disabled={
+                      !draftShipment?.id || !selectedAddress || trackingError
+                    }
                     loading={createShipmentMutation.isPending}
                     onClick={submit}
                   >
@@ -787,55 +1006,43 @@ export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateS
 
         <Modal
           title={
-            <Space>
+            <Flex align="center" gap={token.marginSM} wrap>
               <Text>{t("customerAddress.address_list")}</Text>
               <Button type="link" onClick={() => openAddressForm()}>
                 {t("customerAddress.new_address")}
               </Button>
-            </Space>
+            </Flex>
           }
           open={addressModalOpen}
           onCancel={() => setAddressModalOpen(false)}
           onOk={confirmAddressSelection}
           okText={t("button.yes").toUpperCase()}
           cancelText={t("button.cancel").toUpperCase()}
+          centered
           confirmLoading={createDraftMutation.isPending}
-          styles={{ body: { maxHeight: "calc(100vh - 220px)", overflow: "hidden" } }}
-          width="min(1100px, calc(100vw - 32px))"
+          styles={{
+            body: { maxHeight: "calc(100vh - 220px)", overflow: "auto" },
+          }}
+          width="min(760px, calc(100vw - 32px))"
         >
           <Radio.Group
             value={addressDraftSelection}
             onChange={(event) => setAddressDraftSelection(event.target.value)}
             style={{ width: "100%" }}
           >
-            <Table
-              rowKey="id"
-              columns={addressColumns}
-              dataSource={addressData?.data || []}
-              loading={isAddressLoading}
-              locale={{ emptyText: <Empty description={t("customerAddress.no_address")} /> }}
-              scroll={{ x: 1030, y: "calc(100vh - 380px)" }}
-              tableLayout="fixed"
-              pagination={{
-                current: addressPage,
-                hideOnSinglePage: true,
-                pageSize: addressPageSize,
-                pageSizeOptions: [5, 10, 20, 50],
-                showSizeChanger: true,
-                simple: true,
-                onChange: (page, pageSize) => {
-                  setAddressPage(page);
-                  setAddressPageSize(pageSize);
-                },
-                onShowSizeChange: (_page, pageSize) => {
-                  setAddressPage(1);
-                  setAddressPageSize(pageSize);
-                },
-              }}
-              onRow={(record) => ({
-                onClick: () => setAddressDraftSelection(record.id),
-              })}
-            />
+            <Spin spinning={isAddressLoading}>
+              {addresses.length > 0 ? (
+                <Space
+                  direction="vertical"
+                  size={token.marginSM}
+                  style={{ width: "100%" }}
+                >
+                  {addresses.map(renderAddressOptionCard)}
+                </Space>
+              ) : (
+                <Empty description={t("customerAddress.no_address")} />
+              )}
+            </Spin>
           </Radio.Group>
         </Modal>
 
