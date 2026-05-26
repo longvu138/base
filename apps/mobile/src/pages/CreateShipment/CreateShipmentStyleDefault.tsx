@@ -1,4 +1,4 @@
-import { type ReactNode, useState } from "react";
+import { type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import {
   Button,
@@ -462,7 +462,11 @@ export const CreateShipmentView = ({
         <Flex vertical gap={token.marginSM}>
           <Flex align="center" gap={token.marginSM} style={{ width: "100%" }}>
             <Radio value={record.id} style={{ flex: "0 0 auto" }} />
-            <Flex align="center" gap={token.marginXS} style={{ minWidth: 0, flex: 1 }}>
+            <Flex
+              align="center"
+              gap={token.marginXS}
+              style={{ minWidth: 0, flex: 1 }}
+            >
               <Text strong ellipsis style={{ minWidth: 0, flex: "1 1 auto" }}>
                 {record.fullname ||
                   record.fullName ||
@@ -487,7 +491,11 @@ export const CreateShipmentView = ({
               </span>
             </Flex>
 
-            <Flex align="center" gap={token.marginXS} style={{ flex: "0 0 auto" }}>
+            <Flex
+              align="center"
+              gap={token.marginXS}
+              style={{ flex: "0 0 auto" }}
+            >
               <Button
                 type="link"
                 size="small"
