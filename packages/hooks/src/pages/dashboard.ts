@@ -3,9 +3,11 @@ import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "@repo/i18n";
 import {
   useCustomerBalance,
+} from "../useCustomerHooks";
+import {
   useOrderStatisticQuery,
   useOrderStatusesQuery,
-} from "@repo/hooks";
+} from "../useOrderHooks";
 import { appConfig } from "@repo/config";
 
 export type DashboardProduct = {

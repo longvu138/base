@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@repo/api": "workspace:*",
+    "@repo/config": "workspace:*",
     "@repo/i18n": "workspace:*",
     "antd": "^6.3.7",
     "dayjs": "^1.11.10",
