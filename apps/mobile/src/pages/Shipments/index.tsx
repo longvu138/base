@@ -1,36 +1,23 @@
-import { DynamicVariant } from "@repo/ui";
+import React from "react";
 import { useVariant } from "@repo/theme-provider";
+import { DynamicVariant } from "@repo/ui";
 
 const modules = import.meta.glob("./*.tsx");
 
-export const ShipmentsPage = ({
-  isTabView = false,
-}: {
-  isTabView?: boolean;
-}) => {
+const ShipmentsPage: React.FC<any> = (props) => {
   const variant = useVariant("shipments", "ShipmentsStyleDefault");
 
-  const content = (
+  return (
     <DynamicVariant
       variantName={variant}
       modules={modules}
       fallbackName="ShipmentsStyleDefault"
       featureName="Shipments"
-      componentProps={{
-        isTabView,
-      }}
+      componentProps={props}
     />
-  );
-
-  if (isTabView) {
-    return content;
-  }
-
-  return (
-    <div className="bg-layout min-h-screen pb-20">
-      <div className="p-4">{content}</div>
-    </div>
   );
 };
 
+export const Shipments = ShipmentsPage;
+export { ShipmentsPage };
 export default ShipmentsPage;

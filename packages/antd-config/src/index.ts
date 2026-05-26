@@ -100,11 +100,23 @@ export const mobileAntdTheme: ThemeConfig = {
   token: {
     ...baseAntdTheme.token,
   },
+  components: {
+    ...baseAntdTheme.components,
+    Card: {
+      bodyPadding: 16,
+    },
+  },
 };
 
 export const mobileDarkAntdTheme: ThemeConfig = {
   ...baseDarkAntdTheme,
   token: {
     ...baseDarkAntdTheme.token,
+  },
+  components: {
+    ...baseDarkAntdTheme.components,
+    Card: {
+      bodyPadding: 16,
+    },
   },
 };

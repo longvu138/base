@@ -107,21 +107,12 @@ export const LayoutStyleDefault = () => {
       </Sider>
 
       <AntLayout className="flex flex-col">
-        <Header className="flex items-center justify-between px-4 bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 shadow-sm">
-          {/* Left: toggle button + breadcrumb */}
-          <div className="flex items-center gap-3">
-            <Button
-              type="text"
-              icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-              onClick={() => setCollapsed(!collapsed)}
-              className="w-10 h-10 flex items-center justify-center rounded-xl text-gray-500 hover:text-primary hover:bg-primary/10 transition-all"
-            />
+        <Header className="flex items-center justify-between gap-4 px-4 bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 shadow-sm">
+          <div className="flex items-center gap-4 min-w-0">
             <span className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               {activeMenu?.label}
             </span>
-          </div>
 
-          <div className="flex items-center gap-4">
             <HeaderGobizActions />
 
             <Select
@@ -201,6 +192,15 @@ export const LayoutStyleDefault = () => {
               </div>
             </Dropdown>
 
+          </div>
+
+          <div className="flex items-center gap-3 shrink-0">
+            <Button
+              type="text"
+              icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+              onClick={() => setCollapsed(!collapsed)}
+              className="w-10 h-10 flex items-center justify-center rounded-xl text-gray-500 hover:text-primary hover:bg-primary/10 transition-all"
+            />
             <ThemeSwitcher />
           </div>
         </Header>

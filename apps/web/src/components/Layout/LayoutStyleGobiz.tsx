@@ -119,20 +119,12 @@ const LayoutStyleGobiz: React.FC = () => {
       </Sider>
 
       <AntLayout className="bg-transparent">
-        <Header className="mt-4 mb-2 flex items-center justify-between bg-white dark:bg-[#141414] rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm transition-all h-16">
-          <div className="flex items-center min-w-0">
-            <Button
-              type="text"
-              icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-              onClick={() => setCollapsed(!collapsed)}
-              className="text-lg dark:text-gray-400"
-            />
-            <div className="ml-3 text-lg font-semibold text-gray-900 dark:text-gray-100 truncate">
+        <Header className="mt-4 mb-2 flex items-center justify-between gap-4 bg-white dark:bg-[#141414] rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm transition-all h-16">
+          <div className="flex items-center gap-6 min-w-0">
+            <div className="text-lg font-semibold text-gray-900 dark:text-gray-100 truncate">
               {activeMenu?.label}
             </div>
-          </div>
 
-          <div className="flex items-center gap-6">
             <HeaderGobizActions />
 
             <Space className="flex">
@@ -168,8 +160,6 @@ const LayoutStyleGobiz: React.FC = () => {
             </Space>
 
             <div className="h-8 w-[1px] bg-gray-100 dark:bg-gray-800 mx-2" />
-
-            <ThemeSwitcher />
 
             <HeaderNotificationLink />
 
@@ -219,6 +209,16 @@ const LayoutStyleGobiz: React.FC = () => {
                 )}
               </div>
             </Dropdown>
+          </div>
+
+          <div className="flex items-center gap-3 shrink-0">
+            <Button
+              type="text"
+              icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+              onClick={() => setCollapsed(!collapsed)}
+              className="text-lg dark:text-gray-400"
+            />
+            <ThemeSwitcher />
           </div>
         </Header>
 
