@@ -82,7 +82,7 @@ export const ProfileAddressModal: React.FC<ProfileAddressModalProps> = ({
 }) => {
   const { t } = useTranslation();
   const [form] = Form.useForm();
-  const { notification } = App.useApp();
+  const { message } = App.useApp();
   const createMutation = useCreateAddressMutation();
   const updateMutation = useUpdateAddressMutation();
 
@@ -252,7 +252,7 @@ export const ProfileAddressModal: React.FC<ProfileAddressModalProps> = ({
           payload.receivingAddress === initialSnapshot.receivingAddress &&
           payload.zipCode === initialSnapshot.zipCode
         ) {
-          notification.warning({ message: "Không có sự thay đổi" });
+          message.warning("Không có sự thay đổi");
           return;
         }
         await updateMutation.mutateAsync({
@@ -262,17 +262,16 @@ export const ProfileAddressModal: React.FC<ProfileAddressModalProps> = ({
       } else {
         await createMutation.mutateAsync(payload);
       }
-      notification.success({ message: "Thành công" });
+      message.success("Thành công");
       await onSuccess?.();
       onClose();
     } catch (error: any) {
-      notification.error({
-        message:
+      message.error(
           error?.response?.data?.message ||
           error?.response?.data?.title ||
           error?.message ||
           "Có lỗi xảy ra, vui lòng thử lại",
-      });
+      );
     }
   };
 

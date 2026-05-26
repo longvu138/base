@@ -1,4 +1,4 @@
-import { type ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Button,
@@ -90,7 +90,7 @@ export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateS
     remarkValue,
     noteValue,
     disableCustomerOrderNote,
-    notification,
+    feedback,
     editingFinancialFields,
     finishFinancialFieldEditing,
     isEmptyField,
@@ -113,6 +113,8 @@ export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateS
   } = pageLogic;
   const isStyleThanhla = uiStyle === "style-thanhla";
   const isStyleGobiz = uiStyle === "style-gobiz";
+  const [addressPage, setAddressPage] = useState(1);
+  const [addressPageSize, setAddressPageSize] = useState(5);
   const cardStyle = isStyleThanhla
     ? { borderRadius: 4, borderColor: "#d9d9d9" }
     : isStyleGobiz
@@ -384,34 +386,48 @@ export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateS
       title: t("customerAddress.fullname"),
       dataIndex: "fullname",
       key: "fullname",
+      width: 160,
+      ellipsis: true,
       render: (_: any, record: any) => record.fullname || record.fullName || record.contactName || "---",
     },
     {
       title: t("customerAddress.phone"),
       dataIndex: "phone",
       key: "phone",
+      width: 140,
+      ellipsis: true,
       render: (_: any, record: any) => record.phone || record.contactPhone || "---",
     },
     {
       title: t("customerAddress.zipCode"),
       dataIndex: "zipCode",
       key: "zipCode",
+      width: 110,
+      ellipsis: true,
       render: (value: string) => value || "---",
     },
     {
       title: t("customerAddress.addressName"),
       dataIndex: "addressName",
       key: "addressName",
+      width: 160,
+      ellipsis: true,
       render: (_: any, record: any) => record.addressName || record.label || "---",
     },
     {
       title: t("customerAddress.address"),
       dataIndex: "detail",
       key: "detail",
+      width: 320,
+      ellipsis: true,
       render: (_: any, record: any) => (
         <Space direction="vertical" size={2}>
-          <Text>{record.detail || record.address || "---"}</Text>
-          <Text type="secondary">{addressLocation(record) || "---"}</Text>
+          <Text ellipsis style={{ maxWidth: 300 }}>
+            {record.detail || record.address || "---"}
+          </Text>
+          <Text type="secondary" ellipsis style={{ maxWidth: 300 }}>
+            {addressLocation(record) || "---"}
+          </Text>
         </Space>
       ),
     },
@@ -635,7 +651,7 @@ export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateS
                               const valid = /^[a-zA-Z0-9.,:_\-\s]*$/.test(event.target.value || "");
                               setTrackingError(!valid);
                               if (!valid) {
-                                notification.error({
+                                feedback.error({
                                   message: t("shipments.invalid_tracking_numbers"),
                                   key: "errorTrackingnumber",
                                 });
@@ -784,7 +800,8 @@ export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateS
           okText={t("button.yes").toUpperCase()}
           cancelText={t("button.cancel").toUpperCase()}
           confirmLoading={createDraftMutation.isPending}
-          width={1100}
+          styles={{ body: { maxHeight: "calc(100vh - 220px)", overflow: "hidden" } }}
+          width="min(1100px, calc(100vw - 32px))"
         >
           <Radio.Group
             value={addressDraftSelection}
@@ -797,7 +814,24 @@ export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateS
               dataSource={addressData?.data || []}
               loading={isAddressLoading}
               locale={{ emptyText: <Empty description={t("customerAddress.no_address")} /> }}
-              pagination={{ hideOnSinglePage: true, pageSize: 5, simple: true }}
+              scroll={{ x: 1030, y: "calc(100vh - 380px)" }}
+              tableLayout="fixed"
+              pagination={{
+                current: addressPage,
+                hideOnSinglePage: true,
+                pageSize: addressPageSize,
+                pageSizeOptions: [5, 10, 20, 50],
+                showSizeChanger: true,
+                simple: true,
+                onChange: (page, pageSize) => {
+                  setAddressPage(page);
+                  setAddressPageSize(pageSize);
+                },
+                onShowSizeChange: (_page, pageSize) => {
+                  setAddressPage(1);
+                  setAddressPageSize(pageSize);
+                },
+              }}
               onRow={(record) => ({
                 onClick: () => setAddressDraftSelection(record.id),
               })}
@@ -820,7 +854,7 @@ export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateS
 };
 
 export const CreateShipmentStyleDefault = () => {
-  const logic = useCreateShipmentPage();
+  const logic = useCreateShipmentPage({ feedbackMode: "message" });
 
   return <CreateShipmentView uiStyle="style-default" logic={logic} />;
 };

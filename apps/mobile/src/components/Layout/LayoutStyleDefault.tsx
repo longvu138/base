@@ -279,7 +279,7 @@ function Layout() {
         />
       </Drawer>
 
-      <Content className="bg-layout min-h-0 overflow-auto">
+      <Content className="bg-layout min-h-0 overflow-auto pb-20">
         <div className="p-4">
           <Outlet />
         </div>

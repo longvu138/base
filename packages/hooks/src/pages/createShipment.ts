@@ -67,10 +67,38 @@ export const addressLocation = (item: any) =>
   item.locationName ||
   "";
 
-export const useCreateShipmentPage = () => {
+type CreateShipmentFeedbackMode = "notification" | "message";
+
+interface UseCreateShipmentPageOptions {
+  feedbackMode?: CreateShipmentFeedbackMode;
+}
+
+const createMessageFeedback = (messageApi: any) => {
+  const open = (type: "success" | "error" | "warning", config: any) => {
+    messageApi.open({
+      type,
+      content: config?.message || config?.content,
+      key: config?.key,
+    });
+  };
+
+  return {
+    success: (config: any) => open("success", config),
+    error: (config: any) => open("error", config),
+    warning: (config: any) => open("warning", config),
+  };
+};
+
+export const useCreateShipmentPage = (
+  options: UseCreateShipmentPageOptions = {},
+) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { notification, modal } = AntdApp.useApp();
+  const { notification: notificationApi, message, modal } = AntdApp.useApp();
+  const notification =
+    options.feedbackMode === "message"
+      ? createMessageFeedback(message)
+      : notificationApi;
   const [form] = Form.useForm();
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [draftShipment, setDraftShipment] = useState<any>(null);
@@ -552,6 +580,7 @@ export const useCreateShipmentPage = () => {
     remarkValue: financialFields.financialFieldValues.remark,
     noteValue: financialFields.financialFieldValues.note,
     disableCustomerOrderNote,
+    feedback: notification,
     notification,
     ...financialFields,
     setAddressModalOpen,
