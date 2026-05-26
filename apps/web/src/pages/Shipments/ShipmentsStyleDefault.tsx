@@ -2,6 +2,16 @@ import { useMemo, useState } from "react";
 import dayjs from "dayjs";
 import { Link } from "react-router-dom";
 import {
+  getCustomerVisibleShipmentServices,
+  getShipmentServicesInGroup,
+  getShipmentServicesWithoutGroup,
+  getVisibleShipmentServiceGroups,
+  useShipmentsPage,
+  useShipmentMilestonesQuery,
+} from "@repo/hooks";
+import { FilterPanel } from "@repo/ui";
+import { moneyFormat, quantityFormat } from "@repo/util";
+import {
   Alert,
   Avatar,
   Button,
@@ -41,16 +51,6 @@ import {
   UploadOutlined,
   WarningOutlined,
 } from "@ant-design/icons";
-import { useShipmentMilestonesQuery } from "@repo/hooks";
-import { FilterPanel } from "@repo/ui";
-import { moneyFormat, quantityFormat } from "@repo/util";
-import {
-  getCustomerVisibleShipmentServices,
-  getShipmentServicesInGroup,
-  getShipmentServicesWithoutGroup,
-  getVisibleShipmentServiceGroups,
-} from "../../components/Common/shipmentServices";
-import { useShipmentsPage } from "./hooks/useShipmentsPage";
 
 const { Paragraph, Text } = Typography;
 

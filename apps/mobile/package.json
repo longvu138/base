@@ -21,6 +21,7 @@
     "@repo/theme-provider": "workspace:*",
     "@repo/types": "workspace:*",
     "@repo/ui": "workspace:*",
+    "@repo/util": "workspace:*",
     "@tanstack/react-query": "^5.62.11",
     "@tanstack/react-query-devtools": "^5.62.11",
     "antd": "^5.22.6",
