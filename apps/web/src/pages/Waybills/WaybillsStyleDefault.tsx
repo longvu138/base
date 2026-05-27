@@ -1,6 +1,6 @@
 import { Card, Space } from "antd";
 import { FilterPanel } from "@repo/ui";
-import { useWaybillsPage } from "./hooks/useWaybillsPage";
+import { useWaybillsPage } from "@repo/hooks";
 import {
   WaybillCreateModal,
   WaybillExportModal,

@@ -1,5 +1,4 @@
-﻿import { useEffect, useState } from "react";
-import VirtualList from "@rc-component/virtual-list";
+import { useEffect } from "react";
 import dayjs from "dayjs";
 import {
   Button,
@@ -28,9 +27,6 @@ import { FilterPanel } from "@repo/ui";
 import { useLieferscheineMobilePage } from "@repo/hooks";
 
 const { Text, Link, Paragraph, Title } = Typography;
-const VIRTUAL_LIST_MIN_HEIGHT = 360;
-const VIRTUAL_LIST_OFFSET = 240;
-const LIEFERSCHEINE_ITEM_HEIGHT = 252;
 
 export type LieferscheinePageState = ReturnType<
   typeof useLieferscheineMobilePage
@@ -56,8 +52,8 @@ const getStatusMeta = (
   record: any,
   statuses: LieferscheinePageState["statuses"]
 ) => {
-  if (record?.cancelled) return { label: "ÄÃ£ huá»·", color: "#8c8c8c" };
-  if (record?.fail) return { label: "Giao tháº¥t báº¡i", color: "#f05b5b" };
+  if (record?.cancelled) return { label: "Đã huỷ", color: "#8c8c8c" };
+  if (record?.fail) return { label: "Giao thất bại", color: "#f05b5b" };
   if (record?.receivedBy)
     return statuses.find((item) => item.value === "received");
   if (record?.deliveredBy)
@@ -157,7 +153,7 @@ export const LieferscheineFilter = ({
           >
             <Form.Item
               name="status"
-              label="Tráº¡ng thÃ¡i"
+              label="Trạng thái"
               style={{ marginBottom: 0 }}
             >
               <Checkbox.Group>
@@ -175,13 +171,13 @@ export const LieferscheineFilter = ({
               <Col xs={24} md={8}>
                 <Form.Item
                   name="query"
-                  label="MÃ£ phiáº¿u giao"
+                  label="Mã phiếu giao"
                   style={{ marginBottom: 0 }}
                 >
                   <Input
                     allowClear
                     prefix={<SearchOutlined />}
-                    placeholder="MÃ£ phiáº¿u giao"
+                    placeholder="Mã phiếu giao"
                     onPressEnter={page.handleSearch}
                   />
                 </Form.Item>
@@ -189,18 +185,18 @@ export const LieferscheineFilter = ({
               <Col xs={24} md={8}>
                 <Form.Item
                   name="orderCode"
-                  label="MÃ£ Ä‘Æ¡n"
+                  label="Mã đơn"
                   style={{ marginBottom: 0 }}
                 >
                   <Input
                     allowClear
-                    placeholder="MÃ£ Ä‘Æ¡n"
+                    placeholder="Mã đơn"
                     onPressEnter={page.handleSearch}
                   />
                 </Form.Item>
               </Col>
               <Col xs={24} md={8}>
-                <Form.Item label="NgÃ y táº¡o" style={{ marginBottom: 0 }}>
+                <Form.Item label="Ngày tạo" style={{ marginBottom: 0 }}>
                   <Row gutter={8}>
                     <Col span={12}>
                       <Form.Item name="issueDateFrom" noStyle>
@@ -208,7 +204,7 @@ export const LieferscheineFilter = ({
                           showTime={{ format: "HH:mm" }}
                           style={{ width: "100%" }}
                           format="DD/MM/YYYY HH:mm"
-                          placeholder="Tá»«"
+                          placeholder="Từ"
                         />
                       </Form.Item>
                     </Col>
@@ -218,7 +214,7 @@ export const LieferscheineFilter = ({
                           showTime={{ format: "HH:mm" }}
                           style={{ width: "100%" }}
                           format="DD/MM/YYYY HH:mm"
-                          placeholder="Äáº¿n"
+                          placeholder="Đến"
                         />
                       </Form.Item>
                     </Col>
@@ -297,7 +293,7 @@ export const LieferscheineExpanded = ({
               size={0}
               style={{ minWidth: 0, flex: 1 }}
             >
-              <Text type="secondary">MÃ£ Ä‘Æ¡n</Text>
+              <Text type="secondary">Mã đơn</Text>
               <Paragraph
                 copyable={{ text: record.orderCode }}
                 style={{ marginBottom: 0 }}
@@ -321,15 +317,15 @@ export const LieferscheineExpanded = ({
 
           <Row gutter={[12, 8]}>
             <Col span={12}>
-              <Text type="secondary">MÃ£ váº­n Ä‘Æ¡n</Text>
+              <Text type="secondary">Mã vận đơn</Text>
               <div>{firstDelivery.trackingNumber || "---"}</div>
             </Col>
             <Col span={12}>
-              <Text type="secondary">ÄÆ¡n vá»‹ váº­n chuyá»ƒn</Text>
+              <Text type="secondary">Đơn vị vận chuyển</Text>
               <div>{courier?.name || firstDelivery.courier || "---"}</div>
             </Col>
             <Col span={12}>
-              <Text type="secondary">CÃ¢n náº·ng</Text>
+              <Text type="secondary">Cân nặng</Text>
               <div>
                 {record.weights
                   .map((weight: number) => `${quantityFormat(weight)} kg`)
@@ -337,7 +333,7 @@ export const LieferscheineExpanded = ({
               </div>
             </Col>
             <Col span={12}>
-              <Text type="secondary">Cáº§n thanh toÃ¡n</Text>
+              <Text type="secondary">Cần thanh toán</Text>
               <div>
                 <Text strong>{moneyFormat(record.totalUnpaid || 0)}</Text>
               </div>
@@ -346,7 +342,7 @@ export const LieferscheineExpanded = ({
 
           {record.allocatedFees?.length ? (
             <Space direction="vertical" size={0}>
-              <Text type="secondary">Danh sÃ¡ch phÃ­</Text>
+              <Text type="secondary">Danh sách phí</Text>
               {record.allocatedFees.map((item: any, index: number) => (
                 <Text key={index}>
                   {item?.fee?.name}:{" "}
@@ -355,7 +351,7 @@ export const LieferscheineExpanded = ({
                       <Text delete type="secondary">
                         {moneyFormat(item?.amount || 0)}
                       </Text>
-                      <Text>Miá»…n phÃ­</Text>
+                      <Text>Miễn phí</Text>
                     </Space>
                   ) : (
                     moneyFormat(item?.amount || 0)
@@ -376,7 +372,6 @@ export const LieferscheineList = ({
   page: LieferscheinePageState;
 }) => {
   const { token } = theme.useToken();
-  const [listHeight, setListHeight] = useState(VIRTUAL_LIST_MIN_HEIGHT);
   const total = page.listData?.total || 0;
   const rows = page.listData?.data || [];
   const {
@@ -386,39 +381,31 @@ export const LieferscheineList = ({
     isLieferscheineLoading,
   } = page;
 
-  useEffect(() => {
-    const updateHeight = () => {
-      setListHeight(
-        Math.max(
-          VIRTUAL_LIST_MIN_HEIGHT,
-          window.innerHeight - VIRTUAL_LIST_OFFSET
-        )
-      );
-    };
-
-    updateHeight();
-    window.addEventListener("resize", updateHeight);
-    return () => window.removeEventListener("resize", updateHeight);
-  }, []);
-
   const handleLoadMore = () => {
     if (hasNextPage && !isFetchingNextPage && !isLieferscheineLoading) {
       fetchNextPage();
     }
   };
 
-  const handleScroll = (event: React.UIEvent<HTMLElement>) => {
-    const target = event.currentTarget;
-    if (target.scrollHeight - target.scrollTop - target.clientHeight <= 24) {
-      handleLoadMore();
-    }
-  };
+  useEffect(() => {
+    const handleWindowScroll = () => {
+      const documentHeight = document.documentElement.scrollHeight;
+      const currentBottom = window.innerHeight + window.scrollY;
 
-  const virtualRows = [
-    ...rows,
-    ...(isFetchingNextPage ? [{ code: "__loading", __type: "loading" }] : []),
-    ...(!hasNextPage && rows.length ? [{ code: "__end", __type: "end" }] : []),
-  ];
+      if (documentHeight - currentBottom <= 64) {
+        handleLoadMore();
+      }
+    };
+
+    window.addEventListener("scroll", handleWindowScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleWindowScroll);
+  }, [
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLieferscheineLoading,
+    rows.length,
+  ]);
 
   return (
     <Space direction="vertical" size="middle" style={{ width: "100%" }}>
@@ -431,7 +418,7 @@ export const LieferscheineList = ({
       >
         <Space size="small" align="center">
           <Title level={4} style={{ margin: 0 }}>
-            Danh sÃ¡ch phiáº¿u giao
+            Danh sách phiếu giao
           </Title>
           <Tag color="blue">{quantityFormat(total)}</Tag>
         </Space>
@@ -440,144 +427,126 @@ export const LieferscheineList = ({
       {isLieferscheineLoading ? (
         <LieferscheineListSkeleton count={5} />
       ) : rows.length ? (
-        <List split={false}>
-          <VirtualList
-            data={virtualRows}
-            height={listHeight}
-            itemHeight={LIEFERSCHEINE_ITEM_HEIGHT}
-            itemKey={(record: any) => record.code}
-            onScroll={handleScroll}
-          >
-            {(record: any, index, virtualProps) => {
-              if (record.__type === "loading") {
-                return (
-                  <List.Item style={{ ...virtualProps.style, padding: 0 }}>
-                    <LieferscheineItemSkeleton />
-                  </List.Item>
-                );
-              }
-              if (record.__type === "end") {
-                return (
-                  <List.Item style={{ ...virtualProps.style, padding: 0 }}>
-                    <Divider plain>Da tai het du lieu</Divider>
-                  </List.Item>
-                );
-              }
+        <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+          <List
+            split={false}
+            dataSource={rows}
+            rowKey={(record: any) => record.code}
+            renderItem={(record: any, index) => {
+              const expanded = page.expandedCode === record.code;
+              const status = getStatusMeta(record, page.statuses);
+              const address = getAddressText(record);
 
-                const expanded = page.expandedCode === record.code;
-                const status = getStatusMeta(record, page.statuses);
-                const address = getAddressText(record);
-
-                return (
-                  <List.Item
-                    style={{
-                      ...virtualProps.style,
-                      padding: 0,
-                      borderBlockEnd: "none",
-                      marginBottom:
-                        index === rows.length - 1 ? 0 : token.marginMD,
-                    }}
-                  >
-                    <Card style={{ width: "100%" }}>
-                      <Flex vertical gap={token.marginMD}>
-                        <Flex
-                          justify="space-between"
-                          align="flex-start"
-                          wrap
-                          gap={token.marginSM}
+              return (
+                <List.Item
+                  style={{
+                    padding: 0,
+                    borderBlockEnd: "none",
+                    marginBottom:
+                      index === rows.length - 1 ? 0 : token.marginMD,
+                  }}
+                >
+                  <Card style={{ width: "100%" }}>
+                    <Flex vertical gap={token.marginMD}>
+                      <Flex
+                        justify="space-between"
+                        align="flex-start"
+                        wrap
+                        gap={token.marginSM}
+                      >
+                        <Space
+                          direction="vertical"
+                          size={0}
+                          style={{ minWidth: 0, flex: 1 }}
                         >
-                          <Space
-                            direction="vertical"
-                            size={0}
-                            style={{ minWidth: 0, flex: 1 }}
+                          <Text type="secondary">Mã phiếu giao</Text>
+                          <Paragraph
+                            copyable={{ text: record.code }}
+                            ellipsis={{ rows: 1, tooltip: record.code }}
+                            style={{ marginBottom: 0 }}
                           >
-                            <Text type="secondary">MÃ£ phiáº¿u giao</Text>
-                            <Paragraph
-                              copyable={{ text: record.code }}
-                              ellipsis={{ rows: 1, tooltip: record.code }}
-                              style={{ marginBottom: 0 }}
-                            >
-                              <Text
-                                strong
-                                style={{ color: token.colorPrimary }}
-                              >
-                                {record.code || "---"}
-                              </Text>
-                            </Paragraph>
-                          </Space>
-                          <Tag
-                            style={{
-                              marginInlineEnd: 0,
-                              borderColor: status?.color,
-                              background: status?.color,
-                              color: token.colorWhite,
-                            }}
-                          >
-                            {status?.label}
-                          </Tag>
-                        </Flex>
-
-                        <Row gutter={[16, 12]}>
-                          <Col xs={12}>
-                            <Text type="secondary">Sá»‘ lÆ°á»£ng kiá»‡n</Text>
-                            <div>
-                              {record.totalPackage
-                                ? `${quantityFormat(record.totalPackage)} kiá»‡n hÃ ng`
-                                : "---"}
-                            </div>
-                          </Col>
-                          <Col xs={12}>
-                            <Text type="secondary">CÃ¢n náº·ng</Text>
-                            <div>
-                              {Number.isFinite(record.totalWeight)
-                                ? `${quantityFormat(record.totalWeight)} kg`
-                                : "---"}
-                            </div>
-                          </Col>
-                          <Col xs={12}>
-                            <Text type="secondary">Cáº§n thu</Text>
-                            <div>{moneyFormat(record.totalUnpaid || 0)}</div>
-                          </Col>
-                          <Col xs={12}>
-                            <Text type="secondary">COD</Text>
-                            <div>
-                              <Text strong>
-                                {moneyFormat(record.totalAmount || 0)}
-                              </Text>
-                            </div>
-                          </Col>
-                          <Col xs={24}>
-                            <Text type="secondary">Thá»i gian táº¡o</Text>
-                            <div>{formatDate(record.issueDate)}</div>
-                          </Col>
-                          <Col xs={24}>
-                            <Text type="secondary">Äá»‹a chá»‰ giao hÃ ng</Text>
-                            <Tooltip title={address}>
-                              <Text ellipsis={{ tooltip: address }}>
-                                {address}
-                              </Text>
-                            </Tooltip>
-                          </Col>
-                        </Row>
-
-                        {expanded && <LieferscheineExpanded page={page} />}
-
-                        <Flex justify="flex-end">
-                          <Button
-                            type="link"
-                            icon={expanded ? <UpOutlined /> : <DownOutlined />}
-                            onClick={() => page.handleExpand(!expanded, record)}
-                          >
-                            {expanded ? "Thu gá»n" : "Xem chi tiáº¿t"}
-                          </Button>
-                        </Flex>
+                            <Text strong style={{ color: token.colorPrimary }}>
+                              {record.code || "---"}
+                            </Text>
+                          </Paragraph>
+                        </Space>
+                        <Tag
+                          style={{
+                            marginInlineEnd: 0,
+                            borderColor: status?.color,
+                            background: status?.color,
+                            color: token.colorWhite,
+                          }}
+                        >
+                          {status?.label}
+                        </Tag>
                       </Flex>
-                    </Card>
-                  </List.Item>
-                );
-              }}
-          </VirtualList>
-        </List>
+
+                      <Row gutter={[16, 12]}>
+                        <Col xs={12}>
+                          <Text type="secondary">Số lượng kiện</Text>
+                          <div>
+                            {record.totalPackage
+                              ? `${quantityFormat(record.totalPackage)} kiện hàng`
+                              : "---"}
+                          </div>
+                        </Col>
+                        <Col xs={12}>
+                          <Text type="secondary">Cân nặng</Text>
+                          <div>
+                            {Number.isFinite(record.totalWeight)
+                              ? `${quantityFormat(record.totalWeight)} kg`
+                              : "---"}
+                          </div>
+                        </Col>
+                        <Col xs={12}>
+                          <Text type="secondary">Cần thu</Text>
+                          <div>{moneyFormat(record.totalUnpaid || 0)}</div>
+                        </Col>
+                        <Col xs={12}>
+                          <Text type="secondary">COD</Text>
+                          <div>
+                            <Text strong>
+                              {moneyFormat(record.totalAmount || 0)}
+                            </Text>
+                          </div>
+                        </Col>
+                        <Col xs={24}>
+                          <Text type="secondary">Thời gian tạo</Text>
+                          <div>{formatDate(record.issueDate)}</div>
+                        </Col>
+                        <Col xs={24}>
+                          <Text type="secondary">Địa chỉ giao hàng</Text>
+                          <Tooltip title={address}>
+                            <Text ellipsis={{ tooltip: address }}>
+                              {address}
+                            </Text>
+                          </Tooltip>
+                        </Col>
+                      </Row>
+
+                      {expanded && <LieferscheineExpanded page={page} />}
+
+                      <Flex justify="flex-end">
+                        <Button
+                          type="link"
+                          icon={expanded ? <UpOutlined /> : <DownOutlined />}
+                          onClick={() => page.handleExpand(!expanded, record)}
+                        >
+                          {expanded ? "Thu gọn" : "Xem chi tiết"}
+                        </Button>
+                      </Flex>
+                    </Flex>
+                  </Card>
+                </List.Item>
+              );
+            }}
+          />
+          {isFetchingNextPage && <LieferscheineItemSkeleton />}
+          {!hasNextPage && rows.length ? (
+            <Divider plain>Đã tải hết dữ liệu</Divider>
+          ) : null}
+        </Space>
       ) : (
         <Card>
           <Empty description={page.t("message.empty")} />
@@ -596,5 +565,3 @@ export const LieferscheinePage = () => {
     </Space>
   );
 };
-
-

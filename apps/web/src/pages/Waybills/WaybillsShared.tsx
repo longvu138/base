@@ -28,7 +28,7 @@ import {
   SyncOutlined,
 } from "@ant-design/icons";
 import { quantityFormat } from "@repo/util";
-import { useWaybillsPage } from "./hooks/useWaybillsPage";
+import { useWaybillsPage } from "@repo/hooks";
 
 const { Text, Link, Title, Paragraph } = Typography;
 

@@ -3,7 +3,7 @@ import { DownloadOutlined, FilterOutlined, PlusOutlined, SearchOutlined } from "
 import { quantityFormat } from "@repo/util";
 import { useState } from "react";
 import { FilterPanel } from "@repo/ui";
-import { useWaybillsPage } from "./hooks/useWaybillsPage";
+import { useWaybillsPage } from "@repo/hooks";
 import {
   WaybillCreateModal,
   WaybillExportModal,

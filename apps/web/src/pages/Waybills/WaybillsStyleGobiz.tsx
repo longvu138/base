@@ -19,7 +19,7 @@ import {
 } from "@ant-design/icons";
 import { quantityFormat } from "@repo/util";
 import { FilterPanel } from "@repo/ui";
-import { useWaybillsPage } from "./hooks/useWaybillsPage";
+import { useWaybillsPage } from "@repo/hooks";
 import {
   WaybillCreateModal,
   WaybillExportModal,
