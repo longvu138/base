@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dayjs from "dayjs";
 import { Link as RouterLink } from "react-router-dom";
 import {
@@ -8,6 +8,7 @@ import {
   Card,
   Checkbox,
   Col,
+  ConfigProvider,
   DatePicker,
   Divider,
   Empty,
@@ -20,12 +21,12 @@ import {
   Popconfirm,
   Radio,
   Row,
+  Segmented,
   Select,
   Space,
   Spin,
   Steps,
   Table,
-  Tabs,
   Tag,
   Tooltip,
   Typography,
@@ -111,11 +112,8 @@ const parseViewTemplate = (value?: string) => {
   }
 };
 
-const getMarkupRateValue = (item: any, tier: any, exchangeRate: any, exchangeRateTbg: any) => {
-  const sourceRate =
-    item?.exchangeRateSource !== "black"
-      ? Number(exchangeRateTbg?.rate || 0)
-      : Number(exchangeRate?.rate || 0);
+const getMarkupRateValue = (item: any, tier: any, exchangeRate: any) => {
+  const sourceRate = Number(exchangeRate?.rate || 0);
   const price = Number(tier?.price || 0);
 
   if (String(item?.scope || "").toLowerCase() === "value") return sourceRate + price;
@@ -210,6 +208,9 @@ export const PeerPaymentsStyleGobiz = () => {
   const [qrCodeFiles, setQrCodeFiles] = useState<UploadFile[]>([]);
   const [exportOpen, setExportOpen] = useState(false);
   const [createForm] = Form.useForm();
+  const createExchangeRateRequestRef = useRef(0);
+  const createExchangeRateKeyRef = useRef("");
+  const createExchangeRateResultRef = useRef<any>({});
   const watchedCreateAmount = Form.useWatch("amount", createForm);
   const watchedCreatePaymentMethodCode = Form.useWatch("paymentMethodCode", createForm);
   const { notification } = App.useApp();
@@ -283,6 +284,7 @@ export const PeerPaymentsStyleGobiz = () => {
     Boolean(currentProjectInfo?.tenantConfig?.externalIntegrationConfig?.shopkeeper?.enabled) &&
     Boolean(currentProjectInfo?.tenantConfig?.externalIntegrationConfig?.shopkeeper?.enabledPeerpayment);
   const selectedRows = payments.filter((item: any) => selectedRowKeys.includes(item.code));
+  const loadExchangeRateMutation = exchangeRateMutation.mutateAsync;
   const currentCreatePaymentMethodCode =
     watchedCreatePaymentMethodCode || createForm.getFieldValue("paymentMethodCode");
   const qualifyLoanOptions = [
@@ -342,10 +344,6 @@ export const PeerPaymentsStyleGobiz = () => {
     () => exchangeRatesBatch.find((item: any) => item.refId === "payment")?.exchangeRate || {},
     [exchangeRatesBatch],
   );
-  const exchangeRateTbg = useMemo(
-    () => exchangeRatesBatch.find((item: any) => item.refId === "taobao_global")?.exchangeRate || {},
-    [exchangeRatesBatch],
-  );
   const filteredMarkupRateGroups = useMemo(() => {
     const listMarkupRates = Array.isArray(markupRateGroups?.listMarkupRates)
       ? markupRateGroups.listMarkupRates
@@ -363,26 +361,23 @@ export const PeerPaymentsStyleGobiz = () => {
       const template = parseViewTemplate(item.viewTemplate);
       const currency = item.exchangeRate ? String(item.exchangeRate).split("/") : [];
       template.forEach((tier: any) => {
-        const value = getMarkupRateValue(item, tier, exchangeRate, exchangeRateTbg);
+        const value = getMarkupRateValue(item, tier, exchangeRate);
         list.push({ base: currency[0], value, currency: currency[1] });
       });
     });
     return list.sort((a, b) => Number(a.value || 0) - Number(b.value || 0));
-  }, [exchangeRate, exchangeRateTbg, filteredMarkupRateGroups]);
+  }, [exchangeRate, filteredMarkupRateGroups]);
   const firstExchangeRate = listExchangeRate[0];
   const lastExchangeRate = [...listExchangeRate].reverse().find((item) => Number(item.value || 0) > 0);
-  const checkExchangeRateTbg = filteredMarkupRateGroups.listMarkupRates?.some(
-    (item: any) => item?.paymentMethodCode === "alipay" && item.exchangeRateSource !== "black",
-  );
   const exchangeRangeText =
     firstExchangeRate && lastExchangeRate
       ? `${t("peer_payment.exchange_range")} : ${moneyFormat(1, firstExchangeRate.base)} = ${moneyFormat(
-          exchangeRateTbg && checkExchangeRateTbg ? firstExchangeRate.value : firstExchangeRate.value,
+          firstExchangeRate.value,
           firstExchangeRate.currency,
         )}${
           firstExchangeRate.value !== lastExchangeRate.value && listExchangeRate.length > 1
             ? ` - ${moneyFormat(
-                exchangeRateTbg && checkExchangeRateTbg ? lastExchangeRate.value : lastExchangeRate.value,
+                lastExchangeRate.value,
                 lastExchangeRate.currency,
               )}`
             : ""
@@ -396,9 +391,6 @@ export const PeerPaymentsStyleGobiz = () => {
         amount: record.amount,
         paymentMethodCode: record.paymentMethodCode,
       };
-      if (record.peerPaymentType === "taobao_global" || peerPaymentType === "taobao_global") {
-        params.peerPaymentType = "taobao_global";
-      }
       const data = await exchangeRateMutation.mutateAsync(params);
       setExchangeRatesByCode((prev) => ({ ...prev, [record.code]: data }));
     } finally {
@@ -629,6 +621,9 @@ export const PeerPaymentsStyleGobiz = () => {
   ];
 
   const openCreateModal = (type: "payment" | "transfer") => {
+    createExchangeRateRequestRef.current += 1;
+    createExchangeRateKeyRef.current = "";
+    createExchangeRateResultRef.current = {};
     createForm.resetFields();
     const defaultType =
       tenantConfigPayment?.config?.paymentAlipay === true ? "alipay" : "company";
@@ -653,19 +648,67 @@ export const PeerPaymentsStyleGobiz = () => {
     setCreateModalType(type);
   };
 
-  const loadCreateExchangeRate = async () => {
-    const amount = createForm.getFieldValue("amount");
-    if (!amount) return {};
-    const response = await exchangeRateMutation.mutateAsync({
-      amount,
-      paymentMethodCode:
-        createModalType === "transfer"
-          ? createForm.getFieldValue("paymentMethodCode")
-          : "alipay",
-    });
-    setCreateExchangeRate(response || {});
-    return response || {};
-  };
+  const loadCreateExchangeRate = useCallback(async (values?: { amount?: number; paymentMethodCode?: string }) => {
+    const amount = values?.amount ?? createForm.getFieldValue("amount");
+    if (!amount) {
+      createExchangeRateKeyRef.current = "";
+      createExchangeRateResultRef.current = {};
+      setCreateExchangeRate({});
+      return {};
+    }
+    const paymentMethodCode =
+      createModalType === "transfer"
+        ? values?.paymentMethodCode ?? createForm.getFieldValue("paymentMethodCode")
+        : "alipay";
+    const requestKey = `${createModalType || ""}|${amount}|${paymentMethodCode || ""}`;
+    if (createExchangeRateKeyRef.current === requestKey) {
+      return createExchangeRateResultRef.current;
+    }
+    const requestId = createExchangeRateRequestRef.current + 1;
+    createExchangeRateRequestRef.current = requestId;
+    createExchangeRateKeyRef.current = requestKey;
+    try {
+      const response = await loadExchangeRateMutation({
+        amount,
+        paymentMethodCode,
+      });
+      if (requestId === createExchangeRateRequestRef.current) {
+        createExchangeRateResultRef.current = response || {};
+        setCreateExchangeRate(response || {});
+      }
+      return response || {};
+    } catch (error) {
+      if (requestId === createExchangeRateRequestRef.current) {
+        createExchangeRateKeyRef.current = "";
+      }
+      throw error;
+    }
+  }, [createForm, createModalType, loadExchangeRateMutation]);
+
+  useEffect(() => {
+    if (!createModalType || createStep !== 1) return;
+
+    const amount = Number(watchedCreateAmount || 0);
+    if (!amount) {
+      setCreateExchangeRate({});
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      loadCreateExchangeRate({
+        amount,
+        paymentMethodCode: currentCreatePaymentMethodCode,
+      }).catch(() => undefined);
+    }, 500);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [
+    createModalType,
+    createStep,
+    currentCreatePaymentMethodCode,
+    loadCreateExchangeRate,
+    watchedCreateAmount,
+  ]);
 
   const buildCreatePaymentPayload = (values: Record<string, any>, exchangeRate?: any) => {
     const { requestForPayType: _requestForPayType, ...payloadValues } = values;
@@ -685,7 +728,7 @@ export const PeerPaymentsStyleGobiz = () => {
 
   const submitCreatePaymentStepOne = async () => {
     const values = await createForm.validateFields();
-    const exchangeRate = createExchangeRate?.rate ? createExchangeRate : await loadCreateExchangeRate();
+    const exchangeRate = await loadCreateExchangeRate();
     const payload = buildCreatePaymentPayload(values, exchangeRate);
     const draftFees = await paymentQuotationMutation.mutateAsync(payload);
     setCreateBetterOffer(0);
@@ -732,7 +775,7 @@ export const PeerPaymentsStyleGobiz = () => {
 
   const submitCreateTransferStepOne = async () => {
     const values = await createForm.validateFields();
-    const exchangeRate = createExchangeRate?.rate ? createExchangeRate : await loadCreateExchangeRate();
+    const exchangeRate = await loadCreateExchangeRate();
     const payload = {
       ...values,
       amount: Number(values.amount || 0),
@@ -810,6 +853,14 @@ export const PeerPaymentsStyleGobiz = () => {
 
   const getBulkChargeErrorMessage = (error: any, row: any, balanceData: any) => {
     const title = error?.response?.data?.title || error?.title;
+    const isTimeoutError =
+      error?.code === "ECONNABORTED" ||
+      error?.code === "ERR_CANCELED" ||
+      error?.name === "CanceledError" ||
+      String(error?.message || "").toLowerCase().includes("timeout");
+    if (isTimeoutError) {
+      return t("peer_payment.charge_timeout");
+    }
     if (title === "invalid_amount") {
       return t("peer_payment.invalid_amount");
     }
@@ -870,9 +921,6 @@ export const PeerPaymentsStyleGobiz = () => {
       amount: item.amount,
       paymentMethodCode: item.paymentMethodCode,
       refId: `${item.amount}|${item.paymentMethodCode}`,
-      ...(item.peerPaymentType === "taobao_global" || peerPaymentType === "taobao_global"
-        ? { peerPaymentType: "taobao_global" }
-        : {}),
     }));
     const response = await exchangeRatesBatchMutation.mutateAsync(payload);
     setBulkExchangeRates(response);
@@ -1199,14 +1247,16 @@ export const PeerPaymentsStyleGobiz = () => {
               </Form.Item>
             </Col>
             <Col xs={24}>
-              <Space wrap>
-                <Button type="primary" htmlType="submit" icon={<SearchOutlined />}>
-                  {t("orders.buttons.search")}
-                </Button>
-                <Button onClick={handleReset} icon={<ReloadOutlined />}>
-                  {t("orders.buttons.reset")}
-                </Button>
-              </Space>
+              <Flex justify="end">
+                <Space wrap>
+                  <Button onClick={handleReset} icon={<ReloadOutlined />}>
+                    {t("orders.buttons.reset")}
+                  </Button>
+                  <Button type="primary" htmlType="submit" icon={<SearchOutlined />}>
+                    {t("orders.buttons.search")}
+                  </Button>
+                </Space>
+              </Flex>
             </Col>
           </Row>
         </Form>
@@ -1222,28 +1272,44 @@ export const PeerPaymentsStyleGobiz = () => {
           </Space>
         </Flex>
 
-        <Tabs
-          activeKey={peerPaymentType}
-          onChange={handleTabChange}
-          size="large"
-          items={[
-            {
-              key: "payment",
-              icon: <PayCircleOutlined />,
-              label: t("peer_payment.request_payment"),
+        <ConfigProvider
+          theme={{
+            components: {
+              Segmented: {
+                itemSelectedBg: token.colorPrimary,
+                itemSelectedColor: token.colorTextLightSolid,
+              },
             },
-            {
-              key: "transfer",
-              icon: <SwapOutlined />,
-              label: t("peer_payment.request_transfer"),
-            },
-            {
-              key: "taobao_global",
-              icon: <PayCircleOutlined />,
-              label: t("peer_payment.request_payment_TBG"),
-            },
-          ]}
-        />
+          }}
+        >
+          <Segmented
+            block
+            value={peerPaymentType}
+            onChange={(value) => handleTabChange(String(value))}
+            size="large"
+            style={{ marginBottom: token.marginMD }}
+            options={[
+              {
+                value: "payment",
+                label: (
+                  <Flex align="center" justify="center" gap={token.marginXS} style={{ paddingBlock: token.paddingXS }}>
+                    <PayCircleOutlined />
+                    {t("peer_payment.request_payment")}
+                  </Flex>
+                ),
+              },
+              {
+                value: "transfer",
+                label: (
+                  <Flex align="center" justify="center" gap={token.marginXS} style={{ paddingBlock: token.paddingXS }}>
+                    <SwapOutlined />
+                    {t("peer_payment.request_transfer")}
+                  </Flex>
+                ),
+              },
+            ]}
+          />
+        </ConfigProvider>
         <Table
           rowKey="code"
           columns={columns}
@@ -1300,10 +1366,10 @@ export const PeerPaymentsStyleGobiz = () => {
                   <Text strong style={{ color: token.colorPrimary }}>
                     {paymentMethod.name || "---"}{" "}
                     {item.paymentMethodCode === "alipay" &&
-                      (item?.exchangeRateSource === "black" ? "(YCTTH 1688)" : "(YCTTH TBG)")}
+                      "(YCTTH 1688)"}
                   </Text>
                   {template.map((tier: any, tierIndex: number) => {
-                    const value = getMarkupRateValue(item, tier, exchangeRate, exchangeRateTbg);
+                    const value = getMarkupRateValue(item, tier, exchangeRate);
                     return (
                       <div key={`${tier.fromAmount}-${tier.toAmount}-${tierIndex}`}>
                         <Flex justify="space-between">
@@ -1555,7 +1621,6 @@ export const PeerPaymentsStyleGobiz = () => {
                           placeholder={t("peer_payment.amount_placeholder")}
                           formatter={(value) => `${value ?? ""}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                           parser={(value) => Number(String(value || "").replace(/\$\s?|(,*)/g, ""))}
-                          onBlur={loadCreateExchangeRate}
                         />
                       </Form.Item>
                       {createExchangeRate?.rate === null && (
@@ -1888,7 +1953,6 @@ export const PeerPaymentsStyleGobiz = () => {
                           placeholder={t("peer_payment.amount_placeholder")}
                           formatter={(value) => `${value ?? ""}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                           parser={(value) => Number(String(value || "").replace(/\$\s?|(,*)/g, ""))}
-                          onBlur={loadCreateExchangeRate}
                         />
                       </Form.Item>
                       {createExchangeRate?.rate === null && (

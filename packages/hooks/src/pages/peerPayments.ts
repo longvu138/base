@@ -30,6 +30,9 @@ export const usePeerPaymentsLogic = ({
       peerPaymentType: "payment",
       ...filters,
     };
+    if (params.peerPaymentType === "taobao_global") {
+      params.peerPaymentType = "payment";
+    }
 
     ["statuses", "paymentMethod"].forEach((key) => {
       if (Array.isArray(params[key])) params[key] = params[key].join(",");
@@ -71,12 +74,8 @@ export const usePeerPaymentsLogic = ({
     JSON.parse(globalThis.localStorage.getItem("currentProjectInfo") || "{}")
       ?.tenantConfig?.m24Config?.enabled;
   const exchangeRateBatchBody = useMemo(() => {
-    const body = [{ refId: "payment", peerPaymentType: "payment" }];
-    if (m24Enabled) {
-      body.push({ refId: "taobao_global", peerPaymentType: "taobao_global" });
-    }
-    return body;
-  }, [m24Enabled]);
+    return [{ refId: "payment", peerPaymentType: "payment" }];
+  }, []);
   const { data: exchangeRatesBatch = [] } =
     usePeerPaymentExchangeRatesBatchQuery(exchangeRateBatchBody);
 

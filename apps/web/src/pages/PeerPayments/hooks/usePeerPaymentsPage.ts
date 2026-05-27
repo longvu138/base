@@ -120,6 +120,12 @@ export const usePeerPaymentsPage = () => {
     applyFilters({ peerPaymentType });
   };
 
+  const isChargeTimeoutError = (error: any) =>
+    error?.code === "ECONNABORTED" ||
+    error?.code === "ERR_CANCELED" ||
+    error?.name === "CanceledError" ||
+    String(error?.message || "").toLowerCase().includes("timeout");
+
   const handleCharge = async (code: string, row?: Record<string, any>) => {
     setChargingCode(code);
     let latestBalance = userBalance;
@@ -131,7 +137,9 @@ export const usePeerPaymentsPage = () => {
       notification.success({ message: t("message.success") });
     } catch (error: any) {
       const title = error?.response?.data?.title || error?.title;
-      if (title === "invalid_amount") {
+      if (isChargeTimeoutError(error)) {
+        notification.error({ message: t("peer_payment.charge_timeout") });
+      } else if (title === "invalid_amount") {
         notification.error({ message: t("peer_payment.invalid_amount") });
       } else if (title === "insufficient_balance") {
         const totalMoney =

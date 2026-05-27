@@ -913,6 +913,7 @@
     "maxCombine1688Bills": "You can combine payment for at most {{max}} original invoice codes",
     "ycttStatus": "Status",
     "chargeLoading": "Loading",
+    "charge_timeout": "Slow connection, please try again",
     "closeCharge": "Close",
     "popupChargeResultTitle": "Payment Request",
     "topUpMoney": "Topup Money",

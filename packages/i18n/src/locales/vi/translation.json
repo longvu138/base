@@ -914,6 +914,7 @@
     "maxCombine1688Bills": "Bạn chỉ được phép thanh toán gộp tối đa {{max}} Mã HĐG",
     "ycttStatus": "Trạng thái",
     "chargeLoading": "Đang tải",
+    "charge_timeout": "Kết nối chậm, vui lòng thử lại",
     "closeCharge": "Đóng",
     "popupChargeResultTitle": "Yêu cầu thanh toán",
     "topUpMoney": "Số tiền cần nạp",

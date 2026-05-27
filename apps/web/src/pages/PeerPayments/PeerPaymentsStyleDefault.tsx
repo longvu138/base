@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dayjs from "dayjs";
 import { Link as RouterLink } from "react-router-dom";
 import {
@@ -8,6 +8,7 @@ import {
   Card,
   Checkbox,
   Col,
+  ConfigProvider,
   DatePicker,
   Divider,
   Empty,
@@ -20,12 +21,12 @@ import {
   Popconfirm,
   Radio,
   Row,
+  Segmented,
   Select,
   Space,
   Spin,
   Steps,
   Table,
-  Tabs,
   Tag,
   Tooltip,
   Typography,
@@ -62,10 +63,21 @@ const formatDateTime = (value?: string) =>
 
 const formatCnyAmount = (value: unknown) => {
   const numberValue = Number(String(value ?? "").replace(/,/g, ""));
-  if (value === null || value === "" || value === undefined || Number.isNaN(numberValue)) return "---";
+  if (
+    value === null ||
+    value === "" ||
+    value === undefined ||
+    Number.isNaN(numberValue)
+  )
+    return "---";
   const currencies = LocalStoreUtil.getJson("currencies") || [];
-  const currency = currencies.find((item: any) => item.code === "CNY") || { prefix: "¥", suffix: "" };
-  return `${numberValue < 0 ? "-" : ""}${currency.prefix || ""}${Math.abs(numberValue).toLocaleString("en-US", {
+  const currency = currencies.find((item: any) => item.code === "CNY") || {
+    prefix: "¥",
+    suffix: "",
+  };
+  return `${numberValue < 0 ? "-" : ""}${currency.prefix || ""}${Math.abs(
+    numberValue
+  ).toLocaleString("en-US", {
     maximumFractionDigits: 4,
   })}${currency.suffix || ""}`;
 };
@@ -111,22 +123,28 @@ const parseViewTemplate = (value?: string) => {
   }
 };
 
-const getMarkupRateValue = (item: any, tier: any, exchangeRate: any, exchangeRateTbg: any) => {
-  const sourceRate =
-    item?.exchangeRateSource !== "black"
-      ? Number(exchangeRateTbg?.rate || 0)
-      : Number(exchangeRate?.rate || 0);
+const getMarkupRateValue = (
+  item: any,
+  tier: any,
+  exchangeRate: any
+) => {
+  const sourceRate = Number(exchangeRate?.rate || 0);
   const price = Number(tier?.price || 0);
 
-  if (String(item?.scope || "").toLowerCase() === "value") return sourceRate + price;
-  if (String(item?.scope || "").toLowerCase() === "rate") return sourceRate + sourceRate * (price / 100);
+  if (String(item?.scope || "").toLowerCase() === "value")
+    return sourceRate + price;
+  if (String(item?.scope || "").toLowerCase() === "rate")
+    return sourceRate + sourceRate * (price / 100);
   return 0;
 };
 
 const isInSuspensionTime = (startTime?: string, endTime?: string) => {
   if (!startTime || !endTime) return false;
   const current = Date.now();
-  return current > new Date(startTime).getTime() && current < new Date(endTime).getTime();
+  return (
+    current > new Date(startTime).getTime() &&
+    current < new Date(endTime).getTime()
+  );
 };
 
 const renderAccount = (record: any, peerPaymentType?: string) => {
@@ -153,7 +171,10 @@ const renderAccount = (record: any, peerPaymentType?: string) => {
       <QrcodeOutlined />
     </Tooltip>
   ) : record.paymentAccount ? (
-    <Paragraph copyable={{ text: record.paymentAccount }} style={{ marginBottom: 0 }}>
+    <Paragraph
+      copyable={{ text: record.paymentAccount }}
+      style={{ marginBottom: 0 }}
+    >
       {record.paymentAccount}
     </Paragraph>
   ) : (
@@ -187,7 +208,9 @@ const renderBillRef = (record: any) => {
 
 export const PeerPaymentsStyleDefault = () => {
   const { token } = theme.useToken();
-  const [exchangeRatesByCode, setExchangeRatesByCode] = useState<Record<string, any>>({});
+  const [exchangeRatesByCode, setExchangeRatesByCode] = useState<
+    Record<string, any>
+  >({});
   const [loadingExchangeCode, setLoadingExchangeCode] = useState<string>();
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [bulkExchangeRates, setBulkExchangeRates] = useState<any[]>([]);
@@ -196,22 +219,39 @@ export const PeerPaymentsStyleDefault = () => {
   const [bulkResultOpen, setBulkResultOpen] = useState(false);
   const [bulkChargeLoading, setBulkChargeLoading] = useState(false);
   const [bulkChargeResult, setBulkChargeResult] = useState<
-    Record<string, { loading?: boolean; success?: string | null; error?: string | null }>
+    Record<
+      string,
+      { loading?: boolean; success?: string | null; error?: string | null }
+    >
   >({});
-  const [createModalType, setCreateModalType] = useState<"payment" | "transfer">();
+  const [createModalType, setCreateModalType] = useState<
+    "payment" | "transfer"
+  >();
   const [createStep, setCreateStep] = useState(1);
-  const [createPaymentType, setCreatePaymentType] = useState<"alipay" | "company">("alipay");
-  const [createPayInputType, setCreatePayInputType] = useState<"paymentAccount" | "qrCode">("paymentAccount");
+  const [createPaymentType, setCreatePaymentType] = useState<
+    "alipay" | "company"
+  >("alipay");
+  const [createPayInputType, setCreatePayInputType] = useState<
+    "paymentAccount" | "qrCode"
+  >("paymentAccount");
   const [createExchangeRate, setCreateExchangeRate] = useState<any>({});
   const [createDraftFees, setCreateDraftFees] = useState<any>({});
   const [createBetterOffer, setCreateBetterOffer] = useState(0);
   const [createBetterOfferFees, setCreateBetterOfferFees] = useState<any>({});
-  const [createPaymentDraftValues, setCreatePaymentDraftValues] = useState<Record<string, any>>({});
+  const [createPaymentDraftValues, setCreatePaymentDraftValues] = useState<
+    Record<string, any>
+  >({});
   const [qrCodeFiles, setQrCodeFiles] = useState<UploadFile[]>([]);
   const [exportOpen, setExportOpen] = useState(false);
   const [createForm] = Form.useForm();
+  const createExchangeRateRequestRef = useRef(0);
+  const createExchangeRateKeyRef = useRef("");
+  const createExchangeRateResultRef = useRef<any>({});
   const watchedCreateAmount = Form.useWatch("amount", createForm);
-  const watchedCreatePaymentMethodCode = Form.useWatch("paymentMethodCode", createForm);
+  const watchedCreatePaymentMethodCode = Form.useWatch(
+    "paymentMethodCode",
+    createForm
+  );
   const { notification } = App.useApp();
   const page = usePeerPaymentsPage();
   const {
@@ -266,7 +306,7 @@ export const PeerPaymentsStyleDefault = () => {
   const suspensionSchedule = tenantConfigPayment?.suspensionSchedule;
   const isInSuspensionSchedule = isInSuspensionTime(
     suspensionSchedule?.startTime,
-    suspensionSchedule?.endTime,
+    suspensionSchedule?.endTime
   );
   const isShowBtnPayment =
     (tenantConfigPayment?.config?.paymentAlipay === true ||
@@ -280,11 +320,21 @@ export const PeerPaymentsStyleDefault = () => {
   const currentLoggedUser = LocalStoreUtil.getJson("currentLoggedUser") || {};
   const isEnabledBiffin =
     Boolean(currentLoggedUser?.customerAuthorities?.shopkeeper) &&
-    Boolean(currentProjectInfo?.tenantConfig?.externalIntegrationConfig?.shopkeeper?.enabled) &&
-    Boolean(currentProjectInfo?.tenantConfig?.externalIntegrationConfig?.shopkeeper?.enabledPeerpayment);
-  const selectedRows = payments.filter((item: any) => selectedRowKeys.includes(item.code));
+    Boolean(
+      currentProjectInfo?.tenantConfig?.externalIntegrationConfig?.shopkeeper
+        ?.enabled
+    ) &&
+    Boolean(
+      currentProjectInfo?.tenantConfig?.externalIntegrationConfig?.shopkeeper
+        ?.enabledPeerpayment
+    );
+  const selectedRows = payments.filter((item: any) =>
+    selectedRowKeys.includes(item.code)
+  );
+  const loadExchangeRateMutation = exchangeRateMutation.mutateAsync;
   const currentCreatePaymentMethodCode =
-    watchedCreatePaymentMethodCode || createForm.getFieldValue("paymentMethodCode");
+    watchedCreatePaymentMethodCode ||
+    createForm.getFieldValue("paymentMethodCode");
   const qualifyLoanOptions = [
     { value: "pass", label: t("peer_payment.loan_qualify_pass") },
     { value: "fail", label: t("peer_payment.loan_qualify_fail") },
@@ -295,8 +345,11 @@ export const PeerPaymentsStyleDefault = () => {
     { value: "NONE", label: t("peer_payment.loan_status_none") },
   ];
   const getBulkExchangeRate = (row: any) =>
-    bulkExchangeRates.find((item: any) => item.refId === `${row.amount}|${row.paymentMethodCode}`);
-  const getBulkNewRate = (row: any) => getBulkExchangeRate(row)?.exchangeRate?.rate;
+    bulkExchangeRates.find(
+      (item: any) => item.refId === `${row.amount}|${row.paymentMethodCode}`
+    );
+  const getBulkNewRate = (row: any) =>
+    getBulkExchangeRate(row)?.exchangeRate?.rate;
   const getBulkNewAmount = (row: any) => {
     const newRate = getBulkNewRate(row);
     return newRate !== undefined && newRate !== row.exchangeRate
@@ -309,14 +362,15 @@ export const PeerPaymentsStyleDefault = () => {
   });
   const maxCombine1688Bills = tenantConfigPayment?.config?.maxCombine1688Bills;
   const showWarningLimitCombinePeerPayment =
-    Boolean(maxCombine1688Bills) && selectedRows.length > Number(maxCombine1688Bills);
+    Boolean(maxCombine1688Bills) &&
+    selectedRows.length > Number(maxCombine1688Bills);
   const bulkTotalAmount = selectedRows.reduce(
     (sum: number, item: any) => sum + Number(item.amount || 0),
-    0,
+    0
   );
   const bulkExchangeAmount = selectedRows.reduce(
     (sum: number, row: any) => sum + getBulkNewAmount(row),
-    0,
+    0
   );
   const getTopUpMoney = (balanceData = userBalance) =>
     bulkExchangeAmount -
@@ -326,7 +380,9 @@ export const PeerPaymentsStyleDefault = () => {
     dailySummary.find((item: any) => item.paymentMethodCode === "alipay");
   const dailyTransfer =
     Array.isArray(dailySummary) &&
-    dailySummary.find((item: any) => item.paymentMethodCode === "bank_transfer");
+    dailySummary.find(
+      (item: any) => item.paymentMethodCode === "bank_transfer"
+    );
   const dailyMessage =
     Array.isArray(dailySummary) && dailySummary.length > 0
       ? t("peer_payment.daily_message", {
@@ -339,12 +395,10 @@ export const PeerPaymentsStyleDefault = () => {
         })
       : "";
   const exchangeRate = useMemo(
-    () => exchangeRatesBatch.find((item: any) => item.refId === "payment")?.exchangeRate || {},
-    [exchangeRatesBatch],
-  );
-  const exchangeRateTbg = useMemo(
-    () => exchangeRatesBatch.find((item: any) => item.refId === "taobao_global")?.exchangeRate || {},
-    [exchangeRatesBatch],
+    () =>
+      exchangeRatesBatch.find((item: any) => item.refId === "payment")
+        ?.exchangeRate || {},
+    [exchangeRatesBatch]
   );
   const filteredMarkupRateGroups = useMemo(() => {
     const listMarkupRates = Array.isArray(markupRateGroups?.listMarkupRates)
@@ -354,36 +408,40 @@ export const PeerPaymentsStyleDefault = () => {
       ...markupRateGroups,
       listMarkupRates: m24Enabled
         ? listMarkupRates
-        : listMarkupRates.filter((item: any) => item?.exchangeRateSource !== "market"),
+        : listMarkupRates.filter(
+            (item: any) => item?.exchangeRateSource !== "market"
+          ),
     };
   }, [m24Enabled, markupRateGroups]);
   const listExchangeRate = useMemo(() => {
     const list: any[] = [];
     (filteredMarkupRateGroups.listMarkupRates || []).forEach((item: any) => {
       const template = parseViewTemplate(item.viewTemplate);
-      const currency = item.exchangeRate ? String(item.exchangeRate).split("/") : [];
+      const currency = item.exchangeRate
+        ? String(item.exchangeRate).split("/")
+        : [];
       template.forEach((tier: any) => {
-        const value = getMarkupRateValue(item, tier, exchangeRate, exchangeRateTbg);
+        const value = getMarkupRateValue(item, tier, exchangeRate);
         list.push({ base: currency[0], value, currency: currency[1] });
       });
     });
     return list.sort((a, b) => Number(a.value || 0) - Number(b.value || 0));
-  }, [exchangeRate, exchangeRateTbg, filteredMarkupRateGroups]);
+  }, [exchangeRate, filteredMarkupRateGroups]);
   const firstExchangeRate = listExchangeRate[0];
-  const lastExchangeRate = [...listExchangeRate].reverse().find((item) => Number(item.value || 0) > 0);
-  const checkExchangeRateTbg = filteredMarkupRateGroups.listMarkupRates?.some(
-    (item: any) => item?.paymentMethodCode === "alipay" && item.exchangeRateSource !== "black",
-  );
+  const lastExchangeRate = [...listExchangeRate]
+    .reverse()
+    .find((item) => Number(item.value || 0) > 0);
   const exchangeRangeText =
     firstExchangeRate && lastExchangeRate
       ? `${t("peer_payment.exchange_range")} : ${moneyFormat(1, firstExchangeRate.base)} = ${moneyFormat(
-          exchangeRateTbg && checkExchangeRateTbg ? firstExchangeRate.value : firstExchangeRate.value,
-          firstExchangeRate.currency,
+          firstExchangeRate.value,
+          firstExchangeRate.currency
         )}${
-          firstExchangeRate.value !== lastExchangeRate.value && listExchangeRate.length > 1
+          firstExchangeRate.value !== lastExchangeRate.value &&
+          listExchangeRate.length > 1
             ? ` - ${moneyFormat(
-                exchangeRateTbg && checkExchangeRateTbg ? lastExchangeRate.value : lastExchangeRate.value,
-                lastExchangeRate.currency,
+                lastExchangeRate.value,
+                lastExchangeRate.currency
               )}`
             : ""
         }`
@@ -396,9 +454,6 @@ export const PeerPaymentsStyleDefault = () => {
         amount: record.amount,
         paymentMethodCode: record.paymentMethodCode,
       };
-      if (record.peerPaymentType === "taobao_global" || peerPaymentType === "taobao_global") {
-        params.peerPaymentType = "taobao_global";
-      }
       const data = await exchangeRateMutation.mutateAsync(params);
       setExchangeRatesByCode((prev) => ({ ...prev, [record.code]: data }));
     } finally {
@@ -413,7 +468,8 @@ export const PeerPaymentsStyleDefault = () => {
       exchangeRate.rate !== undefined &&
       exchangeRate.rate !== record.exchangeRate &&
       !record.fixedExchangeRate;
-    const newExchangedAmount = Number(record.amount || 0) * Number(exchangeRate.rate || 0);
+    const newExchangedAmount =
+      Number(record.amount || 0) * Number(exchangeRate.rate || 0);
 
     return (
       <Space direction="vertical" size={10} style={{ minWidth: 360 }}>
@@ -444,7 +500,9 @@ export const PeerPaymentsStyleDefault = () => {
                 {
                   dataIndex: "new",
                   key: "new",
-                  render: (value) => <Text style={{ color: token.colorSuccess }}>{value}</Text>,
+                  render: (value) => (
+                    <Text style={{ color: token.colorSuccess }}>{value}</Text>
+                  ),
                 },
               ]}
               dataSource={[
@@ -486,7 +544,10 @@ export const PeerPaymentsStyleDefault = () => {
       render: (code: string) =>
         code ? (
           <Text copyable={{ text: code }} strong>
-            <RouterLink to={`/peer-payments/${code}`} onClick={(event) => event.stopPropagation()}>
+            <RouterLink
+              to={`/peer-payments/${code}`}
+              onClick={(event) => event.stopPropagation()}
+            >
               <Text strong style={{ color: token.colorPrimary }}>
                 {code}
               </Text>
@@ -524,7 +585,9 @@ export const PeerPaymentsStyleDefault = () => {
       title: t("orderDetail.total_money"),
       key: "total",
       render: (_, record) =>
-        moneyFormat(Number(record.totalFee || 0) + Number(record.exchangedAmount || 0)),
+        moneyFormat(
+          Number(record.totalFee || 0) + Number(record.exchangedAmount || 0)
+        ),
     },
     {
       title:
@@ -617,7 +680,10 @@ export const PeerPaymentsStyleDefault = () => {
               type="primary"
               icon={<CreditCardOutlined />}
               disabled={isInSuspensionSchedule}
-              loading={chargingCode === record.code || loadingExchangeCode === record.code}
+              loading={
+                chargingCode === record.code ||
+                loadingExchangeCode === record.code
+              }
               className="_btn-payment btn-add-peer-payment"
               style={{ whiteSpace: "nowrap", textAlign: "center" }}
             >
@@ -629,9 +695,14 @@ export const PeerPaymentsStyleDefault = () => {
   ];
 
   const openCreateModal = (type: "payment" | "transfer") => {
+    createExchangeRateRequestRef.current += 1;
+    createExchangeRateKeyRef.current = "";
+    createExchangeRateResultRef.current = {};
     createForm.resetFields();
     const defaultType =
-      tenantConfigPayment?.config?.paymentAlipay === true ? "alipay" : "company";
+      tenantConfigPayment?.config?.paymentAlipay === true
+        ? "alipay"
+        : "company";
     const defaultTransferMethod =
       tenantConfigPayment?.config?.transferAlipay === true &&
       tenantConfigPayment?.config?.transferBank !== true
@@ -653,21 +724,72 @@ export const PeerPaymentsStyleDefault = () => {
     setCreateModalType(type);
   };
 
-  const loadCreateExchangeRate = async () => {
-    const amount = createForm.getFieldValue("amount");
-    if (!amount) return {};
-    const response = await exchangeRateMutation.mutateAsync({
-      amount,
-      paymentMethodCode:
-        createModalType === "transfer"
-          ? createForm.getFieldValue("paymentMethodCode")
-          : "alipay",
-    });
-    setCreateExchangeRate(response || {});
-    return response || {};
-  };
+  const loadCreateExchangeRate = useCallback(async (values?: { amount?: number; paymentMethodCode?: string }) => {
+    const amount = values?.amount ?? createForm.getFieldValue("amount");
+    if (!amount) {
+      createExchangeRateKeyRef.current = "";
+      createExchangeRateResultRef.current = {};
+      setCreateExchangeRate({});
+      return {};
+    }
+    const paymentMethodCode =
+      createModalType === "transfer"
+        ? values?.paymentMethodCode ?? createForm.getFieldValue("paymentMethodCode")
+        : "alipay";
+    const requestKey = `${createModalType || ""}|${amount}|${paymentMethodCode || ""}`;
+    if (createExchangeRateKeyRef.current === requestKey) {
+      return createExchangeRateResultRef.current;
+    }
+    const requestId = createExchangeRateRequestRef.current + 1;
+    createExchangeRateRequestRef.current = requestId;
+    createExchangeRateKeyRef.current = requestKey;
+    try {
+      const response = await loadExchangeRateMutation({
+        amount,
+        paymentMethodCode,
+      });
+      if (requestId === createExchangeRateRequestRef.current) {
+        createExchangeRateResultRef.current = response || {};
+        setCreateExchangeRate(response || {});
+      }
+      return response || {};
+    } catch (error) {
+      if (requestId === createExchangeRateRequestRef.current) {
+        createExchangeRateKeyRef.current = "";
+      }
+      throw error;
+    }
+  }, [createForm, createModalType, loadExchangeRateMutation]);
 
-  const buildCreatePaymentPayload = (values: Record<string, any>, exchangeRate?: any) => {
+  useEffect(() => {
+    if (!createModalType || createStep !== 1) return;
+
+    const amount = Number(watchedCreateAmount || 0);
+    if (!amount) {
+      setCreateExchangeRate({});
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      loadCreateExchangeRate({
+        amount,
+        paymentMethodCode: currentCreatePaymentMethodCode,
+      }).catch(() => undefined);
+    }, 500);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [
+    createModalType,
+    createStep,
+    currentCreatePaymentMethodCode,
+    loadCreateExchangeRate,
+    watchedCreateAmount,
+  ]);
+
+  const buildCreatePaymentPayload = (
+    values: Record<string, any>,
+    exchangeRate?: any
+  ) => {
     const { requestForPayType: _requestForPayType, ...payloadValues } = values;
     return {
       ...payloadValues,
@@ -676,7 +798,10 @@ export const PeerPaymentsStyleDefault = () => {
       exchangeRate: exchangeRate?.rate,
       originalReceipts: [
         {
-          code: typeof values.originalReceipts === "string" ? values.originalReceipts.trim() : values.originalReceipts,
+          code:
+            typeof values.originalReceipts === "string"
+              ? values.originalReceipts.trim()
+              : values.originalReceipts,
           billTo: values.billTo,
         },
       ],
@@ -685,7 +810,7 @@ export const PeerPaymentsStyleDefault = () => {
 
   const submitCreatePaymentStepOne = async () => {
     const values = await createForm.validateFields();
-    const exchangeRate = createExchangeRate?.rate ? createExchangeRate : await loadCreateExchangeRate();
+    const exchangeRate = await loadCreateExchangeRate();
     const payload = buildCreatePaymentPayload(values, exchangeRate);
     const draftFees = await paymentQuotationMutation.mutateAsync(payload);
     setCreateBetterOffer(0);
@@ -705,8 +830,12 @@ export const PeerPaymentsStyleDefault = () => {
           originalReceipt: values.originalReceipts,
         })
         .then(async (betterOfferResponse) => {
-          const yoursTotalAmount = Number(betterOfferResponse?.yours?.totalAmount || 0);
-          const oursTotalAmount = Number(betterOfferResponse?.ours?.totalAmount || 0);
+          const yoursTotalAmount = Number(
+            betterOfferResponse?.yours?.totalAmount || 0
+          );
+          const oursTotalAmount = Number(
+            betterOfferResponse?.ours?.totalAmount || 0
+          );
           if (yoursTotalAmount <= oursTotalAmount) {
             setCreateBetterOffer(0);
             return;
@@ -719,7 +848,8 @@ export const PeerPaymentsStyleDefault = () => {
               newOffer: betterOfferResponse?.ours || {},
             },
           };
-          const feesBetterOffer = await paymentQuotationMutation.mutateAsync(betterPayload);
+          const feesBetterOffer =
+            await paymentQuotationMutation.mutateAsync(betterPayload);
           setCreateBetterOffer(oursTotalAmount);
           setCreateBetterOfferFees(feesBetterOffer);
         })
@@ -732,7 +862,7 @@ export const PeerPaymentsStyleDefault = () => {
 
   const submitCreateTransferStepOne = async () => {
     const values = await createForm.validateFields();
-    const exchangeRate = createExchangeRate?.rate ? createExchangeRate : await loadCreateExchangeRate();
+    const exchangeRate = await loadCreateExchangeRate();
     const payload = {
       ...values,
       amount: Number(values.amount || 0),
@@ -746,17 +876,27 @@ export const PeerPaymentsStyleDefault = () => {
 
   const getCreateRequestErrorMessage = (error: any) => {
     const title = error?.response?.data?.title || error?.title;
-    if (title === "customer_not_found") return t("peer_payment.customer_not_found");
-    if (title === "payment_method_not_found") return t("peer_payment.payment_method_not_found");
-    if (title === "payment_account_not_found") return t("peer_payment.payment_account_not_found");
-    if (title === "shipment_required_when_create_pp") return t("peer_payment.shipment_required_when_create_pp");
-    if (title === "invalid_original_receipt_code") return t("peer_payment.invalid_original_receipt_code");
-    return error?.response?.data?.message || error?.message || t("message.system_error_contact_technical");
+    if (title === "customer_not_found")
+      return t("peer_payment.customer_not_found");
+    if (title === "payment_method_not_found")
+      return t("peer_payment.payment_method_not_found");
+    if (title === "payment_account_not_found")
+      return t("peer_payment.payment_account_not_found");
+    if (title === "shipment_required_when_create_pp")
+      return t("peer_payment.shipment_required_when_create_pp");
+    if (title === "invalid_original_receipt_code")
+      return t("peer_payment.invalid_original_receipt_code");
+    return (
+      error?.response?.data?.message ||
+      error?.message ||
+      t("message.system_error_contact_technical")
+    );
   };
 
   const submitCreateBetterOffer = async () => {
     const code = createPaymentDraftValues.originalReceipts;
-    const { requestForPayType: _requestForPayType, ...draftValues } = createPaymentDraftValues;
+    const { requestForPayType: _requestForPayType, ...draftValues } =
+      createPaymentDraftValues;
     const payload = {
       ...draftValues,
       paymentMethodCode: createPaymentDraftValues.paymentMethodCode || "alipay",
@@ -773,7 +913,9 @@ export const PeerPaymentsStyleDefault = () => {
     };
     try {
       await placeOrderBetterOfferMutation.mutateAsync(payload);
-      notification.success({ message: t("message.place_order_with_better_offer_success") });
+      notification.success({
+        message: t("message.place_order_with_better_offer_success"),
+      });
       resetCreateModal();
     } catch (error: any) {
       notification.error({ message: getCreateRequestErrorMessage(error) });
@@ -788,7 +930,10 @@ export const PeerPaymentsStyleDefault = () => {
           await submitCreatePaymentStepOne();
           return;
         }
-        await handleCreatePaymentRequest({ ...createPaymentDraftValues, ...values });
+        await handleCreatePaymentRequest({
+          ...createPaymentDraftValues,
+          ...values,
+        });
       } else {
         if (createStep === 1) {
           await submitCreateTransferStepOne();
@@ -799,7 +944,10 @@ export const PeerPaymentsStyleDefault = () => {
       resetCreateModal();
     } catch (error: any) {
       if (error?.errorFields) return;
-      if ((error?.response?.data?.title || error?.title) === "insufficient_balance") {
+      if (
+        (error?.response?.data?.title || error?.title) ===
+        "insufficient_balance"
+      ) {
         notification.success({ message: t("message.success") });
         resetCreateModal();
         return;
@@ -808,16 +956,36 @@ export const PeerPaymentsStyleDefault = () => {
     }
   };
 
-  const getBulkChargeErrorMessage = (error: any, row: any, balanceData: any) => {
+  const getBulkChargeErrorMessage = (
+    error: any,
+    row: any,
+    balanceData: any
+  ) => {
     const title = error?.response?.data?.title || error?.title;
+    const isTimeoutError =
+      error?.code === "ECONNABORTED" ||
+      error?.code === "ERR_CANCELED" ||
+      error?.name === "CanceledError" ||
+      String(error?.message || "")
+        .toLowerCase()
+        .includes("timeout");
+    if (isTimeoutError) {
+      return t("peer_payment.charge_timeout");
+    }
     if (title === "invalid_amount") {
       return t("peer_payment.invalid_amount");
     }
     if (title === "insufficient_balance") {
-      const totalMoney = Number(row.totalFee || 0) + Number(row.exchangedAmount || 0);
+      const totalMoney =
+        Number(row.totalFee || 0) + Number(row.exchangedAmount || 0);
       const enoughMoney =
-        totalMoney - (Number(balanceData?.balance || 0) + Number(balanceData?.creditLimit || 0));
-      return t("cartCheckout.notEnoughMoney").replace("${money}", moneyFormat(enoughMoney));
+        totalMoney -
+        (Number(balanceData?.balance || 0) +
+          Number(balanceData?.creditLimit || 0));
+      return t("cartCheckout.notEnoughMoney").replace(
+        "${money}",
+        moneyFormat(enoughMoney)
+      );
     }
     const status = error?.response?.status;
     const messageKey =
@@ -832,7 +1000,10 @@ export const PeerPaymentsStyleDefault = () => {
     setBulkResultOpen(true);
     setBulkChargeLoading(true);
 
-    const nextResult: Record<string, { loading?: boolean; success?: string | null; error?: string | null }> = {};
+    const nextResult: Record<
+      string,
+      { loading?: boolean; success?: string | null; error?: string | null }
+    > = {};
     selectedRows.forEach((row: any) => {
       nextResult[row.code] = { error: null, success: null, loading: false };
     });
@@ -846,7 +1017,11 @@ export const PeerPaymentsStyleDefault = () => {
       const latestBalance = balanceResponse.data || userBalance;
       try {
         await chargeMutation.mutateAsync(row.code);
-        nextResult[row.code] = { error: null, success: t("message.success"), loading: false };
+        nextResult[row.code] = {
+          error: null,
+          success: t("message.success"),
+          loading: false,
+        };
       } catch (error: any) {
         nextResult[row.code] = {
           error: getBulkChargeErrorMessage(error, row, latestBalance),
@@ -862,7 +1037,9 @@ export const PeerPaymentsStyleDefault = () => {
 
   const openBulkModal = async () => {
     if (selectedRows.length > 10) {
-      notification.error({ message: t("peer_payment.maxPeerPaymentCharge10Item") });
+      notification.error({
+        message: t("peer_payment.maxPeerPaymentCharge10Item"),
+      });
       return;
     }
     setBulkModalOpen(true);
@@ -870,9 +1047,6 @@ export const PeerPaymentsStyleDefault = () => {
       amount: item.amount,
       paymentMethodCode: item.paymentMethodCode,
       refId: `${item.amount}|${item.paymentMethodCode}`,
-      ...(item.peerPaymentType === "taobao_global" || peerPaymentType === "taobao_global"
-        ? { peerPaymentType: "taobao_global" }
-        : {}),
     }));
     const response = await exchangeRatesBatchMutation.mutateAsync(payload);
     setBulkExchangeRates(response);
@@ -924,27 +1098,34 @@ export const PeerPaymentsStyleDefault = () => {
   };
 
   const createAmount = Number(
-    (createStep > 1 ? createPaymentDraftValues.amount : watchedCreateAmount) || 0,
+    (createStep > 1 ? createPaymentDraftValues.amount : watchedCreateAmount) ||
+      0
   );
   const createExchangedAmount =
-    createAmount && createExchangeRate?.rate ? createAmount * Number(createExchangeRate.rate || 0) : 0;
+    createAmount && createExchangeRate?.rate
+      ? createAmount * Number(createExchangeRate.rate || 0)
+      : 0;
   const createFeeItems = Array.isArray(createDraftFees?.listFees)
     ? createDraftFees.listFees
     : [];
   const createTotalMoney = createFeeItems.reduce(
     (sum: number, item: any) => sum + Number(item.provisionalAmount || 0),
-    createExchangedAmount,
+    createExchangedAmount
   );
-  const createBetterOfferFeeItems = Array.isArray(createBetterOfferFees?.listFees)
+  const createBetterOfferFeeItems = Array.isArray(
+    createBetterOfferFees?.listFees
+  )
     ? createBetterOfferFees.listFees
     : [];
-  const createBetterOfferExchangedAmount = createBetterOffer * Number(createExchangeRate?.rate || 0);
+  const createBetterOfferExchangedAmount =
+    createBetterOffer * Number(createExchangeRate?.rate || 0);
   const createBetterOfferTotalMoney = createBetterOfferFeeItems.reduce(
     (sum: number, item: any) => sum + Number(item.provisionalAmount || 0),
-    createBetterOfferExchangedAmount,
+    createBetterOfferExchangedAmount
   );
   const hasCreateFeeWarning = createFeeItems.some(
-    (item: any) => item.provisionalAmount === null || item.provisionalAmount === undefined,
+    (item: any) =>
+      item.provisionalAmount === null || item.provisionalAmount === undefined
   );
 
   const canOpenExportModal = () => {
@@ -953,7 +1134,9 @@ export const PeerPaymentsStyleDefault = () => {
     const isInvalidRange =
       !timestampFrom ||
       !timestampTo ||
-      dayjs(timestampFrom).add(3, "month").isBefore(dayjs(timestampTo).startOf("day"));
+      dayjs(timestampFrom)
+        .add(3, "month")
+        .isBefore(dayjs(timestampTo).startOf("day"));
 
     if (isInvalidRange) {
       notification.error({ message: t("transaction.export_csv_btn_error") });
@@ -984,7 +1167,9 @@ export const PeerPaymentsStyleDefault = () => {
       {dailyMessage && (
         <Alert
           message={<Text strong>{t("order.notification")}</Text>}
-          description={<span dangerouslySetInnerHTML={{ __html: dailyMessage }} />}
+          description={
+            <span dangerouslySetInnerHTML={{ __html: dailyMessage }} />
+          }
           type="success"
           showIcon
           closable
@@ -1011,7 +1196,10 @@ export const PeerPaymentsStyleDefault = () => {
             </Col>
             {peerPaymentType !== "transfer" ? (
               <Col xs={24} md={8}>
-                <Form.Item name="paymentAccount" label={t("peer_payment.paymentAccount")}>
+                <Form.Item
+                  name="paymentAccount"
+                  label={t("peer_payment.paymentAccount")}
+                >
                   <Select
                     allowClear
                     showSearch
@@ -1019,15 +1207,25 @@ export const PeerPaymentsStyleDefault = () => {
                     placeholder={t("peer_payment.select_paymentAccount")}
                     options={paymentAccounts.map((item: any) => ({
                       value: item.account || item.code || item.id,
-                      label: item.displayName || item.account || item.name || item.code,
+                      label:
+                        item.displayName ||
+                        item.account ||
+                        item.name ||
+                        item.code,
                     }))}
                   />
                 </Form.Item>
               </Col>
             ) : (
               <Col xs={24} md={8}>
-                <Form.Item name="beneficiaryAccount" label={t("peer_payment.beneficiaryAccount")}>
-                  <Input placeholder={t("peer_payment.beneficiaryAccount")} allowClear />
+                <Form.Item
+                  name="beneficiaryAccount"
+                  label={t("peer_payment.beneficiaryAccount")}
+                >
+                  <Input
+                    placeholder={t("peer_payment.beneficiaryAccount")}
+                    allowClear
+                  />
                 </Form.Item>
               </Col>
             )}
@@ -1052,13 +1250,22 @@ export const PeerPaymentsStyleDefault = () => {
               </Form.Item>
             </Col>
             <Col xs={24} md={4}>
-              <Form.Item name="originalReceiptCode" label={t("peer_payment.originalReceiptCode")}>
-                <Input placeholder={t("peer_payment.originalReceiptCode")} allowClear />
+              <Form.Item
+                name="originalReceiptCode"
+                label={t("peer_payment.originalReceiptCode")}
+              >
+                <Input
+                  placeholder={t("peer_payment.originalReceiptCode")}
+                  allowClear
+                />
               </Form.Item>
             </Col>
             <Col xs={24} md={4}>
               <Form.Item name="billTo" label={t("peer_payment.billTo")}>
-                <Input placeholder={t("peer_payment.billTo_enter")} allowClear />
+                <Input
+                  placeholder={t("peer_payment.billTo_enter")}
+                  allowClear
+                />
               </Form.Item>
             </Col>
             <Col xs={24} md={16}>
@@ -1067,7 +1274,9 @@ export const PeerPaymentsStyleDefault = () => {
                   <Form.Item name="milestoneStatus" noStyle>
                     <Select
                       allowClear
-                      placeholder={t("peer_payment.filterByMilestoneStatusTime")}
+                      placeholder={t(
+                        "peer_payment.filterByMilestoneStatusTime"
+                      )}
                       style={{ flex: "1 1 220px", minWidth: 220 }}
                       options={statuses.map((status: any) => ({
                         value: status.code,
@@ -1083,7 +1292,9 @@ export const PeerPaymentsStyleDefault = () => {
                       style={{ flex: "1 1 220px", minWidth: 220 }}
                     />
                   </Form.Item>
-                  <SwapRightOutlined style={{ color: token.colorTextSecondary }} />
+                  <SwapRightOutlined
+                    style={{ color: token.colorTextSecondary }}
+                  />
                   <Form.Item name="milestoneTo" noStyle>
                     <DatePicker
                       showTime={{ format: "HH:mm" }}
@@ -1098,12 +1309,18 @@ export const PeerPaymentsStyleDefault = () => {
             {peerPaymentType === "payment" && isEnabledBiffin && (
               <>
                 <Col xs={24} md={8}>
-                  <Form.Item name="hasCollateral" label={t("peer_payment.qualifyLoan")}>
+                  <Form.Item
+                    name="hasCollateral"
+                    label={t("peer_payment.qualifyLoan")}
+                  >
                     <Select allowClear options={qualifyLoanOptions} />
                   </Form.Item>
                 </Col>
                 <Col xs={24} md={8}>
-                  <Form.Item name="contractWithShopkeeper" label={t("peer_payment.loanStatus")}>
+                  <Form.Item
+                    name="contractWithShopkeeper"
+                    label={t("peer_payment.loanStatus")}
+                  >
                     <Select allowClear options={bifinOptions} />
                   </Form.Item>
                 </Col>
@@ -1127,7 +1344,10 @@ export const PeerPaymentsStyleDefault = () => {
               </Form.Item>
             </Col>
             <Col xs={24}>
-              <Form.Item name="paymentMethod" label={t("peer_payment.payment_method")}>
+              <Form.Item
+                name="paymentMethod"
+                label={t("peer_payment.payment_method")}
+              >
                 <Checkbox.Group>
                   <Space wrap>
                     {paymentMethods.map((method: any) => (
@@ -1140,21 +1360,33 @@ export const PeerPaymentsStyleDefault = () => {
               </Form.Item>
             </Col>
             <Col xs={24}>
-              <Space wrap>
-                <Button type="primary" htmlType="submit" icon={<SearchOutlined />}>
-                  {t("orders.buttons.search")}
-                </Button>
-                <Button onClick={handleReset} icon={<ReloadOutlined />}>
-                  {t("orders.buttons.reset")}
-                </Button>
-              </Space>
+              <Flex justify="end">
+                <Space wrap>
+                  <Button onClick={handleReset} icon={<ReloadOutlined />}>
+                    {t("orders.buttons.reset")}
+                  </Button>
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                    icon={<SearchOutlined />}
+                  >
+                    {t("orders.buttons.search")}
+                  </Button>
+                </Space>
+              </Flex>
             </Col>
           </Row>
         </Form>
       </Card>
 
       <Card>
-        <Flex justify="space-between" align="center" gap={12} wrap style={{ marginBottom: 12 }}>
+        <Flex
+          justify="space-between"
+          align="center"
+          gap={12}
+          wrap
+          style={{ marginBottom: 12 }}
+        >
           <div />
           <Space wrap>
             <Button
@@ -1202,28 +1434,44 @@ export const PeerPaymentsStyleDefault = () => {
           </Space>
         </Flex>
 
-        <Tabs
-          activeKey={peerPaymentType}
-          onChange={handleTabChange}
-          size="large"
-          items={[
-            {
-              key: "payment",
-              icon: <PayCircleOutlined />,
-              label: t("peer_payment.request_payment"),
+        <ConfigProvider
+          theme={{
+            components: {
+              Segmented: {
+                itemSelectedBg: token.colorPrimary,
+                itemSelectedColor: token.colorTextLightSolid,
+              },
             },
-            {
-              key: "transfer",
-              icon: <SwapOutlined />,
-              label: t("peer_payment.request_transfer"),
-            },
-            {
-              key: "taobao_global",
-              icon: <PayCircleOutlined />,
-              label: t("peer_payment.request_payment_TBG"),
-            },
-          ]}
-        />
+          }}
+        >
+          <Segmented
+            block
+            value={peerPaymentType}
+            onChange={(value) => handleTabChange(String(value))}
+            size="large"
+            style={{ marginBottom: token.marginMD }}
+            options={[
+              {
+                value: "payment",
+                label: (
+                  <Flex align="center" justify="center" gap={token.marginXS} style={{ paddingBlock: token.paddingXS }}>
+                    <PayCircleOutlined />
+                    {t("peer_payment.request_payment")}
+                  </Flex>
+                ),
+              },
+              {
+                value: "transfer",
+                label: (
+                  <Flex align="center" justify="center" gap={token.marginXS} style={{ paddingBlock: token.paddingXS }}>
+                    <SwapOutlined />
+                    {t("peer_payment.request_transfer")}
+                  </Flex>
+                ),
+              },
+            ]}
+          />
+        </ConfigProvider>
         <Table
           rowKey="code"
           columns={columns}
@@ -1235,7 +1483,9 @@ export const PeerPaymentsStyleDefault = () => {
             selectedRowKeys,
             onChange: setSelectedRowKeys,
             getCheckboxProps: (record: any) => ({
-              disabled: !["WAIT_FOR_PAYMENT", "REQUEST_FOR_PAY"].includes(record.status),
+              disabled: !["WAIT_FOR_PAYMENT", "REQUEST_FOR_PAY"].includes(
+                record.status
+              ),
             }),
           }}
           locale={{
@@ -1246,7 +1496,9 @@ export const PeerPaymentsStyleDefault = () => {
           <Pagination
             current={currentPage}
             pageSize={pageSize}
-            total={hasMore ? currentPage * pageSize + 1 : currentPage * pageSize}
+            total={
+              hasMore ? currentPage * pageSize + 1 : currentPage * pageSize
+            }
             onChange={(nextPage, nextPageSize) => {
               setPage(nextPage);
               if (nextPageSize !== pageSize) setPageSize(nextPageSize);
@@ -1257,7 +1509,11 @@ export const PeerPaymentsStyleDefault = () => {
       </Card>
 
       <Modal
-        title={<span style={{ textTransform: "capitalize" }}>{exchangeRangeText}</span>}
+        title={
+          <span style={{ textTransform: "capitalize" }}>
+            {exchangeRangeText}
+          </span>
+        }
         open={rateModalOpen}
         onCancel={() => setRateModalOpen(false)}
         footer={null}
@@ -1266,50 +1522,71 @@ export const PeerPaymentsStyleDefault = () => {
         <Space direction="vertical" size={16} style={{ width: "100%" }}>
           {currentLoggedUser?.customerGroup?.displayName && (
             <Text strong>
-              {t("peer_payment.customerGroup")}: {currentLoggedUser.customerGroup.displayName}
+              {t("peer_payment.customerGroup")}:{" "}
+              {currentLoggedUser.customerGroup.displayName}
             </Text>
           )}
-          {filteredMarkupRateGroups.listMarkupRates?.map((item: any, index: number) => {
-            const template = parseViewTemplate(item.viewTemplate);
-            if (!template.length) return null;
-            const currency = item.exchangeRate ? String(item.exchangeRate).split("/") : [];
-            const paymentMethod = paymentMethods.find((method: any) => method.code === item.paymentMethodCode) || {};
-            return (
-              <Card key={`${item.paymentMethodCode}-${index}`} size="small">
-                <Space direction="vertical" size={10} style={{ width: "100%" }}>
-                  <Text strong style={{ color: token.colorPrimary }}>
-                    {paymentMethod.name || "---"}{" "}
-                    {item.paymentMethodCode === "alipay" &&
-                      (item?.exchangeRateSource === "black" ? "(YCTTH 1688)" : "(YCTTH TBG)")}
-                  </Text>
-                  {template.map((tier: any, tierIndex: number) => {
-                    const value = getMarkupRateValue(item, tier, exchangeRate, exchangeRateTbg);
-                    return (
-                      <div key={`${tier.fromAmount}-${tier.toAmount}-${tierIndex}`}>
-                        <Flex justify="space-between">
-                          <Text type="secondary">{t("peer_payment.range")}</Text>
-                          {tier.toAmount ? (
-                            <span />
-                          ) : (
-                            <Text>
-                              {t("peer_payment.above")}{" "}
-                              <Text strong style={{ color: token.colorPrimary }}>
-                                {moneyFormat(tier.fromAmount, currency[0])}
-                              </Text>
+          {filteredMarkupRateGroups.listMarkupRates?.map(
+            (item: any, index: number) => {
+              const template = parseViewTemplate(item.viewTemplate);
+              if (!template.length) return null;
+              const currency = item.exchangeRate
+                ? String(item.exchangeRate).split("/")
+                : [];
+              const paymentMethod =
+                paymentMethods.find(
+                  (method: any) => method.code === item.paymentMethodCode
+                ) || {};
+              return (
+                <Card key={`${item.paymentMethodCode}-${index}`} size="small">
+                  <Space
+                    direction="vertical"
+                    size={10}
+                    style={{ width: "100%" }}
+                  >
+                    <Text strong style={{ color: token.colorPrimary }}>
+                      {paymentMethod.name || "---"}{" "}
+                      {item.paymentMethodCode === "alipay" &&
+                      "(YCTTH 1688)"}
+                    </Text>
+                    {template.map((tier: any, tierIndex: number) => {
+                      const value = getMarkupRateValue(item, tier, exchangeRate);
+                      return (
+                        <div
+                          key={`${tier.fromAmount}-${tier.toAmount}-${tierIndex}`}
+                        >
+                          <Flex justify="space-between">
+                            <Text type="secondary">
+                              {t("peer_payment.range")}
                             </Text>
-                          )}
-                        </Flex>
-                        <Flex justify="space-between">
-                          <Text type="secondary">{t("peer_payment.exchage_rate")}</Text>
-                          <Text>{moneyFormat(value, currency[1])}</Text>
-                        </Flex>
-                      </div>
-                    );
-                  })}
-                </Space>
-              </Card>
-            );
-          })}
+                            {tier.toAmount ? (
+                              <span />
+                            ) : (
+                              <Text>
+                                {t("peer_payment.above")}{" "}
+                                <Text
+                                  strong
+                                  style={{ color: token.colorPrimary }}
+                                >
+                                  {moneyFormat(tier.fromAmount, currency[0])}
+                                </Text>
+                              </Text>
+                            )}
+                          </Flex>
+                          <Flex justify="space-between">
+                            <Text type="secondary">
+                              {t("peer_payment.exchage_rate")}
+                            </Text>
+                            <Text>{moneyFormat(value, currency[1])}</Text>
+                          </Flex>
+                        </div>
+                      );
+                    })}
+                  </Space>
+                </Card>
+              );
+            }
+          )}
         </Space>
       </Modal>
 
@@ -1322,7 +1599,9 @@ export const PeerPaymentsStyleDefault = () => {
         cancelText={t("peer_payment.modalConfirmYcttBtnCancel")}
         confirmLoading={exchangeRatesBatchMutation.isPending}
         okButtonProps={{
-          disabled: showWarningLimitCombinePeerPayment || exchangeRatesBatchMutation.isPending,
+          disabled:
+            showWarningLimitCombinePeerPayment ||
+            exchangeRatesBatchMutation.isPending,
         }}
         maskClosable={false}
         width={950}
@@ -1330,13 +1609,19 @@ export const PeerPaymentsStyleDefault = () => {
         <Space direction="vertical" style={{ width: "100%" }}>
           {showWarningLimitCombinePeerPayment && (
             <Alert
-              message={t("peer_payment.maxCombine1688Bills", { max: maxCombine1688Bills })}
+              message={t("peer_payment.maxCombine1688Bills", {
+                max: maxCombine1688Bills,
+              })}
               type="warning"
               showIcon
             />
           )}
           {hasBulkNewExchangeRate && (
-            <Alert message={t("peer_payment.warningNewExchangeRate")} type="warning" showIcon />
+            <Alert
+              message={t("peer_payment.warningNewExchangeRate")}
+              type="warning"
+              showIcon
+            />
           )}
           <Flex gap={16} wrap>
             <Text>
@@ -1379,7 +1664,8 @@ export const PeerPaymentsStyleDefault = () => {
                 key: "exchangeRate",
                 title: t("peer_payment.exchangeRate"),
                 align: "right",
-                render: (_, row: any) => `${moneyFormat(1, row.currency)} = ${moneyFormat(row.exchangeRate)}`,
+                render: (_, row: any) =>
+                  `${moneyFormat(1, row.currency)} = ${moneyFormat(row.exchangeRate)}`,
               },
               {
                 key: "exchangeAmount",
@@ -1395,7 +1681,13 @@ export const PeerPaymentsStyleDefault = () => {
                 render: (_, row: any) => {
                   const newRate = getBulkNewRate(row) ?? row.exchangeRate;
                   return (
-                    <Text style={{ color: hasBulkNewExchangeRate ? token.colorSuccess : undefined }}>
+                    <Text
+                      style={{
+                        color: hasBulkNewExchangeRate
+                          ? token.colorSuccess
+                          : undefined,
+                      }}
+                    >
                       {moneyFormat(1, row.currency)} = {moneyFormat(newRate)}
                     </Text>
                   );
@@ -1406,7 +1698,13 @@ export const PeerPaymentsStyleDefault = () => {
                 title: t("peer_payment.newExchangeAmount"),
                 align: "right",
                 render: (_, row: any) => (
-                  <Text style={{ color: hasBulkNewExchangeRate ? token.colorSuccess : undefined }}>
+                  <Text
+                    style={{
+                      color: hasBulkNewExchangeRate
+                        ? token.colorSuccess
+                        : undefined,
+                    }}
+                  >
                     {moneyFormat(getBulkNewAmount(row))}
                   </Text>
                 ),
@@ -1459,7 +1757,13 @@ export const PeerPaymentsStyleDefault = () => {
               title: t("peer_payment.newExchangeAmount"),
               align: "right",
               render: (_, row: any) => (
-                <Text style={{ color: hasBulkNewExchangeRate ? token.colorSuccess : undefined }}>
+                <Text
+                  style={{
+                    color: hasBulkNewExchangeRate
+                      ? token.colorSuccess
+                      : undefined,
+                  }}
+                >
                   {moneyFormat(getBulkNewAmount(row))}
                 </Text>
               ),
@@ -1469,8 +1773,10 @@ export const PeerPaymentsStyleDefault = () => {
               title: t("peer_payment.ycttStatus"),
               render: (_, row: any) => {
                 const result = bulkChargeResult[row.code] || {};
-                if (result.error) return <Text type="danger">{result.error}</Text>;
-                if (result.success) return <Text type="success">{result.success}</Text>;
+                if (result.error)
+                  return <Text type="danger">{result.error}</Text>;
+                if (result.success)
+                  return <Text type="success">{result.success}</Text>;
                 return (
                   <Space>
                     <Spin size="small" />
@@ -1505,7 +1811,9 @@ export const PeerPaymentsStyleDefault = () => {
         okText={t("common.confirm")}
         cancelText={createStep > 1 ? t("button.back") : t("common.cancel")}
         cancelButtonProps={{ onClick: backCreateStep }}
-        okButtonProps={{ disabled: createStep === 1 && createExchangeRate?.rate === null }}
+        okButtonProps={{
+          disabled: createStep === 1 && createExchangeRate?.rate === null,
+        }}
         width={600}
       >
         <Form form={createForm} layout="vertical">
@@ -1526,21 +1834,36 @@ export const PeerPaymentsStyleDefault = () => {
                       <Form.Item
                         name="amount"
                         label={t("peer_payment.amount")}
-                        rules={[{ required: true, message: t("order.quantity_required") }]}
+                        rules={[
+                          {
+                            required: true,
+                            message: t("order.quantity_required"),
+                          },
+                        ]}
                       >
                         <InputNumber<number>
                           min={Number(1)}
                           precision={2}
                           style={{ width: "100%" }}
                           placeholder={t("peer_payment.amount_placeholder")}
-                          formatter={(value) => `${value ?? ""}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-                          parser={(value) => Number(String(value || "").replace(/\$\s?|(,*)/g, ""))}
-                          onBlur={loadCreateExchangeRate}
+                          formatter={(value) =>
+                            `${value ?? ""}`.replace(
+                              /\B(?=(\d{3})+(?!\d))/g,
+                              ","
+                            )
+                          }
+                          parser={(value) =>
+                            Number(
+                              String(value || "").replace(/\$\s?|(,*)/g, "")
+                            )
+                          }
                         />
                       </Form.Item>
                       {createExchangeRate?.rate === null && (
                         <Text type="danger">
-                          {t("peerPayment.minPayment", { value: createExchangeRate.minPayment })}
+                          {t("peerPayment.minPayment", {
+                            value: createExchangeRate.minPayment,
+                          })}
                         </Text>
                       )}
                       {createExchangeRate?.base && (
@@ -1548,7 +1871,10 @@ export const PeerPaymentsStyleDefault = () => {
                           <Text type="secondary">{t("header.exchange")}</Text>{" "}
                           <Text>
                             {moneyFormat(1, createExchangeRate.base)} ={" "}
-                            {moneyFormat(createExchangeRate.rate, createExchangeRate.exchange)}
+                            {moneyFormat(
+                              createExchangeRate.rate,
+                              createExchangeRate.exchange
+                            )}
                           </Text>
                         </div>
                       )}
@@ -1562,14 +1888,19 @@ export const PeerPaymentsStyleDefault = () => {
                           minHeight: 74,
                         }}
                       >
-                        <Text type="secondary">{t("peer_payment.exchangedAmount")}</Text>
+                        <Text type="secondary">
+                          {t("peer_payment.exchangedAmount")}
+                        </Text>
                         <Title level={5} style={{ margin: "8px 0 0" }}>
                           {moneyFormat(createExchangedAmount)}
                         </Title>
                       </div>
                     </Col>
                   </Row>
-                  <Form.Item name="requestForPayType" style={{ marginBottom: 20 }}>
+                  <Form.Item
+                    name="requestForPayType"
+                    style={{ marginBottom: 20 }}
+                  >
                     <Radio.Group
                       value={createPaymentType}
                       onChange={(event) => {
@@ -1584,11 +1915,17 @@ export const PeerPaymentsStyleDefault = () => {
                       }}
                     >
                       <Space wrap>
-                        {tenantConfigPayment?.config?.paymentAlipay === true && (
-                          <Radio value="alipay">{t("peer_payment.request_for_pay_ali")}</Radio>
+                        {tenantConfigPayment?.config?.paymentAlipay ===
+                          true && (
+                          <Radio value="alipay">
+                            {t("peer_payment.request_for_pay_ali")}
+                          </Radio>
                         )}
-                        {tenantConfigPayment?.config?.payment1688Business === true && (
-                          <Radio value="company">{t("peer_payment.request_for_pay_company")}</Radio>
+                        {tenantConfigPayment?.config?.payment1688Business ===
+                          true && (
+                          <Radio value="company">
+                            {t("peer_payment.request_for_pay_company")}
+                          </Radio>
                         )}
                       </Space>
                     </Radio.Group>
@@ -1596,8 +1933,13 @@ export const PeerPaymentsStyleDefault = () => {
 
                   {createPaymentType === "alipay" ? (
                     <>
-                      <Form.Item name="originalReceipts" label={t("peer_payment.originalReceipts")}>
-                        <Input placeholder={t("peer_payment.originalReceipt_enter")} />
+                      <Form.Item
+                        name="originalReceipts"
+                        label={t("peer_payment.originalReceipts")}
+                      >
+                        <Input
+                          placeholder={t("peer_payment.originalReceipt_enter")}
+                        />
                       </Form.Item>
                       <Radio.Group
                         value={createPayInputType}
@@ -1614,10 +1956,14 @@ export const PeerPaymentsStyleDefault = () => {
                       >
                         <Row gutter={20}>
                           <Col span={12}>
-                            <Radio value="paymentAccount">{t("peer_payment.select_paymentAccount")}</Radio>
+                            <Radio value="paymentAccount">
+                              {t("peer_payment.select_paymentAccount")}
+                            </Radio>
                           </Col>
                           <Col span={12}>
-                            <Radio value="qrCode">{t("peer_payment.upload_qr_code")}</Radio>
+                            <Radio value="qrCode">
+                              {t("peer_payment.upload_qr_code")}
+                            </Radio>
                           </Col>
                         </Row>
                       </Radio.Group>
@@ -1625,7 +1971,12 @@ export const PeerPaymentsStyleDefault = () => {
                         <Form.Item
                           name="qrCode"
                           label={t("peer_payment.upload_qr_code")}
-                          rules={[{ required: true, message: t("shipment.qrcode_required") }]}
+                          rules={[
+                            {
+                              required: true,
+                              message: t("shipment.qrcode_required"),
+                            },
+                          ]}
                         >
                           <Upload
                             accept="image/*"
@@ -1634,11 +1985,15 @@ export const PeerPaymentsStyleDefault = () => {
                             fileList={qrCodeFiles}
                             beforeUpload={async (file) => {
                               if (!file.type.startsWith("image/")) {
-                                notification.error({ message: t("message.picture") });
+                                notification.error({
+                                  message: t("message.picture"),
+                                });
                                 return Upload.LIST_IGNORE;
                               }
                               if (qrCodeFiles.length >= 1) {
-                                notification.error({ message: t("peer_payment.upload_qr_limit") });
+                                notification.error({
+                                  message: t("peer_payment.upload_qr_limit"),
+                                });
                                 return Upload.LIST_IGNORE;
                               }
                               const preview = URL.createObjectURL(file);
@@ -1651,9 +2006,12 @@ export const PeerPaymentsStyleDefault = () => {
                                 },
                               ]);
                               try {
-                                const response = await uploadQrCodeMutation.mutateAsync(file);
+                                const response =
+                                  await uploadQrCodeMutation.mutateAsync(file);
                                 if (response.url) {
-                                  createForm.setFieldsValue({ qrCode: response.url });
+                                  createForm.setFieldsValue({
+                                    qrCode: response.url,
+                                  });
                                   setQrCodeFiles([
                                     {
                                       uid: file.uid,
@@ -1665,9 +2023,14 @@ export const PeerPaymentsStyleDefault = () => {
                                 }
                               } catch (error: any) {
                                 notification.error({
-                                  message: error?.response?.data?.message || error?.message || t("common.error"),
+                                  message:
+                                    error?.response?.data?.message ||
+                                    error?.message ||
+                                    t("common.error"),
                                 });
-                                createForm.setFieldsValue({ qrCode: undefined });
+                                createForm.setFieldsValue({
+                                  qrCode: undefined,
+                                });
                                 setQrCodeFiles([]);
                               }
                               return Upload.LIST_IGNORE;
@@ -1690,12 +2053,19 @@ export const PeerPaymentsStyleDefault = () => {
                           <Form.Item
                             name="paymentAccount"
                             label={t("peer_payment.paymentAccount")}
-                            rules={[{ required: true, message: t("order.quantity_required") }]}
+                            rules={[
+                              {
+                                required: true,
+                                message: t("order.quantity_required"),
+                              },
+                            ]}
                           >
                             <Select
                               showSearch
                               optionFilterProp="label"
-                              placeholder={t("peer_payment.select_paymentAccount")}
+                              placeholder={t(
+                                "peer_payment.select_paymentAccount"
+                              )}
                               options={paymentAccounts.map((item: any) => ({
                                 value: item.account || item.code || item.id,
                                 label: `${item.displayName || item.name || item.account || item.code}${
@@ -1708,16 +2078,23 @@ export const PeerPaymentsStyleDefault = () => {
                             name="paymentLink"
                             label={t("peer_payment.payment_link")}
                             rules={[
-                              { required: true, message: t("order.quantity_required") },
+                              {
+                                required: true,
+                                message: t("order.quantity_required"),
+                              },
                               {
                                 validator: (_, value) =>
                                   !value || isValidUrl(value)
                                     ? Promise.resolve()
-                                    : Promise.reject(new Error(t("shipment.link_error"))),
+                                    : Promise.reject(
+                                        new Error(t("shipment.link_error"))
+                                      ),
                               },
                             ]}
                           >
-                            <Input placeholder={t("peer_payment.payment_link_enter")} />
+                            <Input
+                              placeholder={t("peer_payment.payment_link_enter")}
+                            />
                           </Form.Item>
                         </>
                       )}
@@ -1727,14 +2104,26 @@ export const PeerPaymentsStyleDefault = () => {
                       <Form.Item
                         name="originalReceipts"
                         label={t("peer_payment.originalReceipts")}
-                        rules={[{ required: true, message: t("order.quantity_required") }]}
+                        rules={[
+                          {
+                            required: true,
+                            message: t("order.quantity_required"),
+                          },
+                        ]}
                       >
-                        <Input placeholder={t("peer_payment.originalReceipt_enter")} />
+                        <Input
+                          placeholder={t("peer_payment.originalReceipt_enter")}
+                        />
                       </Form.Item>
                       <Form.Item
                         name="billTo"
                         label={t("peer_payment.billTo")}
-                        rules={[{ required: true, message: t("order.quantity_required") }]}
+                        rules={[
+                          {
+                            required: true,
+                            message: t("order.quantity_required"),
+                          },
+                        ]}
                       >
                         <Input placeholder={t("peer_payment.billTo_enter")} />
                       </Form.Item>
@@ -1745,14 +2134,19 @@ export const PeerPaymentsStyleDefault = () => {
                     label={t("peer_payment.note")}
                     rules={[{ max: 50, message: t("peer_payment.memo_error") }]}
                   >
-                    <Input.TextArea placeholder={t("peer_payment.note_placeholder")} />
+                    <Input.TextArea
+                      placeholder={t("peer_payment.note_placeholder")}
+                    />
                   </Form.Item>
                 </>
               ) : (
                 <Space direction="vertical" style={{ width: "100%" }}>
                   <Row gutter={createBetterOffer ? 24 : 0}>
                     <Col span={createBetterOffer ? 12 : 24}>
-                      <Card size="small" title={t("peer_payment.create_payment_with_normal")}>
+                      <Card
+                        size="small"
+                        title={t("peer_payment.create_payment_with_normal")}
+                      >
                         <Flex justify="space-between">
                           <Text>{t("peer_payment.amount")}:</Text>
                           <Text>{formatCnyAmount(createAmount)}</Text>
@@ -1762,10 +2156,18 @@ export const PeerPaymentsStyleDefault = () => {
                           <Text>{moneyFormat(createExchangedAmount)}</Text>
                         </Flex>
                         {createFeeItems.map((item: any, index: number) => {
-                          const fee = peerPaymentFees.find((feeItem: any) => feeItem.code === item.feeCode);
-                          const feeLabel = fee?.name || defaultFeeLabels[item.feeCode] || item.feeCode;
+                          const fee = peerPaymentFees.find(
+                            (feeItem: any) => feeItem.code === item.feeCode
+                          );
+                          const feeLabel =
+                            fee?.name ||
+                            defaultFeeLabels[item.feeCode] ||
+                            item.feeCode;
                           return (
-                            <Flex key={`${item.feeCode}-${index}`} justify="space-between">
+                            <Flex
+                              key={`${item.feeCode}-${index}`}
+                              justify="space-between"
+                            >
                               <Text>{feeLabel}:</Text>
                               <Text>{moneyFormat(item.provisionalAmount)}</Text>
                             </Flex>
@@ -1782,25 +2184,42 @@ export const PeerPaymentsStyleDefault = () => {
                     </Col>
                     {Boolean(createBetterOffer) && (
                       <Col span={12}>
-                        <Card size="small" title={t("peer_payment.payment_with_better_offer")}>
+                        <Card
+                          size="small"
+                          title={t("peer_payment.payment_with_better_offer")}
+                        >
                           <Flex justify="space-between">
                             <Text>{t("peer_payment.better_offer_value")}:</Text>
                             <Text>{formatCnyAmount(createBetterOffer)}</Text>
                           </Flex>
                           <Flex justify="space-between">
                             <Text>{t("peer_payment.exchangedAmount")}:</Text>
-                            <Text>{moneyFormat(createBetterOfferExchangedAmount)}</Text>
+                            <Text>
+                              {moneyFormat(createBetterOfferExchangedAmount)}
+                            </Text>
                           </Flex>
-                          {createBetterOfferFeeItems.map((item: any, index: number) => {
-                            const fee = peerPaymentFees.find((feeItem: any) => feeItem.code === item.feeCode);
-                            const feeLabel = fee?.name || defaultFeeLabels[item.feeCode] || item.feeCode;
-                            return (
-                              <Flex key={`${item.feeCode}-${index}`} justify="space-between">
-                                <Text>{feeLabel}:</Text>
-                                <Text>{moneyFormat(item.provisionalAmount)}</Text>
-                              </Flex>
-                            );
-                          })}
+                          {createBetterOfferFeeItems.map(
+                            (item: any, index: number) => {
+                              const fee = peerPaymentFees.find(
+                                (feeItem: any) => feeItem.code === item.feeCode
+                              );
+                              const feeLabel =
+                                fee?.name ||
+                                defaultFeeLabels[item.feeCode] ||
+                                item.feeCode;
+                              return (
+                                <Flex
+                                  key={`${item.feeCode}-${index}`}
+                                  justify="space-between"
+                                >
+                                  <Text>{feeLabel}:</Text>
+                                  <Text>
+                                    {moneyFormat(item.provisionalAmount)}
+                                  </Text>
+                                </Flex>
+                              );
+                            }
+                          )}
                           <Divider dashed style={{ margin: "12px 0" }} />
                           <Flex justify="space-between">
                             <Text strong>{t("orderDetail.total_money")}:</Text>
@@ -1812,11 +2231,19 @@ export const PeerPaymentsStyleDefault = () => {
                       </Col>
                     )}
                   </Row>
-                  <Alert message={t("peer_payment.create_warning_message")} type="warning" showIcon />
+                  <Alert
+                    message={t("peer_payment.create_warning_message")}
+                    type="warning"
+                    showIcon
+                  />
                   {Boolean(createBetterOffer) && (
                     <Popconfirm
                       placement="topRight"
-                      icon={<InfoCircleFilled style={{ color: token.colorPrimary }} />}
+                      icon={
+                        <InfoCircleFilled
+                          style={{ color: token.colorPrimary }}
+                        />
+                      }
                       title={t("peer_payment.buy_with_better_offer_confirm")}
                       okText={t("common.confirm")}
                       cancelText={t("common.cancel")}
@@ -1837,7 +2264,11 @@ export const PeerPaymentsStyleDefault = () => {
                     </Popconfirm>
                   )}
                   {hasCreateFeeWarning && (
-                    <Alert message={t("peer_payment.fee_warning")} type="warning" showIcon />
+                    <Alert
+                      message={t("peer_payment.fee_warning")}
+                      type="warning"
+                      showIcon
+                    />
                   )}
                 </Space>
               )}
@@ -1859,21 +2290,36 @@ export const PeerPaymentsStyleDefault = () => {
                       <Form.Item
                         name="amount"
                         label={t("peer_payment.amount")}
-                        rules={[{ required: true, message: t("order.quantity_required") }]}
+                        rules={[
+                          {
+                            required: true,
+                            message: t("order.quantity_required"),
+                          },
+                        ]}
                       >
                         <InputNumber<number>
                           min={Number(1)}
                           precision={2}
                           style={{ width: "100%" }}
                           placeholder={t("peer_payment.amount_placeholder")}
-                          formatter={(value) => `${value ?? ""}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-                          parser={(value) => Number(String(value || "").replace(/\$\s?|(,*)/g, ""))}
-                          onBlur={loadCreateExchangeRate}
+                          formatter={(value) =>
+                            `${value ?? ""}`.replace(
+                              /\B(?=(\d{3})+(?!\d))/g,
+                              ","
+                            )
+                          }
+                          parser={(value) =>
+                            Number(
+                              String(value || "").replace(/\$\s?|(,*)/g, "")
+                            )
+                          }
                         />
                       </Form.Item>
                       {createExchangeRate?.rate === null && (
                         <Text type="danger">
-                          {t("peerPayment.minTransfer", { value: createExchangeRate.minPayment })}
+                          {t("peerPayment.minTransfer", {
+                            value: createExchangeRate.minPayment,
+                          })}
                         </Text>
                       )}
                       {createExchangeRate?.base && (
@@ -1881,7 +2327,10 @@ export const PeerPaymentsStyleDefault = () => {
                           <Text type="secondary">{t("header.exchange")}</Text>{" "}
                           <Text>
                             {moneyFormat(1, createExchangeRate.base)} ={" "}
-                            {moneyFormat(createExchangeRate.rate, createExchangeRate.exchange)}
+                            {moneyFormat(
+                              createExchangeRate.rate,
+                              createExchangeRate.exchange
+                            )}
                           </Text>
                         </div>
                       )}
@@ -1895,7 +2344,9 @@ export const PeerPaymentsStyleDefault = () => {
                           minHeight: 74,
                         }}
                       >
-                        <Text type="secondary">{t("peer_payment.exchangedAmount")}</Text>
+                        <Text type="secondary">
+                          {t("peer_payment.exchangedAmount")}
+                        </Text>
                         <Title level={5} style={{ margin: "8px 0 0" }}>
                           {moneyFormat(createExchangedAmount)}
                         </Title>
@@ -1904,7 +2355,9 @@ export const PeerPaymentsStyleDefault = () => {
                   </Row>
                   <Form.Item
                     name="paymentMethodCode"
-                    rules={[{ required: true, message: t("order.quantity_required") }]}
+                    rules={[
+                      { required: true, message: t("order.quantity_required") },
+                    ]}
                     style={{ marginBottom: 20 }}
                   >
                     <Radio.Group
@@ -1918,11 +2371,16 @@ export const PeerPaymentsStyleDefault = () => {
                       }}
                     >
                       <Space wrap>
-                        {tenantConfigPayment?.config?.transferAlipay === true && (
-                          <Radio value="alipay">{t("peer_payment.alipay")}</Radio>
+                        {tenantConfigPayment?.config?.transferAlipay ===
+                          true && (
+                          <Radio value="alipay">
+                            {t("peer_payment.alipay")}
+                          </Radio>
                         )}
                         {tenantConfigPayment?.config?.transferBank === true && (
-                          <Radio value="bank_transfer">{t("peer_payment.bank_transfer")}</Radio>
+                          <Radio value="bank_transfer">
+                            {t("peer_payment.bank_transfer")}
+                          </Radio>
                         )}
                       </Space>
                     </Radio.Group>
@@ -1935,23 +2393,46 @@ export const PeerPaymentsStyleDefault = () => {
                           <Form.Item
                             name="beneficiaryBank"
                             label={t("peer_payment.bank_name")}
-                            rules={[{ required: true, message: t("order.quantity_required") }]}
+                            rules={[
+                              {
+                                required: true,
+                                message: t("order.quantity_required"),
+                              },
+                            ]}
                           >
-                            <Input placeholder={t("peer_payment.bank_name_placeholder")} />
+                            <Input
+                              placeholder={t(
+                                "peer_payment.bank_name_placeholder"
+                              )}
+                            />
                           </Form.Item>
                         </Col>
                         <Col span={12}>
                           <Form.Item
                             name="beneficiaryAccount"
                             label={t("peer_payment.beneficiaryAccount")}
-                            rules={[{ required: true, message: t("order.quantity_required") }]}
+                            rules={[
+                              {
+                                required: true,
+                                message: t("order.quantity_required"),
+                              },
+                            ]}
                           >
-                            <Input placeholder={t("peer_payment.beneficiaryAccount_placeholder")} />
+                            <Input
+                              placeholder={t(
+                                "peer_payment.beneficiaryAccount_placeholder"
+                              )}
+                            />
                           </Form.Item>
                         </Col>
                       </Row>
-                      <Form.Item name="beneficiaryBankBranch" label={t("peer_payment.bank_branch")}>
-                        <Input placeholder={t("peer_payment.bank_branch_enter")} />
+                      <Form.Item
+                        name="beneficiaryBankBranch"
+                        label={t("peer_payment.bank_branch")}
+                      >
+                        <Input
+                          placeholder={t("peer_payment.bank_branch_enter")}
+                        />
                       </Form.Item>
                     </>
                   )}
@@ -1960,17 +2441,32 @@ export const PeerPaymentsStyleDefault = () => {
                     <Form.Item
                       name="beneficiaryAccount"
                       label={t("peer_payment.beneficiaryAccount")}
-                      rules={[{ required: true, message: t("order.quantity_required") }]}
+                      rules={[
+                        {
+                          required: true,
+                          message: t("order.quantity_required"),
+                        },
+                      ]}
                     >
-                      <Input placeholder={t("peer_payment.beneficiaryAccount_placeholder")} />
+                      <Input
+                        placeholder={t(
+                          "peer_payment.beneficiaryAccount_placeholder"
+                        )}
+                      />
                     </Form.Item>
                   )}
                   <Form.Item
                     name="beneficiaryName"
                     label={t("peer_payment.beneficiaryName")}
-                    rules={[{ required: true, message: t("order.quantity_required") }]}
+                    rules={[
+                      { required: true, message: t("order.quantity_required") },
+                    ]}
                   >
-                    <Input placeholder={t("peer_payment.beneficiaryName_placeholder")} />
+                    <Input
+                      placeholder={t(
+                        "peer_payment.beneficiaryName_placeholder"
+                      )}
+                    />
                   </Form.Item>
                   <Form.Item
                     name="memo"
@@ -1980,14 +2476,18 @@ export const PeerPaymentsStyleDefault = () => {
                       { max: 50, message: t("peer_payment.memo_error") },
                     ]}
                   >
-                    <Input.TextArea placeholder={t("peer_payment.memo_placeholder")} />
+                    <Input.TextArea
+                      placeholder={t("peer_payment.memo_placeholder")}
+                    />
                   </Form.Item>
                   <Form.Item
                     name="note"
                     label={t("peer_payment.note")}
                     rules={[{ max: 50, message: t("peer_payment.memo_error") }]}
                   >
-                    <Input.TextArea placeholder={t("peer_payment.note_placeholder")} />
+                    <Input.TextArea
+                      placeholder={t("peer_payment.note_placeholder")}
+                    />
                   </Form.Item>
                 </>
               ) : (
@@ -2007,10 +2507,18 @@ export const PeerPaymentsStyleDefault = () => {
                       <Col span={12}>
                         <Text strong>{t("fee_tab.service_fee")}:</Text>
                         {createFeeItems.map((item: any, index: number) => {
-                          const fee = peerPaymentFees.find((feeItem: any) => feeItem.code === item.feeCode);
-                          const feeLabel = fee?.name || defaultFeeLabels[item.feeCode] || item.feeCode;
+                          const fee = peerPaymentFees.find(
+                            (feeItem: any) => feeItem.code === item.feeCode
+                          );
+                          const feeLabel =
+                            fee?.name ||
+                            defaultFeeLabels[item.feeCode] ||
+                            item.feeCode;
                           return (
-                            <Flex key={`${item.feeCode}-${index}`} justify="space-between">
+                            <Flex
+                              key={`${item.feeCode}-${index}`}
+                              justify="space-between"
+                            >
                               <Text>{feeLabel}:</Text>
                               <Text>{moneyFormat(item.provisionalAmount)}</Text>
                             </Flex>
@@ -2028,9 +2536,17 @@ export const PeerPaymentsStyleDefault = () => {
                       </Text>
                     </Flex>
                   </Card>
-                  <Alert message={t("peer_payment.create_warning_message")} type="warning" showIcon />
+                  <Alert
+                    message={t("peer_payment.create_warning_message")}
+                    type="warning"
+                    showIcon
+                  />
                   {hasCreateFeeWarning && (
-                    <Alert message={t("peer_payment.fee_warning")} type="warning" showIcon />
+                    <Alert
+                      message={t("peer_payment.fee_warning")}
+                      type="warning"
+                      showIcon
+                    />
                   )}
                 </Space>
               )}
