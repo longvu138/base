@@ -43,7 +43,7 @@ export const useCashRequestsLogic = ({
     apiParams,
     addressParams,
     listData: cashRequestsQuery.data,
-    addresses: addressesQuery.data?.data || [],
+    addresses: Array.isArray(addressesQuery.data?.data) ? addressesQuery.data.data : [],
     isCashRequestsLoading: cashRequestsQuery.isLoading,
     isAddressesLoading: addressesQuery.isLoading,
     createCashRequestMutation,

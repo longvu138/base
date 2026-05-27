@@ -1,6 +1,26 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CashRequestApi } from "@repo/api";
 
+const getCashRequestItems = (payload: any) => {
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.data)) return payload.data;
+  if (Array.isArray(payload?.items)) return payload.items;
+  if (Array.isArray(payload?.content)) return payload.content;
+  if (Array.isArray(payload?.results)) return payload.results;
+  return [];
+};
+
+const getCashRequestTotal = (listPayload: any, countHeaders: any) => {
+  const total =
+    countHeaders?.["x-count"] ??
+    countHeaders?.["x-total-count"] ??
+    listPayload?.total ??
+    listPayload?.totalElements ??
+    listPayload?.count;
+
+  return Number(total ?? getCashRequestItems(listPayload).length ?? 0);
+};
+
 export const useCashRequestsQuery = (params: any) => {
   return useQuery({
     queryKey: ["cash_requests.list", params],
@@ -11,8 +31,8 @@ export const useCashRequestsQuery = (params: any) => {
       ]);
 
       return {
-        data: listRes.data?.data || listRes.data || [],
-        total: Number(countRes.headers["x-count"] || 0),
+        data: getCashRequestItems(listRes.data),
+        total: getCashRequestTotal(listRes.data, countRes.headers),
       };
     },
     enabled: !!params,

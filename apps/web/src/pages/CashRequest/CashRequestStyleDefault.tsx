@@ -5,7 +5,6 @@ import {
   Empty,
   Form,
   Input,
-  InputNumber,
   Modal,
   Select,
   Space,
@@ -18,6 +17,7 @@ import type { ColumnsType } from "antd/es/table";
 import { PlusOutlined } from "@ant-design/icons";
 import { Pagination, TableComponent } from "@repo/ui";
 import { moneyFormat } from "@repo/util";
+import { LocaleInputNumber } from "../../components/Common/LocaleInputNumber";
 import { useCashRequestPage } from "./hooks/useCashRequestPage";
 
 const { Text } = Typography;
@@ -57,10 +57,12 @@ export const CashRequestStyleDefault = () => {
     createCashRequestMutation,
   } = useCashRequestPage();
 
+  const cashRequests = Array.isArray(listData?.data) ? listData.data : [];
+  const addressList = Array.isArray(addresses) ? addresses : [];
   const selectedAddressId = Form.useWatch("addressId", form);
-  const selectedAddress = addresses.find((item: any) => item.id === selectedAddressId);
+  const selectedAddress = addressList.find((item: any) => item.id === selectedAddressId);
 
-  const addressOptions = addresses.map((item: any) => ({
+  const addressOptions = addressList.map((item: any) => ({
     label: getAddressDisplay(item),
     value: item.id,
   }));
@@ -140,7 +142,7 @@ export const CashRequestStyleDefault = () => {
       >
         <Table
           columns={columns}
-          dataSource={listData?.data || []}
+          dataSource={cashRequests}
           pagination={false}
           rowKey="id"
           locale={{ emptyText: <Empty description="Không có dữ liệu" /> }}
@@ -170,12 +172,11 @@ export const CashRequestStyleDefault = () => {
         <Spin spinning={isAddressesLoading}>
           <Form form={form} onFinish={createCashRequest} layout="vertical">
             <Form.Item label="Số tiền" name="amount" rules={amountRules}>
-              <InputNumber
-                formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-                parser={(value) => Number(`${value || ""}`.replace(/\$\s?|(,*)/g, ""))}
+              <LocaleInputNumber
                 className="w-full"
                 placeholder="Vui lòng nhập số tiền"
                 min={minAmount}
+                precision={0}
               />
             </Form.Item>
             <div className="mb-4 text-sm text-gray-500">

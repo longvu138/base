@@ -127,11 +127,11 @@ export const FooterStyleDefault = () => {
           background: token.colorFillQuaternary,
         }}
       >
-        <Text type="secondary">
+        {/* <Text type="secondary">
           Copyright © {new Date().getFullYear()} {footer.projectName}
           {" - "}
           {footer.companyDescription}. Powered By {footer.tenantName}.
-        </Text>
+        </Text> */}
       </Flex>
     </AntLayout.Footer>
   );
