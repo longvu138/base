@@ -189,6 +189,11 @@ export const LayoutStyleThanhla = () => {
                 label: "Phiếu xuất",
               },
               {
+                path: "/lieferscheine",
+                icon: <CarOutlined />,
+                label: "Phiếu giao",
+              },
+              {
                 path: "/delivery-requests",
                 icon: <ShoppingCartOutlined />,
                 label: "YC giao hàng",

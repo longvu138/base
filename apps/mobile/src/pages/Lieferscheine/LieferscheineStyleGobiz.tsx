@@ -10,11 +10,11 @@ import {
 } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 import { FilterPanel } from "@repo/ui";
-import { useLieferscheinePage } from "@repo/hooks";
+import { useLieferscheineMobilePage } from "@repo/hooks";
 import { LieferscheineList } from "./LieferscheineShared";
 
 export const LieferscheineStyleGobiz = () => {
-  const page = useLieferscheinePage();
+  const page = useLieferscheineMobilePage();
 
   return (
     <Space direction="vertical" size="large" style={{ width: "100%" }}>

@@ -130,6 +130,15 @@ function Layout() {
       ),
     },
     {
+      key: "/lieferscheine",
+      icon: <CarOutlined />,
+      label: (
+        <Link to="/lieferscheine" onClick={() => setDrawerVisible(false)}>
+          Phiếu giao
+        </Link>
+      ),
+    },
+    {
       key: "/delivery-requests",
       icon: <SendOutlined />,
       label: (

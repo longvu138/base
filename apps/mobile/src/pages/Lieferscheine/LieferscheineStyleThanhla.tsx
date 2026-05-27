@@ -22,13 +22,13 @@ import {
 } from "@ant-design/icons";
 import { quantityFormat } from "@repo/util";
 import { FilterPanel } from "@repo/ui";
-import { useLieferscheinePage } from "@repo/hooks";
+import { useLieferscheineMobilePage } from "@repo/hooks";
 import { LieferscheineList } from "./LieferscheineShared";
 
 export const LieferscheineStyleThanhla = () => {
   const { token } = theme.useToken();
   const [filterOpen, setFilterOpen] = useState(false);
-  const page = useLieferscheinePage();
+  const page = useLieferscheineMobilePage();
   const total = page.listData?.total || 0;
 
   return (
