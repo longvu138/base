@@ -35,17 +35,14 @@ export const LayoutStyleThanhla = () => {
   return (
     <AntLayout className="min-h-screen bg-white dark:bg-[#0a0a0a]">
       {/* Header Glassmorphism */}
-      <Header className="flex items-center justify-between px-6 bg-white/80 dark:bg-[#141414]/80 backdrop-blur-lg border-b border-gray-100 dark:border-gray-800 h-16 sticky top-0 z-50">
-        <div className="flex items-center gap-3">
+      <Header className="flex items-center justify-between gap-3 px-6 bg-white/80 dark:bg-[#141414]/80 backdrop-blur-lg border-b border-gray-100 dark:border-gray-800 h-16 sticky top-0 z-50">
+        <div className="flex items-center gap-3 min-w-0">
           <div className="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center font-black">
             T
           </div>
           <span className="font-black tracking-tighter text-lg dark:text-white">
             THANHLA
           </span>
-        </div>
-
-        <div className="flex items-center gap-3">
           <Button
             type="text"
             icon={<BellOutlined className="text-xl dark:text-white" />}
@@ -54,6 +51,17 @@ export const LayoutStyleThanhla = () => {
             size="small"
             src="https://api.dicebear.com/7.x/pixel-art/svg?seed=Thanhla"
             className="border-2 border-primary/20"
+          />
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="scale-90">
+            <ThemeSwitcher />
+          </div>
+          <Button
+            type="text"
+            icon={<MenuOutlined className="text-xl dark:text-white" />}
+            onClick={() => setDrawerVisible(true)}
           />
         </div>
       </Header>
@@ -213,7 +221,6 @@ export const LayoutStyleThanhla = () => {
           <div className="space-y-3">
             <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-3xl">
               <div className="flex items-center gap-3">
-                <ThemeSwitcher />
                 <span className="font-bold text-sm dark:text-white">
                   Giao diện tối
                 </span>

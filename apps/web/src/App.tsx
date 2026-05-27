@@ -1,20 +1,14 @@
-import { App as AntdApp, ConfigProvider, theme } from "antd";
+import { App as AntdApp, ConfigProvider } from "antd";
 import viVN from "antd/locale/vi_VN";
-import { BrowserRouter } from "react-router-dom";
-import { useState, useEffect, useMemo } from "react";
-import { webAntdTheme, webDarkAntdTheme } from "@repo/antd-config";
-import { AppQueryProvider } from "@repo/react-query-provider";
-import { ThemeProvider, useTheme } from "@repo/theme-provider";
-import {
-  applyTenantConfig,
-  updateTenantCSSVariables,
-  type FullTenantResponse,
-  type SimpleTenantConfig,
-} from "@repo/tenant-config";
-import AppRoutes from "./routes";
-import { appConfig } from "@repo/config";
 import { I18nextProvider, useTranslation } from "react-i18next";
+import { BrowserRouter } from "react-router-dom";
+import { webAntdTheme, webDarkAntdTheme } from "@repo/antd-config";
+import { appConfig } from "@repo/config";
 import { i18n } from "@repo/i18n";
+import { AppQueryProvider } from "@repo/react-query-provider";
+import { ThemeProvider, useAppTenantTheme } from "@repo/theme-provider";
+import type { FullTenantResponse } from "@repo/tenant-config";
+import AppRoutes from "./routes";
 
 const antdLocale = {
   ...viVN,
@@ -24,24 +18,9 @@ const antdLocale = {
   },
 };
 
-/**
- * Default config used when the tenant API is unavailable.
- * Ensures the app always renders with a sensible baseline theme.
- */
-const FALLBACK_TENANT_CONFIG: FullTenantResponse = {
-  id: "fallback",
-  name: "Default",
-  variantCode: "default",
-  tenantConfig: {
-    themeConfig: {} as SimpleTenantConfig,
-  },
-};
-
-/**
- * Fetches tenant config + available UI variant list from the backend.
- * Returns merged result as a FullTenantResponse.
- */
-async function fetchAppData(tenantKey: string): Promise<FullTenantResponse> {
+async function fetchTenantConfig(
+  tenantKey: string,
+): Promise<FullTenantResponse> {
   const tenantRes = await fetch(
     `${appConfig.be}/api/tenants/${tenantKey}/config`,
   );
@@ -55,86 +34,14 @@ async function fetchAppData(tenantKey: string): Promise<FullTenantResponse> {
 
 function AppContent() {
   const { t } = useTranslation();
-  const {
-    theme: themeMode,
-    tenantConfig: globalTenantConfig,
-    setTenantConfig: setGlobalTenantConfig,
-  } = useTheme();
-
-  const isDark = themeMode === "dark";
-
-  const [selectedTenantId, setSelectedTenantId] = useState<string>(
-    () =>
-      (typeof window !== "undefined" &&
-        localStorage.getItem("selected-tenant")) ||
-      "baogam",
-  );
-
-  // Listen for tenant changes dispatched by the tenant selector UI
-  useEffect(() => {
-    const handleTenantChange = (e: Event) =>
-      setSelectedTenantId((e as CustomEvent).detail);
-    window.addEventListener("app:tenant-changed", handleTenantChange);
-    return () =>
-      window.removeEventListener("app:tenant-changed", handleTenantChange);
-  }, []);
-
-  // Fetch tenant config whenever the selected tenant changes
-  useEffect(() => {
-    fetchAppData(selectedTenantId)
-      .then((data) => {
-        setGlobalTenantConfig(data);
-        localStorage.setItem("full-tenant-data", JSON.stringify(data));
-        const currentProjectInfo = parseLocalStorageJson("currentProjectInfo");
-        if (isFullProjectInfo(data) || !isFullProjectInfo(currentProjectInfo)) {
-          localStorage.setItem("currentProjectInfo", JSON.stringify(data));
-        }
-      })
-      .catch((err) => {
-        // API failed — apply fallback so the app still renders correctly
-        console.warn(
-          "[Tenant] Failed to load config, using fallback:",
-          err.message,
-        );
-
-        // Try to restore last known-good config from localStorage
-        const cached = localStorage.getItem("full-tenant-data");
-        if (cached) {
-          try {
-            const cachedTenantConfig = JSON.parse(cached);
-            setGlobalTenantConfig(cachedTenantConfig);
-            localStorage.setItem(
-              "currentProjectInfo",
-              JSON.stringify(cachedTenantConfig),
-            );
-            return;
-          } catch {
-            // cached data is corrupt — ignore and use hardcoded fallback
-          }
-        }
-
-        setGlobalTenantConfig(FALLBACK_TENANT_CONFIG);
-      });
-  }, [selectedTenantId, setGlobalTenantConfig]);
-
-  const themeConfig = globalTenantConfig?.tenantConfig?.themeConfig;
-
-  // Keep CSS variables in sync with current theme mode and tenant config
-  useEffect(() => {
-    updateTenantCSSVariables(themeConfig, isDark);
-  }, [themeConfig, isDark]);
-
-  // Merge tenant config into the Ant Design theme
-  const antdTheme = useMemo(() => {
-    const base = isDark ? webDarkAntdTheme : webAntdTheme;
-    return {
-      ...applyTenantConfig(base, themeConfig || undefined, isDark),
-      algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm,
-    };
-  }, [themeConfig, isDark]);
+  const { themeConfig } = useAppTenantTheme({
+    lightTheme: webAntdTheme,
+    darkTheme: webDarkAntdTheme,
+    fetchTenantConfig,
+  });
 
   return (
-    <ConfigProvider theme={antdTheme} locale={antdLocale}>
+    <ConfigProvider theme={themeConfig} locale={antdLocale}>
       <AntdApp>
         <AppQueryProvider
           systemErrorMessage={t("message.system_error_contact_technical")}
@@ -146,21 +53,6 @@ function AppContent() {
       </AntdApp>
     </ConfigProvider>
   );
-}
-
-function parseLocalStorageJson(key: string) {
-  const value = localStorage.getItem(key);
-  if (!value) return null;
-
-  try {
-    return JSON.parse(value);
-  } catch {
-    return null;
-  }
-}
-
-function isFullProjectInfo(projectInfo: any) {
-  return Boolean(projectInfo?.tenantConfig?.generalConfig);
 }
 
 function App() {

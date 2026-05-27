@@ -30,12 +30,18 @@ importers:
       '@repo/config':
         specifier: workspace:*
         version: link:../../packages/config
+      '@repo/features':
+        specifier: workspace:*
+        version: link:../../packages/features
       '@repo/hooks':
         specifier: workspace:*
         version: link:../../packages/hooks
       '@repo/i18n':
         specifier: workspace:*
         version: link:../../packages/i18n
+      '@repo/react-query-provider':
+        specifier: workspace:*
+        version: link:../../packages/react-query-provider
       '@repo/tailwind-config':
         specifier: workspace:*
         version: link:../../packages/tailwind-config
@@ -51,6 +57,9 @@ importers:
       '@repo/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@repo/util':
+        specifier: workspace:*
+        version: link:../../packages/util
       '@tanstack/react-query':
         specifier: ^5.62.11
         version: 5.90.19(react@18.3.1)
@@ -72,6 +81,9 @@ importers:
       react-dom:
         specifier: ^18.3.1
         version: 18.3.1(react@18.3.1)
+      react-i18next:
+        specifier: ^16.5.3
+        version: 16.5.3(i18next@25.8.0(typescript@5.9.3))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.9.3)
       react-router-dom:
         specifier: ^7.3.0
         version: 7.12.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -146,6 +158,9 @@ importers:
       '@repo/config':
         specifier: workspace:*
         version: link:../../packages/config
+      '@repo/features':
+        specifier: workspace:*
+        version: link:../../packages/features
       '@repo/hooks':
         specifier: workspace:*
         version: link:../../packages/hooks
@@ -345,11 +360,60 @@ importers:
         specifier: ^8.50.0
         version: 8.50.0(eslint@9.39.1(jiti@1.21.7))(typescript@5.9.2)
 
+  packages/features:
+    dependencies:
+      '@ant-design/icons':
+        specifier: ^5.5.2
+        version: 5.6.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@repo/hooks':
+        specifier: workspace:*
+        version: link:../hooks
+      '@repo/i18n':
+        specifier: workspace:*
+        version: link:../i18n
+      '@repo/util':
+        specifier: workspace:*
+        version: link:../util
+      '@tanstack/react-query':
+        specifier: ^5.62.11
+        version: 5.90.19(react@18.3.1)
+      antd:
+        specifier: ^6.3.7
+        version: 6.3.7(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      dayjs:
+        specifier: ^1.11.10
+        version: 1.11.19
+      react:
+        specifier: ^18.3.1
+        version: 18.3.1
+      react-dom:
+        specifier: ^18.3.1
+        version: 18.3.1(react@18.3.1)
+      react-router-dom:
+        specifier: ^7.3.0
+        version: 7.12.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+    devDependencies:
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      '@types/react':
+        specifier: ^18.3.12
+        version: 18.3.27
+      typescript:
+        specifier: 5.9.2
+        version: 5.9.2
+
   packages/hooks:
     dependencies:
       '@repo/api':
         specifier: workspace:*
         version: link:../api
+      '@repo/config':
+        specifier: workspace:*
+        version: link:../config
+      '@repo/i18n':
+        specifier: workspace:*
+        version: link:../i18n
       '@tanstack/react-query':
         specifier: ^5.62.11
         version: 5.90.19(react@18.3.1)
@@ -371,6 +435,9 @@ importers:
       react-router-dom:
         specifier: ^7.3.0
         version: 7.12.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      xlsx:
+        specifier: ^0.18.5
+        version: 0.18.5
     devDependencies:
       '@repo/eslint-config':
         specifier: workspace:*

@@ -2,6 +2,16 @@ import { useMemo, useState } from "react";
 import dayjs from "dayjs";
 import { Link } from "react-router-dom";
 import {
+  getCustomerVisibleShipmentServices,
+  getShipmentServicesInGroup,
+  getShipmentServicesWithoutGroup,
+  getVisibleShipmentServiceGroups,
+  useShipmentsPage,
+  useShipmentMilestonesQuery,
+} from "@repo/hooks";
+import { FilterPanel } from "@repo/ui";
+import { moneyFormat, quantityFormat } from "@repo/util";
+import {
   Alert,
   Avatar,
   Button,
@@ -41,16 +51,6 @@ import {
   UploadOutlined,
   WarningOutlined,
 } from "@ant-design/icons";
-import { useShipmentMilestonesQuery } from "@repo/hooks";
-import { FilterPanel } from "@repo/ui";
-import { moneyFormat, quantityFormat } from "@repo/util";
-import {
-  getCustomerVisibleShipmentServices,
-  getShipmentServicesInGroup,
-  getShipmentServicesWithoutGroup,
-  getVisibleShipmentServiceGroups,
-} from "../../components/Common/shipmentServices";
-import { useShipmentsPage } from "./hooks/useShipmentsPage";
 
 const { Paragraph, Text } = Typography;
 
@@ -494,38 +494,6 @@ export const ShipmentsView = ({
         <Card
           size="small"
           style={{ width: "100%" }}
-          title={
-            <Flex justify="space-between" align="center" gap={12} wrap>
-              <Space wrap split={<Divider type="vertical" />}>
-                <Typography.Paragraph
-                  copyable={{ text: item.code }}
-                  style={{ marginBottom: 0 }}
-                >
-                  <Link to={`/shipments/${item.code}`}>
-                    <Text strong style={{ color: token.colorPrimary }}>
-                      #{item.code}
-                    </Text>
-                  </Link>
-                </Typography.Paragraph>
-                <Space size={6}>
-                  <ShopOutlined />
-                  <Text>{merchant || item.merchantCode || "---"}</Text>
-                </Space>
-                {warehouseName && (
-                  <Text>
-                    {t("shipments.columns.warehouse")}:{" "}
-                    <Text strong>{warehouseName}</Text>
-                  </Text>
-                )}
-              </Space>
-              <ShipmentStatusPopover
-                code={item.code}
-                status={item.status}
-                statusData={statusData}
-                t={t}
-              />
-            </Flex>
-          }
         >
           <Space
             direction="vertical"
@@ -533,6 +501,54 @@ export const ShipmentsView = ({
             style={{ width: "100%" }}
             split={<Divider style={{ margin: "12px 0" }} />}
           >
+            <Flex justify="space-between" align="flex-start" gap={12} wrap>
+              <Flex
+                gap={8}
+                align="center"
+                wrap
+                style={{ flex: "1 1 360px", minWidth: 0 }}
+              >
+                <Typography.Paragraph
+                  copyable={{ text: item.code }}
+                  style={{
+                    marginBottom: 0,
+                    maxWidth: "100%",
+                    flex: "0 1 auto",
+                  }}
+                  ellipsis
+                >
+                  <Link to={`/shipments/${item.code}`}>
+                    <Text strong style={{ color: token.colorPrimary }}>
+                      #{item.code}
+                    </Text>
+                  </Link>
+                </Typography.Paragraph>
+                <Divider type="vertical" style={{ marginInline: 0 }} />
+                <Space size={6} style={{ minWidth: 0, maxWidth: "100%" }}>
+                  <ShopOutlined />
+                  <Text ellipsis style={{ maxWidth: 220 }}>
+                    {merchant || item.merchantCode || "---"}
+                  </Text>
+                </Space>
+                {warehouseName && (
+                  <>
+                    <Divider type="vertical" style={{ marginInline: 0 }} />
+                    <Text ellipsis style={{ maxWidth: 260 }}>
+                      {t("shipments.columns.warehouse")}:{" "}
+                      <Text strong>{warehouseName}</Text>
+                    </Text>
+                  </>
+                )}
+              </Flex>
+              <div style={{ flex: "0 0 auto" }}>
+                <ShipmentStatusPopover
+                  code={item.code}
+                  status={item.status}
+                  statusData={statusData}
+                  t={t}
+                />
+              </div>
+            </Flex>
             {renderLine(
               t("shipments.columns.waybill"),
               waybillCodes.length > 0 ? (
@@ -857,18 +873,31 @@ export const ShipmentsView = ({
         />
       </Card>
 
-      <Card
-        title={
-          <Space>
+      <Card>
+        <Flex
+          justify="space-between"
+          align="center"
+          gap={12}
+          wrap
+          style={{ marginBottom: token.margin }}
+        >
+          <Space wrap>
             <FileSearchOutlined />
             <span>{t("shipments.list_title")}</span>
             <Tag>{formatNumber(total)}</Tag>
           </Space>
-        }
-        extra={
-          <Space wrap>
+          <Flex
+            gap={8}
+            wrap
+            justify="flex-end"
+            style={{ marginInlineStart: "auto" }}
+          >
+            <Link to="/shipments/create">
+              <Button type="primary" icon={<PlusOutlined />}>
+                {t("shipments.create_shipment")}
+              </Button>
+            </Link>
             <Button
-              type="primary"
               icon={<UploadOutlined />}
               onClick={() => setImportOpen(true)}
             >
@@ -880,14 +909,8 @@ export const ShipmentsView = ({
             >
               {t("shipments.export_excel")}
             </Button>
-            <Link to="/shipments/create">
-              <Button type="primary" icon={<PlusOutlined />}>
-                {t("shipments.create_shipment")}
-              </Button>
-            </Link>
-          </Space>
-        }
-      >
+          </Flex>
+        </Flex>
         <List
           dataSource={shipmentData?.data || []}
           loading={{

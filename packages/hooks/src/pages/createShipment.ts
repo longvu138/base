@@ -3,31 +3,102 @@ import { useNavigate } from "react-router-dom";
 import { App as AntdApp, Form } from "antd";
 import { useTranslation } from "@repo/i18n";
 import {
-  useAddressesQuery,
   useCreateDraftShipmentMutation,
   useCreateShipmentMutation,
-  useCustomerProfile,
-  useDeleteAddressMutation,
   useDraftShipmentQuery,
   useShipmentFeeCategoriesQuery,
   useShipmentServiceGroupsQuery,
   useShipmentServicesQuery,
+} from "../useShipmentHooks";
+import {
+  useAddressesQuery,
+  useDeleteAddressMutation,
+} from "../useAddressHooks";
+import {
+  useCustomerProfile,
   useUpdateCustomerProfile,
-} from "@repo/hooks";
+} from "../useCustomerHooks";
 import {
   getCustomerVisibleShipmentServices,
   getVisibleShipmentServiceGroups,
-  sortByPosition,
-} from "../../../components/Common/shipmentServices";
-import { useCreateShipmentFinancialFields } from "./useCreateShipmentFinancialFields";
+  sortShipmentServicesByPosition,
+} from "./shipments";
+
+export const useCreateShipmentFinancialFields = () => {
+  const [financialFieldValues, setFinancialFieldValues] = useState<
+    Record<string, any>
+  >({});
+  const [editingFinancialFields, setEditingFinancialFields] = useState<
+    Record<string, boolean>
+  >({
+    expectedPackages: true,
+    refTrackingNumbers: true,
+    refShipmentCode: true,
+    refCustomerCode: true,
+    remark: true,
+    note: false,
+  });
+
+  const isEmptyField = (value: any) =>
+    value === undefined || value === null || String(value).trim() === "";
+
+  const setFinancialFieldEditing = (name: string, value: boolean) => {
+    setEditingFinancialFields((current) => ({ ...current, [name]: value }));
+  };
+
+  const finishFinancialFieldEditing = (name: string, value: any) => {
+    setFinancialFieldValues((current) => ({ ...current, [name]: value }));
+    setFinancialFieldEditing(name, isEmptyField(value));
+  };
+
+  return {
+    editingFinancialFields,
+    financialFieldValues,
+    finishFinancialFieldEditing,
+    isEmptyField,
+    setFinancialFieldEditing,
+    setFinancialFieldValues,
+  };
+};
 
 export const addressLocation = (item: any) =>
-  item.location?.display || item.location?.displayName || item.locationName || "";
+  item.location?.display ||
+  item.location?.displayName ||
+  item.locationName ||
+  "";
 
-export const useCreateShipmentPage = () => {
+type CreateShipmentFeedbackMode = "notification" | "message";
+
+interface UseCreateShipmentPageOptions {
+  feedbackMode?: CreateShipmentFeedbackMode;
+}
+
+const createMessageFeedback = (messageApi: any) => {
+  const open = (type: "success" | "error" | "warning", config: any) => {
+    messageApi.open({
+      type,
+      content: config?.message || config?.content,
+      key: config?.key,
+    });
+  };
+
+  return {
+    success: (config: any) => open("success", config),
+    error: (config: any) => open("error", config),
+    warning: (config: any) => open("warning", config),
+  };
+};
+
+export const useCreateShipmentPage = (
+  options: UseCreateShipmentPageOptions = {},
+) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { notification, modal } = AntdApp.useApp();
+  const { notification: notificationApi, message, modal } = AntdApp.useApp();
+  const notification =
+    options.feedbackMode === "message"
+      ? createMessageFeedback(message)
+      : notificationApi;
   const [form] = Form.useForm();
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [draftShipment, setDraftShipment] = useState<any>(null);
@@ -39,7 +110,9 @@ export const useCreateShipmentPage = () => {
   const [editingAddress, setEditingAddress] = useState<any>(null);
   const [selectedWarehouse, setSelectedWarehouse] = useState<string>();
   const [trackingError, setTrackingError] = useState(false);
-  const [serviceGroupErrors, setServiceGroupErrors] = useState<Record<string, boolean>>({});
+  const [serviceGroupErrors, setServiceGroupErrors] = useState<
+    Record<string, boolean>
+  >({});
 
   const { data: services = [], isLoading: isServicesLoading } =
     useShipmentServicesQuery();
@@ -48,7 +121,11 @@ export const useCreateShipmentPage = () => {
   const { data: draft, isLoading: isDraftLoading } = useDraftShipmentQuery();
   const { data: feeCategories = [] } = useShipmentFeeCategoriesQuery();
   const { data: profile } = useCustomerProfile();
-  const { data: addressData, isLoading: isAddressLoading, refetch: refetchAddresses } = useAddressesQuery({
+  const {
+    data: addressData,
+    isLoading: isAddressLoading,
+    refetch: refetchAddresses,
+  } = useAddressesQuery({
     receivingAddress: false,
     size: 1000,
     sort: "defaultAddress:desc,createdAt:desc",
@@ -66,7 +143,9 @@ export const useCreateShipmentPage = () => {
 
     try {
       const data = JSON.parse(currentProjectInfo);
-      return Boolean(data?.tenantConfig?.generalConfig?.disableCustomerOrderNote);
+      return Boolean(
+        data?.tenantConfig?.generalConfig?.disableCustomerOrderNote
+      );
     } catch {
       return false;
     }
@@ -78,7 +157,9 @@ export const useCreateShipmentPage = () => {
 
     try {
       const data = JSON.parse(currentProjectInfo);
-      return Boolean(data?.tenantConfig?.generalConfig?.customerWarehouseEnabled);
+      return Boolean(
+        data?.tenantConfig?.generalConfig?.customerWarehouseEnabled
+      );
     } catch {
       return false;
     }
@@ -101,11 +182,16 @@ export const useCreateShipmentPage = () => {
   }, [services]);
 
   const selectedAddressItem = useMemo(() => {
-    return (addressData?.data || []).find((item: any) => item.id === selectedAddress);
+    return (addressData?.data || []).find(
+      (item: any) => item.id === selectedAddress
+    );
   }, [addressData?.data, selectedAddress]);
 
   const defaultAddressItem = useMemo(() => {
-    return (addressData?.data || []).find((item: any) => item.defaultAddress) || addressData?.data?.[0];
+    return (
+      (addressData?.data || []).find((item: any) => item.defaultAddress) ||
+      addressData?.data?.[0]
+    );
   }, [addressData?.data]);
 
   useEffect(() => {
@@ -126,15 +212,17 @@ export const useCreateShipmentPage = () => {
 
   const fees = useMemo(() => {
     const list = draftShipment?.fees || [];
-    return sortByPosition(
+    return sortShipmentServicesByPosition(
       list.map((item: any) => {
-        const config = feeCategories.find((fee: any) => fee.code === item.feeType);
+        const config = feeCategories.find(
+          (fee: any) => fee.code === item.feeType
+        );
         return {
           ...item,
           name: config?.name || item.feeType || t("delivery.undefined"),
           position: config?.position || 0,
         };
-      }),
+      })
     );
   }, [draftShipment?.fees, feeCategories, t]);
 
@@ -147,17 +235,27 @@ export const useCreateShipmentPage = () => {
     visibleGroups
       .filter((group: any) => group.required)
       .forEach((group: any) => {
-        const hasServiceInGroup = selectedObjects.some((item: any) => item.serviceGroup?.code === group.code);
+        const hasServiceInGroup = selectedObjects.some(
+          (item: any) => item.serviceGroup?.code === group.code
+        );
         if (!hasServiceInGroup) errors[group.code] = true;
       });
 
     selectedObjects.forEach((item: any) => {
-      if (Array.isArray(item.requires) && item.requires.some((code: string) => !servicesValue.includes(code))) {
+      if (
+        Array.isArray(item.requires) &&
+        item.requires.some((code: string) => !servicesValue.includes(code))
+      ) {
         errors.__requires = true;
       }
       if (
         Array.isArray(item.requireGroups) &&
-        item.requireGroups.some((groupCode: string) => !selectedObjects.some((service: any) => service.serviceGroup?.code === groupCode))
+        item.requireGroups.some(
+          (groupCode: string) =>
+            !selectedObjects.some(
+              (service: any) => service.serviceGroup?.code === groupCode
+            )
+        )
       ) {
         errors.__requires = true;
       }
@@ -167,7 +265,10 @@ export const useCreateShipmentPage = () => {
     return Object.keys(errors).length === 0;
   };
 
-  const createDraft = async (servicesValue = selectedServices, addressId = selectedAddress) => {
+  const createDraft = async (
+    servicesValue = selectedServices,
+    addressId = selectedAddress
+  ) => {
     if (!servicesValue.length) return;
     validateServices(servicesValue);
     try {
@@ -176,10 +277,14 @@ export const useCreateShipmentPage = () => {
         services: servicesValue,
       });
       setDraftShipment(res);
-      if (res?.sourceWarehouses?.[0]?.code) setSelectedWarehouse(res.sourceWarehouses[0].code);
+      if (res?.sourceWarehouses?.[0]?.code)
+        setSelectedWarehouse(res.sourceWarehouses[0].code);
     } catch (error: any) {
       notification.error({
-        message: error?.response?.data?.message || error?.message || t("shipments.create_draft_error"),
+        message:
+          error?.response?.data?.message ||
+          error?.message ||
+          t("shipments.create_draft_error"),
       });
     }
   };
@@ -188,13 +293,13 @@ export const useCreateShipmentPage = () => {
     const selectedObjects = values
       .map((code) => serviceOptions.find((item: any) => item.code === code))
       .filter(Boolean);
-    return selectedObjects.some((item: any) =>
-      item.code !== service.code &&
-      (
-        item.dependencies?.includes(service.code) ||
-        item.excludes?.includes(service.code) ||
-        (service.serviceGroup && item.excludeGroups?.includes(service.serviceGroup.code))
-      ),
+    return selectedObjects.some(
+      (item: any) =>
+        item.code !== service.code &&
+        (item.dependencies?.includes(service.code) ||
+          item.excludes?.includes(service.code) ||
+          (service.serviceGroup &&
+            item.excludeGroups?.includes(service.serviceGroup.code)))
     );
   };
 
@@ -222,12 +327,18 @@ export const useCreateShipmentPage = () => {
     if (Array.isArray(service.excludeGroups)) {
       next = next.filter((code) => {
         const current = serviceOptions.find((item: any) => item.code === code);
-        return !current?.serviceGroup || !service.excludeGroups.includes(current.serviceGroup.code);
+        return (
+          !current?.serviceGroup ||
+          !service.excludeGroups.includes(current.serviceGroup.code)
+        );
       });
     }
     if (Array.isArray(service.dependencies)) {
       service.dependencies.forEach((code: string) => {
-        if (!next.includes(code) && serviceOptions.some((item: any) => item.code === code)) {
+        if (
+          !next.includes(code) &&
+          serviceOptions.some((item: any) => item.code === code)
+        ) {
           next.push(code);
         }
       });
@@ -288,8 +399,15 @@ export const useCreateShipmentPage = () => {
     const result = await refetchAddresses();
     if (returnToAddressList) {
       setAddressDraftSelection((current) => {
-        if (current && result.data?.data?.some((item: any) => item.id === current)) return current;
-        return result.data?.data?.find((item: any) => item.defaultAddress)?.id || result.data?.data?.[0]?.id;
+        if (
+          current &&
+          result.data?.data?.some((item: any) => item.id === current)
+        )
+          return current;
+        return (
+          result.data?.data?.find((item: any) => item.defaultAddress)?.id ||
+          result.data?.data?.[0]?.id
+        );
       });
     }
     return result;
@@ -306,7 +424,9 @@ export const useCreateShipmentPage = () => {
       notification.success({ message: t("message.delete_success") });
       const result = await refetchAddresses();
       const nextAddresses = result.data?.data || [];
-      const nextAddress = nextAddresses.find((item: any) => item.defaultAddress) || nextAddresses[0];
+      const nextAddress =
+        nextAddresses.find((item: any) => item.defaultAddress) ||
+        nextAddresses[0];
 
       if (selectedAddress === address.id) {
         setSelectedAddress(nextAddress?.id);
@@ -316,8 +436,12 @@ export const useCreateShipmentPage = () => {
       }
 
       if (addressDraftSelection === address.id) {
-        const selectedAddressStillExists = nextAddresses.some((item: any) => item.id === selectedAddress);
-        setAddressDraftSelection(selectedAddressStillExists ? selectedAddress : nextAddress?.id);
+        const selectedAddressStillExists = nextAddresses.some(
+          (item: any) => item.id === selectedAddress
+        );
+        setAddressDraftSelection(
+          selectedAddressStillExists ? selectedAddress : nextAddress?.id
+        );
       }
     } catch (error: any) {
       notification.error({
@@ -358,7 +482,8 @@ export const useCreateShipmentPage = () => {
     const normalizeText = (value: any) =>
       value === undefined || value === null ? null : String(value).trim();
 
-    const refTrackingNumbers = normalizeText(getFieldValue("refTrackingNumbers")) || "";
+    const refTrackingNumbers =
+      normalizeText(getFieldValue("refTrackingNumbers")) || "";
     if (!validateTrackingNumbers(refTrackingNumbers)) return;
 
     const trackingNumbers = Array.from(
@@ -366,24 +491,28 @@ export const useCreateShipmentPage = () => {
         refTrackingNumbers
           .split(",")
           .map((item) => item.trim())
-          .filter(Boolean),
-      ),
+          .filter(Boolean)
+      )
     );
     const expectedPackages = getFieldValue("expectedPackages");
 
     const payload = {
-        draftShipmentId: draftShipment.id,
-        note: normalizeText(getFieldValue("note")),
-        remark: normalizeText(getFieldValue("remark")),
-        refShipmentCode: normalizeText(getFieldValue("refShipmentCode")),
-        refCustomerCode: normalizeText(getFieldValue("refCustomerCode")),
-        expectedPackages:
-          expectedPackages === undefined || expectedPackages === null || expectedPackages === ""
-            ? null
-            : Number(expectedPackages),
-        trackingNumbers,
-        ...(isWarehouseEnabled && selectedWarehouse ? { receivingWarehouse: selectedWarehouse } : {}),
-      };
+      draftShipmentId: draftShipment.id,
+      note: normalizeText(getFieldValue("note")),
+      remark: normalizeText(getFieldValue("remark")),
+      refShipmentCode: normalizeText(getFieldValue("refShipmentCode")),
+      refCustomerCode: normalizeText(getFieldValue("refCustomerCode")),
+      expectedPackages:
+        expectedPackages === undefined ||
+        expectedPackages === null ||
+        expectedPackages === ""
+          ? null
+          : Number(expectedPackages),
+      trackingNumbers,
+      ...(isWarehouseEnabled && selectedWarehouse
+        ? { receivingWarehouse: selectedWarehouse }
+        : {}),
+    };
 
     try {
       await createShipmentMutation.mutateAsync(payload);
@@ -404,7 +533,9 @@ export const useCreateShipmentPage = () => {
         message:
           title === "warehouse_location_not_mapped"
             ? t("message.warehouse_location_not_mapped")
-            : error?.response?.data?.message || error?.message || t("shipments.create_error"),
+            : error?.response?.data?.message ||
+              error?.message ||
+              t("shipments.create_error"),
       });
     }
   };
@@ -431,18 +562,25 @@ export const useCreateShipmentPage = () => {
     fees,
     trackingError,
     isAddressLoading,
-    isLoading: isServicesLoading || isServiceGroupsLoading || isDraftLoading || isAddressLoading,
+    isLoading:
+      isServicesLoading ||
+      isServiceGroupsLoading ||
+      isDraftLoading ||
+      isAddressLoading,
     createDraftMutation,
     createShipmentMutation,
     deleteAddressMutation,
     updateProfileMutation,
-    expectedPackagesValue: financialFields.financialFieldValues.expectedPackages,
-    refTrackingNumbersValue: financialFields.financialFieldValues.refTrackingNumbers,
+    expectedPackagesValue:
+      financialFields.financialFieldValues.expectedPackages,
+    refTrackingNumbersValue:
+      financialFields.financialFieldValues.refTrackingNumbers,
     refShipmentCodeValue: financialFields.financialFieldValues.refShipmentCode,
     refCustomerCodeValue: financialFields.financialFieldValues.refCustomerCode,
     remarkValue: financialFields.financialFieldValues.remark,
     noteValue: financialFields.financialFieldValues.note,
     disableCustomerOrderNote,
+    feedback: notification,
     notification,
     ...financialFields,
     setAddressModalOpen,

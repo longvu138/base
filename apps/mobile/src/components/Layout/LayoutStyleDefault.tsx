@@ -220,8 +220,8 @@ function Layout() {
 
   return (
     <AntLayout className="min-h-screen">
-      <Header className="flex items-center justify-between px-4 bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 h-14 sticky top-0 z-50">
-        <div className="flex items-center gap-2">
+      <Header className="flex items-center justify-between gap-3 px-4 bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 h-14 sticky top-0 z-50">
+        <div className="flex items-center gap-2 min-w-0">
           <Select
             value={currentLanguage.code}
             onChange={changeLanguage}
@@ -242,6 +242,9 @@ function Layout() {
             style={{ width: 100 }}
             variant="borderless"
           />
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
           <div className="scale-90">
             <ThemeSwitcher />
           </div>
@@ -276,7 +279,7 @@ function Layout() {
         />
       </Drawer>
 
-      <Content className="bg-layout min-h-0 overflow-auto">
+      <Content className="bg-layout min-h-0 overflow-auto pb-20">
         <div className="p-4">
           <Outlet />
         </div>

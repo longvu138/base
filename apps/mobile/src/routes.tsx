@@ -3,6 +3,7 @@ import Login from './pages/Login';
 import RegisterPage from './pages/Register/RegisterPage';
 import OrdersPage from './pages/Orders';
 import ShipmentsPage from './pages/Shipments';
+import CreateShipmentPage from './pages/CreateShipment';
 import ClaimsPage from './pages/Claims';
 import DeliveryNotesPage from './pages/DeliveryNotes';
 import Dashboard from './pages/Dashboard';
@@ -32,6 +33,7 @@ function AppRoutes() {
                     <Route path="dashboard" element={<Dashboard />} />
                     <Route path="orders" element={<OrdersPage />} />
                     <Route path="shipments" element={<ShipmentsPage />} />
+                    <Route path="shipments/create" element={<CreateShipmentPage />} />
                     <Route path="claims" element={<ClaimsPage />} />
                     <Route path="delivery-notes" element={<DeliveryNotesPage />} />
                     <Route path="packages" element={<PackagesPage />} />

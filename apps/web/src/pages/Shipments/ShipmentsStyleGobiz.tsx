@@ -1,5 +1,5 @@
 import { ShipmentsView } from "./ShipmentsStyleDefault";
-import { useShipmentsPage } from "./hooks/useShipmentsPage";
+import { useShipmentsPage } from "@repo/hooks";
 
 export const ShipmentsStyleGobiz = () => {
   const logic = useShipmentsPage();

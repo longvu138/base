@@ -26,6 +26,8 @@
       "@repo/hooks/*": ["../../packages/hooks/src/*"],
       "@repo/config": ["../../packages/config"],
       "@repo/config/*": ["../../packages/config/*"],
+      "@repo/features": ["../../packages/features/src"],
+      "@repo/features/*": ["../../packages/features/src/*"],
       "@repo/types": ["../../packages/types/src"],
       "@repo/types/*": ["../../packages/types/src/*"],
       "@repo/util": ["../../packages/util/src"],
