@@ -125,7 +125,7 @@ function Layout() {
       icon: <FileTextOutlined />,
       label: (
         <Link to="/delivery-notes" onClick={() => setDrawerVisible(false)}>
-          Phiếu giao
+          Phiếu xuất
         </Link>
       ),
     },

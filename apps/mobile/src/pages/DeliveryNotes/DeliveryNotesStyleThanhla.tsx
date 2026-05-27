@@ -17,13 +17,13 @@ import {
 import { FilterOutlined, SearchOutlined, SyncOutlined } from "@ant-design/icons";
 import { quantityFormat } from "@repo/util";
 import { FilterPanel } from "@repo/ui";
-import { useDeliveryNotesPage } from "@repo/hooks";
+import { useDeliveryNotesMobilePage } from "@repo/hooks";
 import { DeliveryNotesList } from "./DeliveryNotesShared";
 
 export const DeliveryNotesStyleThanhla = ({ isTabView }: { isTabView?: boolean }) => {
   const { token } = theme.useToken();
   const [filterOpen, setFilterOpen] = useState(false);
-  const page = useDeliveryNotesPage();
+  const page = useDeliveryNotesMobilePage();
   const total = page.listData?.total || 0;
 
   return (

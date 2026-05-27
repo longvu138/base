@@ -20,7 +20,7 @@ import type { ColumnsType } from "antd/es/table";
 import { SearchOutlined } from "@ant-design/icons";
 import { moneyFormat, quantityFormat } from "@repo/util";
 import { FilterPanel } from "@repo/ui";
-import { useDeliveryNotesPage } from "./hooks/useDeliveryNotesPage";
+import { useDeliveryNotesPage } from "@repo/hooks";
 
 const { Text, Link, Paragraph, Title } = Typography;
 

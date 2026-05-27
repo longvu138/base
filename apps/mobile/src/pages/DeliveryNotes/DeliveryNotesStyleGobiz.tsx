@@ -15,12 +15,12 @@ import {
 import { SearchOutlined } from "@ant-design/icons";
 import { moneyFormat, quantityFormat } from "@repo/util";
 import { FilterPanel } from "@repo/ui";
-import { useDeliveryNotesPage } from "@repo/hooks";
+import { useDeliveryNotesMobilePage } from "@repo/hooks";
 import { DeliveryNotesList } from "./DeliveryNotesShared";
 
 export const DeliveryNotesStyleGobiz = ({ isTabView }: { isTabView?: boolean }) => {
   const { token } = theme.useToken();
-  const page = useDeliveryNotesPage();
+  const page = useDeliveryNotesMobilePage();
   const rows = page.listData?.data || [];
   const total = page.listData?.total || 0;
   const totalWeight = rows.reduce(

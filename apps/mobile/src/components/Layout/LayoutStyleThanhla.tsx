@@ -186,7 +186,7 @@ export const LayoutStyleThanhla = () => {
               {
                 path: "/delivery-notes",
                 icon: <CarOutlined />,
-                label: "Phiếu giao",
+                label: "Phiếu xuất",
               },
               {
                 path: "/delivery-requests",
