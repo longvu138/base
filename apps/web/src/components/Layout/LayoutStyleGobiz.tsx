@@ -124,12 +124,20 @@ const LayoutStyleGobiz: React.FC = () => {
       </Sider>
 
       <AntLayout className="bg-transparent">
-        <Header className="mt-4 mb-2 flex items-center justify-between gap-4 bg-white dark:bg-[#141414] rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm transition-all h-16">
-          <div className="flex items-center gap-6 min-w-0">
+        <Header className="mt-4 mb-2 flex items-center justify-between gap-4 px-4 bg-white dark:bg-[#141414] rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm transition-all h-16">
+          <div className="flex items-center gap-3 min-w-0">
+            <Button
+              type="text"
+              icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+              onClick={() => setCollapsed(!collapsed)}
+              className="text-lg dark:text-gray-400 shrink-0"
+            />
             <div className="text-lg font-semibold text-gray-900 dark:text-gray-100 truncate">
               {activeMenu?.label}
             </div>
+          </div>
 
+          <div className="flex items-center justify-end gap-4 min-w-0">
             <HeaderGobizActions />
 
             <Space className="flex">
@@ -214,15 +222,6 @@ const LayoutStyleGobiz: React.FC = () => {
                 )}
               </div>
             </Dropdown>
-          </div>
-
-          <div className="flex items-center gap-3 shrink-0">
-            <Button
-              type="text"
-              icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-              onClick={() => setCollapsed(!collapsed)}
-              className="text-lg dark:text-gray-400"
-            />
             <ThemeSwitcher />
           </div>
         </Header>
