@@ -399,11 +399,12 @@
       "to": "Đến",
       "cut_off_range": "Khoảng",
       "cut_off_equal": "Bằng",
-      "cut_off_from": "Từ",
-      "cut_off_to": "Đến",
+      "cut_off_from": "Lớn hơn",
+      "cut_off_to": "Nhỏ hơn",
       "time_range": "Mốc thời gian",
       "start_date": "Bắt đầu",
-      "end_date": "Kết thúc"
+      "end_date": "Kết thúc",
+      "days": "Số ngày"
     },
     "columns": {
       "code": "Mã đơn hàng",
