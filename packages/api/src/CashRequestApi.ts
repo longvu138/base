@@ -5,7 +5,7 @@ const trimTrailingSlash = (value?: string) => (value || "").replace(/\/+$/, "");
 
 const cashRequestClient = axios.create({
   baseURL: `${trimTrailingSlash(appConfig.appM2)}/api/`,
-  timeout: 30000,
+  timeout: 60000,
 });
 
 cashRequestClient.interceptors.request.use((config) => {
