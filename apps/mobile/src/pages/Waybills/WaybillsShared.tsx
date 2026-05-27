@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import dayjs from "dayjs";
 import {
   Button,
@@ -32,6 +32,7 @@ import { FilterPanel } from "@repo/ui";
 import { useWaybillsMobilePage } from "@repo/hooks";
 
 const { Text, Link, Paragraph, Title } = Typography;
+const WAYBILL_PREFETCH_ITEM_COUNT = 5;
 
 type WaybillsPageState = ReturnType<typeof useWaybillsMobilePage>;
 
@@ -327,8 +328,10 @@ const WaybillCard = ({
 
 export const WaybillList = ({ page }: { page: WaybillsPageState }) => {
   const { token } = theme.useToken();
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const total = page.listData?.total || 0;
   const rows = page.listData?.data || [];
+  const prefetchIndex = Math.max(rows.length - WAYBILL_PREFETCH_ITEM_COUNT, 0);
 
   const handleLoadMore = () => {
     if (page.hasNextPage && !page.isFetchingNextPage && !page.isWaybillsLoading) {
@@ -337,17 +340,32 @@ export const WaybillList = ({ page }: { page: WaybillsPageState }) => {
   };
 
   useEffect(() => {
-    const handleWindowScroll = () => {
-      const documentHeight = document.documentElement.scrollHeight;
-      const currentBottom = window.innerHeight + window.scrollY;
+    const target = loadMoreRef.current;
+    if (!target) return undefined;
 
-      if (documentHeight - currentBottom <= 64) {
-        handleLoadMore();
-      }
-    };
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          handleLoadMore();
+        }
+      },
+      { root: null, threshold: 0.1 }
+    );
 
-    window.addEventListener("scroll", handleWindowScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleWindowScroll);
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [
+    page.hasNextPage,
+    page.isFetchingNextPage,
+    page.isWaybillsLoading,
+    page.fetchNextPage,
+    rows.length,
+  ]);
+
+  useEffect(() => {
+    if (rows.length <= WAYBILL_PREFETCH_ITEM_COUNT) {
+      handleLoadMore();
+    }
   }, [
     page.hasNextPage,
     page.isFetchingNextPage,
@@ -394,7 +412,7 @@ export const WaybillList = ({ page }: { page: WaybillsPageState }) => {
             dataSource={rows}
             rowKey={(record: any) => record.id || record.code || record.createdAt}
             renderItem={(record: any, index) => (
-                <List.Item
+              <List.Item
                   style={{
                     padding: 0,
                     borderBlockEnd: "none",
@@ -402,7 +420,12 @@ export const WaybillList = ({ page }: { page: WaybillsPageState }) => {
                       index === rows.length - 1 ? 0 : token.marginMD,
                   }}
                 >
-                  <WaybillCard record={record} page={page} />
+                  <div
+                    ref={index === prefetchIndex ? loadMoreRef : undefined}
+                    style={{ width: "100%" }}
+                  >
+                    <WaybillCard record={record} page={page} />
+                  </div>
                 </List.Item>
             )}
           />

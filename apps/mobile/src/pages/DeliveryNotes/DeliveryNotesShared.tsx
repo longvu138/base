@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import dayjs from "dayjs";
 import {
   Button,
@@ -25,6 +25,7 @@ import { FilterPanel } from "@repo/ui";
 import { useDeliveryNotesMobilePage } from "@repo/hooks";
 
 const { Text, Link, Paragraph, Title } = Typography;
+const DELIVERY_NOTES_PREFETCH_ITEM_COUNT = 5;
 
 type DeliveryNotesPageState = ReturnType<typeof useDeliveryNotesMobilePage>;
 
@@ -253,8 +254,10 @@ export const DeliveryNotesList = ({
   compactHeader?: boolean;
 }) => {
   const { token } = theme.useToken();
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const total = page.listData?.total || 0;
   const rows = page.listData?.data || [];
+  const prefetchIndex = Math.max(rows.length - DELIVERY_NOTES_PREFETCH_ITEM_COUNT, 0);
   const {
     fetchNextPage,
     hasNextPage,
@@ -269,17 +272,32 @@ export const DeliveryNotesList = ({
   };
 
   useEffect(() => {
-    const handleWindowScroll = () => {
-      const documentHeight = document.documentElement.scrollHeight;
-      const currentBottom = window.innerHeight + window.scrollY;
+    const target = loadMoreRef.current;
+    if (!target) return undefined;
 
-      if (documentHeight - currentBottom <= 64) {
-        handleLoadMore();
-      }
-    };
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          handleLoadMore();
+        }
+      },
+      { root: null, threshold: 0.1 }
+    );
 
-    window.addEventListener("scroll", handleWindowScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleWindowScroll);
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [
+    fetchNextPage,
+    hasNextPage,
+    isDeliveryNotesLoading,
+    isFetchingNextPage,
+    rows.length,
+  ]);
+
+  useEffect(() => {
+    if (rows.length <= DELIVERY_NOTES_PREFETCH_ITEM_COUNT) {
+      handleLoadMore();
+    }
   }, [
     fetchNextPage,
     hasNextPage,
@@ -339,6 +357,10 @@ export const DeliveryNotesList = ({
                       index === rows.length - 1 ? 0 : token.marginMD,
                   }}
                 >
+                  <div
+                    ref={index === prefetchIndex ? loadMoreRef : undefined}
+                    style={{ width: "100%" }}
+                  >
                   <Card style={{ width: "100%" }}>
                     <Flex vertical gap={token.marginMD}>
                       <Flex
@@ -432,6 +454,7 @@ export const DeliveryNotesList = ({
                       </Flex>
                     </Flex>
                   </Card>
+                  </div>
                 </List.Item>
               );
             }}
