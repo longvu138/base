@@ -417,6 +417,9 @@ importers:
       '@repo/i18n':
         specifier: workspace:*
         version: link:../i18n
+      '@repo/theme-provider':
+        specifier: workspace:*
+        version: link:../theme-provider
       '@repo/util':
         specifier: workspace:*
         version: link:../util

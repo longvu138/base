@@ -7,7 +7,7 @@ import {
   useNotificationEventGroups,
   useNotifications,
   useNotificationUnreadCount,
-} from "@repo/hooks";
+} from "../useCustomerHooks";
 
 export type NotificationItem = {
   id: string | number;

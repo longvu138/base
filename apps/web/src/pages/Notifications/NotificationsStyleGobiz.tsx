@@ -18,8 +18,7 @@ import { BellOutlined, CheckOutlined, RightOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import "dayjs/locale/vi";
-import { useNotificationsPage } from "./hooks/useNotificationsPage";
-import type { NotificationItem } from "./hooks/useNotificationsPage";
+import { useNotificationsPage, type NotificationItem } from "@repo/hooks";
 
 dayjs.extend(relativeTime);
 dayjs.locale("vi");

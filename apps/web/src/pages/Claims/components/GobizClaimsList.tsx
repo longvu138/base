@@ -22,7 +22,7 @@ import {
 import { useTranslation } from "@repo/i18n";
 import { moneyFormat, quantityFormat } from "@repo/util";
 import { FilterPanel } from "@repo/ui";
-import { useClaimsPage } from "../hooks/useClaimsPage";
+import { useClaimsPage } from "@repo/hooks";
 
 const { Text, Title } = Typography;
 

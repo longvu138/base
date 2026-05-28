@@ -7,7 +7,7 @@ import {
   useClaimReasonsQuery,
   useCreateClaimMutation,
   useSolutionsQuery,
-} from "@repo/hooks";
+} from "../useClaimHooks";
 
 const TYPE_REASON_ORDER = "ORDER";
 const TYPE_REASON_PRODUCT_ORDER = "ORDER_PRODUCT";

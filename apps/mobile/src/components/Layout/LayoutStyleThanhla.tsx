@@ -46,6 +46,7 @@ export const LayoutStyleThanhla = () => {
           <Button
             type="text"
             icon={<BellOutlined className="text-xl dark:text-white" />}
+            onClick={() => navigate("/notifications")}
           />
           <Avatar
             size="small"
@@ -202,6 +203,11 @@ export const LayoutStyleThanhla = () => {
                 path: "/delivery-requests",
                 icon: <ShoppingCartOutlined />,
                 label: "YC giao hàng",
+              },
+              {
+                path: "/notifications",
+                icon: <BellOutlined />,
+                label: "Thông báo",
               },
               { path: "/waybills", icon: <HomeOutlined />, label: "Vận đơn" },
               { path: "/address", icon: <UserOutlined />, label: "Địa chỉ" },

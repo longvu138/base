@@ -6,10 +6,12 @@ import { useTranslation } from "@repo/i18n";
 import {
   useAvailableDeliveryOrdersQuery,
   useCreateDeliveryRequestMutation,
+  useShippingMethodsQuery,
+} from "../useDeliveryRequestHooks";
+import {
   usePackageStatusesQuery,
   useParcelStatusesQuery,
-  useShippingMethodsQuery,
-} from "@repo/hooks";
+} from "../usePackageHooks";
 
 type DeliveryPackage = {
   code: string;
@@ -21,6 +23,8 @@ type DeliveryPackage = {
   isShipment?: boolean;
   [key: string]: any;
 };
+
+export type { DeliveryPackage };
 
 const withPackageMeta = (order: any) =>
   (order?.packages || []).map((item: DeliveryPackage) => ({

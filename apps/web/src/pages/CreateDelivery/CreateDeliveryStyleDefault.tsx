@@ -21,7 +21,7 @@ import {
 } from "antd";
 import { CheckCircleOutlined, TruckOutlined } from "@ant-design/icons";
 import { moneyFormat, quantityFormat } from "@repo/util";
-import { useCreateDeliveryPage } from "./hooks/useCreateDeliveryPage";
+import { useCreateDeliveryPage } from "@repo/hooks";
 
 const getStatusName = (statuses: any[] = [], code?: string) =>
   statuses.find((item) => item.code === code)?.name || code || "---";

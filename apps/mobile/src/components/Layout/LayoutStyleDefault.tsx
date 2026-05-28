@@ -19,6 +19,7 @@ import {
   QuestionCircleOutlined,
   WalletOutlined,
   DollarOutlined,
+  BellOutlined,
 } from "@ant-design/icons";
 import { useState, useEffect } from "react";
 import { ThemeSwitcher } from "@repo/theme-provider";
@@ -175,6 +176,15 @@ function Layout() {
       label: (
         <Link to="/profile" onClick={() => setDrawerVisible(false)}>
           Hồ sơ
+        </Link>
+      ),
+    },
+    {
+      key: "/notifications",
+      icon: <BellOutlined />,
+      label: (
+        <Link to="/notifications" onClick={() => setDrawerVisible(false)}>
+          Thông báo
         </Link>
       ),
     },
