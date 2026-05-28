@@ -155,7 +155,7 @@ export const useCashRequestPage = ({ infinite = false }: { infinite?: boolean } 
       type: "CUSTOMER_REQUEST_COLLECT_CASH",
       object: `m1:${currentUser?.username}`,
       name: `Khach ${currentUser?.username} yeu cau lay tien mat, so tien ${amount}`,
-      start: values?.date?.startOf("hour").toISOString(),
+      start: values?.date?.startOf("minute").toISOString(),
       due: null,
       context: {
         address,
@@ -188,6 +188,7 @@ export const useCashRequestPage = ({ infinite = false }: { infinite?: boolean } 
         try {
           await cancelCashRequestMutation.mutateAsync(record?.id);
           notification.success({ message: "Hủy yêu cầu thu tiền mặt thành công" });
+          Modal.destroyAll();
         } catch {
           notification.error({
             message: "Hủy yêu cầu thu tiền mặt lỗi. Vui lòng thử lại",

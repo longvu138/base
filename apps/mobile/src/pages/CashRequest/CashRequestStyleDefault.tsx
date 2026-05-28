@@ -18,7 +18,7 @@ import {
   theme,
 } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
-import { moneyFormat } from '@repo/util';
+import { moneyFormat, quantityFormat } from '@repo/util';
 import { LocaleInputNumber } from '../../components/LocaleInputNumber';
 import { useCashRequestPage } from '@repo/hooks';
 
@@ -117,9 +117,9 @@ const CashRequestCreateModal = ({ page }: { page: CashRequestPageState }) => {
           rules={[{ required: true, message: 'Thời gian lấy không được để trống' }]}
         >
           <DatePicker
-            showTime
+            showTime={{ format: 'HH:mm', minuteStep: 5 }}
             disabledTime={disabledPickupTime}
-            format="DD/MM/YYYY HH"
+            format="DD/MM/YYYY HH:mm"
             className="w-full"
             disabledDate={(current) => current && current < dayjs().startOf('day')}
             placeholder="Vui lòng chọn thời gian lấy"
@@ -226,24 +226,16 @@ export const CashRequestStyleDefault = ({ page }: { page: CashRequestPageState }
 
   return (
     <Space direction="vertical" size="large" style={{ width: '100%' }}>
-      <Flex justify="space-between" align="flex-start" wrap gap={token.marginSM}>
-        <Space direction="vertical" size={0} style={{ minWidth: 0 }}>
+      <Card styles={{ body: { padding: token.paddingMD } }}>
+        <Flex justify="space-between" align="center" wrap gap={token.marginSM}>
           <Title level={4} style={{ margin: 0 }}>
-            Yêu cầu thu tiền mặt
+            Danh sách yêu cầu <Text type="secondary">({quantityFormat(total)})</Text>
           </Title>
-          <Text type="secondary">Quản lý các yêu cầu nhân viên đến thu tiền mặt.</Text>
-        </Space>
-        <Button type="primary" icon={<PlusOutlined />} onClick={() => page.setIsOpenCreate(true)}>
-          Thêm yêu cầu
-        </Button>
-      </Flex>
-
-      <Flex justify="space-between" align="center" wrap gap={token.marginSM}>
-        <Space size="small">
-          <Text strong>Danh sách yêu cầu</Text>
-          <Tag color="blue">{total}</Tag>
-        </Space>
-      </Flex>
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => page.setIsOpenCreate(true)}>
+            Thêm yêu cầu
+          </Button>
+        </Flex>
+      </Card>
 
       {page.isCashRequestsLoading ? (
         <Space direction="vertical" size="middle" style={{ width: '100%' }}>

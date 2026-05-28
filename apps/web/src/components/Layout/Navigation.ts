@@ -63,7 +63,7 @@ const BASE_MENU_ITEMS: MenuItem[] = [
   {
     key: "/cash-request",
     icon: React.createElement(DollarCircleOutlined),
-    label: "Yêu Cầu Thu Tiền Mặt",
+    label: "Yêu cầu thu tiền mặt",
     path: "/cash-request",
   },
   {
@@ -167,7 +167,7 @@ const GOBIZ_MENU_ITEMS: MenuItem[] = [
   {
     key: "/cash-request",
     icon: React.createElement(DollarCircleOutlined),
-    label: "Yêu Cầu Thu Tiền Mặt",
+    label: "Yêu cầu thu tiền mặt",
     path: "/cash-request",
   },
   {
