@@ -46,7 +46,7 @@ export const CashRequestStyleDefault = () => {
     setPageSize,
     listData,
     addresses,
-    isCashRequestsLoading,
+    // isCashRequestsLoading,
     isAddressesLoading,
     isOpenCreate,
     setIsOpenCreate,

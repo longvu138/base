@@ -35,7 +35,7 @@ const getVoucherTitle = (item: any) => item.title || item.name || item.code || e
 
 const VoucherTicket = ({
   item,
-  onDetail,
+  // onDetail,
   t,
 }: {
   item: any;
