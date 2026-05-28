@@ -101,6 +101,11 @@ export const useWaybillStatusesQuery = () => {
 const getErrorMessage = (error: any, fallback: string) =>
     error?.response?.data?.message || error?.response?.data?.title || fallback;
 
+const invalidateWaybillLists = (queryClient: ReturnType<typeof useQueryClient>) => {
+    queryClient.invalidateQueries({ queryKey: ['waybills.list'] });
+    queryClient.invalidateQueries({ queryKey: ['waybills.list.infinite'] });
+};
+
 export const useCreateWaybillsMutation = () => {
     const queryClient = useQueryClient();
 
@@ -108,7 +113,7 @@ export const useCreateWaybillsMutation = () => {
         mutationFn: (data: any) => WaybillApi.createWaybills(data),
         onSuccess: () => {
             notification.success({ message: 'Tạo vận đơn thành công' });
-            queryClient.invalidateQueries({ queryKey: ['waybills.list'] });
+            invalidateWaybillLists(queryClient);
         },
         onError: (error: any) => {
             notification.error({
@@ -126,7 +131,7 @@ export const useUpdateWaybillMutation = () => {
             WaybillApi.updateWaybill(id, data),
         onSuccess: () => {
             notification.success({ message: 'Cập nhật vận đơn thành công' });
-            queryClient.invalidateQueries({ queryKey: ['waybills.list'] });
+            invalidateWaybillLists(queryClient);
         },
         onError: (error: any) => {
             notification.error({
@@ -143,7 +148,7 @@ export const useDeleteWaybillMutation = () => {
         mutationFn: (code: string) => WaybillApi.deleteWaybill(code),
         onSuccess: () => {
             notification.success({ message: 'Xóa vận đơn thành công' });
-            queryClient.invalidateQueries({ queryKey: ['waybills.list'] });
+            invalidateWaybillLists(queryClient);
         },
         onError: (error: any) => {
             notification.error({

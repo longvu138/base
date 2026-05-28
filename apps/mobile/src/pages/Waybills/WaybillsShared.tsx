@@ -202,7 +202,7 @@ const WaybillCard = ({
 }) => {
   const { token } = theme.useToken();
   const statusMeta = getStatusMeta(page.statusData, record.status);
-  const statusColor = getStatusColor(record.status);
+  const statusColor = statusMeta?.color || getStatusColor(record.status);
   const warehouse =
     record.receivingWarehouse?.name ||
     record.receivingWarehouse?.displayName ||
@@ -218,26 +218,16 @@ const WaybillCard = ({
           gap={token.marginSM}
         >
           <Space direction="vertical" size={0} style={{ minWidth: 0, flex: 1 }}>
-            <Text type="secondary">Mã vận đơn</Text>
-            <Paragraph
-              copyable={{ text: record.code }}
-              ellipsis={{ rows: 1, tooltip: record.code }}
-              style={{ marginBottom: 0 }}
-            >
-              <Link
-                href={`https://m.kuaidi100.com/result.jsp?nu=${record.code}`}
-                target="_blank"
-                style={{ color: token.colorPrimary }}
-              >
-                {record.code || "---"}
-              </Link>
-            </Paragraph>
+            <Text type="secondary">Mã khách hàng</Text>
+            <Text strong ellipsis={{ tooltip: record.refCustomerCode }}>
+              {record.refCustomerCode || "---"}
+            </Text>
           </Space>
           <Tag
             style={{
               marginInlineEnd: 0,
-              backgroundColor: statusColor,
               borderColor: statusColor,
+              background: statusColor,
               color: token.colorWhite,
             }}
           >
@@ -246,14 +236,6 @@ const WaybillCard = ({
         </Flex>
 
         <Row gutter={[16, 12]}>
-          <Col xs={12} md={6}>
-            <Space direction="vertical" size={0} style={{ maxWidth: "100%" }}>
-              <Text type="secondary">Mã khách hàng</Text>
-              <Text ellipsis={{ tooltip: record.refCustomerCode }}>
-                {record.refCustomerCode || "---"}
-              </Text>
-            </Space>
-          </Col>
           <Col xs={12} md={6}>
             <Space direction="vertical" size={0} style={{ maxWidth: "100%" }}>
               <Text type="secondary">Mã đơn</Text>
