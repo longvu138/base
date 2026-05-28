@@ -16,7 +16,7 @@ Plan này track tiến độ migrate web -> mobile theo từng màn. Chỉ các 
 Các màn dưới đây phải xóa/bỏ implementation mobile cũ nếu có, rồi bốc lại từ web theo requirement bên dưới.
 
 - [x] `Orders` -> mobile route `/orders`
-- [ ] `OrderDetail` -> mobile route `/orders/:code`
+- [x] `OrderDetail` -> mobile route `/orders/:code`
 - [ ] `Shipments` -> mobile route `/shipments`
 - [ ] `ShipmentDetail` -> mobile route `/shipments/:code`
 - [ ] `CreateShipment` -> mobile route `/shipments/create`

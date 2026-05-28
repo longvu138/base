@@ -442,3 +442,11 @@ export const useExportOrdersMutation = () => {
     },
   });
 };
+
+export const useExportOrderProductsMutation = (code: string) => {
+  return useMutation({
+    mutationFn: async ({ secret }: { secret?: string }) => {
+      return OrderApi.exportOrderProducts(code, { secret });
+    },
+  });
+};
