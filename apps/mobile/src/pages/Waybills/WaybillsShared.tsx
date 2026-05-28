@@ -218,10 +218,20 @@ const WaybillCard = ({
           gap={token.marginSM}
         >
           <Space direction="vertical" size={0} style={{ minWidth: 0, flex: 1 }}>
-            <Text type="secondary">Mã khách hàng</Text>
-            <Text strong ellipsis={{ tooltip: record.refCustomerCode }}>
-              {record.refCustomerCode || "---"}
-            </Text>
+            <Text type="secondary">Mã vận đơn</Text>
+            <Paragraph
+              copyable={{ text: record.code }}
+              ellipsis={{ rows: 1, tooltip: record.code }}
+              style={{ marginBottom: 0 }}
+            >
+              <Link
+                href={`https://m.kuaidi100.com/result.jsp?nu=${record.code}`}
+                target="_blank"
+                style={{ color: token.colorPrimary }}
+              >
+                {record.code || "---"}
+              </Link>
+            </Paragraph>
           </Space>
           <Tag
             style={{

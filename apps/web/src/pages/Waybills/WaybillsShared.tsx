@@ -68,10 +68,17 @@ const useWaybillColumns = (page: WaybillsPageState) => {
 
   const columns: ColumnsType<any> = [
     {
-      title: "Mã khách hàng",
-      dataIndex: "refCustomerCode",
-      key: "refCustomerCode",
-      render: (value) => value || "---",
+      title: "Mã vận đơn",
+      dataIndex: "code",
+      key: "code",
+      fixed: "left",
+      render: (code: string) => (
+        <Paragraph copyable={{ text: code }} style={{ marginBottom: 0 }}>
+          <Link href={`https://m.kuaidi100.com/result.jsp?nu=${code}`} target="_blank">
+            {code}
+          </Link>
+        </Paragraph>
+      ),
     },
     {
       title: "Mã đơn",
@@ -279,7 +286,7 @@ export const WaybillListCard = ({ page }: { page: WaybillsPageState }) => {
         locale={{
           emptyText: <Empty description={page.t("message.empty")} />,
         }}
-        scroll={{ x: 1000 }}
+        scroll={{ x: 1120 }}
       />
 
       <Flex justify="flex-end" style={{ marginTop: token.marginLG }}>
