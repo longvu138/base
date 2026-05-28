@@ -9,14 +9,23 @@ import {
   CarOutlined,
   UserOutlined,
   BellOutlined,
+  FileTextOutlined,
 } from "@ant-design/icons";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ThemeSwitcher } from "@repo/theme-provider";
 
-import { useLogout } from "@repo/hooks";
+import { useCustomerProfile, useLogout } from "@repo/hooks";
 import { useLanguage } from "@repo/i18n";
 
 const { Header, Content } = AntLayout;
+
+const getCurrentLoggedUser = () => {
+  try {
+    return JSON.parse(localStorage.getItem("currentLoggedUser") || "{}");
+  } catch {
+    return {};
+  }
+};
 
 /**
  * LayoutStyleThanhla (Mobile Thanhla)
@@ -27,6 +36,21 @@ export const LayoutStyleThanhla = () => {
   const navigate = useNavigate();
   const [drawerVisible, setDrawerVisible] = useState(false);
   const { currentLanguage, availableLanguages, changeLanguage } = useLanguage();
+  const storedUser = useMemo(getCurrentLoggedUser, []);
+  const { data: profile } = useCustomerProfile();
+  const currentUser = profile || storedUser;
+  const displayName =
+    currentUser?.fullname ||
+    currentUser?.fullName ||
+    currentUser?.name ||
+    currentUser?.username ||
+    "Người dùng";
+  const userSubtitle =
+    currentUser?.username ||
+    currentUser?.email ||
+    currentUser?.phone ||
+    currentUser?.code ||
+    "Thành viên";
 
   const { handleLogout } = useLogout({
     onSuccess: () => navigate("/login"),
@@ -37,32 +61,34 @@ export const LayoutStyleThanhla = () => {
       {/* Header Glassmorphism */}
       <Header className="flex items-center justify-between gap-3 px-6 bg-white/80 dark:bg-[#141414]/80 backdrop-blur-lg border-b border-gray-100 dark:border-gray-800 h-16 sticky top-0 z-50">
         <div className="flex items-center gap-3 min-w-0">
+          <Button
+            type="text"
+            icon={<MenuOutlined className="text-xl dark:text-white" />}
+            onClick={() => setDrawerVisible(true)}
+          />
           <div className="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center font-black">
             T
           </div>
           <span className="font-black tracking-tighter text-lg dark:text-white">
             THANHLA
           </span>
-          <Button
-            type="text"
-            icon={<BellOutlined className="text-xl dark:text-white" />}
-            onClick={() => navigate("/notifications")}
-          />
-          <Avatar
-            size="small"
-            src="https://api.dicebear.com/7.x/pixel-art/svg?seed=Thanhla"
-            className="border-2 border-primary/20"
-          />
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
           <div className="scale-90">
             <ThemeSwitcher />
           </div>
-          <Button
-            type="text"
-            icon={<MenuOutlined className="text-xl dark:text-white" />}
-            onClick={() => setDrawerVisible(true)}
+          <Select
+            value={currentLanguage.code}
+            onChange={changeLanguage}
+            options={availableLanguages.map((lang) => ({
+              value: lang.code,
+              label: lang.flag,
+            }))}
+            size="small"
+            style={{ width: 60 }}
+            variant="borderless"
+            suffixIcon={null}
           />
         </div>
       </Header>
@@ -81,7 +107,7 @@ export const LayoutStyleThanhla = () => {
         >
           <HomeOutlined className="text-xl" />
           <span className="text-[10px] font-bold uppercase tracking-tighter">
-            Home
+            Trang chủ
           </span>
         </Link>
 
@@ -89,39 +115,29 @@ export const LayoutStyleThanhla = () => {
           to="/orders"
           className={`flex flex-col items-center gap-1 ${location.pathname.includes("orders") ? "text-primary" : "text-gray-400"}`}
         >
+          <FileTextOutlined className="text-xl" />
+          <span className="text-[10px] font-bold uppercase tracking-tighter">
+            Đơn hàng
+          </span>
+        </Link>
+
+        <Link
+          to="/carts"
+          className={`flex flex-col items-center gap-1 ${location.pathname.includes("carts") ? "text-primary" : "text-gray-400"}`}
+        >
           <ShoppingCartOutlined className="text-xl" />
           <span className="text-[10px] font-bold uppercase tracking-tighter">
-            Orders
-          </span>
-        </Link>
-
-        <div
-          onClick={() => setDrawerVisible(true)}
-          className="flex flex-col items-center gap-1 text-gray-400 active:text-primary cursor-pointer"
-        >
-          <MenuOutlined className="text-xl" />
-          <span className="text-[10px] font-bold uppercase tracking-tighter">
-            Menu
-          </span>
-        </div>
-
-        <Link
-          to="/wishlist"
-          className={`flex flex-col items-center gap-1 ${location.pathname.includes("wishlist") ? "text-primary" : "text-gray-400"}`}
-        >
-          <HeartFilled className="text-xl" />
-          <span className="text-[10px] font-bold uppercase tracking-tighter">
-            Wishlist
+            Giỏ hàng
           </span>
         </Link>
 
         <Link
-          to="/profile"
-          className={`flex flex-col items-center gap-1 ${location.pathname.includes("profile") ? "text-primary" : "text-gray-400"}`}
+          to="/notifications"
+          className={`flex flex-col items-center gap-1 ${location.pathname.includes("notifications") ? "text-primary" : "text-gray-400"}`}
         >
-          <UserOutlined className="text-xl" />
+          <BellOutlined className="text-xl" />
           <span className="text-[10px] font-bold uppercase tracking-tighter">
-            Account
+            Thông báo
           </span>
         </Link>
       </div>
@@ -150,10 +166,10 @@ export const LayoutStyleThanhla = () => {
             />
             <div className="flex-1">
               <div className="font-black text-lg dark:text-white leading-tight">
-                Thanhla User
+                {displayName}
               </div>
               <div className="text-xs font-bold text-primary uppercase tracking-widest mt-1">
-                Premium Partner
+                {userSubtitle}
               </div>
             </div>
             <div className="text-right">
@@ -217,7 +233,6 @@ export const LayoutStyleThanhla = () => {
                 label: "Mã giảm giá",
               },
               { path: "/faqs", icon: <HomeOutlined />, label: "Hỏi đáp" },
-              { path: "/about", icon: <UserOutlined />, label: "Thông tin" },
             ].map((item, idx) => (
               <Link
                 key={idx}

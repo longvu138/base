@@ -999,7 +999,19 @@
     "title": "Notification",
     "mark_as_read_all": "Mark as read",
     "all": "All",
-    "read_all": "Read all"
+    "read_all": "Read all",
+    "events": {
+      "FINANCIAL_COLLECT": "Collection",
+      "FINANCIAL_EMD": "Deposit",
+      "FINANCIAL_PAYMENT": "Payment",
+      "FINANCIAL_CLAIM": "Claim refund",
+      "FINANCIAL_DEPOSIT": "Top-up",
+      "DELIVERY_REQ_STATUS_UPDATE": "Delivery request update",
+      "ORDER_PACKAGE_UPDATE": "Package update",
+      "SHIPMENT_PACKAGE_UPDATE": "Shipment package update",
+      "ORDER_COMMENT_UPDATE": "Order discussion",
+      "PROFILE": "Account"
+    }
   },
   "dashboard": {
     "titleHeader": "Dashboard",

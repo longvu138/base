@@ -3,6 +3,7 @@ import Login from './pages/Login';
 import RegisterPage from './pages/Register/RegisterPage';
 import OrdersPage from './pages/Orders';
 import OrderDetailPage from './pages/OrderDetail';
+import CartsPage from './pages/Carts';
 import ShipmentsPage from './pages/Shipments';
 import CreateShipmentPage from './pages/CreateShipment';
 import ClaimsPage from './pages/Claims';
@@ -11,7 +12,6 @@ import DeliveryNotesPage from './pages/DeliveryNotes';
 import LieferscheinePage from './pages/Lieferscheine';
 import Dashboard from './pages/Dashboard';
 import Layout from './components/Layout/index';
-import AboutPage from './pages/AboutPage';
 import { WishlistPage } from './pages/Wishlist/WishlistPage';
 import PackagesPage from './pages/Packages';
 import TransactionsPage from './pages/Transactions';
@@ -39,6 +39,7 @@ function AppRoutes() {
                     <Route path="dashboard" element={<Dashboard />} />
                     <Route path="orders" element={<OrdersPage />} />
                     <Route path="orders/:code" element={<OrderDetailPage />} />
+                    <Route path="carts" element={<CartsPage />} />
                     <Route path="shipments" element={<ShipmentsPage />} />
                     <Route path="shipments/create" element={<CreateShipmentPage />} />
                     <Route path="claims" element={<ClaimsPage />} />
@@ -58,7 +59,6 @@ function AppRoutes() {
                     <Route path="notifications" element={<NotificationsPage />} />
                     <Route path="faqs" element={<FaqsPage />} />
                     <Route path="wishlist" element={<WishlistPage />} />
-                    <Route path="about" element={<AboutPage />} />
                 </Route>
             </Route>
 
