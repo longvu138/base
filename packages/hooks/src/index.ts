@@ -21,6 +21,7 @@ export * from './pages/withdrawalSlips';
 export * from './pages/waybills';
 export * from './pages/lieferscheine';
 export * from './pages/claims';
+export * from './pages/createClaim';
 export * from './pages/deliveryRequests';
 export * from './pages/deliveryNotes';
 export * from './pages/address';

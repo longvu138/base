@@ -6,6 +6,7 @@ import OrderDetailPage from './pages/OrderDetail';
 import ShipmentsPage from './pages/Shipments';
 import CreateShipmentPage from './pages/CreateShipment';
 import ClaimsPage from './pages/Claims';
+import CreateClaimPage from './pages/CreateClaim';
 import DeliveryNotesPage from './pages/DeliveryNotes';
 import LieferscheinePage from './pages/Lieferscheine';
 import Dashboard from './pages/Dashboard';
@@ -40,6 +41,7 @@ function AppRoutes() {
                     <Route path="shipments" element={<ShipmentsPage />} />
                     <Route path="shipments/create" element={<CreateShipmentPage />} />
                     <Route path="claims" element={<ClaimsPage />} />
+                    <Route path="tickets/create" element={<CreateClaimPage />} />
                     <Route path="delivery-notes" element={<DeliveryNotesPage />} />
                     <Route path="lieferscheine" element={<LieferscheinePage />} />
                     <Route path="packages" element={<PackagesPage />} />
