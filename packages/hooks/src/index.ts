@@ -30,6 +30,14 @@ export * from './pages/faqs';
 export * from './pages/peerPayments';
 export * from './pages/cashRequests';
 export * from './pages/dashboard';
+export * from './pages/useProfileAddressPage';
+export * from './pages/useProfileFaqsPage';
+export * from './pages/useProfileNotificationSettingsPage';
+export * from './pages/useProfilePage';
+export * from './pages/useProfileSavedProductsPage';
+export * from './pages/useProfileTransactionsPage';
+export * from './pages/useProfileVipLevelsPage';
+export * from './pages/useProfileVouchersPage';
 
 export * from './useCustomerHooks';
 export * from './useLogin';
