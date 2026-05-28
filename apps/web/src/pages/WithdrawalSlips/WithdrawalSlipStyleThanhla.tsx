@@ -2,6 +2,12 @@ import dayjs from 'dayjs';
 import { Form, Input, DatePicker, Table, Tag, Select, Card } from 'antd';
 import { FilterPanel, TableComponent, StatusFilter, Pagination } from '@repo/ui';
 import { useWithdrawalSlipsPage } from './hooks/useWithdrawalSlipsPage';
+import {
+    WithdrawalSlipCreateButton,
+    WithdrawalSlipCreateModal,
+    WithdrawalSlipLogModal,
+    WithdrawalSlipRowActions,
+} from './WithdrawalSlipActions';
 
 const { RangePicker } = DatePicker;
 
@@ -10,11 +16,12 @@ const { RangePicker } = DatePicker;
  * Phong cách Modern Card.
  */
 export const WithdrawalSlipStyleThanhla = () => {
+    const pageState = useWithdrawalSlipsPage();
     const {
         form, page, pageSize, setPage, setPageSize,
         listData, isWithdrawalSlipsLoading, statusData, banksData,
         statusOptions, bankOptions, handleSearch, handleReset
-    } = useWithdrawalSlipsPage();
+    } = pageState;
 
     const columns = [
         {
@@ -61,10 +68,18 @@ export const WithdrawalSlipStyleThanhla = () => {
             key: 'createdAt',
             render: (text: string) => <span className="text-gray-500 text-sm">{text ? dayjs(text).format('HH:mm DD/MM/YYYY') : '-'}</span>,
         },
+        {
+            title: '',
+            key: 'actions',
+            render: (_: any, record: any) => <WithdrawalSlipRowActions page={pageState} record={record} />,
+        },
     ];
 
     return (
         <div className="min-h-screen bg-layout p-4 space-y-4">
+            <div className="flex justify-end">
+                <WithdrawalSlipCreateButton page={pageState} />
+            </div>
             <Card className="mb-4 shadow-sm">
                 <FilterPanel
                     form={form}
@@ -114,6 +129,8 @@ export const WithdrawalSlipStyleThanhla = () => {
                     if (s !== pageSize) setPageSize(s);
                 }}
             />
+            <WithdrawalSlipCreateModal page={pageState} />
+            <WithdrawalSlipLogModal page={pageState} />
         </div>
     );
 };

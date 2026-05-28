@@ -184,6 +184,11 @@ export const LayoutStyleThanhla = () => {
                 label: "Rút tiền",
               },
               {
+                path: "/cash-request",
+                icon: <UserOutlined />,
+                label: "Thu tiền mặt",
+              },
+              {
                 path: "/delivery-notes",
                 icon: <CarOutlined />,
                 label: "Phiếu xuất",

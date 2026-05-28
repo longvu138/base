@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery } from "@tanstack/react-query";
 import { PackageApi } from "@repo/api";
 import { notification } from "antd";
 
@@ -14,6 +14,37 @@ export const usePackagesQuery = (params: any) => {
         current: parseInt(res.headers["x-page-number"] || "0", 10),
         totalPage: parseInt(res.headers["x-page-count"] || "0", 10),
       };
+    },
+    enabled: !!params,
+  });
+};
+
+const normalizePackagesResponse = (res: any, pageParam = 0, fallbackSize = 25) => ({
+  data: Array.isArray(res.data) ? res.data : [],
+  total: parseInt(res.headers["x-total-count"] || "0", 10),
+  pageSize: parseInt(res.headers["x-page-size"] || String(fallbackSize), 10),
+  current: parseInt(res.headers["x-page-number"] || String(pageParam), 10),
+  totalPage: parseInt(res.headers["x-page-count"] || "0", 10),
+});
+
+export const usePackagesInfiniteQuery = (params: any) => {
+  return useInfiniteQuery({
+    queryKey: ["packages.list.infinite", params],
+    initialPageParam: 0,
+    queryFn: async ({ pageParam = 0 }) => {
+      const res = await PackageApi.getPackages({
+        ...params,
+        page: Number(pageParam),
+      });
+      return normalizePackagesResponse(res, Number(pageParam), params?.size || 25);
+    },
+    getNextPageParam: (lastPage, allPages) => {
+      const loaded = allPages.reduce((sum, page) => sum + page.data.length, 0);
+      if (!lastPage.data.length) return undefined;
+      if (lastPage.total && loaded >= lastPage.total) return undefined;
+      if (lastPage.totalPage && lastPage.current + 1 >= lastPage.totalPage) return undefined;
+      if (lastPage.pageSize && lastPage.data.length < lastPage.pageSize) return undefined;
+      return lastPage.current + 1;
     },
     enabled: !!params,
   });

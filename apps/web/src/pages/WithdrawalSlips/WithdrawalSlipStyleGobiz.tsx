@@ -1,24 +1,31 @@
 import dayjs from 'dayjs';
 import {
-    Form, Input as AntInput, Button as AntButton, Tag,
+    Form, Input as AntInput, Tag,
     Skeleton as AntSkeleton, Tabs, Empty, Table, List, Card,
 } from 'antd';
 import { Pagination, FilterPanel } from '@repo/ui';
 import {
-    SearchOutlined, WalletOutlined, ArrowRightOutlined,
+    SearchOutlined, WalletOutlined,
 } from '@ant-design/icons';
 import './WithdrawalSlipStyleGobiz.css';
 import { useWithdrawalSlipsPage } from './hooks/useWithdrawalSlipsPage';
+import {
+    WithdrawalSlipCreateButton,
+    WithdrawalSlipCreateModal,
+    WithdrawalSlipLogModal,
+    WithdrawalSlipRowActions,
+} from './WithdrawalSlipActions';
 
 /**
  * WithdrawalSlipStyleGobiz — Giao diện rút tiền dành cho Gobiz (gobiz)
  */
 export const WithdrawalSlipStyleGobiz = ({ isTabView }: { isTabView?: boolean }) => {
+    const pageState = useWithdrawalSlipsPage();
     const {
         form, page, pageSize, setPage, setPageSize,
         filters, listData, isWithdrawalSlipsLoading, statusData,
         handleSearch, handleReset, applyFilters
-    } = useWithdrawalSlipsPage();
+    } = pageState;
 
     const getStatusTag = (status: string) => {
         const found = statusData?.find((s: any) => s.code === status);
@@ -85,16 +92,8 @@ export const WithdrawalSlipStyleGobiz = ({ isTabView }: { isTabView?: boolean })
         {
             title: '',
             key: 'action',
-            width: 60,
-            render: () => (
-                <AntButton
-                    type="primary"
-                    size="small"
-                    shape="circle"
-                    icon={<ArrowRightOutlined />}
-                    className="shadow-sm"
-                />
-            ),
+            width: 150,
+            render: (_: any, record: any) => <WithdrawalSlipRowActions page={pageState} record={record} />,
         },
     ];
 
@@ -108,6 +107,12 @@ export const WithdrawalSlipStyleGobiz = ({ isTabView }: { isTabView?: boolean })
             {!isTabView && (
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
                     <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Yêu cầu rút tiền</h1>
+                    <WithdrawalSlipCreateButton page={pageState} />
+                </div>
+            )}
+            {isTabView && (
+                <div className="flex justify-end">
+                    <WithdrawalSlipCreateButton page={pageState} />
                 </div>
             )}
 
@@ -188,6 +193,8 @@ export const WithdrawalSlipStyleGobiz = ({ isTabView }: { isTabView?: boolean })
                     onChange={(p, s) => { setPage(p); if (s !== pageSize) setPageSize(s); }}
                 />
             </div>
+            <WithdrawalSlipCreateModal page={pageState} />
+            <WithdrawalSlipLogModal page={pageState} />
         </div>
     );
 };

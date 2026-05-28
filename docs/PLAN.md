@@ -15,34 +15,46 @@ Plan này track tiến độ migrate web -> mobile theo từng màn. Chỉ các 
 
 Các màn dưới đây phải xóa/bỏ implementation mobile cũ nếu có, rồi bốc lại từ web theo requirement bên dưới.
 
-- [ ] `Orders` -> mobile route `/orders`
-- [ ] `OrderDetail` -> mobile route `/orders/:code`
+- [x] `Orders` -> mobile route `/orders`
+- [x] `OrderDetail` -> mobile route `/orders/:code`
 - [ ] `Shipments` -> mobile route `/shipments`
 - [ ] `ShipmentDetail` -> mobile route `/shipments/:code`
 - [ ] `CreateShipment` -> mobile route `/shipments/create`
-- [ ] `Packages` -> mobile route `/packages`
+- [x] `Packages` -> mobile route `/packages`
 - [x] `Waybills` -> mobile route `/waybills`
 - [ ] `Claims` -> mobile route `/claims`
 - [ ] `CreateClaim` -> mobile route `/tickets/create`
-- [ ] `WithdrawalSlips` -> mobile route `/withdrawal-slips`
+- [x] `WithdrawalSlips` -> mobile route `/withdrawal-slips`
 - [ ] `CreateDelivery` -> mobile route `/delivery/create`
 - [ ] `PeerPayments` -> mobile route `/peer-payments`
 - [ ] `PeerPaymentDetail` -> mobile route `/peer-payments/:id`
-- [ ] `CashRequest` -> mobile route `/cash-request`
+- [x] `CashRequest` -> mobile route `/cash-request`
 - [ ] `Carts` -> mobile route `/carts`
 - [ ] `CartCheckout` -> mobile route `/carts/checkout/:draftOrderId`
+- [ ] `Profile` -> mobile route `/profile`
 - [ ] `Notifications` -> mobile route `/notifications`
 - [ ] `Statistics` -> mobile route `/statistics`
 - [ ] `ThemeConfigurator` -> mobile route `/theme-configurator`
 
+## Web Routes That Are Not Separate Migration Screens
+
+Các route này có trong web nhưng không cần thêm thành màn migrate riêng:
+
+- `/delivery` -> alias của `DeliveryRequests`; migrate cùng `DeliveryRequests` qua route mobile `/delivery-requests`.
+- `/transactions` -> web redirect tới `/profile?tab=transactions`; không có page web riêng để migrate.
+- `/vouchers` -> web redirect tới `/profile?tab=vouchers`; không có page web riêng để migrate.
+- `/wishlist` -> web redirect tới `/profile?tab=saved-products`; không có page web riêng để migrate.
+- `/faqs` -> web redirect tới `/profile?tab=faqs`; không có page web riêng để migrate.
+
 ## Migration Order
 
-1. Navigation/detail foundation: `Orders`, `OrderDetail`, `Shipments`, `ShipmentDetail`
-2. Shipping/package operational screens: `CreateShipment`, `Packages`, `Waybills`, `WithdrawalSlips`
-3. Claim/delivery flow: `Claims`, `CreateClaim`, `CreateDelivery`
-4. Payment/cash flow: `PeerPayments`, `PeerPaymentDetail`, `CashRequest`
-5. Cart flow: `Carts`, `CartCheckout`
-6. Utility/low priority: `Notifications`, `Statistics`, `ThemeConfigurator`
+1. Auth/account foundation: `Login`, `Register`, `Profile`
+2. Navigation/detail foundation: `Orders`, `OrderDetail`, `Shipments`, `ShipmentDetail`
+3. Shipping/package operational screens: `CreateShipment`, `Packages`, `Waybills`, `WithdrawalSlips`
+4. Claim/delivery flow: `Claims`, `CreateClaim`, `CreateDelivery`
+5. Payment/cash flow: `PeerPayments`, `PeerPaymentDetail`, `CashRequest`
+6. Cart flow: `Carts`, `CartCheckout`
+7. Utility/low priority: `Notifications`, `Statistics`, `ThemeConfigurator`
 
 ## Requirements Per Screen
 

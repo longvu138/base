@@ -11,6 +11,7 @@
     "@repo/api": "workspace:*",
     "@repo/config": "workspace:*",
     "@repo/i18n": "workspace:*",
+    "@repo/util": "workspace:*",
     "antd": "^6.3.7",
     "dayjs": "^1.11.10",
     "lodash": "^4.17.21",

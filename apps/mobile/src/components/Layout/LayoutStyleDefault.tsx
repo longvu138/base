@@ -18,6 +18,7 @@ import {
   TagOutlined,
   QuestionCircleOutlined,
   WalletOutlined,
+  DollarOutlined,
 } from "@ant-design/icons";
 import { useState, useEffect } from "react";
 import { ThemeSwitcher } from "@repo/theme-provider";
@@ -114,6 +115,15 @@ function Layout() {
       label: (
         <Link to="/withdrawal-slips" onClick={() => setDrawerVisible(false)}>
           Rút tiền
+        </Link>
+      ),
+    },
+    {
+      key: "/cash-request",
+      icon: <DollarOutlined />,
+      label: (
+        <Link to="/cash-request" onClick={() => setDrawerVisible(false)}>
+          Thu tiền mặt
         </Link>
       ),
     },

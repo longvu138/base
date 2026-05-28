@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import Login from './pages/Login';
 import RegisterPage from './pages/Register/RegisterPage';
 import OrdersPage from './pages/Orders';
+import OrderDetailPage from './pages/OrderDetail';
 import ShipmentsPage from './pages/Shipments';
 import CreateShipmentPage from './pages/CreateShipment';
 import ClaimsPage from './pages/Claims';
@@ -20,6 +21,7 @@ import WaybillsPage from './pages/Waybills';
 import FaqsPage from './pages/Faqs';
 import VouchersPage from './pages/Vouchers';
 import WithdrawalSlipsPage from './pages/WithdrawalSlips';
+import CashRequestPage from './pages/CashRequest';
 import PrivateRoute from './components/PrivateRoute';
 
 function AppRoutes() {
@@ -33,6 +35,7 @@ function AppRoutes() {
                     <Route index element={<Navigate to="/dashboard" replace />} />
                     <Route path="dashboard" element={<Dashboard />} />
                     <Route path="orders" element={<OrdersPage />} />
+                    <Route path="orders/:code" element={<OrderDetailPage />} />
                     <Route path="shipments" element={<ShipmentsPage />} />
                     <Route path="shipments/create" element={<CreateShipmentPage />} />
                     <Route path="claims" element={<ClaimsPage />} />
@@ -46,6 +49,7 @@ function AppRoutes() {
                     <Route path="waybills" element={<WaybillsPage />} />
                     <Route path="vouchers" element={<VouchersPage />} />
                     <Route path="withdrawal-slips" element={<WithdrawalSlipsPage />} />
+                    <Route path="cash-request" element={<CashRequestPage />} />
                     <Route path="faqs" element={<FaqsPage />} />
                     <Route path="wishlist" element={<WishlistPage />} />
                     <Route path="about" element={<AboutPage />} />
