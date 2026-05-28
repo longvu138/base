@@ -5,6 +5,7 @@ import {
   useCreateWithdrawalSlipMutation,
   useListWithdrawalSlipQuery,
   useWithdrawalSlipLogsQuery,
+  useWithdrawalSlipStatisticsQuery,
   useWithdrawalSlipStatusesQuery,
   useBanksQuery,
   useWithdrawalSlipsInfiniteQuery,
@@ -42,6 +43,42 @@ const parseMoneyInput = (value: unknown) => {
   if (typeof value === "number") return value;
   return Number(String(value || "").replace(/[^\d.-]/g, ""));
 };
+
+const getWithdrawalSlipErrorMessage = (error: any, fallback: string) =>
+  error?.response?.data?.message ||
+  error?.response?.data?.detail ||
+  error?.response?.data?.title ||
+  error?.message ||
+  fallback;
+
+const getStatisticStatus = (item: any) =>
+  item?.status?.code || item?.status || item?.code || item?.name;
+
+const getStatisticTotal = (item: any) =>
+  Number(item?.total ?? item?.count ?? item?.quantity ?? item?.value ?? 0);
+
+const buildStatusCounts = (statisticsData: any) => {
+  const counts: Record<string, number> = {};
+
+  if (Array.isArray(statisticsData)) {
+    statisticsData.forEach((item) => {
+      const status = getStatisticStatus(item);
+      if (status) counts[status] = getStatisticTotal(item);
+    });
+    return counts;
+  }
+
+  Object.entries(statisticsData || {}).forEach(([status, value]) => {
+    counts[status] =
+      typeof value === "number"
+        ? value
+        : getStatisticTotal({ ...(value as any), status });
+  });
+
+  return counts;
+};
+
+const formatQuantity = (value: number) => value.toLocaleString("vi-VN");
 
 const buildWithdrawalSlipPayload = (values: any, banksData: any[] = []) => {
   const bankCode = values.beneficiaryBank;
@@ -96,17 +133,35 @@ const useWithdrawalSlipActions = (
 
   const submitCreateSlip = async () => {
     const values = await createForm.validateFields();
-    await createMutation.mutateAsync(
-      buildWithdrawalSlipPayload(values, banksData),
-    );
-    notification.success({ message: "Tạo yêu cầu rút tiền thành công" });
-    createForm.resetFields();
-    setCreateModalOpen(false);
+    try {
+      await createMutation.mutateAsync(
+        buildWithdrawalSlipPayload(values, banksData),
+      );
+      notification.success({ message: "Tạo yêu cầu rút tiền thành công" });
+      createForm.resetFields();
+      setCreateModalOpen(false);
+    } catch (error) {
+      notification.error({
+        message: getWithdrawalSlipErrorMessage(
+          error,
+          "Không thể tạo yêu cầu rút tiền",
+        ),
+      });
+    }
   };
 
   const cancelWithdrawalSlip = async (code: string) => {
-    await cancelMutation.mutateAsync(code);
-    notification.success({ message: "Hủy yêu cầu rút tiền thành công" });
+    try {
+      await cancelMutation.mutateAsync(code);
+      notification.success({ message: "Hủy yêu cầu rút tiền thành công" });
+    } catch (error) {
+      notification.error({
+        message: getWithdrawalSlipErrorMessage(
+          error,
+          "Không thể hủy yêu cầu rút tiền",
+        ),
+      });
+    }
   };
 
   return {
@@ -155,14 +210,27 @@ export const useWithdrawalSlipsLogic = ({
   const { data: listData, isLoading: isWithdrawalSlipLoading } =
     useListWithdrawalSlipQuery(apiParams);
   const { data: statusData } = useWithdrawalSlipStatusesQuery();
+  const { data: statisticsData } = useWithdrawalSlipStatisticsQuery();
   const { data: banksData } = useBanksQuery();
   const actions = useWithdrawalSlipActions(banksData, statusData);
 
   // 3. Derived State
+  const statusCounts = useMemo(
+    () => buildStatusCounts(statisticsData),
+    [statisticsData],
+  );
+
   const statusOptions = useMemo(
     () =>
-      (statusData || []).map((s: any) => ({ label: s.name, value: s.code })),
-    [statusData],
+      (statusData || []).map((s: any) => {
+        const total = statusCounts[s.code];
+        return {
+          label:
+            total === undefined ? s.name : `${s.name} (${formatQuantity(total)})`,
+          value: s.code,
+        };
+      }),
+    [statusData, statusCounts],
   );
 
   const bankOptions = useMemo(
@@ -181,6 +249,8 @@ export const useWithdrawalSlipsLogic = ({
     statusData,
     banksData,
     statusOptions,
+    statusCounts,
+    statisticsData,
     bankOptions,
     apiParams,
     ...actions,
@@ -211,16 +281,29 @@ export const useWithdrawalSlipsMobilePage = () => {
 
   const infiniteQuery = useWithdrawalSlipsInfiniteQuery(apiParams);
   const { data: statusData } = useWithdrawalSlipStatusesQuery();
+  const { data: statisticsData } = useWithdrawalSlipStatisticsQuery();
   const { data: banksData } = useBanksQuery();
   const actions = useWithdrawalSlipActions(banksData, statusData);
   const pages = infiniteQuery.data?.pages || [];
   const rows = pages.flatMap((page) => page.data || []);
   const firstPage = pages[0];
 
+  const statusCounts = useMemo(
+    () => buildStatusCounts(statisticsData),
+    [statisticsData],
+  );
+
   const statusOptions = useMemo(
     () =>
-      (statusData || []).map((s: any) => ({ label: s.name, value: s.code })),
-    [statusData],
+      (statusData || []).map((s: any) => {
+        const total = statusCounts[s.code];
+        return {
+          label:
+            total === undefined ? s.name : `${s.name} (${formatQuantity(total)})`,
+          value: s.code,
+        };
+      }),
+    [statusData, statusCounts],
   );
 
   const bankOptions = useMemo(
@@ -259,6 +342,8 @@ export const useWithdrawalSlipsMobilePage = () => {
     statusData,
     banksData,
     statusOptions,
+    statusCounts,
+    statisticsData,
     bankOptions,
     apiParams,
     handleSearch,

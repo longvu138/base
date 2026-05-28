@@ -44,9 +44,6 @@ export const WithdrawalSlipRowActions = ({ page, record }: { page: any; record: 
 
     return (
         <Space size="small">
-            <Button type="link" size="small" icon={<FileTextOutlined />} onClick={() => page.openLogModal(record.code)}>
-                Log
-            </Button>
             {canCancel ? (
                 <Popconfirm
                     title="Bạn có chắc muốn hủy yêu cầu rút tiền này?"
@@ -60,6 +57,9 @@ export const WithdrawalSlipRowActions = ({ page, record }: { page: any; record: 
                     </Button>
                 </Popconfirm>
             ) : null}
+             <Button type="link" size="small" icon={<FileTextOutlined />} onClick={() => page.openLogModal(record.code)}>
+                Log
+            </Button>
         </Space>
     );
 };
