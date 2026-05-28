@@ -21,6 +21,7 @@ import WaybillsPage from './pages/Waybills';
 import FaqsPage from './pages/Faqs';
 import VouchersPage from './pages/Vouchers';
 import WithdrawalSlipsPage from './pages/WithdrawalSlips';
+import CashRequestPage from './pages/CashRequest';
 import PrivateRoute from './components/PrivateRoute';
 
 function AppRoutes() {
@@ -48,6 +49,7 @@ function AppRoutes() {
                     <Route path="waybills" element={<WaybillsPage />} />
                     <Route path="vouchers" element={<VouchersPage />} />
                     <Route path="withdrawal-slips" element={<WithdrawalSlipsPage />} />
+                    <Route path="cash-request" element={<CashRequestPage />} />
                     <Route path="faqs" element={<FaqsPage />} />
                     <Route path="wishlist" element={<WishlistPage />} />
                     <Route path="about" element={<AboutPage />} />

@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CashRequestApi } from "@repo/api";
 
 const getCashRequestItems = (payload: any) => {
@@ -39,6 +39,42 @@ export const useCashRequestsQuery = (params: any) => {
   });
 };
 
+export const useCashRequestsInfiniteQuery = (params: any) => {
+  return useInfiniteQuery({
+    queryKey: ["cash_requests.list.infinite", params],
+    initialPageParam: 0,
+    queryFn: async ({ pageParam = 0 }) => {
+      const requestParams = {
+        ...params,
+        offset: Number(pageParam),
+      };
+      const [listRes, countRes] = await Promise.all([
+        CashRequestApi.getCashRequests(requestParams),
+        CashRequestApi.getCashRequestsCount(requestParams),
+      ]);
+      const data = getCashRequestItems(listRes.data);
+      const total = getCashRequestTotal(listRes.data, countRes.headers);
+      const limit = Number(params?.limit || data.length || 25);
+
+      return {
+        data,
+        total,
+        pageSize: limit,
+        current: Number(pageParam),
+        totalPage: limit ? Math.ceil(total / limit) : 0,
+      };
+    },
+    getNextPageParam: (lastPage, allPages) => {
+      const loaded = allPages.reduce((sum, page) => sum + page.data.length, 0);
+      if (!lastPage.data.length) return undefined;
+      if (lastPage.total && loaded >= lastPage.total) return undefined;
+      if (lastPage.pageSize && lastPage.data.length < lastPage.pageSize) return undefined;
+      return allPages.length;
+    },
+    enabled: !!params,
+  });
+};
+
 export const useCreateCashRequestMutation = () => {
   const queryClient = useQueryClient();
 
@@ -46,6 +82,7 @@ export const useCreateCashRequestMutation = () => {
     mutationFn: (data: any) => CashRequestApi.createCashRequest(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cash_requests.list"] });
+      queryClient.invalidateQueries({ queryKey: ["cash_requests.list.infinite"] });
     },
   });
 };
@@ -57,6 +94,7 @@ export const useCancelCashRequestMutation = () => {
     mutationFn: (id: string | number) => CashRequestApi.cancelCashRequest(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cash_requests.list"] });
+      queryClient.invalidateQueries({ queryKey: ["cash_requests.list.infinite"] });
     },
   });
 };
