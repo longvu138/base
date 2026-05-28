@@ -5,7 +5,6 @@ import {
     Empty,
     Form,
     Input,
-    InputNumber,
     Modal,
     Popconfirm,
     Select,
@@ -15,6 +14,7 @@ import {
 } from 'antd';
 import { FileTextOutlined, PlusOutlined, StopOutlined } from '@ant-design/icons';
 import { moneyFormat } from '@repo/util';
+import { LocaleInputNumber } from '../../components/Common/LocaleInputNumber';
 
 const { Text } = Typography;
 
@@ -44,6 +44,9 @@ export const WithdrawalSlipRowActions = ({ page, record }: { page: any; record: 
 
     return (
         <Space size="small">
+            <Button type="link" size="small" icon={<FileTextOutlined />} onClick={() => page.openLogModal(record.code)}>
+                Log
+            </Button>
             {canCancel ? (
                 <Popconfirm
                     title="Bạn có chắc muốn hủy yêu cầu rút tiền này?"
@@ -57,9 +60,6 @@ export const WithdrawalSlipRowActions = ({ page, record }: { page: any; record: 
                     </Button>
                 </Popconfirm>
             ) : null}
-            <Button type="link" size="small" icon={<FileTextOutlined />} onClick={() => page.openLogModal(record.code)}>
-                Log
-            </Button>
         </Space>
     );
 };
@@ -89,7 +89,14 @@ export const WithdrawalSlipCreateModal = ({ page }: { page: any }) => {
                     </Descriptions.Item>
                 </Descriptions>
                 <Form.Item name="amount" label="Số tiền" rules={[{ required: true, message: 'Nhập số tiền' }]}>
-                    <InputNumber min={1} className="w-full" placeholder="Nhập số tiền" controls={false} />
+                    <LocaleInputNumber
+                        min={1}
+                        precision={0}
+                        maximumFractionDigits={0}
+                        className="w-full"
+                        placeholder="Nhập số tiền"
+                        controls={false}
+                    />
                 </Form.Item>
                 <Form.Item name="beneficiaryName" label="Tên tài khoản" rules={[{ required: true, message: 'Nhập tên tài khoản' }]}>
                     <Input placeholder="Nhập tên tài khoản thụ hưởng" />

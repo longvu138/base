@@ -5,7 +5,6 @@ import {
     Empty,
     Form,
     Input,
-    InputNumber,
     Modal,
     Popconfirm,
     Select,
@@ -15,6 +14,7 @@ import {
 } from 'antd';
 import { FileTextOutlined, PlusOutlined, StopOutlined } from '@ant-design/icons';
 import { moneyFormat } from '@repo/util';
+import { LocaleInputNumber } from '../../components/LocaleInputNumber';
 
 const { Text } = Typography;
 
@@ -87,7 +87,14 @@ export const WithdrawalSlipCreateModal = ({ page }: { page: any }) => {
                     </Descriptions.Item>
                 </Descriptions>
                 <Form.Item name="amount" label="Số tiền" rules={[{ required: true, message: 'Nhập số tiền' }]}>
-                    <InputNumber min={1} className="w-full" placeholder="Nhập số tiền" controls={false} />
+                    <LocaleInputNumber
+                        min={1}
+                        precision={0}
+                        maximumFractionDigits={0}
+                        className="w-full"
+                        placeholder="Nhập số tiền"
+                        controls={false}
+                    />
                 </Form.Item>
                 <Form.Item name="beneficiaryName" label="Tên tài khoản" rules={[{ required: true, message: 'Nhập tên tài khoản' }]}>
                     <Input placeholder="Nhập tên tài khoản thụ hưởng" />

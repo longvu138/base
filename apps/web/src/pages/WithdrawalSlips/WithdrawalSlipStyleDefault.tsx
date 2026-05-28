@@ -76,9 +76,6 @@ export const WithdrawalSlipStyleDefault = () => {
 
     return (
         <div className="min-h-screen bg-layout p-4 space-y-4">
-            <div className="flex justify-end">
-                <WithdrawalSlipCreateButton page={pageState} />
-            </div>
             <Card className="mb-4 shadow-sm">
                 <FilterPanel
                     form={form}
@@ -109,6 +106,11 @@ export const WithdrawalSlipStyleDefault = () => {
                 title="Yêu cầu rút tiền"
                 totalCount={listData?.total}
                 loading={isWithdrawalSlipsLoading}
+                extra={
+                    <div className="flex justify-end">
+                        <WithdrawalSlipCreateButton page={pageState} />
+                    </div>
+                }
             >
                 <Table
                     columns={columns}
