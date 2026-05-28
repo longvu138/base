@@ -1,10 +1,10 @@
 import type { ComponentProps } from 'react';
 import { WithdrawalSlipsMobileView } from './WithdrawalSlipsShared';
 
-type WithdrawalSlipsStyleThanhlaProps = {
+type WithdrawalSlipsStyleGobizProps = {
     page: ComponentProps<typeof WithdrawalSlipsMobileView>['page'];
 };
 
-export const WithdrawalSlipsStyleThanhla = ({ page }: WithdrawalSlipsStyleThanhlaProps) => (
+export const WithdrawalSlipsStyleGobiz = ({ page }: WithdrawalSlipsStyleGobizProps) => (
     <WithdrawalSlipsMobileView page={page} />
 );
