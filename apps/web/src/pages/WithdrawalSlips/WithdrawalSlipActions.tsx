@@ -66,6 +66,10 @@ export const WithdrawalSlipRowActions = ({ page, record }: { page: any; record: 
 
 export const WithdrawalSlipCreateModal = ({ page }: { page: any }) => {
     const selectedBank = Form.useWatch('beneficiaryBank', page.createForm);
+    const walletAccountOptions = page.walletAccountOptions || [];
+    const selectedWalletAccount = page.selectedWalletAccount;
+    const balance = selectedWalletAccount?.balance ?? page.balanceData?.balance ?? 0;
+    const currency = selectedWalletAccount?.currency;
     const bankOptions = [
         ...(page.bankOptions || []),
         { label: 'Ngân hàng khác', value: 'other' },
@@ -85,9 +89,19 @@ export const WithdrawalSlipCreateModal = ({ page }: { page: any }) => {
             <Form form={page.createForm} layout="vertical" preserve={false}>
                 <Descriptions column={1} size="small" className="mb-3">
                     <Descriptions.Item label="Số dư">
-                        <Text strong>{moneyFormat(page.balanceData?.balance || 0)}</Text>
+                        <Text strong>{moneyFormat(balance || 0, currency)}</Text>
                     </Descriptions.Item>
                 </Descriptions>
+                {walletAccountOptions.length > 1 ? (
+                    <Form.Item name="account" label="Tài khoản nguồn" rules={[{ required: true, message: 'Chọn tài khoản nguồn' }]}>
+                        <Select
+                            showSearch
+                            optionFilterProp="label"
+                            options={walletAccountOptions}
+                            placeholder="Chọn tài khoản nguồn"
+                        />
+                    </Form.Item>
+                ) : null}
                 <Form.Item name="amount" label="Số tiền" rules={[{ required: true, message: 'Nhập số tiền' }]}>
                     <LocaleInputNumber
                         min={1}
@@ -112,9 +126,6 @@ export const WithdrawalSlipCreateModal = ({ page }: { page: any }) => {
                         <Input placeholder="Nhập tên ngân hàng" />
                     </Form.Item>
                 ) : null}
-                <Form.Item name="beneficiaryBankBranch" label="Chi nhánh">
-                    <Input placeholder="Nhập chi nhánh" />
-                </Form.Item>
                 <Form.Item name="memo" label="Nội dung">
                     <Input.TextArea rows={3} placeholder="Nhập nội dung" />
                 </Form.Item>

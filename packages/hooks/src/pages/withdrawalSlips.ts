@@ -11,6 +11,7 @@ import {
   useWithdrawalSlipsInfiniteQuery,
 } from "../useWithdrawalSlipHooks";
 import { useCustomerBalance } from "../useCustomerHooks";
+import { useWalletAccountsQuery } from "../useTransactionHooks";
 import { useFilterWithURL } from "../useFilterWithURL";
 import { useTranslation } from "@repo/i18n";
 
@@ -80,11 +81,29 @@ const buildStatusCounts = (statisticsData: any) => {
 
 const formatQuantity = (value: number) => value.toLocaleString("vi-VN");
 
-const buildWithdrawalSlipPayload = (values: any, banksData: any[] = []) => {
+const getWalletAccountValue = (item: any) =>
+  item?.account || item?.code || item?.id;
+
+const getDefaultWalletAccount = (items: any[] = []) =>
+  items.find((item) => item?.isDefault) || items[0];
+
+const getWalletAccountLabel = (item: any) => {
+  const account = getWalletAccountValue(item) || "---";
+  const currency = item?.currency ? ` (${item.currency})` : "";
+  return `${account}${currency}`;
+};
+
+const buildWithdrawalSlipPayload = (
+  values: any,
+  banksData: any[] = [],
+  walletAccounts: any[] = [],
+) => {
   const bankCode = values.beneficiaryBank;
   const bank = banksData.find((item) => item.code === bankCode);
+  const defaultWalletAccount = getDefaultWalletAccount(walletAccounts);
+  const account = values.account || getWalletAccountValue(defaultWalletAccount);
 
-  return {
+  const payload: Record<string, any> = {
     amount: parseMoneyInput(values.amount),
     beneficiaryName: values.beneficiaryName,
     beneficiaryAccount: values.beneficiaryAccount,
@@ -94,6 +113,12 @@ const buildWithdrawalSlipPayload = (values: any, banksData: any[] = []) => {
     beneficiaryBankBranch: values.beneficiaryBankBranch,
     memo: values.memo,
   };
+
+  if (account) {
+    payload.account = account;
+  }
+
+  return payload;
 };
 
 const normalizeLogItems = (items: any[] = [], statusData: any[] = []) =>
@@ -122,20 +147,42 @@ const normalizeLogItems = (items: any[] = [], statusData: any[] = []) =>
 const useWithdrawalSlipActions = (
   banksData: any[] = [],
   statusData: any[] = [],
+  walletAccounts: any[] = [],
 ) => {
   const [createForm] = Form.useForm();
   const [isCreateModalOpen, setCreateModalOpen] = useState(false);
   const [logCode, setLogCode] = useState<string>();
+  const selectedAccount = Form.useWatch("account", createForm);
   const createMutation = useCreateWithdrawalSlipMutation();
   const cancelMutation = useCancelWithdrawalSlipMutation();
   const logsQuery = useWithdrawalSlipLogsQuery(logCode);
   const { data: balanceData } = useCustomerBalance();
+  const defaultWalletAccount = useMemo(
+    () => getDefaultWalletAccount(walletAccounts),
+    [walletAccounts],
+  );
+  const selectedWalletAccount = useMemo(() => {
+    const selectedValue = selectedAccount || getWalletAccountValue(defaultWalletAccount);
+    return (
+      walletAccounts.find(
+        (item) => getWalletAccountValue(item) === selectedValue,
+      ) || defaultWalletAccount
+    );
+  }, [defaultWalletAccount, selectedAccount, walletAccounts]);
+
+  useEffect(() => {
+    if (!isCreateModalOpen) return;
+    const defaultAccount = getWalletAccountValue(defaultWalletAccount);
+    if (defaultAccount && !createForm.getFieldValue("account")) {
+      createForm.setFieldValue("account", defaultAccount);
+    }
+  }, [createForm, defaultWalletAccount, isCreateModalOpen]);
 
   const submitCreateSlip = async () => {
     const values = await createForm.validateFields();
     try {
       await createMutation.mutateAsync(
-        buildWithdrawalSlipPayload(values, banksData),
+        buildWithdrawalSlipPayload(values, banksData, walletAccounts),
       );
       notification.success({ message: "Tạo yêu cầu rút tiền thành công" });
       createForm.resetFields();
@@ -184,6 +231,12 @@ const useWithdrawalSlipActions = (
     logs: normalizeLogItems(logsQuery.data || [], statusData),
     isLogsLoading: logsQuery.isLoading,
     balanceData,
+    walletAccounts,
+    walletAccountOptions: walletAccounts.map((item) => ({
+      label: getWalletAccountLabel(item),
+      value: getWalletAccountValue(item),
+    })),
+    selectedWalletAccount,
   };
 };
 
@@ -212,7 +265,8 @@ export const useWithdrawalSlipsLogic = ({
   const { data: statusData } = useWithdrawalSlipStatusesQuery();
   const { data: statisticsData } = useWithdrawalSlipStatisticsQuery();
   const { data: banksData } = useBanksQuery();
-  const actions = useWithdrawalSlipActions(banksData, statusData);
+  const { data: walletAccounts = [] } = useWalletAccountsQuery();
+  const actions = useWithdrawalSlipActions(banksData, statusData, walletAccounts);
 
   // 3. Derived State
   const statusCounts = useMemo(
@@ -283,7 +337,8 @@ export const useWithdrawalSlipsMobilePage = () => {
   const { data: statusData } = useWithdrawalSlipStatusesQuery();
   const { data: statisticsData } = useWithdrawalSlipStatisticsQuery();
   const { data: banksData } = useBanksQuery();
-  const actions = useWithdrawalSlipActions(banksData, statusData);
+  const { data: walletAccounts = [] } = useWalletAccountsQuery();
+  const actions = useWithdrawalSlipActions(banksData, statusData, walletAccounts);
   const pages = infiniteQuery.data?.pages || [];
   const rows = pages.flatMap((page) => page.data || []);
   const firstPage = pages[0];
