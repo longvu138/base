@@ -11,4 +11,6 @@ export const AddressApi = {
         ApiClient.auth.patch(`customer/addresses/${id}`, data),
     deleteAddress: (id: number) =>
         ApiClient.auth.delete(`customer/addresses/${id}`),
+    checkWarehouse: (id: number | string) =>
+        ApiClient.auth.get(`customer/addresses/${id}/check_warehouse`),
 };

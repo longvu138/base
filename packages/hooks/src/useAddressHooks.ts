@@ -56,3 +56,12 @@ export const useDeleteAddressMutation = () => {
         },
     });
 };
+
+export const useCheckAddressWarehouseMutation = () => {
+    return useMutation({
+        mutationFn: async (id: number | string) => {
+            const res = await AddressApi.checkWarehouse(id);
+            return res.data;
+        },
+    });
+};

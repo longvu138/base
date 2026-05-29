@@ -113,6 +113,9 @@ export const CustomerApi = {
     updateDraftOrder: (id: string, payload: any) => {
         return ApiClient.auth.patch(`customer/draft_orders/${id}`, payload);
     },
+    applyDraftOrderCoupon: (id: string, payload: { couponCode?: string }) => {
+        return ApiClient.auth.post(`customer/draft_orders/${id}/apply_coupon`, payload);
+    },
     createCustomerOrder: (payload: any) => {
         return ApiClient.auth.post("customer/orders", payload);
     },

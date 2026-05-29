@@ -26,6 +26,7 @@ import {
   ShoppingCartOutlined,
 } from "@ant-design/icons";
 import { CustomerApi } from "@repo/api";
+import { useTranslation } from "@repo/i18n";
 import {
   useAddCartSkusMutation,
   useCreateCartProductMutation,
@@ -146,6 +147,7 @@ const isValidUrl = (value: unknown) => {
 };
 
 export const AddProductsModal = ({ open, onClose }: Props) => {
+  const { t } = useTranslation();
   const { message } = App.useApp();
   const [form] = Form.useForm();
   const [mode, setMode] = useState<AddMode>("manual");
@@ -209,7 +211,7 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
   const fetchProduct = async () => {
     const info = getMarketplaceInfo(link);
     if (!info) {
-      message.error("Link sản phẩm không hợp lệ");
+      message.error(t("cart.invalid_product_link"));
       return;
     }
     setFetching(true);
@@ -242,7 +244,7 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
       }
 
       if (!productId) {
-        message.error("Không lấy được mã sản phẩm từ link");
+        message.error(t("cart.cannot_get_product_id"));
         return;
       }
 
@@ -261,7 +263,7 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
             },
       );
     } catch {
-      message.error("Không lấy được thông tin sản phẩm");
+      message.error(t("cart.cannot_get_product_info"));
     } finally {
       setFetching(false);
     }
@@ -269,13 +271,13 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
 
   const submitExcel = async () => {
     if (!file) {
-      message.error("Chọn file Excel trước");
+      message.error(t("cart.choose_excel_file"));
       return;
     }
     if (fileDisabled || fileErrors.some(Boolean)) return;
     const res = await importMutation.mutateAsync(file);
     setExcelImported(res.data);
-    message.success("Đã thêm sản phẩm từ Excel");
+    message.success(t("cart.excel_import_success"));
     window.location.reload();
   };
 
@@ -293,7 +295,7 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
 
       if (!firstWorksheet) {
         setFileDisabled(true);
-        message.error("Không tìm thấy sheet dữ liệu");
+        message.error(t("cart.excel_sheet_not_found"));
         return;
       }
 
@@ -308,26 +310,30 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
       const nextErrors = data.map((item) => {
         const errors: string[] = [];
 
-        if (!item.D?.toString().trim()) errors.push("Cột D thiếu thông tin");
+        if (!item.D?.toString().trim()) {
+          errors.push(t("cart.excel_column_required", { column: "D" }));
+        }
 
         if (!item.G?.toString().trim()) {
-          errors.push("Cột G thiếu thông tin");
+          errors.push(t("cart.excel_column_required", { column: "G" }));
         } else if (Number.isNaN(Number(item.G)) || Number(item.G) < 1) {
-          errors.push("Cột G sai định dạng");
+          errors.push(t("cart.excel_column_invalid", { column: "G" }));
         }
 
         if (!item.K?.toString().trim()) {
-          errors.push("Cột K thiếu thông tin");
+          errors.push(t("cart.excel_column_required", { column: "K" }));
         } else if (Number.isNaN(Number(item.K)) || Number(item.K) <= 0) {
-          errors.push("Cột K sai định dạng");
+          errors.push(t("cart.excel_column_invalid", { column: "K" }));
         }
 
-        if (!item.N?.toString().trim()) errors.push("Cột N thiếu thông tin");
+        if (!item.N?.toString().trim()) {
+          errors.push(t("cart.excel_column_required", { column: "N" }));
+        }
 
         if (!item.Q?.toString().trim()) {
-          errors.push("Cột Q thiếu thông tin");
+          errors.push(t("cart.excel_column_required", { column: "Q" }));
         } else if (!isValidUrl(item.Q)) {
-          errors.push("Cột Q sai link");
+          errors.push(t("cart.excel_column_invalid_link", { column: "Q" }));
         }
 
         return errors.join(", ");
@@ -336,7 +342,7 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
       setFileErrors(nextErrors);
     } catch {
       setFileDisabled(true);
-      message.error("Không đọc được file Excel");
+      message.error(t("cart.excel_read_error"));
     } finally {
       setValidatingFile(false);
     }
@@ -364,7 +370,7 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
       salePrice: values.salePrice,
     };
     await createProductMutation.mutateAsync({ payload, images });
-    message.success("Đã thêm sản phẩm");
+    message.success(t("cart.manual_add_success"));
     window.location.reload();
   };
 
@@ -373,11 +379,11 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
       (row: any) => Number(quantities[row.skuId]) > 0,
     );
     if (!product || selectedRows.length === 0) {
-      message.error("Chọn ít nhất một SKU và số lượng");
+      message.error(t("cart.select_sku_quantity"));
       return;
     }
     if (totalSelectedQuantity < Number(product?.minOrderQuantity || 1)) {
-      message.error(`Mua tối thiểu ${product.minOrderQuantity} sản phẩm`);
+      message.error(t("cart.min_order_quantity", { value: product.minOrderQuantity }));
       return;
     }
 
@@ -443,13 +449,13 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
 
     await addSkusMutation.mutateAsync({ skus });
     await CustomerApi.trackAddToCart();
-    message.success("Đã thêm sản phẩm vào giỏ");
+    message.success(t("cart.link_add_success"));
     window.location.reload();
   };
 
   return (
     <Modal
-      title="Thêm sản phẩm"
+      title={t("button.add_products")}
       open={open}
       onCancel={close}
       width={1000}
@@ -463,7 +469,7 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
       }}
       footer={
         <Flex justify="end" gap={8}>
-          <Button onClick={close}>Hủy</Button>
+          <Button onClick={close}>{t("button.cancel")}</Button>
           <Button
             type="primary"
             loading={
@@ -488,7 +494,7 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
                 totalSelectedQuantity === 0)
             }
           >
-            {"Thêm vào giỏ"}
+            {t("taobaoGlobalCart.addToCart")}
           </Button>
         </Flex>
       }
@@ -499,67 +505,67 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
           value={mode}
           onChange={(value) => setMode(value as AddMode)}
           options={[
-            { label: "Nhập thông tin", value: "manual" },
-            { label: "Từ Excel", value: "excel" },
-            { label: "Từ link sản phẩm", value: "link" },
+            { label: t("cart.manual_input"), value: "manual" },
+            { label: t("button.add_products_excel"), value: "excel" },
+            { label: t("cart.add_product_from_link"), value: "link" },
           ]}
           size="middle"
         />
 
         {mode === "manual" ? (
           <Form form={form} layout="vertical">
-            <Card size="small" title="Thông tin sản phẩm">
+            <Card size="small" title={t("cartCheckout.product_info")}>
               <Row gutter={[16, 0]}>
                 <Col span={12}>
                   <Form.Item
                     name="merchantName"
-                    label="Người bán"
-                    rules={[{ required: true, message: "Nhập người bán" }]}
+                    label={t("cartCheckout.seller")}
+                    rules={[{ required: true, message: t("cart.input_seller") }]}
                   >
-                    <Input placeholder="Tên shop hoặc mã người bán" />
+                    <Input placeholder={t("cart.input_placeholder")} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
                   <Form.Item
                     name="originalName"
-                    label="Tên gốc"
-                    rules={[{ required: true, message: "Nhập tên sản phẩm" }]}
+                    label={t("cart.original_name")}
+                    rules={[{ required: true, message: t("cart.input_product_name") }]}
                   >
-                    <Input placeholder="Tên sản phẩm gốc" />
+                    <Input placeholder={t("cart.input_placeholder")} />
                   </Form.Item>
                 </Col>
               </Row>
               <Form.Item
                 name="url"
-                label="Link sản phẩm"
+                label={t("cart.product_link")}
                 rules={[
-                  { required: true, message: "Nhập link sản phẩm" },
-                  { type: "url", message: "Link không hợp lệ" },
+                  { required: true, message: t("cart.input_product_link") },
+                  { type: "url", message: t("cart.invalid_product_link") },
                 ]}
               >
-                <Input placeholder="https://..." />
+                <Input placeholder={t("cart.input_placeholder")} />
               </Form.Item>
             </Card>
 
             <Divider />
 
-            <Card size="small" title="Thuộc tính và giá">
+            <Card size="small" title={t("cart.attribute_price")}>
               <Row gutter={[16, 0]}>
                 <Col span={12}>
-                  <Form.Item name="color" label="Màu sắc">
-                    <Input placeholder="Ví dụ: Đỏ" />
+                  <Form.Item name="color" label={t("cart.color")}>
+                    <Input placeholder={t("cart.input_placeholder")} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item name="size" label="Kích thước">
-                    <Input placeholder="Ví dụ: XL" />
+                  <Form.Item name="size" label={t("cart.size")}>
+                    <Input placeholder={t("cart.input_placeholder")} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
                   <Form.Item
                     name="quantity"
-                    label="Số lượng"
-                    rules={[{ required: true, message: "Nhập số lượng" }]}
+                    label={t("cartGroup.quantity")}
+                    rules={[{ required: true, message: t("cart.input_quantity") }]}
                   >
                     <InputNumber min={1} style={{ width: "100%" }} />
                   </Form.Item>
@@ -567,8 +573,8 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
                 <Col span={12}>
                   <Form.Item
                     name="salePrice"
-                    label="Giá"
-                    rules={[{ required: true, message: "Nhập giá" }]}
+                    label={t("cart.price")}
+                    rules={[{ required: true, message: t("cart.input_price") }]}
                   >
                     <InputNumber min={0} style={{ width: "100%" }} />
                   </Form.Item>
@@ -578,7 +584,7 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
 
             <Divider />
 
-            <Card size="small" title="Ảnh sản phẩm">
+            <Card size="small" title={t("cart.product_image")}>
               <Upload.Dragger
                 accept="image/*"
                 maxCount={5}
@@ -602,7 +608,7 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
                   <InboxOutlined />
                 </p>
                 <p className="ant-upload-text">
-                  Kéo ảnh vào đây hoặc bấm để chọn
+                  {t("cart.drag_image")}
                 </p>
               </Upload.Dragger>
             </Card>
@@ -627,19 +633,19 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
                 <InboxOutlined />
               </p>
               <p className="ant-upload-text">
-                Kéo file vào đây hoặc bấm để chọn
+                {t("cart.drag_file")}
               </p>
               <Space direction="vertical" size={4}>
                 <Typography.Text type="secondary">
-                  Hệ thống sẽ kiểm tra dữ liệu trước khi thêm vào giỏ
+                  {t("cart.excel_validation_hint")}
                 </Typography.Text>
-                <Typography.Text type="secondary">hoặc</Typography.Text>
+                <Typography.Text type="secondary">{t("common.or")}</Typography.Text>
                 <Button
                   href="//cdn.gobiz.vn/import_product_to_cart.xlsx"
                   type="primary"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  Tải file mẫu
+                  {t("cart.download_template")}
                 </Button>
               </Space>
             </Upload.Dragger>
@@ -647,13 +653,13 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
               <Alert
                 type="error"
                 showIcon
-                message="File có dữ liệu chưa hợp lệ"
+                message={t("cart.invalid_excel_file")}
                 description={
                   <Space direction="vertical" size={4}>
                     {fileErrors.map((error, index) =>
                       error ? (
                         <Typography.Text key={index} type="danger">
-                          Dòng {index + 9}: {error}
+                          {t("cart.row_error", { value: index + 9 })}: {error}
                         </Typography.Text>
                       ) : null,
                     )}
@@ -665,7 +671,9 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
               <Alert
                 type="error"
                 showIcon
-                message={`Ô lỗi: ${excelImported.errorCells.join(", ")}`}
+                message={t("cart.error_cells", {
+                  value: excelImported.errorCells.join(", "),
+                })}
               />
             )}
           </Space>
@@ -674,8 +682,8 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
             <Input.Search
               value={link}
               onChange={(event) => setLink(event.target.value)}
-              placeholder="Dán link Taobao, Tmall hoặc 1688"
-              enterButton="Lấy sản phẩm"
+              placeholder={t("cart.input_placeholder")}
+              enterButton={t("taobaoGlobalCart.findProduct")}
               loading={fetching}
               onSearch={fetchProduct}
             />
@@ -726,10 +734,10 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
                               size={0}
                             >
                               <Typography.Text type="secondary">
-                                Số lượng từ: {range.startQuantity}
+                                {t("cart.quantity_from")}: {range.startQuantity}
                               </Typography.Text>
                               <Typography.Text>
-                                Giá:{" "}
+                                {t("cart.price")}:{" "}
                                 {formatCurrency(
                                   range.promotionPrice || range.price,
                                   "CNY",
@@ -816,7 +824,7 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
                                     ),
                                   )
                                 ) : (
-                                  <Typography.Text>Mặc định</Typography.Text>
+                                  <Typography.Text>{t("customerAddress.default")}</Typography.Text>
                                 )}
                               </Space>
                             </Flex>
@@ -870,22 +878,22 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
                     <Flex justify="space-between" align="start" gap={12} wrap>
                       <Space direction="vertical" size={0}>
                         <Typography.Text>
-                          Tổng số lượng: {totalSelectedQuantity} sản phẩm
+                          {t("cart.total_quantity")}: {totalSelectedQuantity} {t("cartCheckout.product")}
                         </Typography.Text>
                         {product?.batchNumber > 1 && (
                           <Typography.Text type="warning">
-                            Cần mua theo lô {product.batchNumber} sản phẩm
+                            {t("cart.batch_required", { value: product.batchNumber })}
                           </Typography.Text>
                         )}
                       </Space>
                       <Space direction="vertical" size={0} align="end">
                         <Typography.Text>
-                          Thành tiền:{" "}
+                          {t("taobaoGlobalCart.money")}:{" "}
                           {formatCurrency(totalSelectedAmount, "CNY")}
                         </Typography.Text>
                         {product?.minOrderQuantity > 1 && (
                           <Typography.Text type="danger">
-                            Mua tối thiểu {product.minOrderQuantity} sản phẩm
+                            {t("cart.min_order_quantity", { value: product.minOrderQuantity })}
                           </Typography.Text>
                         )}
                       </Space>

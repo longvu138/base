@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { App } from "antd";
+import { useTranslation } from "@repo/i18n";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   useCartItemsQuery,
@@ -53,6 +54,7 @@ const QUANTITY_UPDATE_DEBOUNCE_MS = 500;
 const SKU_NOTE_UPDATE_DEBOUNCE_MS = 500;
 
 export const useCartsPage = () => {
+  const { t } = useTranslation();
   const { notification } = App.useApp();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -83,7 +85,6 @@ export const useCartsPage = () => {
   const deleteAllMutation = useDeleteAllCartMutation();
   const addWishlistItemMutation = useAddWishlistItemMutation();
   const [selectedSkuIds, setSelectedSkuIds] = useState<string[]>([]);
-  const [savedSkuIds, setSavedSkuIds] = useState<string[]>([]);
   const [savingSkuId, setSavingSkuId] = useState<string | null>(null);
   const [draftQuantities, setDraftQuantities] = useState<
     Record<string, number>
@@ -373,17 +374,16 @@ export const useCartsPage = () => {
   };
 
   const saveSkuToWishlist = async (skuId: string) => {
-    if (savedSkuIds.includes(skuId) || savingSkuId) return;
+    if (savingSkuId) return;
     setSavingSkuId(skuId);
     try {
       await addWishlistItemMutation.mutateAsync({
         source: "cart",
         data: skuId,
       });
-      setSavedSkuIds((current) => Array.from(new Set([...current, skuId])));
-      notification.success({ message: "Lưu sản phẩm thành công" });
+      notification.success({ message: t("message.successfully_saved_product") });
     } catch {
-      notification.error({ message: "Lưu sản phẩm thất bại" });
+      notification.error({ message: t("message.fail_saved_product") });
     } finally {
       setSavingSkuId(null);
     }
@@ -425,7 +425,7 @@ export const useCartsPage = () => {
       id: groupId,
       serviceCodes: serviceDrafts[groupId] || [],
     });
-    notification.success({ message: "Lưu dịch vụ thành công" });
+    notification.success({ message: t("message.save_success") });
   };
 
   const savePreferredServices = async (group: any) => {
@@ -433,7 +433,7 @@ export const useCartsPage = () => {
     await updatePreferredServicesMutation.mutateAsync(
       serviceDrafts[groupId] || [],
     );
-    notification.success({ message: "Lưu dịch vụ làm mặc định thành công" });
+    notification.success({ message: t("message.save_success") });
   };
 
   const changeCartGroupDraft = (
@@ -463,7 +463,7 @@ export const useCartsPage = () => {
       id: groupId,
       payload: { [field]: value },
     });
-    notification.success({ message: "Cập nhật thành công" });
+    notification.success({ message: t("message.update_success") });
   };
 
   const updateSkuNotes = async (
@@ -570,7 +570,7 @@ export const useCartsPage = () => {
         !Array.isArray(group.services) || group.services.length === 0,
     );
     if (groupWithoutServices) {
-      notification.error({ message: "Vui lòng chọn dịch vụ" });
+      notification.error({ message: t("cart.choose_service_first") });
       return;
     }
 
@@ -583,8 +583,7 @@ export const useCartsPage = () => {
     });
     if (groupWithUnsavedServices) {
       notification.warning({
-        message:
-          "Bạn đã thay đổi dịch vụ nhưng chưa lưu. Hãy lưu dịch vụ trước khi đặt hàng.",
+        message: t("cart.unsaved_service_warning"),
       });
       return;
     }
@@ -658,7 +657,6 @@ export const useCartsPage = () => {
     updateQuantity,
     updateBargainPrice,
     saveSkuToWishlist,
-    savedSkuIds,
     savingSkuId,
     orderServices: orderServices.filter(
       (service: any) => service.onlyStaff !== true,

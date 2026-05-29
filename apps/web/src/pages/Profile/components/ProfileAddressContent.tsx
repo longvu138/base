@@ -244,7 +244,7 @@ export const ProfileAddressContent = ({
               key: "receivingAddress",
               label: (
                 <Space>
-                  {t("customerAddress.receivingAddress")}
+                  {t("customerAddress.receiving_address_list")}
                   {logic.activeTab === "receivingAddress" && (
                     <Badge count={logic.total} />
                   )}

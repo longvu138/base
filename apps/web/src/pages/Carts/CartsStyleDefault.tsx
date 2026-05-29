@@ -25,7 +25,6 @@ import {
   DownOutlined,
   DeleteOutlined,
   EditOutlined,
-  HeartFilled,
   HeartOutlined,
   InfoCircleOutlined,
   QuestionCircleOutlined,
@@ -33,6 +32,7 @@ import {
   ShoppingCartOutlined,
   UpOutlined,
 } from "@ant-design/icons";
+import { useTranslation } from "@repo/i18n";
 import { formatCurrency } from "@repo/util";
 import { useCartsPage } from "./hooks/useCartsPage";
 import { AddProductsModal } from "./components/AddProductsModal";
@@ -51,7 +51,6 @@ import {
   getProperties,
   getQuantityWarnings,
   getUnitPrice,
-  QUANTITY_WARNING_MESSAGE,
 } from "./cartViewModel";
 
 const MONEY_TEXT_STYLE = { whiteSpace: "nowrap" };
@@ -106,6 +105,7 @@ const CartPageSkeleton = () => (
 );
 
 export const CartsStyleDefault = () => {
+  const { t } = useTranslation();
   const { token } = theme.useToken();
   const logic = useCartsPage();
   const pageRef = useRef<HTMLDivElement>(null);
@@ -159,7 +159,11 @@ export const CartsStyleDefault = () => {
           : {},
       render: (_: unknown, sku: any) =>
         sku.__rowType === "quantityWarning" ? (
-          <Alert type="warning" showIcon message={QUANTITY_WARNING_MESSAGE} />
+          <Alert
+            type="warning"
+            showIcon
+            message={t("cartGroup.quantity_warning_message")}
+          />
         ) : (
           <Checkbox
             checked={logic.selectedSkuIds.includes(String(sku.id))}
@@ -170,9 +174,9 @@ export const CartsStyleDefault = () => {
         ),
     },
     {
-      title: "Sản phẩm",
+      title: t("order.products"),
       key: "product",
-      width: 420,
+      width: 520,
       onCell: (sku: any) =>
         sku.__rowType === "quantityWarning" ? { colSpan: 0 } : {},
       render: (_: unknown, sku: any) => {
@@ -190,22 +194,22 @@ export const CartsStyleDefault = () => {
             <div
               style={{
                 width: "100%",
-                maxWidth: 320,
                 marginTop: token.marginXXS,
               }}
             >
               <Typography.Text type="secondary">{label}: </Typography.Text>
               <Typography.Paragraph
                 editable={{
+                  tooltip: t("common.edit"),
                   onChange: (nextValue) =>
                     logic.changeSkuNoteDraft(sku, field, nextValue),
                   onEnd: () => logic.saveSkuNoteField(sku, field),
                 }}
                 ellipsis={!value ? false : { tooltip: value }}
                 style={{
-                  display: "inline",
+                  display: "inline-block",
+                  maxWidth: "100%",
                   marginBottom: 0,
-                  whiteSpace: "pre-wrap",
                 }}
               >
                 {value || "---"}
@@ -240,17 +244,17 @@ export const CartsStyleDefault = () => {
           );
 
         return (
-          <Space align="start" style={{ minWidth: 0 }}>
+          <Flex align="start" gap={token.marginSM} style={{ minWidth: 0, width: "100%" }}>
             {linkedImageNode}
             <Space
               direction="vertical"
               size={0}
-              style={{ minWidth: 0, width: "100%" }}
+              style={{ flex: "1 1 0", minWidth: 0, width: "100%" }}
             >
               <Typography.Text
                 strong
                 ellipsis={{ tooltip: getName(sku, logic.showTranslatedNames) }}
-                style={{ maxWidth: 320 }}
+                style={{ display: "block", width: "100%" }}
               >
                 {productUrl ? (
                   <a href={productUrl} target="_blank" rel="noreferrer">
@@ -266,19 +270,19 @@ export const CartsStyleDefault = () => {
                   tooltip:
                     getProperties(sku, logic.showTranslatedNames) || "---",
                 }}
-                style={{ maxWidth: 320 }}
+                style={{ display: "block", width: "100%" }}
               >
                 {getProperties(sku, logic.showTranslatedNames) || "---"}
               </Typography.Text>
-              {renderSkuNoteField("remark", "Ghi chú sản phẩm")}
-              {renderSkuNoteField("note", "Ghi chú cá nhân cho sản phẩm")}
+              {renderSkuNoteField("remark", t("cartGroup.product_note"))}
+              {renderSkuNoteField("note", t("cartGroup.product_personal_note"))}
             </Space>
-          </Space>
+          </Flex>
         );
       },
     },
     {
-      title: "Số lượng",
+      title: t("cartGroup.quantity"),
       dataIndex: "quantity",
       key: "quantity",
       width: 140,
@@ -313,7 +317,7 @@ export const CartsStyleDefault = () => {
                 style={{ fontSize: 12 }}
                 className="whitespace-nowrap"
               >
-                Số lượng sản phẩm tối thiểu là {warnings.productMinQuantity}
+                {t("cart.quantity_min", { value: warnings.productMinQuantity })}
               </Typography.Text>
             )}
             {warnings.isAboveStock && (
@@ -322,7 +326,7 @@ export const CartsStyleDefault = () => {
                 style={{ fontSize: 12 }}
                 className="whitespace-nowrap"
               >
-                Số lượng tối đa là {sku.stock ?? sku?.product?.stock}
+                {t("cart.quantity_max", { value: sku.stock ?? sku?.product?.stock })}
               </Typography.Text>
             )}
             {warnings.isWrongMultiple && warnings.batchSize !== null && (
@@ -331,7 +335,7 @@ export const CartsStyleDefault = () => {
                 style={{ fontSize: 12 }}
                 className="whitespace-nowrap"
               >
-                Số lượng phải là bội số của {warnings.batchSize}
+                {t("cart.quantity_multiple", { value: warnings.batchSize })}
               </Typography.Text>
             )}
           </Space>
@@ -339,7 +343,7 @@ export const CartsStyleDefault = () => {
       },
     },
     {
-      title: "Đơn giá",
+      title: t("taobaoGlobalCart.unitPrice"),
       key: "unitPrice",
       width: 160,
       align: "right" as const,
@@ -375,7 +379,7 @@ export const CartsStyleDefault = () => {
             <Space size={4} align="center" style={MONEY_TEXT_STYLE}>
               <Typography.Text type="secondary" style={MONEY_TEXT_STYLE}>
                 {hasBargain && (
-                  <Tooltip title="Giá gốc / giá thương lượng">
+                  <Tooltip title={t("cart.original_bargain_price")}>
                     <InfoCircleOutlined style={{ marginRight: 4 }} />
                   </Tooltip>
                 )}
@@ -400,13 +404,15 @@ export const CartsStyleDefault = () => {
                 )}
               </Typography.Text>
               {logic.canEditCart && (
-                <Button
-                  type="link"
-                  size="small"
-                  icon={<EditOutlined />}
-                  style={{ paddingInline: 2 }}
-                  onClick={() => logic.setEditingPriceSku(sku)}
-                />
+                <Tooltip title={t("cart.edit_bargain_price")}>
+                  <Button
+                    type="link"
+                    size="small"
+                    icon={<EditOutlined />}
+                    style={{ paddingInline: 2 }}
+                    onClick={() => logic.setEditingPriceSku(sku)}
+                  />
+                </Tooltip>
               )}
             </Space>
           </Space>
@@ -414,7 +420,7 @@ export const CartsStyleDefault = () => {
       },
     },
     {
-      title: "Tiền hàng",
+      title: t("order.total_price"),
       key: "amount",
       width: 160,
       align: "right" as const,
@@ -469,33 +475,31 @@ export const CartsStyleDefault = () => {
         sku.__rowType === "quantityWarning" ? { colSpan: 0 } : {},
       render: (_: unknown, sku: any) => {
         const skuId = String(sku.id);
-        const saved = logic.savedSkuIds.includes(skuId);
-
         return (
           <Space size={4}>
-            <Button
-              type="text"
-              icon={saved ? <HeartFilled /> : <HeartOutlined />}
-              loading={logic.savingSkuId === skuId}
-              disabled={saved}
-              onClick={() => logic.saveSkuToWishlist(skuId)}
-              style={{
-                paddingInline: 4,
-                color: saved ? token.colorPrimary : undefined,
-              }}
-            />
-            <Popconfirm
-              title="Xóa sản phẩm này?"
-              okText="Xóa"
-              cancelText="Hủy"
-              onConfirm={() => logic.deleteSku(skuId)}
-            >
+            <Tooltip title={t("cart.save_product")}>
               <Button
                 type="text"
-                danger
-                icon={<DeleteOutlined />}
-                loading={String(logic.deletingSkuId || "") === skuId}
+                icon={<HeartOutlined />}
+                loading={logic.savingSkuId === skuId}
+                onClick={() => logic.saveSkuToWishlist(skuId)}
+                style={{ paddingInline: 4 }}
               />
+            </Tooltip>
+            <Popconfirm
+              title={t("cartGroup.delete_product_confirm")}
+              okText={t("button.delete")}
+              cancelText={t("button.cancel")}
+              onConfirm={() => logic.deleteSku(skuId)}
+            >
+              <Tooltip title={t("cart.delete_product")}>
+                <Button
+                  type="text"
+                  danger
+                  icon={<DeleteOutlined />}
+                  loading={String(logic.deletingSkuId || "") === skuId}
+                />
+              </Tooltip>
             </Popconfirm>
           </Space>
         );
@@ -511,27 +515,27 @@ export const CartsStyleDefault = () => {
     >
       <Flex justify="space-between" align="center" gap={token.marginMD} wrap>
         <Typography.Title level={3} style={{ margin: 0 }}>
-          Giỏ hàng
+          {t("mainLayout.cart")}
         </Typography.Title>
         <Space>
           <Popconfirm
-            title="Xóa toàn bộ người bán khỏi giỏ hàng?"
-            okText="Xóa"
-            cancelText="Hủy"
+            title={t("cart.delete_all_seller_confirm")}
+            okText={t("button.delete")}
+            cancelText={t("button.cancel")}
             onConfirm={logic.deleteAll}
           >
             <Button type="link" danger loading={logic.isDeletingAll}>
-              Xóa tất cả người bán
+              {t("cart.delete_all_seller")}
             </Button>
           </Popconfirm>
           <Switch
             checked={logic.showTranslatedNames}
             onChange={logic.setShowTranslatedNames}
-            unCheckedChildren={"Tên gốc"}
-            checkedChildren={"Tên dịch"}
+            unCheckedChildren={t("cart.original_name")}
+            checkedChildren={t("cart.translated_name")}
           />
           <Button type="primary" onClick={() => logic.setAddProductsOpen(true)}>
-            Thêm sản phẩm
+            {t("button.add_products")}
           </Button>
         </Space>
       </Flex>
@@ -539,7 +543,7 @@ export const CartsStyleDefault = () => {
       {logic.groups.length > 0 && (
         <Flex justify="space-between" align="center" gap={token.marginMD} wrap>
           <Space wrap>
-            <Typography.Text>Số Shop/Trang</Typography.Text>
+            <Typography.Text>{t("cart.shop_per_page")}</Typography.Text>
             <Select
               value={logic.shopsPerPage}
               onChange={logic.changeShopsPerPage}
@@ -549,7 +553,7 @@ export const CartsStyleDefault = () => {
               }))}
               style={{ width: 88 }}
             />
-            <Typography.Text>Số lượng sản phẩm/Người bán</Typography.Text>
+            <Typography.Text>{t("cart.product_per_seller")}</Typography.Text>
             <Select
               value={logic.productsPerSeller}
               onChange={logic.setProductsPerSeller}
@@ -573,7 +577,7 @@ export const CartsStyleDefault = () => {
 
       {logic.groups.length === 0 && !logic.isLoading ? (
         <Card>
-          <Empty description="Chưa có sản phẩm trong giỏ hàng" />
+          <Empty description={t("cart.empty")} />
         </Card>
       ) : (
         <>
@@ -633,17 +637,17 @@ export const CartsStyleDefault = () => {
                         <Typography.Text
                           strong
                           ellipsis={{
-                            tooltip: group.name || group.code || "Shop",
+                            tooltip: group.name || group.code || t("cart.shop"),
                           }}
                           style={{ maxWidth: 320 }}
                         >
-                          {group.name || group.code || "Shop"}
+                          {group.name || group.code || t("cart.shop")}
                         </Typography.Text>
                         <Typography.Text type="secondary">
-                          Số lượng: {totalQuantity} sản phẩm /{" "}
-                          {group.cartSkus.length} link
+                          {t("cartGroup.quantity")}: {totalQuantity} {t("cartCheckout.product")} /{" "}
+                          {group.cartSkus.length} {t("cartGroup.link")}
                         </Typography.Text>
-                        <Tooltip title="Tổng số lượng sản phẩm / số link trong shop">
+                        <Tooltip title={t("cartGroup.product_quantity")}>
                           <QuestionCircleOutlined
                             style={{ color: token.colorTextSecondary }}
                           />
@@ -653,7 +657,7 @@ export const CartsStyleDefault = () => {
                             type="secondary"
                             style={MONEY_TEXT_STYLE}
                           >
-                            Tỷ giá: {formatCurrency(1, exchangeRate.base)} ={" "}
+                            {t("cart.exchange_rate")}: {formatCurrency(1, exchangeRate.base)} ={" "}
                             {formatCurrency(
                               exchangeRate.rate,
                               exchangeRate.exchange,
@@ -665,9 +669,9 @@ export const CartsStyleDefault = () => {
                   }
                   extra={
                     <Popconfirm
-                      title="Xóa toàn bộ shop này khỏi giỏ hàng?"
-                      okText="Xóa"
-                      cancelText="Hủy"
+                      title={t("cart.delete_seller_confirm")}
+                      okText={t("button.delete")}
+                      cancelText={t("button.cancel")}
                       onConfirm={() => logic.deleteGroup(group)}
                     >
                       <Button
@@ -676,7 +680,7 @@ export const CartsStyleDefault = () => {
                         icon={<DeleteOutlined />}
                         loading={logic.deletingGroupId === String(group.id)}
                       >
-                        Xóa shop
+                        {t("cartGroup.delete_seller")}
                       </Button>
                     </Popconfirm>
                   }
@@ -691,7 +695,7 @@ export const CartsStyleDefault = () => {
                         className="[&_.ant-table-tbody>tr:last-child>td]:!border-b-0 [&_.ant-table-cell]:rounded-none"
                         rowKey={(sku) => String(sku.id)}
                         tableLayout="fixed"
-                        scroll={{ x: 1078 }}
+                        scroll={{ x: 1178 }}
                         dataSource={getCartTableRows(visibleSkus)}
                         columns={columns}
                         pagination={false}
@@ -714,7 +718,7 @@ export const CartsStyleDefault = () => {
                               isExpanded ? <UpOutlined /> : <DownOutlined />
                             }
                           >
-                            {isExpanded ? "Thu gọn" : "Xem thêm"}
+                            {isExpanded ? t("button.collapse") : t("button.loadmore")}
                           </Button>
                         )}
                       </Flex>
@@ -745,12 +749,12 @@ export const CartsStyleDefault = () => {
               checked={logic.allSelected}
               onChange={(event) => logic.selectAll(event.target.checked)}
             >
-              Chọn tất cả
+              {t("taobaoGlobalCart.selectAll")}
             </Checkbox>
             <Popconfirm
-              title="Xóa các sản phẩm đã chọn khỏi giỏ hàng?"
-              okText="Xóa"
-              cancelText="Hủy"
+              title={t("cartGroup.delete_product_confirm")}
+              okText={t("button.delete")}
+              cancelText={t("button.cancel")}
               onConfirm={logic.deleteSelected}
             >
               <Button
@@ -759,23 +763,21 @@ export const CartsStyleDefault = () => {
                 loading={logic.isDeletingSelected}
                 disabled={logic.totals.selectedSkus === 0}
               >
-                Xóa tất cả
+                {t("taobaoGlobalCart.deleteAll")}
               </Button>
             </Popconfirm>
           </Space>
 
           <Flex align="center" gap={token.marginLG} wrap>
             <Typography.Text style={MONEY_TEXT_STYLE}>
-              Ngoại tệ:{" "}
-              <Typography.Text strong style={MONEY_TEXT_STYLE}>
-                {formatCurrency(
-                  logic.totals.selectedForeignAmount,
-                  logic.selectedForeignCurrency,
-                )}
-              </Typography.Text>
+              {t("cart.foreign_currency")}: {" "}
+              {formatCurrency(
+                logic.totals.selectedForeignAmount,
+                logic.selectedForeignCurrency,
+              )}
             </Typography.Text>
             <Typography.Text style={MONEY_TEXT_STYLE}>
-              Tổng:{" "}
+              {t("cart.total")}: {" "}
               <Typography.Text
                 strong
                 className="text-lg !text-primary"
@@ -783,8 +785,8 @@ export const CartsStyleDefault = () => {
               >
                 {formatCurrency(logic.totals.selectedAmount)}
               </Typography.Text>{" "}
-              ({logic.totals.selectedGroups} Shop / {logic.totals.selectedSkus}{" "}
-              Sản phẩm)
+              ({logic.totals.selectedGroups} {t("cart.shop")} / {logic.totals.selectedSkus}{" "}
+              {t("cartCheckout.product")})
             </Typography.Text>
             <Button
               type="primary"
@@ -794,7 +796,7 @@ export const CartsStyleDefault = () => {
               loading={logic.isPlacingOrder}
               onClick={logic.placeOrder}
             >
-              Đặt hàng
+              {t("cart.order")}
             </Button>
           </Flex>
         </Flex>
@@ -804,11 +806,11 @@ export const CartsStyleDefault = () => {
         onClose={() => logic.setAddProductsOpen(false)}
       />
       <Modal
-        title="Sửa giá tệ"
+        title={t("cart.edit_bargain_price")}
         open={!!logic.editingPriceSku}
         onCancel={() => logic.setEditingPriceSku(null)}
-        okText="Cập nhật"
-        cancelText="Hủy"
+        okText={t("common.save")}
+        cancelText={t("button.cancel")}
         destroyOnHidden
         confirmLoading={logic.isUpdating}
         okButtonProps={{
@@ -834,12 +836,21 @@ export const CartsStyleDefault = () => {
                 size={72}
                 src={getImage(logic.editingPriceSku)}
               />
-              <Space direction="vertical" size={0}>
-                <Typography.Text strong>
+              <Space direction="vertical" size={0} style={{ flex: "1 1 0", minWidth: 0 }}>
+                <Typography.Text
+                  strong
+                  ellipsis={{
+                    tooltip: getName(
+                      logic.editingPriceSku,
+                      logic.showTranslatedNames,
+                    ),
+                  }}
+                  style={{ display: "block", width: "100%" }}
+                >
                   {getName(logic.editingPriceSku, logic.showTranslatedNames)}
                 </Typography.Text>
                 <Typography.Text type="secondary">
-                  Giá gốc:{" "}
+                  {t("cart.original_price")}: {" "}
                   {formatCurrency(
                     getForeignSalePrice(logic.editingPriceSku),
                     getForeignCurrency(logic.editingPriceSku),
@@ -850,7 +861,7 @@ export const CartsStyleDefault = () => {
             <InputNumber
               style={{ width: "100%" }}
               min={0}
-              placeholder="Giá thương lượng"
+              placeholder={t("cart.bargain_price")}
               defaultValue={logic.editingPriceSku.bargainPrice ?? undefined}
               onChange={(value) =>
                 logic.setEditingPriceSku({

@@ -335,6 +335,19 @@ export const useUpdateDraftOrderMutation = (id?: string) => {
     });
 };
 
+export const useApplyDraftOrderCouponMutation = (id?: string) => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (payload: { couponCode?: string }) => {
+            const res = await CustomerApi.applyDraftOrderCoupon(String(id), payload);
+            return res.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['customer.draft_order', id] });
+        },
+    });
+};
+
 export const useCreateCustomerOrderMutation = () => {
     return useMutation({
         mutationFn: (payload: any) => CustomerApi.createCustomerOrder(payload),

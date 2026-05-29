@@ -6,7 +6,7 @@ export const getName = (sku: any, showTranslatedNames: boolean) =>
       sku?.product?.name ||
       sku?.productName ||
       sku?.name ||
-      sku?.title) || "Sản phẩm";
+      sku?.title) || "---";
 
 export const getImage = (sku: any) =>
   sku?.image ||
@@ -68,9 +68,6 @@ export const getExchangeRate = (group: any, exchangeRates: any[]) => {
   if (!currency || !Array.isArray(exchangeRates)) return null;
   return exchangeRates.find((item: any) => item.code === `${currency}/VND`);
 };
-
-export const QUANTITY_WARNING_MESSAGE =
-  "Chúng tôi sẽ cố gắng mua đủ số lượng sản phẩm quý khách yêu cầu, tuy nhiên việc này không được đảm bảo.";
 
 const getNumberValue = (value: unknown) => {
   if (value === null || value === undefined || value === "") return null;

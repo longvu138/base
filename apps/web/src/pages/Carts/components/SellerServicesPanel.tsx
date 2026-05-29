@@ -18,6 +18,7 @@ import {
   ShrinkOutlined,
   UpOutlined,
 } from "@ant-design/icons";
+import { useTranslation } from "@repo/i18n";
 import { formatCurrency } from "@repo/util";
 import { useCartSellerPanel } from "../hooks/useCartSellerPanel";
 
@@ -30,6 +31,7 @@ export const SellerServicesPanel = ({
   group: any;
   logic: any;
 }) => {
+  const { t } = useTranslation();
   const { token } = theme.useToken();
   const {
     groupId,
@@ -68,6 +70,7 @@ export const SellerServicesPanel = ({
         <Typography.Text type="secondary">{label}: </Typography.Text>
         <Typography.Paragraph
           editable={{
+            tooltip: t("common.edit"),
             onChange: (nextValue) =>
               logic.changeCartGroupDraft(groupId, field, nextValue),
             onEnd: () => logic.saveCartGroupField(group, field),
@@ -94,21 +97,21 @@ export const SellerServicesPanel = ({
       }}
     >
       <Space direction="vertical" size={token.marginMD} style={{ width: "100%" }}>
-        <Card size="small" title="Thông tin đơn" styles={{ body: { paddingBlock: token.paddingSM } }}>
+        <Card size="small" title={t("cartCheckout.order_info")} styles={{ body: { paddingBlock: token.paddingSM } }}>
           <Space direction="vertical" size={token.marginSM} style={{ width: "100%" }}>
-            {renderOrderTextField("note", "Ghi chú cá nhân cho đơn")}
+            {renderOrderTextField("note", t("cartCheckout.personal_note_for_order"))}
             <Flex gap={token.marginMD} wrap>
               <div style={{ flex: "1 1 260px" }}>
-                {renderOrderTextField("refCustomerCode", "Mã khách hàng")}
+                {renderOrderTextField("refCustomerCode", t("cartCheckout.customer_code"))}
               </div>
               <div style={{ flex: "1 1 260px" }}>
-                {renderOrderTextField("refOrderCode", "Mã đơn hàng khách hàng")}
+                {renderOrderTextField("refOrderCode", t("cartCheckout.customer_order_code"))}
               </div>
             </Flex>
           </Space>
         </Card>
 
-        <Card size="small" title="Dịch vụ đi kèm" styles={{ body: { paddingBlock: token.paddingSM } }}>
+        <Card size="small" title={t("orderServiceGroup.accompanied_service")} styles={{ body: { paddingBlock: token.paddingSM } }}>
           {servicesCollapsed ? (
             <Space direction="vertical" size={token.marginSM} style={{ width: "100%" }}>
               {selectedServices.length > 0 ? (
@@ -118,24 +121,24 @@ export const SellerServicesPanel = ({
                       <Typography.Text type="secondary">
                         {service?.serviceGroup?.name
                           ? `${service.serviceGroup.name}: `
-                          : "Dịch vụ khác: "}
+                          : `${t("orderServiceGroup.other_service")}: `}
                       </Typography.Text>
                       {service.name}
                     </Typography.Text>
                   ))}
                 </Space>
               ) : (
-                <Typography.Text type="secondary">Chưa chọn dịch vụ</Typography.Text>
+                <Typography.Text type="secondary">{t("orderServiceGroup.no_service_selected")}</Typography.Text>
               )}
               <Button type="link" size="small" icon={<ArrowsAltOutlined />} style={{ padding: 0 }} onClick={() => setServicesCollapsed(false)}>
-                Chọn dịch vụ
+                {t("orderServiceGroup.choose_service")}
               </Button>
             </Space>
           ) : (
             <Space direction="vertical" size={token.marginSM} style={{ width: "100%" }}>
               {ungroupedServices.length > 0 && (
                 <Space direction="vertical" size={token.marginXS}>
-                  <Typography.Text strong>Dịch vụ khác</Typography.Text>
+                  <Typography.Text strong>{t("orderServiceGroup.other_service")}</Typography.Text>
                   <Space wrap>
                     {ungroupedServices.map((service: any) => (
                       <Checkbox
@@ -206,13 +209,13 @@ export const SellerServicesPanel = ({
                 loading={logic.isSavingServices && String(logic.savingServicesGroupId) === String(group.id)}
                 onClick={() => logic.saveCartServices(group)}
               >
-                Lưu dịch vụ
+                {t("orderServiceGroup.save_service")}
               </Button>
               <Button icon={<SaveOutlined />} loading={logic.isSavingPreferredServices} onClick={() => logic.savePreferredServices(group)}>
-                Lưu làm dịch vụ mặc định
+                {t("orderServiceGroup.save_default_service")}
               </Button>
               <Button type="link" size="small" icon={<ShrinkOutlined />} style={{ padding: 0 }} onClick={() => setServicesCollapsed(true)}>
-                Thu gọn
+                {t("orderServiceGroup.collapse")}
               </Button>
             </Space>
           )}
@@ -220,7 +223,7 @@ export const SellerServicesPanel = ({
 
         <Card
           size="small"
-          title={<Typography.Text strong style={{ color: token.colorPrimary }}>Chi phí</Typography.Text>}
+          title={<Typography.Text strong style={{ color: token.colorPrimary }}>{t("cart.cost")}</Typography.Text>}
           style={{ borderColor: token.colorPrimaryBorder, background: token.colorPrimaryBg }}
           styles={{
             header: {
@@ -231,14 +234,14 @@ export const SellerServicesPanel = ({
         >
           <Space direction="vertical" size={token.marginSM} style={{ width: "100%" }}>
             <Flex justify="space-between">
-              <Typography.Text type="secondary">Tiền hàng</Typography.Text>
+              <Typography.Text type="secondary">{t("order.total_price")}</Typography.Text>
               <Typography.Text strong style={MONEY_TEXT_STYLE}>
                 {formatCurrency(group.exchangedTotalValue || 0)}
               </Typography.Text>
             </Flex>
             <Flex justify="space-between" align="center">
               <Button type="link" size="small" style={{ padding: 0 }} icon={feesOpen ? <UpOutlined /> : <DownOutlined />} onClick={() => setFeesOpen((current) => !current)}>
-                Phí tạm tính
+                {t("cart.provisional_fee")}
               </Button>
               <Typography.Text strong style={MONEY_TEXT_STYLE}>
                 {formatCurrency(group.totalFee || 0)}
@@ -247,7 +250,7 @@ export const SellerServicesPanel = ({
             {feesOpen && (
               <Space direction="vertical" size={token.marginXS} style={{ width: "100%" }}>
                 {isFeesFetching ? (
-                  <Typography.Text type="secondary">Đang tải phí...</Typography.Text>
+                  <Typography.Text type="secondary">{t("cart.loading_fee")}</Typography.Text>
                 ) : fees.length > 0 ? (
                   fees.map((fee: any) => (
                     <Flex key={fee.id || fee.code || fee.type?.code} justify="space-between" gap={token.marginSM}>
@@ -257,8 +260,8 @@ export const SellerServicesPanel = ({
                           <Tooltip
                             title={
                               <Space direction="vertical" size={0}>
-                                <span>Phí tối thiểu: {formatCurrency(fee.type?.minFee || 0)}</span>
-                                <span>Phí tối đa: {formatCurrency(fee.type?.maxFee || 0)}</span>
+                                <span>{t("cart.min_fee")}: {formatCurrency(fee.type?.minFee || 0)}</span>
+                                <span>{t("cart.max_fee")}: {formatCurrency(fee.type?.maxFee || 0)}</span>
                               </Space>
                             }
                           >
@@ -274,13 +277,13 @@ export const SellerServicesPanel = ({
                     </Flex>
                   ))
                 ) : (
-                  <Typography.Text type="secondary">Chưa có phí</Typography.Text>
+                  <Typography.Text type="secondary">{t("cart.no_fee")}</Typography.Text>
                 )}
               </Space>
             )}
             <Divider style={{ marginBlock: token.marginXS }} />
             <Flex justify="space-between">
-              <Typography.Text strong>Tổng</Typography.Text>
+              <Typography.Text strong>{t("cart.total")}</Typography.Text>
               <Typography.Text strong style={{ ...MONEY_TEXT_STYLE, color: token.colorPrimary }}>
                 {formatCurrency(group.grandTotal || 0)}
               </Typography.Text>

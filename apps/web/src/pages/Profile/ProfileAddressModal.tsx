@@ -25,6 +25,7 @@ interface ProfileAddressModalProps {
   onSuccess?: () => Promise<
     QueryObserverResult<{ data: any[]; total: number }, Error>
   >;
+  onSaveSuccess?: (data: { isEdit: boolean; isReceivingAddress: boolean }) => void;
   initialValues?: any;
   isEdit?: boolean;
   isReceivingAddress?: boolean;
@@ -71,10 +72,29 @@ const getInitialAddressSnapshot = (
   };
 };
 
+const getAddressErrorMessage = (error: any, t: (key: string) => string) => {
+  const title = error?.response?.data?.title || error?.title;
+  const message = error?.response?.data?.message || error?.message;
+
+  if (title === "invalid_receiving_location") {
+    return t("message.invalid_receiving_location");
+  }
+  if (title === "invalid_location") {
+    return t("message.invalid_location");
+  }
+  if (title === "location_bad_request") {
+    return t("message.location_incorrect");
+  }
+  if (message === "Network fail" || title === "Network fail") return null;
+
+  return message ? t(message) : t("message.unconnected_error");
+};
+
 export const ProfileAddressModal: React.FC<ProfileAddressModalProps> = ({
   open,
   onClose,
   onSuccess,
+  onSaveSuccess,
   initialValues,
   isEdit = false,
   isReceivingAddress = false,
@@ -250,7 +270,7 @@ export const ProfileAddressModal: React.FC<ProfileAddressModalProps> = ({
           payload.receivingAddress === initialSnapshot.receivingAddress &&
           payload.zipCode === initialSnapshot.zipCode
         ) {
-          notification.warning({ message: "Không có sự thay đổi" });
+          notification.warning({ message: t("message.any_change") });
           return;
         }
         await updateMutation.mutateAsync({
@@ -260,17 +280,15 @@ export const ProfileAddressModal: React.FC<ProfileAddressModalProps> = ({
       } else {
         await createMutation.mutateAsync(payload);
       }
-      notification.success({ message: "Thành công" });
+      if (!onSaveSuccess) {
+        notification.success({ message: t("message.success") });
+      }
       await onSuccess?.();
       onClose();
+      onSaveSuccess?.({ isEdit, isReceivingAddress });
     } catch (error: any) {
-      notification.error({
-        message:
-          error?.response?.data?.message ||
-          error?.response?.data?.title ||
-          error?.message ||
-          "Có lỗi xảy ra, vui lòng thử lại",
-      });
+      const errorMessage = getAddressErrorMessage(error, t);
+      if (errorMessage) notification.error({ message: errorMessage });
     }
   };
 
@@ -283,19 +301,22 @@ export const ProfileAddressModal: React.FC<ProfileAddressModalProps> = ({
       <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
     );
 
-  const modalTitle = gobizMode
+  const modalTitleKey = isReceivingAddress
     ? isEdit
-      ? t("customerAddress.edit_address").toUpperCase()
-      : t("customerAddress.new_address").toUpperCase()
+      ? "customerAddress.editReceivingAddress"
+      : "customerAddress.newReceivingAddress"
     : isEdit
-      ? "CẬP NHẬT ĐỊA CHỈ"
-      : "THÊM ĐỊA CHỈ MỚI";
+      ? "customerAddress.edit_address"
+      : "customerAddress.new_address";
+  const modalTitle = gobizMode ? t(modalTitleKey).toUpperCase() : t(modalTitleKey);
   const okText = gobizMode
     ? (isEdit ? t("button.save") : t("button.add_address")).toUpperCase()
     : isEdit
-      ? "LƯU"
-      : "THÊM ĐỊA CHỈ";
-  const cancelText = gobizMode ? t("button.cancel").toUpperCase() : "HỦY BỎ";
+      ? t("button.save")
+      : t("button.add_address");
+  const cancelText = gobizMode
+    ? t("button.cancel").toUpperCase()
+    : t("button.cancel");
 
   return (
     <Modal
@@ -313,32 +334,35 @@ export const ProfileAddressModal: React.FC<ProfileAddressModalProps> = ({
         <Row gutter={12}>
           <Col xs={24} md={12}>
             <Form.Item
-              label="Họ tên"
+              label={t("customerAddress.fullname")}
               name="fullname"
               rules={[
                 {
                   required: true,
                   whitespace: true,
-                  message: "Vui lòng nhập họ tên",
+                  message: t("customerAddress.fullname_required"),
                 },
               ]}
             >
-              <Input placeholder="Họ tên" />
+              <Input placeholder={t("customerAddress.fullname")} />
             </Form.Item>
           </Col>
           <Col xs={24} md={12}>
             <Form.Item
-              label="Điện thoại"
+              label={t("customerAddress.phone")}
               name="phone"
               rules={[
-                { required: true, message: "Vui lòng nhập số điện thoại" },
+                {
+                  required: true,
+                  message: t("customerAddress.phone_required"),
+                },
                 {
                   pattern: phonePattern,
-                  message: "Số điện thoại không đúng định dạng",
+                  message: t("customerAddress.invalid_phone"),
                 },
               ]}
             >
-              <Input placeholder="Điện thoại" />
+              <Input placeholder={t("customerAddress.phone")} />
             </Form.Item>
           </Col>
         </Row>
@@ -346,9 +370,14 @@ export const ProfileAddressModal: React.FC<ProfileAddressModalProps> = ({
         <Row gutter={12}>
           <Col xs={24} md={12}>
             <Form.Item
-              label="Quốc gia"
+              label={t("customerAddress.country")}
               name="country"
-              rules={[{ required: true, message: "Vui lòng chọn quốc gia" }]}
+              rules={[
+                {
+                  required: true,
+                  message: t("customerAddress.country_required"),
+                },
+              ]}
             >
               <Select
                 disabled={countryOptions.length === 1}
@@ -356,7 +385,7 @@ export const ProfileAddressModal: React.FC<ProfileAddressModalProps> = ({
                 notFoundContent={selectNotFound(loadingCountries)}
                 onChange={handleCountryChange}
                 options={countryOptions}
-                placeholder="Chọn quốc gia"
+                placeholder={t("customerAddress.select_country")}
                 showSearch
                 filterOption={(input, option) =>
                   (option?.label ?? "")
@@ -369,10 +398,13 @@ export const ProfileAddressModal: React.FC<ProfileAddressModalProps> = ({
           </Col>
           <Col xs={24} md={12}>
             <Form.Item
-              label="Tỉnh/Thành phố"
+              label={t("customerAddress.province")}
               name="province"
               rules={[
-                { required: true, message: "Vui lòng chọn tỉnh/thành phố" },
+                {
+                  required: true,
+                  message: t("customerAddress.province_required"),
+                },
               ]}
             >
               <Select
@@ -384,7 +416,7 @@ export const ProfileAddressModal: React.FC<ProfileAddressModalProps> = ({
                   label: item.name,
                   value: item.code,
                 }))}
-                placeholder="Chọn tỉnh/thành phố"
+                placeholder={t("customerAddress.select_province")}
                 showSearch
                 filterOption={(input, option) =>
                   (option?.label ?? "")
@@ -401,9 +433,14 @@ export const ProfileAddressModal: React.FC<ProfileAddressModalProps> = ({
           {countryCode === "CN" && (
             <Col xs={24} md={12}>
               <Form.Item
-                label="Thành phố"
+                label={t("customerAddress.city")}
                 name="city"
-                rules={[{ required: true, message: "Vui lòng chọn thành phố" }]}
+                rules={[
+                  {
+                    required: true,
+                    message: t("customerAddress.city_required"),
+                  },
+                ]}
               >
                 <Select
                   disabled={!provinceCode}
@@ -414,7 +451,7 @@ export const ProfileAddressModal: React.FC<ProfileAddressModalProps> = ({
                     label: item.name,
                     value: item.code,
                   }))}
-                  placeholder="Chọn thành phố"
+                  placeholder={t("customerAddress.select_city")}
                   showSearch
                   filterOption={(input, option) =>
                     (option?.label ?? "")
@@ -428,9 +465,14 @@ export const ProfileAddressModal: React.FC<ProfileAddressModalProps> = ({
           )}
           <Col xs={24} md={12}>
             <Form.Item
-              label="Quận/Huyện"
+              label={t("customerAddress.district")}
               name="district"
-              rules={[{ required: true, message: "Vui lòng chọn quận/huyện" }]}
+              rules={[
+                {
+                  required: true,
+                  message: t("customerAddress.district_required"),
+                },
+              ]}
             >
               <Select
                 disabled={countryCode === "CN" ? !cityCode : !provinceCode}
@@ -441,7 +483,7 @@ export const ProfileAddressModal: React.FC<ProfileAddressModalProps> = ({
                   label: item.name,
                   value: item.code,
                 }))}
-                placeholder="Chọn quận/huyện"
+                placeholder={t("customerAddress.select_district")}
                 showSearch
                 filterOption={(input, option) =>
                   (option?.label ?? "")
@@ -454,9 +496,11 @@ export const ProfileAddressModal: React.FC<ProfileAddressModalProps> = ({
           </Col>
           <Col xs={24} md={12}>
             <Form.Item
-              label="Phường/Xã"
+              label={t("customerAddress.ward")}
               name="ward"
-              rules={[{ required: true, message: "Vui lòng chọn phường/xã" }]}
+              rules={[
+                { required: true, message: t("customerAddress.ward_required") },
+              ]}
             >
               <Select
                 disabled={!districtCode}
@@ -466,7 +510,7 @@ export const ProfileAddressModal: React.FC<ProfileAddressModalProps> = ({
                   label: item.name,
                   value: item.code,
                 }))}
-                placeholder="Chọn phường/xã"
+                placeholder={t("customerAddress.select_ward")}
                 showSearch
                 filterOption={(input, option) =>
                   (option?.label ?? "")
@@ -479,47 +523,54 @@ export const ProfileAddressModal: React.FC<ProfileAddressModalProps> = ({
           </Col>
           <Col xs={24} md={12}>
             <Form.Item
-              label="Địa chỉ"
+              label={t("customerAddress.address")}
               name="detail"
               rules={[
                 {
                   required: true,
                   whitespace: true,
-                  message: "Vui lòng nhập địa chỉ",
+                  message: t("customerAddress.address_required"),
                 },
               ]}
             >
-              <Input placeholder="Địa chỉ" />
-            </Form.Item>
-          </Col>
-          <Col xs={24} md={12}>
-            <Form.Item label="Tên địa chỉ" name="addressName">
-              <Input placeholder="Tên địa chỉ" />
+              <Input placeholder={t("customerAddress.address")} />
             </Form.Item>
           </Col>
           <Col xs={24} md={12}>
             <Form.Item
-              label="Mã bưu chính"
+              label={t("customerAddress.addressName")}
+              name="addressName"
+            >
+              <Input placeholder={t("customerAddress.addressName")} />
+            </Form.Item>
+          </Col>
+          <Col xs={24} md={12}>
+            <Form.Item
+              label={t("customerAddress.zipCode")}
               name="zipCode"
               rules={[
                 {
                   pattern: phonePattern,
-                  message: "Mã bưu chính không đúng định dạng",
+                  message: t("customerAddress.invalid_zip_code"),
                 },
               ]}
             >
-              <Input maxLength={10} placeholder="Mã bưu chính" />
+              <Input maxLength={10} placeholder={t("customerAddress.zipCode")} />
             </Form.Item>
           </Col>
         </Row>
 
         <Form.Item name="note">
-          <Input.TextArea maxLength={1000} placeholder="Ghi chú" rows={3} />
+          <Input.TextArea
+            maxLength={1000}
+            placeholder={t("customerAddress.note")}
+            rows={3}
+          />
         </Form.Item>
 
         <Form.Item name="defaultAddress" valuePropName="checked">
           <Checkbox disabled={!!initialValues?.defaultAddress}>
-            Đặt làm địa chỉ mặc định
+            {t("customerAddress.set_default")}
           </Checkbox>
         </Form.Item>
       </Form>
