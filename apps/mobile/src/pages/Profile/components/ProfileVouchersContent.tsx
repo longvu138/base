@@ -35,7 +35,7 @@ const getVoucherTitle = (item: any) => item.title || item.name || item.code || e
 
 const VoucherTicket = ({
   item,
-  onDetail,
+  // onDetail,
   t,
 }: {
   item: any;
@@ -124,9 +124,9 @@ const VoucherTicket = ({
                   value: formatDate(item.validTo || item.endDate || item.expiredAt),
                 })}
               </Typography.Text>
-              <Typography.Link onClick={() => onDetail(item)}>
+              {/* <Typography.Link onClick={() => onDetail(item)}>
                 {t("button.detail")}
-              </Typography.Link>
+              </Typography.Link> */}
             </Flex>
           </Flex>
         </Col>

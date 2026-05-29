@@ -8,7 +8,7 @@ export const WithdrawalSlipApi = {
         return ApiClient.auth.post(`customer/withdrawal_slip`, payload);
     },
     cancelWithdrawalSlip: (code: string) => {
-        return ApiClient.auth.delete(`customer/withdrawal_slip/${code}/cancel`);
+        return ApiClient.auth.post(`customer/withdrawal_slip/${code}/cancel`);
     },
     getWithdrawalSlipLogs: (code: string) => {
         return ApiClient.auth.get(`customer/withdrawal_slip/${code}/logs`, {
@@ -22,6 +22,6 @@ export const WithdrawalSlipApi = {
         return ApiClient.auth.get(`categories/withdrawal_slip_public_status`);
     },
     getBanks: () => {
-        return ApiClient.auth.get(`categories/banks`);
+        return ApiClient.auth.get(`categories/banks?size=1000`);
     },
 };

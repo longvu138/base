@@ -5,7 +5,6 @@ import {
   ShoppingCartOutlined,
   MenuOutlined,
   LogoutOutlined,
-  InfoCircleOutlined,
   HeartFilled,
   CarOutlined,
   AlertOutlined,
@@ -21,13 +20,21 @@ import {
   DollarOutlined,
   BellOutlined,
 } from "@ant-design/icons";
-import { useState, useEffect } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { ThemeSwitcher } from "@repo/theme-provider";
 import { getTenantOptions, dispatchTenantChange } from "@repo/tenant-config";
-import { useLogout } from "@repo/hooks";
+import { useCustomerProfile, useLogout } from "@repo/hooks";
 import { useLanguage, useTranslation } from "@repo/i18n";
 
 const { Header, Content } = AntLayout;
+
+const getCurrentLoggedUser = () => {
+  try {
+    return JSON.parse(localStorage.getItem("currentLoggedUser") || "{}");
+  } catch {
+    return {};
+  }
+};
 
 function Layout() {
   useTranslation();
@@ -35,6 +42,21 @@ function Layout() {
   const navigate = useNavigate();
   const [drawerVisible, setDrawerVisible] = useState(false);
   const { currentLanguage, availableLanguages, changeLanguage } = useLanguage();
+  const storedUser = useMemo(getCurrentLoggedUser, []);
+  const { data: profile } = useCustomerProfile();
+  const currentUser = profile || storedUser;
+  const displayName =
+    currentUser?.fullname ||
+    currentUser?.fullName ||
+    currentUser?.name ||
+    currentUser?.username ||
+    "Người dùng";
+  const userSubtitle =
+    currentUser?.username ||
+    currentUser?.email ||
+    currentUser?.phone ||
+    currentUser?.code ||
+    "";
 
   const { handleLogout } = useLogout({
     onSuccess: () => navigate("/login"),
@@ -225,15 +247,6 @@ function Layout() {
       ),
     },
     {
-      key: "/about",
-      icon: <InfoCircleOutlined />,
-      label: (
-        <Link to="/about" onClick={() => setDrawerVisible(false)}>
-          Thông tin
-        </Link>
-      ),
-    },
-    {
       type: "divider",
     },
     {
@@ -251,17 +264,10 @@ function Layout() {
     <AntLayout className="min-h-screen">
       <Header className="flex items-center justify-between gap-3 px-4 bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 h-14 sticky top-0 z-50">
         <div className="flex items-center gap-2 min-w-0">
-          <Select
-            value={currentLanguage.code}
-            onChange={changeLanguage}
-            options={availableLanguages.map((lang) => ({
-              value: lang.code,
-              label: lang.flag,
-            }))}
-            size="small"
-            style={{ width: 60 }}
-            variant="borderless"
-            suffixIcon={null}
+          <Button
+            type="text"
+            icon={<MenuOutlined className="text-lg" />}
+            onClick={() => setDrawerVisible(true)}
           />
           <Select
             value={currentTenant}
@@ -277,26 +283,33 @@ function Layout() {
           <div className="scale-90">
             <ThemeSwitcher />
           </div>
-          <Button
-            type="text"
-            icon={<MenuOutlined className="text-lg" />}
-            onClick={() => setDrawerVisible(true)}
+          <Select
+            value={currentLanguage.code}
+            onChange={changeLanguage}
+            options={availableLanguages.map((lang) => ({
+              value: lang.code,
+              label: lang.flag,
+            }))}
+            size="small"
+            style={{ width: 60 }}
+            variant="borderless"
+            suffixIcon={null}
           />
         </div>
       </Header>
 
       <Drawer
         title="Menu"
-        placement="right"
+        placement="left"
         onClose={() => setDrawerVisible(false)}
         open={drawerVisible}
         bodyStyle={{ padding: 0 }}
         width={260}
       >
         <div className="p-4 bg-gray-50 dark:bg-gray-800 mb-2">
-          <div className="font-bold dark:text-white">Admin User</div>
+          <div className="font-bold dark:text-white">{displayName}</div>
           <div className="text-xs text-gray-500 dark:text-gray-400">
-            admin@tenantos.com
+            {userSubtitle}
           </div>
         </div>
 
@@ -321,45 +334,36 @@ function Layout() {
         >
           <HomeOutlined className="text-xl" />
           <span className="text-[10px] font-bold uppercase tracking-tight">
-            Dashboard
+            Trang chủ
           </span>
         </Link>
         <Link
           to="/orders"
           className={`flex flex-col items-center gap-1 ${location.pathname.includes("orders") ? "text-primary" : "text-gray-400"}`}
         >
+          <FileTextOutlined className="text-xl" />
+          <span className="text-[10px] font-bold uppercase tracking-tight">
+            Đơn hàng
+          </span>
+        </Link>
+        <Link
+          to="/carts"
+          className={`flex flex-col items-center gap-1 ${location.pathname.includes("carts") ? "text-primary" : "text-gray-400"}`}
+        >
           <ShoppingCartOutlined className="text-xl" />
           <span className="text-[10px] font-bold uppercase tracking-tight">
-            Orders
+            Giỏ hàng
           </span>
         </Link>
         <Link
-          to="/wishlist"
-          className={`flex flex-col items-center gap-1 ${location.pathname.includes("wishlist") ? "text-primary" : "text-gray-400"}`}
+          to="/notifications"
+          className={`flex flex-col items-center gap-1 ${location.pathname.includes("notifications") ? "text-primary" : "text-gray-400"}`}
         >
-          <HeartFilled className="text-xl" />
+          <BellOutlined className="text-xl" />
           <span className="text-[10px] font-bold uppercase tracking-tight">
-            Wishlist
+            Thông báo
           </span>
         </Link>
-        <Link
-          to="/about"
-          className={`flex flex-col items-center gap-1 ${location.pathname.includes("about") ? "text-primary" : "text-gray-400"}`}
-        >
-          <InfoCircleOutlined className="text-xl" />
-          <span className="text-[10px] font-bold uppercase tracking-tight">
-            Account
-          </span>
-        </Link>
-        <div
-          onClick={() => setDrawerVisible(true)}
-          className="flex flex-col items-center gap-1 text-gray-400"
-        >
-          <MenuOutlined className="text-xl" />
-          <span className="text-[10px] font-bold uppercase tracking-tight">
-            Menu
-          </span>
-        </div>
       </div>
     </AntLayout>
   );

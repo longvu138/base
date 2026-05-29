@@ -5,6 +5,10 @@ import {
     useWithdrawalSlipsLogic 
 } from '@repo/hooks';
 
+const WITHDRAWAL_SLIP_DATE_RANGE_PARAMS = {
+    createdAtRange: { from: 'timestampFrom', to: 'timestampTo' },
+};
+
 /**
  * Điều phối (Orchestration) đặc thù cho trang Phiếu rút tiền trên Web
  */
@@ -16,7 +20,10 @@ export const useWithdrawalSlipsPage = () => {
         defaultPageSize: 20,
     });
 
-    const { applyFilters, clearFilters, filters } = useFilterWithURL({ form });
+    const { applyFilters, clearFilters, filters } = useFilterWithURL({
+        form,
+        dateRangeParamMap: WITHDRAWAL_SLIP_DATE_RANGE_PARAMS,
+    });
 
     const logic = useWithdrawalSlipsLogic({ page, pageSize, filters });
 
@@ -41,4 +48,3 @@ export const useWithdrawalSlipsPage = () => {
         applyFilters
     };
 };
-

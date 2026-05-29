@@ -1214,7 +1214,19 @@
     "title": "Thông báo",
     "mark_as_read_all": "Đánh dấu đọc tất cả",
     "all": "Tất cả",
-    "read_all": "Xem tất cả"
+    "read_all": "Xem tất cả",
+    "events": {
+      "FINANCIAL_COLLECT": "Truy thu",
+      "FINANCIAL_EMD": "Đặt cọc",
+      "FINANCIAL_PAYMENT": "Thanh toán",
+      "FINANCIAL_CLAIM": "Hoàn tiền khiếu nại",
+      "FINANCIAL_DEPOSIT": "Nạp tiền",
+      "DELIVERY_REQ_STATUS_UPDATE": "Cập nhật yêu cầu giao",
+      "ORDER_PACKAGE_UPDATE": "Cập nhật kiện hàng",
+      "SHIPMENT_PACKAGE_UPDATE": "Cập nhật kiện ký gửi",
+      "ORDER_COMMENT_UPDATE": "Trao đổi đơn hàng",
+      "PROFILE": "Tài khoản"
+    }
   },
   "dashboard": {
     "titleHeader": "Bảng chung",

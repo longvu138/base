@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import dayjs from 'dayjs';
 import {
     Card,
+    Checkbox,
     Col,
     DatePicker,
     Divider,
@@ -19,7 +20,7 @@ import {
     theme,
 } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
-import { FilterPanel, StatusFilter } from '@repo/ui';
+import { FilterPanel } from '@repo/ui';
 import { moneyFormat, quantityFormat } from '@repo/util';
 import { useWithdrawalSlipsMobilePage } from '@repo/hooks';
 import {
@@ -41,6 +42,9 @@ const getName = (value: any) => (typeof value === 'object' ? value?.name : value
 
 const formatDate = (value?: string) =>
     value ? dayjs(value).format('HH:mm DD/MM/YYYY') : '-';
+
+const getCreatedTime = (record: any) =>
+    record.timestamp || record.createdAt || record.createdDate || record.created_at;
 
 const getBankName = (record: any, banksData: any[] = []) => {
     const bankValue = record.beneficiaryBank || record.bankName;
@@ -116,6 +120,8 @@ const WithdrawalSlipsListSkeleton = ({ count = 2 }: { count?: number }) => {
 };
 
 const WithdrawalSlipsFilter = ({ page }: { page: WithdrawalSlipsPageState }) => {
+    const { token } = theme.useToken();
+
     return (
         <Card className="mb-4 shadow-sm">
             <FilterPanel
@@ -125,21 +131,45 @@ const WithdrawalSlipsFilter = ({ page }: { page: WithdrawalSlipsPageState }) => 
                 searchText="Tìm kiếm"
                 resetText="Làm mới"
                 primaryContent={
-                    <>
-                        <Form.Item name="statuses" noStyle>
-                            <StatusFilter options={page.statusOptions} label="Trạng thái:" />
+                    <Space direction="vertical" size={token.margin} style={{ width: '100%' }}>
+                        <Form.Item name="statuses" label="Trạng thái" style={{ marginBottom: 0 }}>
+                            <Checkbox.Group>
+                                <Space wrap>
+                                    {(page.statusData || []).map((item: any) => (
+                                        <Checkbox key={item.code} value={item.code}>
+                                            {item.name}
+                                            {page.statusCounts?.[item.code] === undefined
+                                                ? ''
+                                                : ` (${quantityFormat(page.statusCounts[item.code])})`}
+                                        </Checkbox>
+                                    ))}
+                                </Space>
+                            </Checkbox.Group>
                         </Form.Item>
-                        <Row gutter={[16, 12]} align="bottom" style={{ marginTop: 16 }}>
+                        <Row gutter={[16, 12]} align="bottom">
                             <Col xs={24}>
                                 <Form.Item
                                     name="query"
-                                    label="Mã yêu cầu/Số tài khoản"
+                                    label="Mã yêu cầu"
                                     style={{ marginBottom: 0 }}
                                 >
                                     <Input
                                         allowClear
                                         prefix={<SearchOutlined />}
-                                        placeholder="Nhập mã hoặc số tài khoản"
+                                        placeholder="Nhập mã yêu cầu"
+                                        onPressEnter={page.handleSearch}
+                                    />
+                                </Form.Item>
+                            </Col>
+                            <Col xs={24}>
+                                <Form.Item
+                                    name="beneficiaryAccount"
+                                    label="Số tài khoản"
+                                    style={{ marginBottom: 0 }}
+                                >
+                                    <Input
+                                        allowClear
+                                        placeholder="Nhập số tài khoản"
                                         onPressEnter={page.handleSearch}
                                     />
                                 </Form.Item>
@@ -169,7 +199,7 @@ const WithdrawalSlipsFilter = ({ page }: { page: WithdrawalSlipsPageState }) => 
                                 </Form.Item>
                             </Col>
                         </Row>
-                    </>
+                    </Space>
                 }
             />
         </Card>
@@ -209,23 +239,14 @@ const WithdrawalSlipsList = ({ page }: { page: WithdrawalSlipsPageState }) => {
 
     return (
         <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-            <Flex
-                justify="space-between"
-                align="center"
-                wrap
-                gap={token.marginMD}
-                style={{ marginBottom: token.marginMD }}
-            >
-                <Space size="small" align="center">
+            <Card styles={{ body: { padding: token.paddingMD } }}>
+                <Flex justify="space-between" align="center" wrap gap={token.marginSM}>
                     <Title level={4} style={{ margin: 0 }}>
-                        Yêu cầu rút tiền
+                        Yêu cầu rút tiền <Text type="secondary">({quantityFormat(total)})</Text>
                     </Title>
-                    <Tag color="blue">{quantityFormat(total)}</Tag>
-                </Space>
-                <div style={{ width: 220, maxWidth: '100%' }}>
                     <WithdrawalSlipCreateButton page={page} />
-                </div>
-            </Flex>
+                </Flex>
+            </Card>
 
             {page.isWithdrawalSlipsLoading ? (
                 <WithdrawalSlipsListSkeleton count={5} />
@@ -288,8 +309,8 @@ const WithdrawalSlipsList = ({ page }: { page: WithdrawalSlipsPageState }) => {
                                                     </Col>
                                                     <Col xs={12}>
                                                         <Space direction="vertical" size={0}>
-                                                            <Text type="secondary">Ngày tạo</Text>
-                                                            <Text>{formatDate(record.createdAt)}</Text>
+                                                            <Text type="secondary">Thời gian tạo</Text>
+                                                            <Text>{formatDate(getCreatedTime(record))}</Text>
                                                         </Space>
                                                     </Col>
                                                     <Col xs={24}>
@@ -298,8 +319,12 @@ const WithdrawalSlipsList = ({ page }: { page: WithdrawalSlipsPageState }) => {
                                                             size={0}
                                                             style={{ width: '100%', minWidth: 0 }}
                                                         >
-                                                            <Text type="secondary">Ngân hàng</Text>
-                                                            <Text ellipsis={{ tooltip: bankName }}>{bankName}</Text>
+                                                            <Text type="secondary">Ngân hàng nhận</Text>
+                                                            <Text ellipsis={{ tooltip: bankName }}>
+                                                                {[bankName, record.beneficiaryBankBranch]
+                                                                    .filter(Boolean)
+                                                                    .join(' - ')}
+                                                            </Text>
                                                         </Space>
                                                     </Col>
                                                     <Col xs={24}>

@@ -5,6 +5,7 @@ import dayjs from 'dayjs';
 export interface UseFilterWithURLOptions {
     form: any;
     onFilterChange?: (filters: Record<string, any>) => void;
+    dateRangeParamMap?: Record<string, { from: string; to: string }>;
 }
 
 /**
@@ -22,7 +23,10 @@ const ARRAY_FIELDS = new Set(['statuses', 'marketplaces', 'services', 'categorie
  * Serializes form values into URLSearchParams.
  * Handles: arrays → comma-joined, dayjs date ranges → timestampXFrom/To, dayjs singles → ISO string.
  */
-function serializeToURL(values: Record<string, any>): URLSearchParams {
+function serializeToURL(
+    values: Record<string, any>,
+    dateRangeParamMap: Record<string, { from: string; to: string }> = {}
+): URLSearchParams {
     const params = new URLSearchParams();
 
     Object.entries(values).forEach(([key, value]) => {
@@ -32,6 +36,13 @@ function serializeToURL(values: Record<string, any>): URLSearchParams {
 
         // Date range: [dayjs, dayjs] → timestampXFrom + timestampXTo
         if (Array.isArray(value) && value.length === 2 && dayjs.isDayjs(value[0])) {
+            const mappedKeys = dateRangeParamMap[key];
+            if (mappedKeys) {
+                params.set(mappedKeys.from, value[0].startOf('day').toISOString());
+                params.set(mappedKeys.to, value[1].endOf('day').toISOString());
+                return;
+            }
+
             const base = key.replace('DateRange', '');
             const capitalized = base.charAt(0).toUpperCase() + base.slice(1);
             params.set(`timestamp${capitalized}From`, value[0].startOf('day').toISOString());
@@ -61,9 +72,22 @@ function serializeToURL(values: Record<string, any>): URLSearchParams {
  * Deserializes URLSearchParams into form values.
  * Skips NON_FILTER_KEYS. Handles: comma-joined arrays, ISO timestamps, date ranges.
  */
-function deserializeFromURL(urlParams: URLSearchParams): Record<string, any> {
+function deserializeFromURL(
+    urlParams: URLSearchParams,
+    dateRangeParamMap: Record<string, { from: string; to: string }> = {}
+): Record<string, any> {
     const values: Record<string, any> = {};
     const processedKeys = new Set<string>();
+
+    Object.entries(dateRangeParamMap).forEach(([formField, keys]) => {
+        const fromValue = urlParams.get(keys.from);
+        const toValue = urlParams.get(keys.to);
+        if (fromValue && toValue) {
+            values[formField] = [dayjs(fromValue), dayjs(toValue)];
+            processedKeys.add(keys.from);
+            processedKeys.add(keys.to);
+        }
+    });
 
     urlParams.forEach((value, key) => {
         if (processedKeys.has(key)) return;
@@ -124,12 +148,12 @@ function buildNextParams(
     return next;
 }
 
-export const useFilterWithURL = ({ form, onFilterChange }: UseFilterWithURLOptions) => {
+export const useFilterWithURL = ({ form, onFilterChange, dateRangeParamMap }: UseFilterWithURLOptions) => {
     const [searchParams, setSearchParams] = useSearchParams();
 
     // On mount: restore filter state from URL into the form
     useEffect(() => {
-        const filters = deserializeFromURL(searchParams);
+        const filters = deserializeFromURL(searchParams, dateRangeParamMap);
         if (Object.keys(filters).length > 0) {
             form.setFieldsValue(filters);
             onFilterChange?.(filters);
@@ -138,7 +162,7 @@ export const useFilterWithURL = ({ form, onFilterChange }: UseFilterWithURLOptio
     }, []);
 
     const applyFilters = (values: Record<string, any>) => {
-        const filterParams = serializeToURL(values);
+        const filterParams = serializeToURL(values, dateRangeParamMap);
         setSearchParams(prev => buildNextParams(prev, filterParams));
         onFilterChange?.(values);
     };
@@ -149,7 +173,7 @@ export const useFilterWithURL = ({ form, onFilterChange }: UseFilterWithURLOptio
         onFilterChange?.({});
     };
 
-    const getCurrentFilters = (): Record<string, any> => deserializeFromURL(searchParams);
+    const getCurrentFilters = (): Record<string, any> => deserializeFromURL(searchParams, dateRangeParamMap);
 
     return {
         applyFilters,

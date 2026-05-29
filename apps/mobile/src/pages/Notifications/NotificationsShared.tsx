@@ -22,7 +22,11 @@ import {
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import "dayjs/locale/vi";
-import { useNotificationsPage, type NotificationItem } from "@repo/hooks";
+import {
+  getNotificationEventLabel,
+  useNotificationsPage,
+  type NotificationItem,
+} from "@repo/hooks";
 
 dayjs.extend(relativeTime);
 
@@ -151,7 +155,7 @@ const NotificationCard = ({
       hoverable
       onClick={() => page.handleNotificationClick(item)}
       styles={{ body: { padding: token.paddingMD } }}
-      style={{ background }}
+      style={{ background, width: "100%" }}
     >
       <Flex align="flex-start" gap={token.marginMD}>
         <Avatar
@@ -160,9 +164,13 @@ const NotificationCard = ({
           icon={<BellOutlined />}
           style={{ flex: "0 0 auto" }}
         />
-        <Space direction="vertical" size={token.marginXS} style={{ minWidth: 0, flex: 1 }}>
+        <Space direction="vertical" size={token.marginXS} style={{ minWidth: 0, flex: 1, width: 0 }}>
           <Flex align="flex-start" justify="space-between" gap={token.marginSM}>
-            <Typography.Text strong={!item.read} style={{ minWidth: 0 }} ellipsis>
+            <Typography.Text
+              strong={!item.read}
+              ellipsis={{ tooltip: item.messageData }}
+              style={{ minWidth: 0, flex: 1 }}
+            >
               {item.messageData || page.t("notifications.title")}
             </Typography.Text>
             <RightOutlined style={{ color: token.colorTextTertiary, flex: "0 0 auto" }} />
@@ -177,7 +185,9 @@ const NotificationCard = ({
               </Tag>
             )}
             {item.eventCode && (
-              <Tag style={{ marginInlineEnd: 0 }}>{item.eventCode}</Tag>
+              <Tag style={{ marginInlineEnd: 0 }}>
+                {getNotificationEventLabel(item.eventCode, page.t)}
+              </Tag>
             )}
           </Flex>
         </Space>
@@ -236,13 +246,13 @@ const NotificationsList = ({
         }}
         renderItem={(item, index) => (
           <List.Item
-            style={{ padding: 0, borderBlockEnd: 0 }}
+            style={{ padding: 0, borderBlockEnd: 0, width: "100%", display: "block" }}
             ref={index === prefetchIndex ? loadMoreRef : undefined}
           >
             <NotificationCard item={item} page={page} mode={mode} />
           </List.Item>
         )}
-        style={{ display: "flex", flexDirection: "column", gap: token.marginSM }}
+        style={{ width: "100%", display: "flex", flexDirection: "column", gap: token.marginSM }}
       />
 
       {page.isFetchingNextPage && <NotificationCardSkeleton />}

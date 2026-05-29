@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { App, Form, Modal } from "antd";
+import { Form, Modal, notification } from "antd";
 import { useSearchParams } from "react-router-dom";
 import { LocalStoreUtil, moneyFormat } from "@repo/util";
 import { useAddressesQuery } from "../useAddressHooks";
@@ -67,7 +67,6 @@ export const useCashRequestsLogic = ({
 };
 
 export const useCashRequestPage = ({ infinite = false }: { infinite?: boolean } = {}) => {
-  const { notification } = App.useApp();
   const [form] = Form.useForm();
   const [searchParams] = useSearchParams();
   const [isOpenCreate, setIsOpenCreate] = useState(false);
@@ -155,7 +154,7 @@ export const useCashRequestPage = ({ infinite = false }: { infinite?: boolean } 
       type: "CUSTOMER_REQUEST_COLLECT_CASH",
       object: `m1:${currentUser?.username}`,
       name: `Khach ${currentUser?.username} yeu cau lay tien mat, so tien ${amount}`,
-      start: values?.date?.startOf("hour").toISOString(),
+      start: values?.date?.startOf("minute").toISOString(),
       due: null,
       context: {
         address,
@@ -168,8 +167,8 @@ export const useCashRequestPage = ({ infinite = false }: { infinite?: boolean } 
 
     try {
       await createCashRequestMutation.mutateAsync(bodyData);
-      notification.success({ message: "Thêm yêu cầu thu tiền mặt thành công" });
       closeCreateModal();
+      notification.success({ message: "Thêm yêu cầu thu tiền mặt thành công" });
     } catch {
       notification.error({
         message: "Thêm yêu cầu thu tiền mặt lỗi. Vui lòng thử lại",
@@ -187,6 +186,7 @@ export const useCashRequestPage = ({ infinite = false }: { infinite?: boolean } 
       onOk: async () => {
         try {
           await cancelCashRequestMutation.mutateAsync(record?.id);
+          Modal.destroyAll();
           notification.success({ message: "Hủy yêu cầu thu tiền mặt thành công" });
         } catch {
           notification.error({

@@ -10,6 +10,8 @@ import {
 } from './WithdrawalSlipActions';
 
 const { RangePicker } = DatePicker;
+const getCreatedTime = (record: any) =>
+    record.timestamp || record.createdAt || record.createdDate || record.created_at;
 
 /**
  * WithdrawalSlipStyleThanhla — Giao diện cho Thanhla (thanhla)
@@ -63,10 +65,16 @@ export const WithdrawalSlipStyleThanhla = () => {
             },
         },
         {
-            title: 'Ngày tạo',
-            dataIndex: 'createdAt',
-            key: 'createdAt',
-            render: (text: string) => <span className="text-gray-500 text-sm">{text ? dayjs(text).format('HH:mm DD/MM/YYYY') : '-'}</span>,
+            title: 'Thời gian tạo',
+            key: 'timestamp',
+            render: (_: any, record: any) => {
+                const createdTime = getCreatedTime(record);
+                return (
+                    <span className="text-gray-500 text-sm">
+                        {createdTime ? dayjs(createdTime).format('HH:mm DD/MM/YYYY') : '-'}
+                    </span>
+                );
+            },
         },
         {
             title: '',

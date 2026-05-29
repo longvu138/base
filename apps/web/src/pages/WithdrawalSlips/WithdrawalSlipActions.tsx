@@ -5,7 +5,6 @@ import {
     Empty,
     Form,
     Input,
-    InputNumber,
     Modal,
     Popconfirm,
     Select,
@@ -15,6 +14,7 @@ import {
 } from 'antd';
 import { FileTextOutlined, PlusOutlined, StopOutlined } from '@ant-design/icons';
 import { moneyFormat } from '@repo/util';
+import { LocaleInputNumber } from '../../components/Common/LocaleInputNumber';
 
 const { Text } = Typography;
 
@@ -57,7 +57,7 @@ export const WithdrawalSlipRowActions = ({ page, record }: { page: any; record: 
                     </Button>
                 </Popconfirm>
             ) : null}
-            <Button type="link" size="small" icon={<FileTextOutlined />} onClick={() => page.openLogModal(record.code)}>
+             <Button type="link" size="small" icon={<FileTextOutlined />} onClick={() => page.openLogModal(record.code)}>
                 Log
             </Button>
         </Space>
@@ -66,6 +66,10 @@ export const WithdrawalSlipRowActions = ({ page, record }: { page: any; record: 
 
 export const WithdrawalSlipCreateModal = ({ page }: { page: any }) => {
     const selectedBank = Form.useWatch('beneficiaryBank', page.createForm);
+    const walletAccountOptions = page.walletAccountOptions || [];
+    const selectedWalletAccount = page.selectedWalletAccount;
+    const balance = selectedWalletAccount?.balance ?? page.balanceData?.balance ?? 0;
+    const currency = selectedWalletAccount?.currency;
     const bankOptions = [
         ...(page.bankOptions || []),
         { label: 'Ngân hàng khác', value: 'other' },
@@ -85,11 +89,28 @@ export const WithdrawalSlipCreateModal = ({ page }: { page: any }) => {
             <Form form={page.createForm} layout="vertical" preserve={false}>
                 <Descriptions column={1} size="small" className="mb-3">
                     <Descriptions.Item label="Số dư">
-                        <Text strong>{moneyFormat(page.balanceData?.balance || 0)}</Text>
+                        <Text strong>{moneyFormat(balance || 0, currency)}</Text>
                     </Descriptions.Item>
                 </Descriptions>
+                {walletAccountOptions.length > 1 ? (
+                    <Form.Item name="account" label="Tài khoản nguồn" rules={[{ required: true, message: 'Chọn tài khoản nguồn' }]}>
+                        <Select
+                            showSearch
+                            optionFilterProp="label"
+                            options={walletAccountOptions}
+                            placeholder="Chọn tài khoản nguồn"
+                        />
+                    </Form.Item>
+                ) : null}
                 <Form.Item name="amount" label="Số tiền" rules={[{ required: true, message: 'Nhập số tiền' }]}>
-                    <InputNumber min={1} className="w-full" placeholder="Nhập số tiền" controls={false} />
+                    <LocaleInputNumber
+                        min={1}
+                        precision={0}
+                        maximumFractionDigits={0}
+                        className="w-full"
+                        placeholder="Nhập số tiền"
+                        controls={false}
+                    />
                 </Form.Item>
                 <Form.Item name="beneficiaryName" label="Tên tài khoản" rules={[{ required: true, message: 'Nhập tên tài khoản' }]}>
                     <Input placeholder="Nhập tên tài khoản thụ hưởng" />
@@ -105,9 +126,6 @@ export const WithdrawalSlipCreateModal = ({ page }: { page: any }) => {
                         <Input placeholder="Nhập tên ngân hàng" />
                     </Form.Item>
                 ) : null}
-                <Form.Item name="beneficiaryBankBranch" label="Chi nhánh">
-                    <Input placeholder="Nhập chi nhánh" />
-                </Form.Item>
                 <Form.Item name="memo" label="Nội dung">
                     <Input.TextArea rows={3} placeholder="Nhập nội dung" />
                 </Form.Item>

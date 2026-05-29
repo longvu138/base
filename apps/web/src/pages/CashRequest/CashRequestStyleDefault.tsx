@@ -1,11 +1,14 @@
 import dayjs from "dayjs";
 import {
   Button,
+  Card,
   DatePicker,
   Empty,
+  Flex,
   Form,
   Input,
   Modal,
+  Pagination,
   Select,
   Space,
   Spin,
@@ -15,12 +18,11 @@ import {
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { PlusOutlined } from "@ant-design/icons";
-import { Pagination, TableComponent } from "@repo/ui";
-import { moneyFormat } from "@repo/util";
+import { moneyFormat, quantityFormat } from "@repo/util";
 import { LocaleInputNumber } from "../../components/Common/LocaleInputNumber";
 import { useCashRequestPage } from "./hooks/useCashRequestPage";
 
-const { Text } = Typography;
+const { Text, Title } = Typography;
 
 const statusLabels: Record<string, { label: string; color: string }> = {
   TODO: { label: "Mới", color: "blue" },
@@ -44,7 +46,7 @@ export const CashRequestStyleDefault = () => {
     setPageSize,
     listData,
     addresses,
-    isCashRequestsLoading,
+    // isCashRequestsLoading,
     isAddressesLoading,
     isOpenCreate,
     setIsOpenCreate,
@@ -118,27 +120,25 @@ export const CashRequestStyleDefault = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-layout p-4 space-y-4">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
-            Yêu cầu thu tiền mặt
-          </h1>
-          <Text type="secondary">Quản lý các yêu cầu nhân viên đến thu tiền mặt.</Text>
-        </div>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={() => setIsOpenCreate(true)}
-        >
-          Thêm yêu cầu
-        </Button>
-      </div>
-
-      <TableComponent
-        title="Danh sách yêu cầu"
-        totalCount={listData?.total || 0}
-        loading={isCashRequestsLoading}
+    <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+      <Card
+        title={
+          <Title level={5} style={{ margin: 0 }}>
+            Danh sách yêu cầu{" "}
+            <Text type="secondary">
+              ({quantityFormat(Number(listData?.total || 0))})
+            </Text>
+          </Title>
+        }
+        extra={
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => setIsOpenCreate(true)}
+          >
+            Thêm yêu cầu
+          </Button>
+        }
       >
         <Table
           columns={columns}
@@ -148,17 +148,20 @@ export const CashRequestStyleDefault = () => {
           locale={{ emptyText: <Empty description="Không có dữ liệu" /> }}
           scroll={{ x: 920 }}
         />
-      </TableComponent>
 
-      <Pagination
-        current={page}
-        pageSize={pageSize}
-        total={listData?.total || 0}
-        onChange={(p, s) => {
-          setPage(p);
-          if (s !== pageSize) setPageSize(s);
-        }}
-      />
+        <Flex justify="flex-end" style={{ marginTop: 16 }}>
+          <Pagination
+            hideOnSinglePage
+            current={page}
+            pageSize={pageSize}
+            total={listData?.total || 0}
+            onChange={(p, s) => {
+              setPage(p);
+              if (s !== pageSize) setPageSize(s);
+            }}
+          />
+        </Flex>
+      </Card>
 
       <Modal
         footer={null}
@@ -217,9 +220,9 @@ export const CashRequestStyleDefault = () => {
               rules={[{ required: true, message: "Thời gian lấy không được để trống" }]}
             >
               <DatePicker
-                showTime
+                showTime={{ format: "HH:mm", minuteStep: 5 }}
                 disabledTime={disabledPickupTime}
-                format="DD/MM/YYYY HH"
+                format="DD/MM/YYYY HH:mm"
                 className="w-full"
                 disabledDate={(current) => current && current < dayjs().startOf("day")}
                 placeholder="Vui lòng chọn thời gian lấy"
@@ -243,6 +246,6 @@ export const CashRequestStyleDefault = () => {
           </Form>
         </Spin>
       </Modal>
-    </div>
+    </Space>
   );
 };
