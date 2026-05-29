@@ -48,12 +48,35 @@ const parseMoneyInput = (value: unknown) => {
   return Number(String(value || "").replace(/[^\d.-]/g, ""));
 };
 
-const getWithdrawalSlipErrorMessage = (error: any, fallback: string) =>
-  error?.response?.data?.message ||
-  error?.response?.data?.detail ||
-  error?.response?.data?.title ||
-  error?.message ||
-  fallback;
+const getWithdrawalSlipErrorCode = (error: any) => {
+  const data = error?.response?.data;
+  console.log("data", data);
+
+  return (
+    data?.title ||
+    data?.code ||
+    data?.errorCode ||
+    data?.error ||
+    data?.message ||
+    error?.code ||
+    error?.message
+  );
+};
+
+const getWithdrawalSlipErrorMessage = (error: any, fallback: string) => {
+  const errorCode = getWithdrawalSlipErrorCode(error);
+  if (errorCode === "insufficient_balance") {
+    return "Số tiền cần rút vượt quá số dư";
+  }
+
+  return (
+    error?.response?.data?.message ||
+    error?.response?.data?.detail ||
+    error?.response?.data?.title ||
+    error?.message ||
+    fallback
+  );
+};
 
 const getStatisticStatus = (item: any) =>
   item?.status?.code || item?.status || item?.code || item?.name;
@@ -165,7 +188,8 @@ const useWithdrawalSlipActions = (
     [walletAccounts],
   );
   const selectedWalletAccount = useMemo(() => {
-    const selectedValue = selectedAccount || getWalletAccountValue(defaultWalletAccount);
+    const selectedValue =
+      selectedAccount || getWalletAccountValue(defaultWalletAccount);
     return (
       walletAccounts.find(
         (item) => getWalletAccountValue(item) === selectedValue,
@@ -269,7 +293,11 @@ export const useWithdrawalSlipsLogic = ({
   const { data: statisticsData } = useWithdrawalSlipStatisticsQuery();
   const { data: banksData } = useBanksQuery();
   const { data: walletAccounts = [] } = useWalletAccountsQuery();
-  const actions = useWithdrawalSlipActions(banksData, statusData, walletAccounts);
+  const actions = useWithdrawalSlipActions(
+    banksData,
+    statusData,
+    walletAccounts,
+  );
 
   // 3. Derived State
   const statusCounts = useMemo(
@@ -283,7 +311,9 @@ export const useWithdrawalSlipsLogic = ({
         const total = statusCounts[s.code];
         return {
           label:
-            total === undefined ? s.name : `${s.name} (${formatQuantity(total)})`,
+            total === undefined
+              ? s.name
+              : `${s.name} (${formatQuantity(total)})`,
           value: s.code,
         };
       }),
@@ -344,7 +374,11 @@ export const useWithdrawalSlipsMobilePage = () => {
   const { data: statisticsData } = useWithdrawalSlipStatisticsQuery();
   const { data: banksData } = useBanksQuery();
   const { data: walletAccounts = [] } = useWalletAccountsQuery();
-  const actions = useWithdrawalSlipActions(banksData, statusData, walletAccounts);
+  const actions = useWithdrawalSlipActions(
+    banksData,
+    statusData,
+    walletAccounts,
+  );
   const pages = infiniteQuery.data?.pages || [];
   const rows = pages.flatMap((page) => page.data || []);
   const firstPage = pages[0];
@@ -360,7 +394,9 @@ export const useWithdrawalSlipsMobilePage = () => {
         const total = statusCounts[s.code];
         return {
           label:
-            total === undefined ? s.name : `${s.name} (${formatQuantity(total)})`,
+            total === undefined
+              ? s.name
+              : `${s.name} (${formatQuantity(total)})`,
           value: s.code,
         };
       }),
