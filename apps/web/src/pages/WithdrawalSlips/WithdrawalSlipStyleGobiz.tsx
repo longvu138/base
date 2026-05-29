@@ -16,6 +16,9 @@ import {
     WithdrawalSlipRowActions,
 } from './WithdrawalSlipActions';
 
+const getCreatedTime = (record: any) =>
+    record.timestamp || record.createdAt || record.createdDate || record.created_at;
+
 /**
  * WithdrawalSlipStyleGobiz — Giao diện rút tiền dành cho Gobiz (gobiz)
  */
@@ -41,22 +44,25 @@ export const WithdrawalSlipStyleGobiz = ({ isTabView }: { isTabView?: boolean })
 
     const columns = [
         {
-            title: 'Mã phiếu / Ngày tạo',
+            title: 'Mã phiếu / Thời gian tạo',
             dataIndex: 'code',
             key: 'code',
-            render: (text: string, record: any) => (
-                <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <WalletOutlined className="text-primary text-sm" />
-                    </div>
-                    <div>
-                        <div className="font-extrabold text-[#1a1a1a] dark:text-gray-100 text-sm">{text || '—'}</div>
-                        <div className="text-[10px] text-gray-400 font-medium">
-                            {record.createdAt ? dayjs(record.createdAt).format('HH:mm DD/MM/YYYY') : '—'}
+            render: (text: string, record: any) => {
+                const createdTime = getCreatedTime(record);
+                return (
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                            <WalletOutlined className="text-primary text-sm" />
+                        </div>
+                        <div>
+                            <div className="font-extrabold text-[#1a1a1a] dark:text-gray-100 text-sm">{text || '—'}</div>
+                            <div className="text-[10px] text-gray-400 font-medium">
+                                {createdTime ? dayjs(createdTime).format('HH:mm DD/MM/YYYY') : '—'}
+                            </div>
                         </div>
                     </div>
-                </div>
-            ),
+                );
+            },
         },
         {
             title: 'Số tiền',

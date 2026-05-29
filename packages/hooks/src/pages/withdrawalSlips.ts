@@ -22,6 +22,9 @@ export interface UseWithdrawalSlipsLogicProps {
 }
 
 const MOBILE_PAGE_SIZE = 25;
+const WITHDRAWAL_SLIP_DATE_RANGE_PARAMS = {
+  createdAtRange: { from: "timestampFrom", to: "timestampTo" },
+};
 
 const normalizeWithdrawalSlipFilters = (filters: Record<string, any>) => {
   const params: Record<string, any> = { ...filters };
@@ -29,10 +32,10 @@ const normalizeWithdrawalSlipFilters = (filters: Record<string, any>) => {
     params.statuses = params.statuses.join(",");
   }
   if (params.createdAtRange) {
-    params.createdAtFrom =
+    params.timestampFrom =
       params.createdAtRange[0]?.startOf?.("day")?.toISOString?.() ||
       params.createdAtRange[0]?.toISOString?.();
-    params.createdAtTo =
+    params.timestampTo =
       params.createdAtRange[1]?.endOf?.("day")?.toISOString?.() ||
       params.createdAtRange[1]?.toISOString?.();
     delete params.createdAtRange;
@@ -315,7 +318,10 @@ export const useWithdrawalSlipsMobilePage = () => {
   const { t } = useTranslation();
   const [form] = Form.useForm();
   const pageSize = MOBILE_PAGE_SIZE;
-  const { applyFilters, clearFilters, filters } = useFilterWithURL({ form });
+  const { applyFilters, clearFilters, filters } = useFilterWithURL({
+    form,
+    dateRangeParamMap: WITHDRAWAL_SLIP_DATE_RANGE_PARAMS,
+  });
   const filterSignature = JSON.stringify(filters);
 
   useEffect(() => {

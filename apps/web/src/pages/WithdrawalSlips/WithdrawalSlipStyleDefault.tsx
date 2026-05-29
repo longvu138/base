@@ -47,6 +47,9 @@ const getBeneficiaryAccount = (record: any) =>
 const getBeneficiaryName = (record: any) =>
     record.beneficiaryName || record.bankAccountName || record.accountName || emptyText;
 
+const getCreatedTime = (record: any) =>
+    record.timestamp || record.createdAt || record.createdDate || record.created_at;
+
 export const WithdrawalSlipStyleDefault = () => {
     const { token } = theme.useToken();
     const pageState = useWithdrawalSlipsPage();
@@ -68,15 +71,16 @@ export const WithdrawalSlipStyleDefault = () => {
             ),
         },
         {
-            title: 'Ngày tạo',
-            dataIndex: 'createdAt',
-            key: 'createdAt',
-            render: (text: string) =>
-                text ? (
+            title: 'Thời gian tạo',
+            key: 'timestamp',
+            render: (_: any, record: any) => {
+                const createdTime = getCreatedTime(record);
+                return createdTime ? (
                     <Text style={{ textTransform: 'uppercase' }}>
-                        {dayjs(text).format('HH:mm DD/MM/YYYY')}
+                        {dayjs(createdTime).format('HH:mm DD/MM/YYYY')}
                     </Text>
-                ) : emptyText,
+                ) : emptyText;
+            },
         },
         {
             title: 'Số tiền',

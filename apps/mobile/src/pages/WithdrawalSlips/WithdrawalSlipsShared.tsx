@@ -43,6 +43,9 @@ const getName = (value: any) => (typeof value === 'object' ? value?.name : value
 const formatDate = (value?: string) =>
     value ? dayjs(value).format('HH:mm DD/MM/YYYY') : '-';
 
+const getCreatedTime = (record: any) =>
+    record.timestamp || record.createdAt || record.createdDate || record.created_at;
+
 const getBankName = (record: any, banksData: any[] = []) => {
     const bankValue = record.beneficiaryBank || record.bankName;
     const bankCode = getCode(bankValue);
@@ -306,8 +309,8 @@ const WithdrawalSlipsList = ({ page }: { page: WithdrawalSlipsPageState }) => {
                                                     </Col>
                                                     <Col xs={12}>
                                                         <Space direction="vertical" size={0}>
-                                                            <Text type="secondary">Ngày tạo</Text>
-                                                            <Text>{formatDate(record.createdAt)}</Text>
+                                                            <Text type="secondary">Thời gian tạo</Text>
+                                                            <Text>{formatDate(getCreatedTime(record))}</Text>
                                                         </Space>
                                                     </Col>
                                                     <Col xs={24}>
