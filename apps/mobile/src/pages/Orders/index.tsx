@@ -1,12 +1,12 @@
 import { useVariant } from '@repo/theme-provider';
 import { DynamicVariant } from '@repo/ui';
-import { useOrdersMobilePage } from '@repo/hooks';
+import { useOrdersMobileModel } from '@repo/features/orders';
 
 const modules = import.meta.glob('./*.tsx');
 
 export const OrdersPage = () => {
   const variant = useVariant('orders', 'OrdersStyleDefault');
-  const page = useOrdersMobilePage();
+  const page = useOrdersMobileModel();
 
   return (
     <DynamicVariant

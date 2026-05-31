@@ -22,46 +22,34 @@ import {
 import { useTranslation } from "@repo/i18n";
 import { moneyFormat, quantityFormat } from "@repo/util";
 import { FilterPanel } from "@repo/ui";
-import { useClaimsPage } from "@repo/hooks";
+import {
+  getClaimSolutionName,
+  getClaimSolutionsByTicketType,
+  getClaimStatusView,
+  useClaimsModel,
+} from "@repo/features/claims";
 
 const { Text, Title } = Typography;
-
-const getStatusView = (record: any, statuses: any[] = []) => {
-  if (record.publicStateNewView) return record.publicStateNewView;
-  if (typeof record.publicState === "object") return record.publicState;
-  return statuses.find((item: any) => item.code === record.publicState) || {};
-};
-
-const getSolutionName = (record: any, solutions: any[] = []) => {
-  if (record.solutionView?.name) return record.solutionView.name;
-  return solutions.find((item: any) => item.code === record.solutionCode)?.name || record.solutionCode || "";
-};
 
 export const GobizClaimsList = () => {
   const { t } = useTranslation();
   const { token } = theme.useToken();
   const {
+    state,
+    options,
+    actions,
     form,
-    page,
-    pageSize,
-    setPage,
-    setPageSize,
     filters,
-    listData,
-    isClaimsLoading,
-    statusData = [],
-    solutionData = [],
-    handleSearch,
-    handleReset,
-  } = useClaimsPage();
+  } = useClaimsModel();
+  const { page, pageSize, listData, isClaimsLoading } = state;
+  const { statusData = [], solutionData = [] } = options;
 
   const activeTicketType = Form.useWatch("ticketType", form) || filters.ticketType || "";
 
-  const solutionsByTicketType = activeTicketType
-    ? solutionData.filter((item: any) => item.subject === activeTicketType)
-    : Array.from(
-        new Map(solutionData.map((item: any) => [item.name || item.code, item])).values(),
-      );
+  const solutionsByTicketType = getClaimSolutionsByTicketType(
+    solutionData,
+    activeTicketType,
+  );
 
   const columns = [
     {
@@ -126,7 +114,7 @@ export const GobizClaimsList = () => {
       dataIndex: "publicStateNewView",
       key: "publicStateNewView",
       render: (_: any, record: any) => {
-        const status = getStatusView(record, statusData);
+        const status = getClaimStatusView(record, statusData);
         if (!status?.name && !status?.code) return <span />;
 
         return (
@@ -157,7 +145,8 @@ export const GobizClaimsList = () => {
       title: t("tickets.solution"),
       dataIndex: "solutionView",
       key: "solutionView",
-      render: (_: any, record: any) => getSolutionName(record, solutionData) || "",
+      render: (_: any, record: any) =>
+        getClaimSolutionName(record, solutionData) || "",
     },
     {
       title: "",
@@ -176,8 +165,8 @@ export const GobizClaimsList = () => {
       <Card className="mb-4 shadow-sm">
         <FilterPanel
           form={form}
-          onSearch={handleSearch}
-          onReset={handleReset}
+          onSearch={actions.search}
+          onReset={actions.reset}
           searchText={t("order.search")}
           resetText={t("order.filter_refresh")}
           primaryContent={
@@ -207,7 +196,7 @@ export const GobizClaimsList = () => {
               </Form.Item>
 
               <Form.Item name="ticketType" label="Loại khiếu nại" style={{ marginBottom: 0 }}>
-                <Radio.Group onChange={() => handleSearch()}>
+                <Radio.Group onChange={actions.search}>
                   <Space wrap>
                     <Radio value="">Tất cả</Radio>
                     <Radio value="order">{t("menu.orders")}</Radio>
@@ -221,7 +210,7 @@ export const GobizClaimsList = () => {
                   <Form.Item name="code" label={`${t("tickets.enter_code")}:`} style={{ marginBottom: 0 }}>
                     <Input
                       placeholder={t("tickets.code")}
-                      onPressEnter={handleSearch}
+                      onPressEnter={actions.search}
                     />
                   </Form.Item>
                 </Col>
@@ -229,7 +218,7 @@ export const GobizClaimsList = () => {
                   <Form.Item name="relatedOrder" label={`${t("tickets.enter_order_code")}:`} style={{ marginBottom: 0 }}>
                     <Input
                       placeholder={t("tickets.order_code")}
-                      onPressEnter={handleSearch}
+                      onPressEnter={actions.search}
                     />
                   </Form.Item>
                 </Col>
@@ -237,7 +226,7 @@ export const GobizClaimsList = () => {
                   <Form.Item name="relatedProduct" label={`${t("tickets.enter_product_code")}:`} style={{ marginBottom: 0 }}>
                     <Input
                       placeholder={t("tickets.product_code")}
-                      onPressEnter={handleSearch}
+                      onPressEnter={actions.search}
                     />
                   </Form.Item>
                 </Col>
@@ -284,8 +273,8 @@ export const GobizClaimsList = () => {
             pageSize={pageSize}
             total={listData?.total || 0}
             onChange={(nextPage, nextPageSize) => {
-              setPage(nextPage);
-              if (nextPageSize !== pageSize) setPageSize(nextPageSize);
+              actions.setPage(nextPage);
+              if (nextPageSize !== pageSize) actions.setPageSize(nextPageSize);
             }}
           />
         </Flex>

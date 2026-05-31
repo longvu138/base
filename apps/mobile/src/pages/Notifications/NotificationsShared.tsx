@@ -24,15 +24,15 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import "dayjs/locale/vi";
 import {
   getNotificationEventLabel,
-  useNotificationsPage,
+  useNotificationsModel,
   type NotificationItem,
-} from "@repo/hooks";
+} from "@repo/features/notifications";
 
 dayjs.extend(relativeTime);
 
 const NOTIFICATION_PREFETCH_ITEM_COUNT = 5;
 
-type NotificationsPageState = ReturnType<typeof useNotificationsPage>;
+type NotificationsPageState = ReturnType<typeof useNotificationsModel>;
 
 const NotificationCardSkeleton = () => {
   const { token } = theme.useToken();
@@ -107,8 +107,8 @@ const NotificationsHeader = ({
           type="primary"
           icon={<CheckCircleOutlined />}
           disabled={!page.unreadCount}
-          loading={page.markAllAsRead.isPending}
-          onClick={() => page.markAllAsRead.mutate()}
+          loading={page.state.isMarkingAllAsRead}
+          onClick={page.actions.markAllAsRead}
         >
           {page.t("notifications.mark_as_read_all")}
         </Button>
@@ -126,7 +126,7 @@ const NotificationsFilters = ({ page }: { page: NotificationsPageState }) => {
         <Typography.Text strong>{page.t("notifications.all")}</Typography.Text>
         <Select
           value={page.activeGroup}
-          onChange={page.setActiveGroup}
+          onChange={page.actions.setActiveGroup}
           options={page.tabs.map((tab) => ({
             label: tab.label,
             value: tab.key,
@@ -218,7 +218,7 @@ const NotificationsList = ({
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting && page.hasNextPage && !page.isFetchingNextPage) {
-          page.fetchNextPage();
+          page.actions.fetchNextPage();
         }
       },
       { rootMargin: "240px 0px" },
@@ -272,7 +272,7 @@ export const NotificationsMobileView = ({
   mode?: "default" | "gobiz" | "thanhla";
 }) => {
   const { token } = theme.useToken();
-  const page = useNotificationsPage();
+  const page = useNotificationsModel();
 
   dayjs.locale(page.i18n.language === "vi" ? "vi" : "en");
 

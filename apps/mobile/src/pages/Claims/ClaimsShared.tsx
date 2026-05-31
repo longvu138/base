@@ -27,27 +27,17 @@ import {
 } from "@ant-design/icons";
 import { FilterPanel } from "@repo/ui";
 import { moneyFormat, quantityFormat } from "@repo/util";
-import { useClaimsMobilePage } from "@repo/hooks";
+import {
+  getClaimSolutionName,
+  getClaimSolutionsByTicketType,
+  getClaimStatusView,
+  useClaimsMobileModel,
+} from "@repo/features/claims";
 
 const { Text, Title, Paragraph } = Typography;
 const CLAIMS_PREFETCH_ITEM_COUNT = 5;
 
-type ClaimsPageState = ReturnType<typeof useClaimsMobilePage>;
-
-const getStatusView = (record: any, statuses: any[] = []) => {
-  if (record.publicStateNewView) return record.publicStateNewView;
-  if (typeof record.publicState === "object") return record.publicState;
-  return statuses.find((item: any) => item.code === record.publicState) || {};
-};
-
-const getSolutionName = (record: any, solutions: any[] = []) => {
-  if (record.solutionView?.name) return record.solutionView.name;
-  return (
-    solutions.find((item: any) => item.code === record.solutionCode)?.name ||
-    record.solutionCode ||
-    ""
-  );
-};
+type ClaimsPageState = ReturnType<typeof useClaimsMobileModel>;
 
 const formatDate = (value?: string) =>
   value ? dayjs(value).format("HH:mm DD/MM/YYYY") : "---";
@@ -91,23 +81,17 @@ export const ClaimsFilter = ({ page }: { page: ClaimsPageState }) => {
   const activeTicketType =
     Form.useWatch("ticketType", page.form) || page.filters.ticketType || "";
 
-  const solutionsByTicketType = activeTicketType
-    ? page.solutionData.filter((item: any) => item.subject === activeTicketType)
-    : Array.from(
-        new Map(
-          page.solutionData.map((item: any) => [
-            item.name || item.code,
-            item,
-          ]),
-        ).values(),
-      );
+  const solutionsByTicketType = getClaimSolutionsByTicketType(
+    page.solutionData,
+    activeTicketType,
+  );
 
   return (
     <Card className="mb-4 shadow-sm">
       <FilterPanel
         form={page.form}
-        onSearch={page.handleSearch}
-        onReset={page.handleReset}
+        onSearch={page.actions.search}
+        onReset={page.actions.reset}
         searchText={page.t("order.search")}
         resetText={page.t("order.filter_refresh")}
         primaryContent={
@@ -152,7 +136,7 @@ export const ClaimsFilter = ({ page }: { page: ClaimsPageState }) => {
               label="Loại khiếu nại"
               style={{ marginBottom: 0 }}
             >
-              <Radio.Group onChange={page.handleSearch}>
+              <Radio.Group onChange={page.actions.search}>
                 <Space wrap>
                   <Radio value="">Tất cả</Radio>
                   <Radio value="order">{page.t("menu.orders")}</Radio>
@@ -172,7 +156,7 @@ export const ClaimsFilter = ({ page }: { page: ClaimsPageState }) => {
                     allowClear
                     prefix={<SearchOutlined />}
                     placeholder={page.t("tickets.code")}
-                    onPressEnter={page.handleSearch}
+                    onPressEnter={page.actions.search}
                   />
                 </Form.Item>
               </Col>
@@ -185,7 +169,7 @@ export const ClaimsFilter = ({ page }: { page: ClaimsPageState }) => {
                   <Input
                     allowClear
                     placeholder={page.t("tickets.order_code")}
-                    onPressEnter={page.handleSearch}
+                    onPressEnter={page.actions.search}
                   />
                 </Form.Item>
               </Col>
@@ -198,7 +182,7 @@ export const ClaimsFilter = ({ page }: { page: ClaimsPageState }) => {
                   <Input
                     allowClear
                     placeholder={page.t("tickets.product_code")}
-                    onPressEnter={page.handleSearch}
+                    onPressEnter={page.actions.search}
                   />
                 </Form.Item>
               </Col>
@@ -212,8 +196,8 @@ export const ClaimsFilter = ({ page }: { page: ClaimsPageState }) => {
 
 const ClaimCard = ({ record, page }: { record: any; page: ClaimsPageState }) => {
   const { token } = theme.useToken();
-  const status = getStatusView(record, page.statusData);
-  const solutionName = getSolutionName(record, page.solutionData);
+  const status = getClaimStatusView(record, page.statusData);
+  const solutionName = getClaimSolutionName(record, page.solutionData);
 
   return (
     <Card styles={{ body: { padding: token.paddingMD } }}>
@@ -331,7 +315,7 @@ export const ClaimsList = ({ page }: { page: ClaimsPageState }) => {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting && page.hasNextPage && !page.isFetchingNextPage) {
-          page.fetchNextPage();
+          page.actions.fetchNextPage();
         }
       },
       { rootMargin: "240px 0px" },
@@ -392,7 +376,7 @@ export const ClaimsList = ({ page }: { page: ClaimsPageState }) => {
 
 export const ClaimsMobileView = () => {
   const { token } = theme.useToken();
-  const page = useClaimsMobilePage();
+  const page = useClaimsMobileModel();
 
   return (
     <Space direction="vertical" size={token.marginMD} style={{ width: "100%" }}>

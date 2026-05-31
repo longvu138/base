@@ -14,7 +14,10 @@ import { BellOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import "dayjs/locale/vi";
-import { useNotificationsPage, type NotificationItem } from "@repo/hooks";
+import {
+  useNotificationsModel,
+  type NotificationItem,
+} from "@repo/features/notifications";
 
 dayjs.extend(relativeTime);
 dayjs.locale("vi");
@@ -25,17 +28,16 @@ export const NotificationsStyleDefault = () => {
     t,
     i18n,
     activeGroup,
-    setActiveGroup,
     unreadCount,
     tabs,
     notifications,
     isLoading,
-    fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-    markAllAsRead,
+    state,
+    actions,
     handleNotificationClick,
-  } = useNotificationsPage();
+  } = useNotificationsModel();
 
   dayjs.locale(i18n.language === "vi" ? "vi" : "en");
 
@@ -50,15 +52,19 @@ export const NotificationsStyleDefault = () => {
           <Button
             type="primary"
             disabled={!unreadCount}
-            loading={markAllAsRead.isPending}
-            onClick={() => markAllAsRead.mutate()}
+            loading={state.isMarkingAllAsRead}
+            onClick={actions.markAllAsRead}
           >
             {t("notifications.mark_as_read_all")}
           </Button>
         </Flex>
       }
     >
-      <Tabs activeKey={activeGroup} items={tabs} onChange={setActiveGroup} />
+      <Tabs
+        activeKey={activeGroup}
+        items={tabs}
+        onChange={actions.setActiveGroup}
+      />
 
       <Spin spinning={isLoading}>
         <List
@@ -108,7 +114,10 @@ export const NotificationsStyleDefault = () => {
 
       {hasNextPage && (
         <Flex justify="center" style={{ marginTop: token.marginMD }}>
-          <Button loading={isFetchingNextPage} onClick={() => fetchNextPage()}>
+          <Button
+            loading={isFetchingNextPage}
+            onClick={() => actions.fetchNextPage()}
+          >
             {t("orders.buttons.view_more")}
           </Button>
         </Flex>

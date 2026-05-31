@@ -15,22 +15,18 @@ import {
 import { SearchOutlined } from "@ant-design/icons";
 import { moneyFormat, quantityFormat } from "@repo/util";
 import { FilterPanel } from "@repo/ui";
-import { useDeliveryNotesMobilePage } from "@repo/hooks";
+import {
+  getDeliveryNotePageTotals,
+  useDeliveryNotesMobileModel,
+} from "@repo/features/delivery-notes";
 import { DeliveryNotesList } from "./DeliveryNotesShared";
 
 export const DeliveryNotesStyleGobiz = ({ isTabView }: { isTabView?: boolean }) => {
   const { token } = theme.useToken();
-  const page = useDeliveryNotesMobilePage();
+  const page = useDeliveryNotesMobileModel();
   const rows = page.listData?.data || [];
   const total = page.listData?.total || 0;
-  const totalWeight = rows.reduce(
-    (sum: number, item: any) => sum + Number(item?.delivery_note?.total_weight || 0),
-    0,
-  );
-  const totalCollect = rows.reduce(
-    (sum: number, item: any) => sum + Number(item?.delivery_note?.amount_collect || 0),
-    0,
-  );
+  const { totalWeight, totalCollect } = getDeliveryNotePageTotals(rows);
 
   return (
     <Space direction="vertical" size="large" style={{ width: "100%" }}>

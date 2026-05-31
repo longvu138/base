@@ -24,12 +24,11 @@ import {
 import { DownloadOutlined, SearchOutlined } from '@ant-design/icons';
 import { FilterPanel, PinModal } from '@repo/ui';
 import { moneyFormat, quantityFormat } from '@repo/util';
-import { useOrdersMobilePage } from '@repo/hooks';
-import { OrderNoteEditor } from '@repo/features/orders';
+import { OrderNoteEditor, useOrdersMobileModel } from '@repo/features/orders';
 
 const { Text, Paragraph, Link } = Typography;
 
-type OrdersMobilePageState = ReturnType<typeof useOrdersMobilePage>;
+type OrdersMobilePageState = ReturnType<typeof useOrdersMobileModel>;
 
 const emptyImage =
   'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
@@ -291,7 +290,7 @@ const OrdersList = ({ page }: { page: OrdersMobilePageState }) => {
       }, { rootMargin: '200px 0px' });
       observerRef.current.observe(node);
     },
-    [page.fetchNextPage, page.hasNextPage, page.isFetchingNextPage, page.isOrderLoading],
+    [page],
   );
 
   useEffect(() => () => observerRef.current?.disconnect(), []);

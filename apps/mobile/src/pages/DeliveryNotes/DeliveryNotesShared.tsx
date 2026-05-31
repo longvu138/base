@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import dayjs from "dayjs";
 import {
   Button,
@@ -22,17 +22,22 @@ import {
 import { DownOutlined, SearchOutlined, UpOutlined } from "@ant-design/icons";
 import { moneyFormat, quantityFormat } from "@repo/util";
 import { FilterPanel } from "@repo/ui";
-import { useDeliveryNotesMobilePage } from "@repo/hooks";
+import {
+  getDeliveryNote,
+  getDeliveryNoteAddress,
+  getDeliveryNoteRowKey,
+  getDeliveryNoteTrackingBills,
+  groupDeliveryNotePackagesByOrder,
+  useDeliveryNotesMobileModel,
+} from "@repo/features/delivery-notes";
 
 const { Text, Link, Paragraph, Title } = Typography;
 const DELIVERY_NOTES_PREFETCH_ITEM_COUNT = 5;
 
-type DeliveryNotesPageState = ReturnType<typeof useDeliveryNotesMobilePage>;
+type DeliveryNotesPageState = ReturnType<typeof useDeliveryNotesMobileModel>;
 
 const formatDate = (value?: string) =>
   value ? dayjs(value).format("HH:mm DD/MM/YYYY") : "---";
-
-const getNote = (record: any) => record?.delivery_note || {};
 
 const moneyCeil = (value: unknown) => Math.ceil(Number(value || 0));
 
@@ -159,22 +164,9 @@ export const DeliveryNotesFilter = ({
   );
 };
 
-const groupPackagesByOrder = (items: any[] = []) => {
-  const groups: Record<string, any> = {};
-  items.forEach((item) => {
-    const order = item.order || {};
-    const key = order.code || item?.package?.orderCode || "UNKNOWN";
-    if (!groups[key]) {
-      groups[key] = { ...order, code: key, packages: [] };
-    }
-    if (item.package) groups[key].packages.push(item.package);
-  });
-  return Object.values(groups);
-};
-
 export const DeliveryNotesExpanded = ({ record }: { record: any }) => {
   const { token } = theme.useToken();
-  const groups = groupPackagesByOrder(record.delivery_note_packages);
+  const groups = groupDeliveryNotePackagesByOrder(record.delivery_note_packages);
 
   if (!groups.length) {
     return <Empty description="Không có dữ liệu" />;
@@ -265,11 +257,16 @@ export const DeliveryNotesList = ({
     isFetchingNextPage,
   } = page;
 
-  const handleLoadMore = () => {
+  const handleLoadMore = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage && !isDeliveryNotesLoading) {
       fetchNextPage();
     }
-  };
+  }, [
+    fetchNextPage,
+    hasNextPage,
+    isDeliveryNotesLoading,
+    isFetchingNextPage,
+  ]);
 
   useEffect(() => {
     const target = loadMoreRef.current;
@@ -289,6 +286,7 @@ export const DeliveryNotesList = ({
   }, [
     fetchNextPage,
     hasNextPage,
+    handleLoadMore,
     isDeliveryNotesLoading,
     isFetchingNextPage,
     rows.length,
@@ -301,6 +299,7 @@ export const DeliveryNotesList = ({
   }, [
     fetchNextPage,
     hasNextPage,
+    handleLoadMore,
     isDeliveryNotesLoading,
     isFetchingNextPage,
     rows.length,
@@ -332,21 +331,14 @@ export const DeliveryNotesList = ({
           <List
             split={false}
             dataSource={rows}
-            rowKey={(record: any) => {
-              const note = getNote(record);
-              return note.id || note.code;
-            }}
+            rowKey={getDeliveryNoteRowKey}
             renderItem={(record: any, index) => {
-              const note = getNote(record);
+              const note = getDeliveryNote(record);
               const key = note.id || note.code;
               const expanded = page.expandedId === key;
-              const trackingBills =
-                record.tracking_bills || note.tracking_bills || [];
+              const trackingBills = getDeliveryNoteTrackingBills(record);
               const trackingText = trackingBills.join(", ") || "---";
-              const address =
-                note.customer_receiver || note.customer_address
-                  ? `${note.customer_receiver || "---"} - ${note.customer_address || "---"}`
-                  : "---";
+              const address = getDeliveryNoteAddress(record);
 
               return (
                 <List.Item
@@ -474,7 +466,7 @@ export const DeliveryNotesList = ({
 };
 
 export const DeliveryNotesPage = () => {
-  const page = useDeliveryNotesMobilePage();
+  const page = useDeliveryNotesMobileModel();
   return (
     <Space direction="vertical" size="large" style={{ width: "100%" }}>
       <DeliveryNotesFilter page={page} />

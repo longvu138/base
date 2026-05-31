@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { App, Form } from "antd";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "@repo/i18n";
@@ -6,12 +6,11 @@ import {
   useCustomerProfile,
   useExportOrdersMutation,
   useFilterWithURL,
-  useListOrderQuery,
   useMarketplacesQuery,
   useOrderServicesQuery,
   useOrderStatisticQuery,
   useOrderStatusesQuery,
-  usePaginationWithURL,
+  useOrdersInfiniteQuery,
   useUpdateOrderNoteMutation,
 } from "@repo/hooks";
 import { buildOrderApiParams, normalizeOrderFilters } from "../domain/filters";
@@ -21,19 +20,20 @@ import {
 } from "../domain/options";
 import { downloadOrdersBlob, getExportErrorTitle } from "./exportOrders";
 
-export const useOrdersModel = () => {
+export type OrdersMobileModelOptions = {
+  defaultPageSize?: number;
+};
+
+const DEFAULT_MOBILE_PAGE_SIZE = 25;
+
+export const useOrdersMobileModel = ({
+  defaultPageSize = DEFAULT_MOBILE_PAGE_SIZE,
+}: OrdersMobileModelOptions = {}) => {
   const { t } = useTranslation();
   const { notification } = App.useApp();
   const navigate = useNavigate();
   const [form] = Form.useForm();
-  const [isAdvancedFilterOpen, setAdvancedFilterOpen] = useState(false);
-  const [exportOpen, setExportOpen] = useState(false);
-
-  const { page, pageSize, setPage, setPageSize } = usePaginationWithURL({
-    defaultPage: 1,
-    defaultPageSize: 20,
-  });
-
+  const pageSize = defaultPageSize;
   const { applyFilters, clearFilters, filters } = useFilterWithURL({ form });
   const filterSignature = JSON.stringify(filters);
 
@@ -43,17 +43,21 @@ export const useOrdersModel = () => {
   }, [filterSignature, form]);
 
   const apiParams = useMemo(
-    () => buildOrderApiParams({ page, pageSize, filters }),
-    [page, pageSize, filters],
+    () => buildOrderApiParams({ page: 1, pageSize, filters }),
+    [filterSignature, filters, pageSize],
   );
 
-  const { data: orderData, isLoading: isOrderLoading } =
-    useListOrderQuery(apiParams);
+  const infiniteQuery = useOrdersInfiniteQuery(apiParams);
   const { data: statusData } = useOrderStatusesQuery();
   const { data: statisticData } = useOrderStatisticQuery();
   const { data: servicesData } = useOrderServicesQuery();
   const { data: marketplacesData } = useMarketplacesQuery();
   const updateOrderNote = useUpdateOrderNoteMutation();
+  const { data: profile } = useCustomerProfile();
+  const exportMutation = useExportOrdersMutation();
+  const pages = infiniteQuery.data?.pages || [];
+  const rows = pages.flatMap((page) => page.data || []);
+  const firstPage = pages[0];
 
   const statusOptions = useMemo(
     () => buildOrderStatusOptions(statusData, statisticData),
@@ -77,22 +81,6 @@ export const useOrdersModel = () => {
     clearFilters();
   };
 
-  const syncFiltersToForm = () => {
-    form.resetFields();
-    form.setFieldsValue(filters);
-  };
-
-  const toggleAdvancedFilter = () => {
-    setAdvancedFilterOpen((open) => !open);
-  };
-
-  const { data: profile } = useCustomerProfile();
-  const exportMutation = useExportOrdersMutation();
-
-  const closeExportModal = () => {
-    setExportOpen(false);
-  };
-
   const handleExport = async (secret: string) => {
     if (!secret) {
       notification.error({ message: t("cartCheckout.incorrect_pin") });
@@ -100,17 +88,14 @@ export const useOrdersModel = () => {
     }
 
     try {
-      const username = profile?.username || "";
       const response = await exportMutation.mutateAsync({
         params: {
           ...apiParams,
-          refCustomerCode: username,
+          refCustomerCode: profile?.username || "",
         },
         secret,
       });
-
       downloadOrdersBlob(response);
-      setExportOpen(false);
     } catch (error: any) {
       const title = await getExportErrorTitle(error);
       notification.error({
@@ -122,17 +107,23 @@ export const useOrdersModel = () => {
     }
   };
 
+  const orderData = {
+    data: rows,
+    total: firstPage?.total || 0,
+    pageSize: firstPage?.pageSize || pageSize,
+    current: firstPage?.current || 0,
+    totalPage: firstPage?.totalPage || 0,
+  };
+
   const state = {
-    page,
-    pageSize,
     filters,
     orderData,
-    isOrderLoading,
-    isOrdersLoading: isOrderLoading,
+    isOrderLoading: infiniteQuery.isLoading,
+    isOrdersLoading: infiniteQuery.isLoading,
+    isFetchingNextPage: infiniteQuery.isFetchingNextPage,
+    hasNextPage: infiniteQuery.hasNextPage,
     deliveryReadyCount,
     apiParams,
-    isAdvancedFilterOpen,
-    exportOpen,
   };
 
   const options = {
@@ -144,18 +135,12 @@ export const useOrdersModel = () => {
   };
 
   const actions = {
-    setPage,
-    setPageSize,
     applyFilters: applyOrderFilters,
     search: handleSearch,
     reset: handleReset,
-    syncFiltersToForm,
-    toggleAdvancedFilter,
+    fetchNextPage: infiniteQuery.fetchNextPage,
     goToDetail: (code: string) => navigate(`/orders/${code}`),
     goToCreateDelivery: () => navigate("/delivery/create"),
-    openExport: () => setExportOpen(true),
-    closeExport: closeExportModal,
-    setExportOpen,
     export: handleExport,
     updateNote: updateOrderNote.mutateAsync,
   };
@@ -166,15 +151,16 @@ export const useOrdersModel = () => {
     actions,
     t,
     form,
-    page,
-    pageSize,
-    setPage,
-    setPageSize,
     filters,
     applyFilters: applyOrderFilters,
+    handleSearch,
+    handleReset,
     orderData,
-    isOrderLoading,
-    isOrdersLoading: isOrderLoading,
+    isOrderLoading: infiniteQuery.isLoading,
+    isOrdersLoading: infiniteQuery.isLoading,
+    isFetchingNextPage: infiniteQuery.isFetchingNextPage,
+    hasNextPage: infiniteQuery.hasNextPage,
+    fetchNextPage: infiniteQuery.fetchNextPage,
     statusData,
     statisticData,
     servicesData,
@@ -183,17 +169,9 @@ export const useOrdersModel = () => {
     deliveryReadyCount,
     apiParams,
     updateOrderNote,
-    handleSearch,
-    handleReset,
-    syncFiltersToForm,
     navigateToDetail: actions.goToDetail,
     navigateToCreateDelivery: actions.goToCreateDelivery,
-    isAdvancedFilterOpen,
-    toggleAdvancedFilter,
-    exportOpen,
-    setExportOpen,
     handleExport,
-    closeExportModal,
     exportMutation,
   };
 };

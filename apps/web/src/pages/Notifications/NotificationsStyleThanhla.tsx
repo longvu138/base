@@ -20,7 +20,10 @@ import { BellOutlined, CheckCircleOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import "dayjs/locale/vi";
-import { useNotificationsPage, type NotificationItem } from "@repo/hooks";
+import {
+  useNotificationsModel,
+  type NotificationItem,
+} from "@repo/features/notifications";
 
 dayjs.extend(relativeTime);
 dayjs.locale("vi");
@@ -31,17 +34,16 @@ export const NotificationsStyleThanhla = () => {
     t,
     i18n,
     activeGroup,
-    setActiveGroup,
     unreadCount,
     tabs,
     notifications,
     isLoading,
-    fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-    markAllAsRead,
+    state,
+    actions,
     handleNotificationClick,
-  } = useNotificationsPage();
+  } = useNotificationsModel();
 
   dayjs.locale(i18n.language === "vi" ? "vi" : "en");
 
@@ -74,8 +76,8 @@ export const NotificationsStyleThanhla = () => {
                 type="primary"
                 icon={<CheckCircleOutlined />}
                 disabled={!unreadCount}
-                loading={markAllAsRead.isPending}
-                onClick={() => markAllAsRead.mutate()}
+                loading={state.isMarkingAllAsRead}
+                onClick={actions.markAllAsRead}
               >
                 {t("notifications.mark_as_read_all")}
               </Button>
@@ -97,7 +99,7 @@ export const NotificationsStyleThanhla = () => {
         <Tabs
           activeKey={activeGroup}
           items={tabs}
-          onChange={setActiveGroup}
+          onChange={actions.setActiveGroup}
           tabBarGutter={token.marginLG}
         />
 
@@ -157,7 +159,10 @@ export const NotificationsStyleThanhla = () => {
 
         {hasNextPage && (
           <Flex justify="center" style={{ marginTop: token.marginMD }}>
-            <Button loading={isFetchingNextPage} onClick={() => fetchNextPage()}>
+            <Button
+              loading={isFetchingNextPage}
+              onClick={() => actions.fetchNextPage()}
+            >
               {t("orders.buttons.view_more")}
             </Button>
           </Flex>

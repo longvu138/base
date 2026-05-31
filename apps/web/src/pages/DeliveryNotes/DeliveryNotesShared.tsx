@@ -20,16 +20,20 @@ import type { ColumnsType } from "antd/es/table";
 import { SearchOutlined } from "@ant-design/icons";
 import { moneyFormat, quantityFormat } from "@repo/util";
 import { FilterPanel } from "@repo/ui";
-import { useDeliveryNotesPage } from "@repo/hooks";
+import {
+  getDeliveryNote,
+  getDeliveryNoteAddress,
+  getDeliveryNoteRowKey,
+  groupDeliveryNotePackagesByOrder,
+  useDeliveryNotesModel,
+} from "@repo/features/delivery-notes";
 
 const { Text, Link, Paragraph, Title } = Typography;
 
-type DeliveryNotesPageState = ReturnType<typeof useDeliveryNotesPage>;
+type DeliveryNotesPageState = ReturnType<typeof useDeliveryNotesModel>;
 
 const formatDate = (value?: string) =>
   value ? dayjs(value).format("HH:mm DD/MM/YYYY") : "---";
-
-const getNote = (record: any) => record?.delivery_note || {};
 
 const moneyCeil = (value: unknown) => Math.ceil(Number(value || 0));
 
@@ -85,19 +89,6 @@ export const DeliveryNotesFilter = ({ page }: { page: DeliveryNotesPageState }) 
   );
 };
 
-const groupPackagesByOrder = (items: any[] = []) => {
-  const groups: Record<string, any> = {};
-  items.forEach((item) => {
-    const order = item.order || {};
-    const key = order.code || item?.package?.orderCode || "UNKNOWN";
-    if (!groups[key]) {
-      groups[key] = { ...order, code: key, packages: [] };
-    }
-    if (item.package) groups[key].packages.push(item.package);
-  });
-  return Object.values(groups);
-};
-
 export const DeliveryNotesExpanded = ({ record }: { record: any }) => {
   const columns: ColumnsType<any> = [
     {
@@ -148,7 +139,7 @@ export const DeliveryNotesExpanded = ({ record }: { record: any }) => {
     <Table
       size="small"
       columns={columns}
-      dataSource={groupPackagesByOrder(record.delivery_note_packages)}
+      dataSource={groupDeliveryNotePackagesByOrder(record.delivery_note_packages)}
       rowKey={(row) => row.code}
       pagination={false}
       locale={{ emptyText: <Empty description="Không có dữ liệu" /> }}
@@ -172,7 +163,7 @@ export const DeliveryNotesList = ({
       key: "code",
       width: 180,
       render: (_, record) => {
-        const note = getNote(record);
+        const note = getDeliveryNote(record);
         return (
           <Paragraph copyable={{ text: note.code }} style={{ marginBottom: 0 }}>
             <Text strong style={{ color: token.colorPrimary }}>{note.code || "---"}</Text>
@@ -186,28 +177,28 @@ export const DeliveryNotesList = ({
       key: "exported_at",
       width: 180,
       align: "right",
-      render: (_, record) => formatDate(getNote(record).exported_at),
+      render: (_, record) => formatDate(getDeliveryNote(record).exported_at),
     },
     {
       title: "Số lượng kiện",
       key: "package_number",
       width: 140,
       align: "right",
-      render: (_, record) => quantityFormat(getNote(record).package_number),
+      render: (_, record) => quantityFormat(getDeliveryNote(record).package_number),
     },
     {
       title: "Tổng cân nặng",
       key: "total_weight",
       width: 140,
       align: "right",
-      render: (_, record) => `${quantityFormat(getNote(record).total_weight)} kg`,
+      render: (_, record) => `${quantityFormat(getDeliveryNote(record).total_weight)} kg`,
     },
     {
       title: "Tiền cần thu",
       key: "amount_collect",
       width: 140,
       align: "right",
-      render: (_, record) => moneyFormat(moneyCeil(getNote(record).amount_collect)),
+      render: (_, record) => moneyFormat(moneyCeil(getDeliveryNote(record).amount_collect)),
     },
     {
       title: "Mã vận đơn",
@@ -221,10 +212,7 @@ export const DeliveryNotesList = ({
       key: "customer_address",
       width: 360,
       render: (_, record) => {
-        const note = getNote(record);
-        const address = note.customer_receiver || note.customer_address
-          ? `${note.customer_receiver || "---"} - ${note.customer_address || "---"}`
-          : "---";
+        const address = getDeliveryNoteAddress(record);
         return (
           <Tooltip title={address}>
             <Text style={{ whiteSpace: "normal" }}>{address}</Text>
@@ -253,7 +241,7 @@ export const DeliveryNotesList = ({
       <Table
         columns={columns}
         dataSource={page.listData?.data || []}
-        rowKey={(record) => getNote(record).id || getNote(record).code}
+        rowKey={getDeliveryNoteRowKey}
         loading={page.isDeliveryNotesLoading}
         pagination={false}
         expandable={{
@@ -281,7 +269,7 @@ export const DeliveryNotesList = ({
 };
 
 export const DeliveryNotesPage = () => {
-  const page = useDeliveryNotesPage();
+  const page = useDeliveryNotesModel();
   return (
     <Space direction="vertical" size="large" style={{ width: "100%" }}>
       <DeliveryNotesFilter page={page} />

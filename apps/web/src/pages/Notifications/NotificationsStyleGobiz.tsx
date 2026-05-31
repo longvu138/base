@@ -18,7 +18,10 @@ import { BellOutlined, CheckOutlined, RightOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import "dayjs/locale/vi";
-import { useNotificationsPage, type NotificationItem } from "@repo/hooks";
+import {
+  useNotificationsModel,
+  type NotificationItem,
+} from "@repo/features/notifications";
 
 dayjs.extend(relativeTime);
 dayjs.locale("vi");
@@ -29,17 +32,16 @@ export const NotificationsStyleGobiz = () => {
     t,
     i18n,
     activeGroup,
-    setActiveGroup,
     unreadCount,
     tabs,
     notifications,
     isLoading,
-    fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-    markAllAsRead,
+    state,
+    actions,
     handleNotificationClick,
-  } = useNotificationsPage();
+  } = useNotificationsModel();
 
   dayjs.locale(i18n.language === "vi" ? "vi" : "en");
 
@@ -72,8 +74,8 @@ export const NotificationsStyleGobiz = () => {
               type="primary"
               icon={<CheckOutlined />}
               disabled={!unreadCount}
-              loading={markAllAsRead.isPending}
-              onClick={() => markAllAsRead.mutate()}
+              loading={state.isMarkingAllAsRead}
+              onClick={actions.markAllAsRead}
             >
               {t("notifications.mark_as_read_all")}
             </Button>
@@ -86,7 +88,7 @@ export const NotificationsStyleGobiz = () => {
                 label: tab.label,
                 icon: <BellOutlined />,
               }))}
-              onClick={({ key }) => setActiveGroup(key)}
+              onClick={({ key }) => actions.setActiveGroup(key)}
               style={{ borderInlineEnd: 0 }}
             />
           </Space>
@@ -170,7 +172,7 @@ export const NotificationsStyleGobiz = () => {
             <Flex justify="center" style={{ marginTop: token.marginMD }}>
               <Button
                 loading={isFetchingNextPage}
-                onClick={() => fetchNextPage()}
+                onClick={() => actions.fetchNextPage()}
               >
                 {t("orders.buttons.view_more")}
               </Button>
