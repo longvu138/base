@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dayjs from "dayjs";
 import { Link } from "react-router-dom";
 import {
@@ -6,7 +6,7 @@ import {
   getShipmentServicesInGroup,
   getShipmentServicesWithoutGroup,
   getVisibleShipmentServiceGroups,
-  useShipmentsPage,
+  useMobileShipmentsPage,
   useShipmentMilestonesQuery,
 } from "@repo/hooks";
 import { FilterPanel } from "@repo/ui";
@@ -26,13 +26,11 @@ import {
   Input,
   List,
   Modal,
-  Pagination,
   Popover,
   Row,
   Select,
   Skeleton,
   Space,
-  Spin,
   Tag,
   Timeline,
   Tooltip,
@@ -56,13 +54,6 @@ const { Paragraph, Text } = Typography;
 
 const formatDate = (value?: string) =>
   value ? dayjs(value).format("HH:mm DD/MM/YYYY") : "---";
-
-const formatNumber = (value?: number | string) => {
-  const numericValue = Number(value ?? 0);
-  return Number.isFinite(numericValue)
-    ? new Intl.NumberFormat("vi-VN").format(numericValue)
-    : "0";
-};
 
 // Keep shipment list amounts aligned with the legacy shipment screen,
 // where Math.round coerces null, empty strings, and numeric strings.
@@ -106,9 +97,7 @@ const ShipmentStatusPopover = ({
           style={{ width: 360, maxWidth: "calc(100vw - 48px)" }}
         >
           {isLoading ? (
-            <Flex justify="center" align="center" style={{ minHeight: 140 }}>
-              <Spin />
-            </Flex>
+            <Skeleton active paragraph={{ rows: 4 }} />
           ) : Array.isArray(milestones) && milestones.length > 0 ? (
             <div
               style={{
@@ -169,7 +158,29 @@ const ShipmentStatusPopover = ({
   );
 };
 
-export type ShipmentsPageLogic = ReturnType<typeof useShipmentsPage>;
+export type ShipmentsPageLogic = ReturnType<typeof useMobileShipmentsPage>;
+
+const ShipmentCardSkeleton = () => (
+  <Card>
+    <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+      <Flex justify="space-between" align="flex-start" gap={12}>
+        <Space direction="vertical" size={6} style={{ flex: 1 }}>
+          <Skeleton.Input active size="small" style={{ width: 140 }} />
+          <Skeleton.Input active size="small" style={{ width: "80%" }} />
+        </Space>
+        <Skeleton.Button active size="small" style={{ width: 92 }} />
+      </Flex>
+      <Skeleton active title={false} paragraph={{ rows: 3 }} />
+      <Row gutter={[12, 12]}>
+        {[0, 1, 2, 3].map((item) => (
+          <Col xs={12} key={item}>
+            <Skeleton.Input active size="small" style={{ width: "100%" }} />
+          </Col>
+        ))}
+      </Row>
+    </Space>
+  </Card>
+);
 
 export const ShipmentsView = ({
   logic,
@@ -182,20 +193,18 @@ export const ShipmentsView = ({
   const {
     t,
     form,
-    page,
-    pageSize,
-    setPage,
-    setPageSize,
     shipmentData,
     isShipmentLoading,
-    isShipmentFetching,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
     statusData,
     servicesData,
     serviceGroupsData,
     isServicesLoading,
     statusOptions,
     handleSearch,
-    clearFilters,
+    handleReset,
     importOpen,
     setImportOpen,
     importFile,
@@ -219,7 +228,9 @@ export const ShipmentsView = ({
     exportMutation,
   } = logic;
   const total = shipmentData?.total || 0;
+  const rows = shipmentData?.data || [];
   const pageGap = dense ? 12 : 16;
+  const observerRef = useRef<IntersectionObserver | null>(null);
   const cutOffTypeSearch = Form.useWatch("typeSearch", form);
   const handlingTimeFrom = Form.useWatch("handlingTimeFrom", form);
   const handlingTimeTo = Form.useWatch("handlingTimeTo", form);
@@ -474,7 +485,37 @@ export const ShipmentsView = ({
     );
   };
 
-  const renderShipmentItem = (item: any) => {
+  const sentinelIndex = Math.max(rows.length - 5, 0);
+  const sentinelRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      observerRef.current?.disconnect();
+      if (!node || !hasNextPage || isFetchingNextPage || isShipmentLoading) {
+        return;
+      }
+
+      observerRef.current = new IntersectionObserver(
+        (entries) => {
+          if (
+            entries[0]?.isIntersecting &&
+            hasNextPage &&
+            !isFetchingNextPage
+          ) {
+            fetchNextPage();
+          }
+        },
+        { rootMargin: "200px 0px" },
+      );
+      observerRef.current.observe(node);
+    },
+    [fetchNextPage, hasNextPage, isFetchingNextPage, isShipmentLoading],
+  );
+
+  useEffect(() => () => observerRef.current?.disconnect(), []);
+
+  const renderShipmentItem = (
+    item: any,
+    sentinelNodeRef?: (node: HTMLDivElement | null) => void,
+  ) => {
     const merchant = getFirstValue(item, ["merchantName", "shopName"]);
     const refShipmentCode = item.refShipmentCode;
     const warehouseName = item.receivingWarehouse?.displayName;
@@ -490,7 +531,8 @@ export const ShipmentsView = ({
     const totalNeedPay = Number(item?.totalUnpaid || 0);
 
     return (
-      <List.Item style={{ paddingInline: 0 }}>
+      <List.Item style={{ padding: 0, borderBlockEnd: "none" }}>
+        <div ref={sentinelNodeRef} style={{ width: "100%" }}>
         <Card
           size="small"
           style={{ width: "100%" }}
@@ -639,6 +681,7 @@ export const ShipmentsView = ({
             </Row>
           </Space>
         </Card>
+        </div>
       </List.Item>
     );
   };
@@ -649,7 +692,7 @@ export const ShipmentsView = ({
         <FilterPanel
           form={form}
           onSearch={handleSearch}
-          onReset={clearFilters}
+          onReset={handleReset}
           searchText={t("orders.buttons.search")}
           resetText={t("orders.buttons.reset")}
           showCollapseAll={true}
@@ -884,7 +927,7 @@ export const ShipmentsView = ({
           <Space wrap>
             <FileSearchOutlined />
             <span>{t("shipments.list_title")}</span>
-            <Tag>{formatNumber(total)}</Tag>
+            <Tag>{quantityFormat(total)}</Tag>
           </Space>
           <Flex
             gap={8}
@@ -911,32 +954,50 @@ export const ShipmentsView = ({
             </Button>
           </Flex>
         </Flex>
-        <List
-          dataSource={shipmentData?.data || []}
-          loading={{
-            spinning: isShipmentLoading || isShipmentFetching,
-            tip: t("common.loading"),
-          }}
-          rowKey={(record: any) => record.id || record.code}
-          renderItem={renderShipmentItem}
-          locale={{
-            emptyText: <Empty description={t("shipments.empty_list")} />,
-          }}
-        />
-
-        <Flex justify="flex-end" style={{ marginTop: 16 }}>
-          <Pagination
-            current={page}
-            pageSize={pageSize}
-            total={total}
-            showSizeChanger
-            disabled={isShipmentLoading || isShipmentFetching}
-            onChange={(nextPage, nextPageSize) => {
-              setPage(nextPage);
-              if (nextPageSize !== pageSize) setPageSize(nextPageSize);
-            }}
-          />
-        </Flex>
+        {isShipmentLoading ? (
+          <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+            {Array.from({ length: 5 }).map((_, index) => (
+              <ShipmentCardSkeleton key={index} />
+            ))}
+          </Space>
+        ) : rows.length > 0 ? (
+          <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+            <List
+              split={false}
+              dataSource={rows}
+              rowKey={(record: any) => record.id || record.code}
+              renderItem={(record: any, index) =>
+                (
+                  <div
+                    style={{
+                      marginBottom:
+                        index === rows.length - 1 ? 0 : token.marginMD,
+                    }}
+                  >
+                    {renderShipmentItem(
+                      record,
+                      index === sentinelIndex ? sentinelRef : undefined,
+                    )}
+                  </div>
+                )
+              }
+              locale={{
+                emptyText: <Empty description={t("shipments.empty_list")} />,
+              }}
+            />
+            {isFetchingNextPage ? <ShipmentCardSkeleton /> : null}
+            {!hasNextPage ? (
+              <Text
+                type="secondary"
+                style={{ display: "block", textAlign: "center" }}
+              >
+                {t("common.no_more_data")}
+              </Text>
+            ) : null}
+          </Space>
+        ) : (
+          <Empty description={t("shipments.empty_list")} />
+        )}
       </Card>
 
       <Modal
@@ -1092,7 +1153,7 @@ export const ShipmentsView = ({
 };
 
 export const ShipmentsStyleDefault = () => {
-  const logic = useShipmentsPage();
+  const logic = useMobileShipmentsPage();
   return <ShipmentsView logic={logic} />;
 };
 

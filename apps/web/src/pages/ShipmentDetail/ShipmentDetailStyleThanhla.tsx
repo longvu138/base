@@ -1,9 +1,9 @@
 import { Button, Card, Flex, Skeleton, Tag, Typography, theme } from "antd";
 import { ArrowLeftOutlined, RocketOutlined } from "@ant-design/icons";
 import { useTranslation } from "@repo/i18n";
+import { useShipmentDetailPage } from "@repo/hooks";
 import { ChatPanel } from "../../components/Common/ChatPanel";
 import { ShipmentDetailContent } from "./ShipmentDetailContent";
-import { useShipmentDetailPage } from "./hooks/useShipmentDetailPage";
 
 const { Text, Title } = Typography;
 

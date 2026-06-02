@@ -2,8 +2,8 @@ import { Button, Skeleton, theme } from "antd";
 import { ArrowLeftOutlined, RocketOutlined } from "@ant-design/icons";
 import { useTranslation } from "@repo/i18n";
 import { useShipmentDetailPage } from "@repo/hooks";
-import { ChatPanel } from "../../components/Common/ChatPanel";
 import { ShipmentDetailContent } from "./ShipmentDetailContent";
+import { ChatPanel } from "./ChatPanel";
 
 export const ShipmentDetailStyleDefault = () => {
   const { token } = theme.useToken();
@@ -44,14 +44,12 @@ export const ShipmentDetailStyleDefault = () => {
         </Button>
       </div>
 
-      <div className="flex gap-4 pt-6 items-start">
-        <ShipmentDetailContent shipment={shipment} statusData={statusData} />
+      <div className="pt-6">
+        <div style={{ width: "100%", maxWidth: 880 }}>
+          <ShipmentDetailContent shipment={shipment} statusData={statusData} />
+        </div>
 
-        {/* Chat panel — sticky bên phải */}
-        <div
-          className="w-[320px] flex-shrink-0 sticky top-[73px]"
-          style={{ height: "calc(100vh - 93px)" }}
-        >
+        <div className="mt-4" style={{ height: 560, width: "100%", maxWidth: 880 }}>
           <ChatPanel
             entityType="shipments"
             entityCode={code}
@@ -63,3 +61,5 @@ export const ShipmentDetailStyleDefault = () => {
     </div>
   );
 };
+
+export default ShipmentDetailStyleDefault;

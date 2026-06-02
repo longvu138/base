@@ -260,7 +260,7 @@ export const CartCheckoutStyleDefault = () => {
               const skus = getSkus(merchant);
               const merchantQuantity = skus.reduce(
                 (sum: number, sku: any) => sum + Number(sku.quantity || 0),
-                0,
+                0
               );
               return (
                 <Card
@@ -339,7 +339,7 @@ export const CartCheckoutStyleDefault = () => {
                           .sort(
                             (left: any, right: any) =>
                               Number(left.position || 0) -
-                              Number(right.position || 0),
+                              Number(right.position || 0)
                           )
                           .map((service: any) => (
                             <Typography.Text key={service.id || service.code}>
@@ -497,9 +497,9 @@ export const CartCheckoutStyleDefault = () => {
                                         moneyCeil(
                                           percentToMoney(
                                             tenantPercent,
-                                            draftOrder.exchangedTotalValue,
-                                          ),
-                                        ),
+                                            draftOrder.exchangedTotalValue
+                                          )
+                                        )
                                       )}
                                     </Typography.Text>
                                   </Space>
@@ -549,16 +549,16 @@ export const CartCheckoutStyleDefault = () => {
                                             moneyCeil(
                                               percentToMoney(
                                                 percent,
-                                                draftOrder.exchangedTotalValue,
-                                              ),
-                                            ),
+                                                draftOrder.exchangedTotalValue
+                                              )
+                                            )
                                           )}
                                         </Typography.Text>
                                       </Space>
                                     </Radio>
                                   </div>
                                 );
-                              },
+                              }
                             )}
 
                             {isEnabledBiffin &&
@@ -636,7 +636,7 @@ export const CartCheckoutStyleDefault = () => {
                                                 biffinOptions.length - 1 && (
                                                 <Tooltip
                                                   title={t(
-                                                    "cartCheckout.textPercentRounding",
+                                                    "cartCheckout.textPercentRounding"
                                                   )}
                                                 >
                                                   <QuestionCircleOutlined
@@ -657,14 +657,14 @@ export const CartCheckoutStyleDefault = () => {
                                               }}
                                             >
                                               {formatCurrency(
-                                                moneyCeil(item?.money || 0),
+                                                moneyCeil(item?.money || 0)
                                               )}
                                             </Typography.Text>
                                           </Space>
                                         </Radio>
                                       </div>
                                     );
-                                  },
+                                  }
                                 )
                               ))}
                           </Space>
@@ -713,9 +713,7 @@ export const CartCheckoutStyleDefault = () => {
                           icon={<CloseOutlined />}
                           onClick={() =>
                             setAppliedVouchers((items) =>
-                              items.filter(
-                                (item) => item.code !== voucher.code,
-                              ),
+                              items.filter((item) => item.code !== voucher.code)
                             )
                           }
                         />
@@ -723,7 +721,7 @@ export const CartCheckoutStyleDefault = () => {
                       </Space>
                       <Typography.Text type="danger">
                         {formatCurrency(
-                          moneyCeil(-Number(voucher.totalDiscountFee || 0)),
+                          moneyCeil(-Number(voucher.totalDiscountFee || 0))
                         )}
                       </Typography.Text>
                     </Flex>
@@ -758,7 +756,7 @@ export const CartCheckoutStyleDefault = () => {
                     </Typography.Text>
                     <Typography.Text strong>
                       {formatCurrency(
-                        moneyCeil(draftOrder.exchangedTotalValue || 0),
+                        moneyCeil(draftOrder.exchangedTotalValue || 0)
                       )}
                     </Typography.Text>
                   </Flex>
@@ -803,8 +801,8 @@ export const CartCheckoutStyleDefault = () => {
                             {formatCurrency(
                               moneyCeil(
                                 Number(draftOrder.exchangedTotalValue || 0) -
-                                  selectedBiffinMoney,
-                              ),
+                                  selectedBiffinMoney
+                              )
                             )}
                           </Typography.Text>
                         </Flex>
@@ -888,7 +886,7 @@ export const CartCheckoutStyleDefault = () => {
                             </Typography.Link>
                             <Tooltip
                               title={t(
-                                "cartCheckout.guide_recharge_into_account",
+                                "cartCheckout.guide_recharge_into_account"
                               )}
                             >
                               <QuestionCircleOutlined

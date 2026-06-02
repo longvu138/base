@@ -14,6 +14,7 @@ export * from './useCashRequestHooks';
 export * from './pages/orders';
 export * from './pages/orderDetail';
 export * from './pages/shipments';
+export * from './pages/shipmentDetail';
 export * from './pages/createShipment';
 export * from './pages/packages';
 export * from './pages/transactions';

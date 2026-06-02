@@ -5,6 +5,7 @@ import OrdersPage from './pages/Orders';
 import OrderDetailPage from './pages/OrderDetail';
 import CartsPage from './pages/Carts';
 import ShipmentsPage from './pages/Shipments';
+import ShipmentDetailPage from './pages/ShipmentDetail';
 import CreateShipmentPage from './pages/CreateShipment';
 import ClaimsPage from './pages/Claims';
 import CreateClaimPage from './pages/CreateClaim';
@@ -41,6 +42,7 @@ function AppRoutes() {
                     <Route path="orders/:code" element={<OrderDetailPage />} />
                     <Route path="carts" element={<CartsPage />} />
                     <Route path="shipments" element={<ShipmentsPage />} />
+                    <Route path="shipments/:code" element={<ShipmentDetailPage />} />
                     <Route path="shipments/create" element={<CreateShipmentPage />} />
                     <Route path="claims" element={<ClaimsPage />} />
                     <Route path="tickets/create" element={<CreateClaimPage />} />

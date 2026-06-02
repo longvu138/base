@@ -1,8 +1,8 @@
 import { ShipmentsView } from "./ShipmentsStyleDefault";
-import { useShipmentsPage } from "@repo/hooks";
+import { useMobileShipmentsPage } from "@repo/hooks";
 
 export const ShipmentsStyleThanhla = () => {
-  const logic = useShipmentsPage();
+  const logic = useMobileShipmentsPage();
   return <ShipmentsView logic={logic} dense />;
 };
 
