@@ -141,6 +141,7 @@ export const useCartCheckoutPage = () => {
       size: 9999,
       sort: "defaultAddress:desc,createdAt:desc",
     });
+  const isAddressesFetching = isFetchingAddresses;
   const { data: receivingAddresses, isFetching: isFetchingReceivingAddresses } =
     useAddressesQuery({
       page: 0,
@@ -170,6 +171,10 @@ export const useCartCheckoutPage = () => {
   const storedProjectInfo = useMemo(
     () => readJsonStorage("currentProjectInfo"),
     [],
+  );
+  console.log(
+    "🚀 ~ useCartCheckoutPage ~ storedProjectInfo:",
+    storedProjectInfo,
   );
   const currentProjectInfo = useMemo(() => {
     if (isFullProjectInfo(tenantConfig)) return tenantConfig;

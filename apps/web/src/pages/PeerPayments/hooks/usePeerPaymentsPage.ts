@@ -21,7 +21,7 @@ import {
   usePeerPaymentsLogic,
 } from "@repo/hooks";
 import { useTranslation } from "@repo/i18n";
-import { LocalStoreUtil, moneyFormat } from "@repo/util";
+import { moneyFormat } from "@repo/util";
 
 export const usePeerPaymentsPage = () => {
   const { t } = useTranslation();
@@ -169,7 +169,10 @@ export const usePeerPaymentsPage = () => {
     }
   };
 
-  const handleCreatePaymentRequest = async (values: Record<string, any>) => {
+  const handleCreatePaymentRequest = async (
+    values: Record<string, any>,
+    options: { needPayOnRequest?: boolean } = {},
+  ) => {
     const {
       requestForPayType,
       originalReceiptCode: _originalReceiptCode,
@@ -195,9 +198,7 @@ export const usePeerPaymentsPage = () => {
       force: true,
     };
 
-    const needPayOnRequest =
-      LocalStoreUtil.getJson("currentProjectInfo")?.tenantConfig
-        ?.peerPaymentConfig?.needPayOnRequest;
+    const needPayOnRequest = options.needPayOnRequest;
     const isCompany = requestForPayType === "company";
     if (isCompany) {
       if (needPayOnRequest) {

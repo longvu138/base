@@ -1,38 +1,38 @@
-import { useState, useEffect } from 'react';
-import { useLoginMutation } from './useLoginMutation';
-import { TenantApi } from '@repo/api';
+import { useState, useEffect } from "react";
+import { useLoginMutation } from "./useLoginMutation";
+import { TenantApi } from "@repo/api";
 
 export interface LoginCredentials {
-    username: string;
-    password: string;
+  username: string;
+  password: string;
 }
 
 export interface UseLoginOptions {
-    clientId?: string;
-    onSuccess?: (data: any) => void;
-    onError?: (error: any) => void;
-    redirectTo?: string;
-    showMessage?: (type: 'success' | 'error', message: string) => void;
+  clientId?: string;
+  onSuccess?: (data: any) => void;
+  onError?: (error: any) => void;
+  redirectTo?: string;
+  showMessage?: (type: "success" | "error", message: string) => void;
 }
 
 export interface UseLoginReturn {
-    // Trạng thái form
-    credentials: LoginCredentials;
-    setCredentials: React.Dispatch<React.SetStateAction<LoginCredentials>>;
-    updateField: (field: keyof LoginCredentials, value: string) => void;
+  // Trạng thái form
+  credentials: LoginCredentials;
+  setCredentials: React.Dispatch<React.SetStateAction<LoginCredentials>>;
+  updateField: (field: keyof LoginCredentials, value: string) => void;
 
-    // Hành động đăng nhập
-    handleLogin: (data?: LoginCredentials) => void;
+  // Hành động đăng nhập
+  handleLogin: (data?: LoginCredentials) => void;
 
-    // Trạng thái
-    isLoading: boolean;
-    error: any;
-    loginError: string | null;
-    setLoginError: React.Dispatch<React.SetStateAction<string | null>>;
+  // Trạng thái
+  isLoading: boolean;
+  error: any;
+  loginError: string | null;
+  setLoginError: React.Dispatch<React.SetStateAction<string | null>>;
 
-    // Validation
-    isValid: boolean;
-    projectInfo: any;
+  // Validation
+  isValid: boolean;
+  projectInfo: any;
 }
 
 /**
@@ -55,99 +55,108 @@ export interface UseLoginReturn {
  * ```
  */
 export const useLogin = (options: UseLoginOptions = {}): UseLoginReturn => {
-    const { clientId = 'default-client', onSuccess, onError, showMessage } = options;
+  const {
+    clientId = "default-client",
+    onSuccess,
+    onError,
+    showMessage,
+  } = options;
 
-    const [projectInfo, setProjectInfo] = useState<any>(() => {
-        const saved = localStorage.getItem('currentProjectInfo');
-        return saved ? JSON.parse(saved) : null;
-    });
+  const [projectInfo, setProjectInfo] = useState<any>(() => {
+    const saved = localStorage.getItem("currentProjectInfo");
+    return saved ? JSON.parse(saved) : null;
+  });
 
-    useEffect(() => {
-        TenantApi.getCurrentTenant().then(res => {
-            if (res.data) {
-                localStorage.setItem('currentProjectInfo', JSON.stringify(res.data));
-                setProjectInfo(res.data);
-            }
-        }).catch(console.error);
-    }, []);
-
-    // Quản lý trạng thái form
-    const [credentials, setCredentials] = useState<LoginCredentials>({
-        username: '',
-        password: '',
-    });
-
-    const [loginError, setLoginError] = useState<string | null>(null);
-
-    // Hook mutation
-    const { mutate: login, isPending, error } = useLoginMutation();
-
-    // Cập nhật từng field riêng lẻ
-    const updateField = (field: keyof LoginCredentials, value: string) => {
-        setCredentials(prev => ({
-            ...prev,
-            [field]: value
-        }));
-        setLoginError(null); // Xóa lỗi khi người dùng bắt đầu nhập lại
-    };
-
-    // Validation form
-    const isValid = credentials.username.trim() !== '' && credentials.password.trim() !== '';
-
-    // Handler đăng nhập chính
-    const handleLogin = (data?: LoginCredentials) => {
-        const loginData = data || credentials;
-        const currentValid = loginData.username.trim() !== '' && loginData.password.trim() !== '';
-
-        if (!currentValid) {
-            setLoginError('Vui lòng nhập đầy đủ thông tin đăng nhập');
-            return;
+  useEffect(() => {
+    TenantApi.getCurrentTenant()
+      .then((res) => {
+        if (res.data) {
+          localStorage.setItem("currentProjectInfo", JSON.stringify(res.data));
+          setProjectInfo(res.data);
         }
+      })
+      .catch(console.error);
+  }, []);
 
-        setLoginError(null);
+  // Quản lý trạng thái form
+  const [credentials, setCredentials] = useState<LoginCredentials>({
+    username: "",
+    password: "",
+  });
 
-        login(
-            {
-                username: loginData.username,
-                password: loginData.password,
-                grant_type: 'password',
-                scope: 'all',
-                client_id: clientId
-            },
-            {
-                onSuccess: (data) => {
-                    showMessage?.('success', 'Đăng nhập thành công');
-                    onSuccess?.(data);
-                },
-                onError: (err: any) => {
-                    const apiMessage = err?.response?.data?.message;
-                    let errorMessage = 'Lỗi không xác định';
-                    
-                    if (err?.response?.status === 400 || err?.response?.status === 401) {
-                        errorMessage = 'Tài khoản hoặc mật khẩu không chính xác.';
-                    } else if (apiMessage) {
-                        errorMessage = apiMessage;
-                    } else if (err?.message) {
-                        errorMessage = err.message;
-                    }
+  const [loginError, setLoginError] = useState<string | null>(null);
 
-                    setLoginError(errorMessage);
-                    onError?.(err);
-                }
-            }
-        );
-    };
+  // Hook mutation
+  const { mutate: login, isPending, error } = useLoginMutation();
 
-    return {
-        credentials,
-        setCredentials,
-        updateField,
-        handleLogin,
-        isLoading: isPending,
-        error,
-        loginError,
-        setLoginError,
-        isValid,
-        projectInfo,
-    };
+  // Cập nhật từng field riêng lẻ
+  const updateField = (field: keyof LoginCredentials, value: string) => {
+    setCredentials((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+    setLoginError(null); // Xóa lỗi khi người dùng bắt đầu nhập lại
+  };
+
+  // Validation form
+  const isValid =
+    credentials.username.trim() !== "" && credentials.password.trim() !== "";
+
+  // Handler đăng nhập chính
+  const handleLogin = (data?: LoginCredentials) => {
+    const loginData = data || credentials;
+    const currentValid =
+      loginData.username.trim() !== "" && loginData.password.trim() !== "";
+
+    if (!currentValid) {
+      setLoginError("Vui lòng nhập đầy đủ thông tin đăng nhập");
+      return;
+    }
+
+    setLoginError(null);
+
+    login(
+      {
+        username: loginData.username,
+        password: loginData.password,
+        grant_type: "password",
+        scope: "all",
+        client_id: clientId,
+      },
+      {
+        onSuccess: (data) => {
+          showMessage?.("success", "Đăng nhập thành công");
+          onSuccess?.(data);
+        },
+        onError: (err: any) => {
+          const apiMessage = err?.response?.data?.message;
+          let errorMessage = "Lỗi không xác định";
+
+          if (err?.response?.status === 400 || err?.response?.status === 401) {
+            errorMessage = "Tài khoản hoặc mật khẩu không chính xác.";
+          } else if (apiMessage) {
+            errorMessage = apiMessage;
+          } else if (err?.message) {
+            errorMessage = err.message;
+          }
+
+          setLoginError(errorMessage);
+          onError?.(err);
+        },
+      },
+    );
+  };
+
+  return {
+    credentials,
+    setCredentials,
+    updateField,
+    handleLogin,
+    isLoading: isPending,
+    error,
+    loginError,
+    setLoginError,
+    isValid,
+    projectInfo,
+  };
 };

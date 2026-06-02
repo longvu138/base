@@ -136,9 +136,16 @@ const renderAccount = (record: any, peerPaymentType?: string) => {
     ].filter(Boolean);
     return lines.length ? (
       <Space direction="vertical" size={0}>
-        {lines.map((line) => (
-          <Text key={line}>{line}</Text>
-        ))}
+        {record.beneficiaryAccount && (
+          <Paragraph copyable={{ text: record.beneficiaryAccount }} style={{ marginBottom: 0 }}>
+            {record.beneficiaryAccount}
+          </Paragraph>
+        )}
+        {[record.beneficiaryBank, record.beneficiaryName, record.beneficiaryBankBranch]
+          .filter(Boolean)
+          .map((line) => (
+            <Text key={line}>{line}</Text>
+          ))}
       </Space>
     ) : (
       "---"
@@ -328,17 +335,14 @@ export const PeerPaymentsStyleThanhla = () => {
   const dailyTransfer =
     Array.isArray(dailySummary) &&
     dailySummary.find((item: any) => item.paymentMethodCode === "bank_transfer");
-  const dailyMessage =
-    Array.isArray(dailySummary) && dailySummary.length > 0
-      ? t("peer_payment.daily_message", {
-          date: dayjs().format("DD/MM/YYYY"),
-          paymentNum: quantityFormat(dailyPayment?.totalPeerPayment || 0),
-          paymentAmount: moneyFormat(dailyPayment?.totalAmount || 0, "CNY"),
-          transferNum: quantityFormat(dailyTransfer?.totalPeerPayment || 0),
-          transferAmount: moneyFormat(dailyTransfer?.totalAmount || 0, "CNY"),
-          tenantName: currentProjectInfo.name || currentProjectInfo.id || "",
-        })
-      : "";
+  const dailyMessage = t("peer_payment.daily_message", {
+    date: dayjs().format("DD/MM/YYYY"),
+    paymentNum: quantityFormat(dailyPayment?.totalPeerPayment || 0),
+    paymentAmount: moneyFormat(dailyPayment?.totalAmount || 0, "CNY"),
+    transferNum: quantityFormat(dailyTransfer?.totalPeerPayment || 0),
+    transferAmount: moneyFormat(dailyTransfer?.totalAmount || 0, "CNY"),
+    tenantName: currentProjectInfo.name || currentProjectInfo.id || "",
+  });
   const exchangeRate = useMemo(
     () => exchangeRatesBatch.find((item: any) => item.refId === "payment")?.exchangeRate || {},
     [exchangeRatesBatch],
@@ -735,6 +739,7 @@ export const PeerPaymentsStyleThanhla = () => {
     setCreatePaymentDraftValues({
       ...values,
       paymentMethodCode: values.paymentMethodCode || "alipay",
+      requestForPayType: createPaymentType,
     });
     setCreateDraftFees(draftFees);
     setCreateStep(2);
@@ -830,7 +835,10 @@ export const PeerPaymentsStyleThanhla = () => {
           await submitCreatePaymentStepOne();
           return;
         }
-        await handleCreatePaymentRequest({ ...createPaymentDraftValues, ...values });
+        await handleCreatePaymentRequest(
+          { ...createPaymentDraftValues, ...values },
+          { needPayOnRequest: tenantConfigPayment?.peerPaymentConfig?.needPayOnRequest },
+        );
       } else {
         if (createStep === 1) {
           await submitCreateTransferStepOne();
