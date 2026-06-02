@@ -37,11 +37,11 @@ import {
   usePeerPaymentFinancialsQuery,
   usePeerPaymentLogsInfiniteQuery,
   usePeerPaymentMilestonesQuery,
+  usePeerPaymentDetailPage,
 } from "@repo/hooks";
 import { useTranslation } from "@repo/i18n";
 import { moneyCeil, moneyFormat } from "@repo/util";
 import { ChatPanel } from "../../components/Common/ChatPanel";
-import { usePeerPaymentDetailPage } from "./hooks/usePeerPaymentDetailPage";
 
 const { Text, Title } = Typography;
 const listTypePeerPayment = ["payment", "taobao_global"];

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import dayjs from "dayjs";
 import { Link } from "react-router-dom";
 import {
@@ -134,7 +134,7 @@ const isValidUrl = (value?: string) => {
   }
 };
 
-const StepTitle = ({ children }: { children: React.ReactNode }) => (
+const StepTitle = ({ children }: { children: ReactNode }) => (
   <span
     style={{
       display: "inline-block",
@@ -167,8 +167,8 @@ const Field = ({
   label,
   children,
 }: {
-  label: React.ReactNode;
-  children: React.ReactNode;
+  label: ReactNode;
+  children: ReactNode;
 }) => (
   <Space direction="vertical" size={0} style={{ minWidth: 0, width: "100%" }}>
     <Text type="secondary">{label}</Text>
@@ -738,7 +738,7 @@ export const PeerPaymentsStyleDefault = () => {
                   label: (
                     <Flex align="center" justify="center" gap={token.marginXS}>
                       <SwapOutlined />
-                      {page.t("peer_payment.create_transfer")}
+                      {page.t("peer_payment.transfer")}
                     </Flex>
                   ),
                 },

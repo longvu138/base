@@ -917,6 +917,7 @@
     "request_payment": "Payment request",
     "request_transfer": "Transfer request",
     "request_payment_TBG": "TBG payment request",
+    "transfer": "Transfer",
     "create_transfer": "Create transfer request",
     "create_request_for_pay": "Create payment request",
     "exchange_range": "Exchange rate range",

@@ -28,6 +28,7 @@ import CashRequestPage from './pages/CashRequest';
 import NotificationsPage from './pages/Notifications';
 import StatisticsPage from './pages/Statistics';
 import PeerPaymentsPage from './pages/PeerPayments';
+import PeerPaymentDetailPage from './pages/PeerPaymentDetail';
 import PrivateRoute from './components/PrivateRoute';
 
 function AppRoutes() {
@@ -61,6 +62,7 @@ function AppRoutes() {
                     <Route path="withdrawal-slips" element={<WithdrawalSlipsPage />} />
                     <Route path="cash-request" element={<CashRequestPage />} />
                     <Route path="peer-payments" element={<PeerPaymentsPage />} />
+                    <Route path="peer-payments/:id" element={<PeerPaymentDetailPage />} />
                     <Route path="notifications" element={<NotificationsPage />} />
                     <Route path="statistics" element={<StatisticsPage />} />
                     <Route path="faqs" element={<FaqsPage />} />

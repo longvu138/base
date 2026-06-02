@@ -918,6 +918,7 @@
     "request_payment": "Yêu cầu thanh toán hộ",
     "request_transfer": "Yêu cầu chuyển tiền",
     "request_payment_TBG": "Yêu cầu thanh toán hộ TBG",
+    "transfer": "Chuyển tiền",
     "create_transfer": "Tạo yêu cầu chuyển tiền",
     "create_request_for_pay": "Tạo yêu cầu thanh toán",
     "exchange_range": "Khoảng tỷ giá",

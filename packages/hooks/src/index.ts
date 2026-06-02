@@ -31,6 +31,7 @@ export * from './pages/wishlist';
 export * from './pages/vouchers';
 export * from './pages/faqs';
 export * from './pages/peerPayments';
+export * from './pages/peerPaymentDetail';
 export * from './pages/cashRequests';
 export * from './pages/dashboard';
 export * from './pages/notifications';
