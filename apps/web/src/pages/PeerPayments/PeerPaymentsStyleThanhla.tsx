@@ -328,17 +328,14 @@ export const PeerPaymentsStyleThanhla = () => {
   const dailyTransfer =
     Array.isArray(dailySummary) &&
     dailySummary.find((item: any) => item.paymentMethodCode === "bank_transfer");
-  const dailyMessage =
-    Array.isArray(dailySummary) && dailySummary.length > 0
-      ? t("peer_payment.daily_message", {
-          date: dayjs().format("DD/MM/YYYY"),
-          paymentNum: quantityFormat(dailyPayment?.totalPeerPayment || 0),
-          paymentAmount: moneyFormat(dailyPayment?.totalAmount || 0, "CNY"),
-          transferNum: quantityFormat(dailyTransfer?.totalPeerPayment || 0),
-          transferAmount: moneyFormat(dailyTransfer?.totalAmount || 0, "CNY"),
-          tenantName: currentProjectInfo.name || currentProjectInfo.id || "",
-        })
-      : "";
+  const dailyMessage = t("peer_payment.daily_message", {
+    date: dayjs().format("DD/MM/YYYY"),
+    paymentNum: quantityFormat(dailyPayment?.totalPeerPayment || 0),
+    paymentAmount: moneyFormat(dailyPayment?.totalAmount || 0, "CNY"),
+    transferNum: quantityFormat(dailyTransfer?.totalPeerPayment || 0),
+    transferAmount: moneyFormat(dailyTransfer?.totalAmount || 0, "CNY"),
+    tenantName: currentProjectInfo.name || currentProjectInfo.id || "",
+  });
   const exchangeRate = useMemo(
     () => exchangeRatesBatch.find((item: any) => item.refId === "payment")?.exchangeRate || {},
     [exchangeRatesBatch],

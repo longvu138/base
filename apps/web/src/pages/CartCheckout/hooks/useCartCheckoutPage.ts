@@ -171,6 +171,10 @@ export const useCartCheckoutPage = () => {
     () => readJsonStorage("currentProjectInfo"),
     [],
   );
+  console.log(
+    "🚀 ~ useCartCheckoutPage ~ storedProjectInfo:",
+    storedProjectInfo,
+  );
   const currentProjectInfo = useMemo(() => {
     if (isFullProjectInfo(tenantConfig)) return tenantConfig;
     if (isFullProjectInfo(storedProjectInfo)) return storedProjectInfo;
