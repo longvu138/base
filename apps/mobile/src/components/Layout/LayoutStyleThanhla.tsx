@@ -10,12 +10,13 @@ import {
   UserOutlined,
   BellOutlined,
   FileTextOutlined,
+  BarChartOutlined,
 } from "@ant-design/icons";
 import { useMemo, useState } from "react";
 import { ThemeSwitcher } from "@repo/theme-provider";
 
 import { useCustomerProfile, useLogout } from "@repo/hooks";
-import { useLanguage } from "@repo/i18n";
+import { useLanguage, useTranslation } from "@repo/i18n";
 
 const { Header, Content } = AntLayout;
 
@@ -35,6 +36,7 @@ export const LayoutStyleThanhla = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [drawerVisible, setDrawerVisible] = useState(false);
+  const { t } = useTranslation();
   const { currentLanguage, availableLanguages, changeLanguage } = useLanguage();
   const storedUser = useMemo(getCurrentLoggedUser, []);
   const { data: profile } = useCustomerProfile();
@@ -44,13 +46,13 @@ export const LayoutStyleThanhla = () => {
     currentUser?.fullName ||
     currentUser?.name ||
     currentUser?.username ||
-    "Người dùng";
+    t("navigation.user");
   const userSubtitle =
     currentUser?.username ||
     currentUser?.email ||
     currentUser?.phone ||
     currentUser?.code ||
-    "Thành viên";
+    t("navigation.member");
 
   const { handleLogout } = useLogout({
     onSuccess: () => navigate("/login"),
@@ -107,7 +109,7 @@ export const LayoutStyleThanhla = () => {
         >
           <HomeOutlined className="text-xl" />
           <span className="text-[10px] font-bold uppercase tracking-tighter">
-            Trang chủ
+            {t("navigation.home")}
           </span>
         </Link>
 
@@ -117,7 +119,7 @@ export const LayoutStyleThanhla = () => {
         >
           <FileTextOutlined className="text-xl" />
           <span className="text-[10px] font-bold uppercase tracking-tighter">
-            Đơn hàng
+            {t("navigation.orders")}
           </span>
         </Link>
 
@@ -127,7 +129,7 @@ export const LayoutStyleThanhla = () => {
         >
           <ShoppingCartOutlined className="text-xl" />
           <span className="text-[10px] font-bold uppercase tracking-tighter">
-            Giỏ hàng
+            {t("navigation.cart")}
           </span>
         </Link>
 
@@ -137,7 +139,7 @@ export const LayoutStyleThanhla = () => {
         >
           <BellOutlined className="text-xl" />
           <span className="text-[10px] font-bold uppercase tracking-tighter">
-            Thông báo
+            {t("navigation.notifications")}
           </span>
         </Link>
       </div>
@@ -174,7 +176,7 @@ export const LayoutStyleThanhla = () => {
             </div>
             <div className="text-right">
               <div className="text-xs text-gray-400 font-bold uppercase">
-                Số dư
+                {t("navigation.balance")}
               </div>
               <div className="font-black text-primary text-lg">5.400.000đ</div>
             </div>
@@ -183,56 +185,61 @@ export const LayoutStyleThanhla = () => {
           {/* Menu Grid - COMPLETE ITEMS */}
           <div className="grid grid-cols-3 gap-4">
             {[
-              { path: "/shipments", icon: <CarOutlined />, label: "Ký gửi" },
+              { path: "/shipments", icon: <CarOutlined />, labelKey: "navigation.shipments" },
               {
                 path: "/packages",
                 icon: <ShoppingCartOutlined />,
-                label: "Kiện hàng",
+                labelKey: "navigation.packages",
               },
-              { path: "/claims", icon: <HomeOutlined />, label: "Khiếu nại" },
+              { path: "/claims", icon: <HomeOutlined />, labelKey: "navigation.claims" },
               {
                 path: "/transactions",
                 icon: <ShoppingCartOutlined />,
-                label: "Giao dịch",
+                labelKey: "navigation.transactions",
               },
               {
                 path: "/withdrawal-slips",
                 icon: <UserOutlined />,
-                label: "Rút tiền",
+                labelKey: "navigation.withdrawal_slips",
               },
               {
                 path: "/cash-request",
                 icon: <UserOutlined />,
-                label: "Thu tiền mặt",
+                labelKey: "navigation.cash_request",
               },
               {
                 path: "/delivery-notes",
                 icon: <CarOutlined />,
-                label: "Phiếu xuất",
+                labelKey: "navigation.delivery_notes",
               },
               {
                 path: "/lieferscheine",
                 icon: <CarOutlined />,
-                label: "Phiếu giao",
+                labelKey: "navigation.lieferscheine",
               },
               {
                 path: "/delivery-requests",
                 icon: <ShoppingCartOutlined />,
-                label: "YC giao hàng",
+                labelKey: "navigation.delivery_requests",
+              },
+              {
+                path: "/statistics",
+                icon: <BarChartOutlined />,
+                labelKey: "navigation.statistics",
               },
               {
                 path: "/notifications",
                 icon: <BellOutlined />,
-                label: "Thông báo",
+                labelKey: "navigation.notifications",
               },
-              { path: "/waybills", icon: <HomeOutlined />, label: "Vận đơn" },
-              { path: "/address", icon: <UserOutlined />, label: "Địa chỉ" },
+              { path: "/waybills", icon: <HomeOutlined />, labelKey: "navigation.waybill_short" },
+              { path: "/address", icon: <UserOutlined />, labelKey: "navigation.address_short" },
               {
                 path: "/vouchers",
                 icon: <HeartFilled />,
-                label: "Mã giảm giá",
+                labelKey: "navigation.vouchers",
               },
-              { path: "/faqs", icon: <HomeOutlined />, label: "Hỏi đáp" },
+              { path: "/faqs", icon: <HomeOutlined />, labelKey: "navigation.faqs_short" },
             ].map((item, idx) => (
               <Link
                 key={idx}
@@ -242,7 +249,7 @@ export const LayoutStyleThanhla = () => {
               >
                 <div className="text-xl text-primary">{item.icon}</div>
                 <span className="text-[10px] font-black uppercase text-center text-gray-600 dark:text-gray-400 leading-tight">
-                  {item.label}
+                  {t(item.labelKey)}
                 </span>
               </Link>
             ))}
@@ -253,7 +260,7 @@ export const LayoutStyleThanhla = () => {
             <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-3xl">
               <div className="flex items-center gap-3">
                 <span className="font-bold text-sm dark:text-white">
-                  Giao diện tối
+                  {t("navigation.dark_mode")}
                 </span>
               </div>
               <Select
@@ -274,7 +281,7 @@ export const LayoutStyleThanhla = () => {
               className="flex items-center justify-center gap-2 p-5 bg-red-500 text-white rounded-3xl cursor-pointer font-black uppercase tracking-widest text-xs shadow-lg shadow-red-500/30"
             >
               <LogoutOutlined />
-              <span>Đăng xuất hệ thống</span>
+              <span>{t("navigation.logout_system")}</span>
             </div>
           </div>
         </div>

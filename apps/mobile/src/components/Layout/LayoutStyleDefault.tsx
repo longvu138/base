@@ -19,6 +19,7 @@ import {
   WalletOutlined,
   DollarOutlined,
   BellOutlined,
+  BarChartOutlined,
 } from "@ant-design/icons";
 import { useMemo, useState, useEffect } from "react";
 import { ThemeSwitcher } from "@repo/theme-provider";
@@ -37,7 +38,7 @@ const getCurrentLoggedUser = () => {
 };
 
 function Layout() {
-  useTranslation();
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const [drawerVisible, setDrawerVisible] = useState(false);
@@ -50,7 +51,7 @@ function Layout() {
     currentUser?.fullName ||
     currentUser?.name ||
     currentUser?.username ||
-    "Người dùng";
+    t("navigation.user");
   const userSubtitle =
     currentUser?.username ||
     currentUser?.email ||
@@ -83,7 +84,7 @@ function Layout() {
       icon: <HomeOutlined />,
       label: (
         <Link to="/dashboard" onClick={() => setDrawerVisible(false)}>
-          Dashboard
+          {t("navigation.dashboard")}
         </Link>
       ),
     },
@@ -92,7 +93,7 @@ function Layout() {
       icon: <ShoppingCartOutlined />,
       label: (
         <Link to="/orders" onClick={() => setDrawerVisible(false)}>
-          Đơn hàng
+          {t("navigation.orders")}
         </Link>
       ),
     },
@@ -101,7 +102,7 @@ function Layout() {
       icon: <CarOutlined />,
       label: (
         <Link to="/shipments" onClick={() => setDrawerVisible(false)}>
-          Ký gửi
+          {t("navigation.shipments")}
         </Link>
       ),
     },
@@ -110,7 +111,7 @@ function Layout() {
       icon: <BoxPlotOutlined />,
       label: (
         <Link to="/packages" onClick={() => setDrawerVisible(false)}>
-          Kiện hàng
+          {t("navigation.packages")}
         </Link>
       ),
     },
@@ -119,7 +120,7 @@ function Layout() {
       icon: <AlertOutlined />,
       label: (
         <Link to="/claims" onClick={() => setDrawerVisible(false)}>
-          Khiếu nại
+          {t("navigation.claims")}
         </Link>
       ),
     },
@@ -128,7 +129,7 @@ function Layout() {
       icon: <TransactionOutlined />,
       label: (
         <Link to="/transactions" onClick={() => setDrawerVisible(false)}>
-          Giao dịch
+          {t("navigation.transactions")}
         </Link>
       ),
     },
@@ -137,7 +138,7 @@ function Layout() {
       icon: <WalletOutlined />,
       label: (
         <Link to="/withdrawal-slips" onClick={() => setDrawerVisible(false)}>
-          Rút tiền
+          {t("navigation.withdrawal_slips")}
         </Link>
       ),
     },
@@ -146,7 +147,7 @@ function Layout() {
       icon: <DollarOutlined />,
       label: (
         <Link to="/cash-request" onClick={() => setDrawerVisible(false)}>
-          Thu tiền mặt
+          {t("navigation.cash_request")}
         </Link>
       ),
     },
@@ -158,7 +159,7 @@ function Layout() {
       icon: <FileTextOutlined />,
       label: (
         <Link to="/delivery-notes" onClick={() => setDrawerVisible(false)}>
-          Phiếu xuất
+          {t("navigation.delivery_notes")}
         </Link>
       ),
     },
@@ -167,7 +168,7 @@ function Layout() {
       icon: <CarOutlined />,
       label: (
         <Link to="/lieferscheine" onClick={() => setDrawerVisible(false)}>
-          Phiếu giao
+          {t("navigation.lieferscheine")}
         </Link>
       ),
     },
@@ -176,7 +177,7 @@ function Layout() {
       icon: <SendOutlined />,
       label: (
         <Link to="/delivery-requests" onClick={() => setDrawerVisible(false)}>
-          YC giao hàng
+          {t("navigation.delivery_requests")}
         </Link>
       ),
     },
@@ -185,7 +186,7 @@ function Layout() {
       icon: <TagOutlined />,
       label: (
         <Link to="/waybills" onClick={() => setDrawerVisible(false)}>
-          Vận đơn
+          {t("navigation.waybill_short")}
         </Link>
       ),
     },
@@ -197,7 +198,7 @@ function Layout() {
       icon: <UserOutlined />,
       label: (
         <Link to="/profile" onClick={() => setDrawerVisible(false)}>
-          Hồ sơ
+          {t("navigation.profile")}
         </Link>
       ),
     },
@@ -206,7 +207,16 @@ function Layout() {
       icon: <BellOutlined />,
       label: (
         <Link to="/notifications" onClick={() => setDrawerVisible(false)}>
-          Thông báo
+          {t("navigation.notifications")}
+        </Link>
+      ),
+    },
+    {
+      key: "/statistics",
+      icon: <BarChartOutlined />,
+      label: (
+        <Link to="/statistics" onClick={() => setDrawerVisible(false)}>
+          {t("navigation.statistics")}
         </Link>
       ),
     },
@@ -215,7 +225,7 @@ function Layout() {
       icon: <EnvironmentOutlined />,
       label: (
         <Link to="/address" onClick={() => setDrawerVisible(false)}>
-          Địa chỉ
+          {t("navigation.address_short")}
         </Link>
       ),
     },
@@ -224,7 +234,7 @@ function Layout() {
       icon: <TagOutlined />,
       label: (
         <Link to="/vouchers" onClick={() => setDrawerVisible(false)}>
-          Mã giảm giá
+          {t("navigation.vouchers")}
         </Link>
       ),
     },
@@ -233,7 +243,7 @@ function Layout() {
       icon: <HeartFilled />,
       label: (
         <Link to="/wishlist" onClick={() => setDrawerVisible(false)}>
-          Yêu thích
+          {t("navigation.wishlist_short")}
         </Link>
       ),
     },
@@ -242,7 +252,7 @@ function Layout() {
       icon: <QuestionCircleOutlined />,
       label: (
         <Link to="/faqs" onClick={() => setDrawerVisible(false)}>
-          FAQ
+          {t("navigation.faqs_short")}
         </Link>
       ),
     },
@@ -252,7 +262,7 @@ function Layout() {
     {
       key: "logout",
       icon: <LogoutOutlined className="text-red-500" />,
-      label: <span className="text-red-500">Đăng xuất</span>,
+      label: <span className="text-red-500">{t("navigation.logout")}</span>,
       onClick: () => {
         setDrawerVisible(false);
         handleLogout();
@@ -299,7 +309,7 @@ function Layout() {
       </Header>
 
       <Drawer
-        title="Menu"
+        title={t("navigation.menu")}
         placement="left"
         onClose={() => setDrawerVisible(false)}
         open={drawerVisible}
@@ -334,7 +344,7 @@ function Layout() {
         >
           <HomeOutlined className="text-xl" />
           <span className="text-[10px] font-bold uppercase tracking-tight">
-            Trang chủ
+            {t("navigation.home")}
           </span>
         </Link>
         <Link
@@ -343,7 +353,7 @@ function Layout() {
         >
           <FileTextOutlined className="text-xl" />
           <span className="text-[10px] font-bold uppercase tracking-tight">
-            Đơn hàng
+            {t("navigation.orders")}
           </span>
         </Link>
         <Link
@@ -352,7 +362,7 @@ function Layout() {
         >
           <ShoppingCartOutlined className="text-xl" />
           <span className="text-[10px] font-bold uppercase tracking-tight">
-            Giỏ hàng
+            {t("navigation.cart")}
           </span>
         </Link>
         <Link
@@ -361,7 +371,7 @@ function Layout() {
         >
           <BellOutlined className="text-xl" />
           <span className="text-[10px] font-bold uppercase tracking-tight">
-            Thông báo
+            {t("navigation.notifications")}
           </span>
         </Link>
       </div>

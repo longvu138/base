@@ -34,6 +34,7 @@ export * from './pages/peerPayments';
 export * from './pages/cashRequests';
 export * from './pages/dashboard';
 export * from './pages/notifications';
+export * from './pages/statistics';
 export * from './pages/useProfileAddressPage';
 export * from './pages/useProfileFaqsPage';
 export * from './pages/useProfileNotificationSettingsPage';

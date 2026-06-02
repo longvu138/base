@@ -14,7 +14,21 @@ import {
   type StatisticsTabType,
 } from "@repo/hooks";
 import { moneyFormat, quantityFormat } from "@repo/util";
-import { Alert, Card, Col, Empty, Flex, Row, Space, Spin, Statistic, Tabs, Tooltip, Typography, theme } from "antd";
+import {
+  Alert,
+  Card,
+  Col,
+  Empty,
+  Flex,
+  Row,
+  Space,
+  Spin,
+  Statistic,
+  Tabs,
+  Tooltip,
+  Typography,
+  theme,
+} from "antd";
 import { type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -44,7 +58,9 @@ const StatisticCompare = ({
   if (!previousValue) return null;
 
   const increased = currentValue - previousValue >= 0;
-  const percent = Math.round((Math.abs(currentValue - previousValue) / previousValue) * 100);
+  const percent = Math.round(
+    (Math.abs(currentValue - previousValue) / previousValue) * 100,
+  );
   const displayBefore =
     unit === "currency"
       ? moneyFormat(previousValue)
@@ -59,10 +75,15 @@ const StatisticCompare = ({
           <ArrowDownOutlined style={{ color: "#cf1322" }} />
         )}
         <Text type={increased ? "success" : "danger"}>
-          {t(increased ? "statistic.increaseCompare" : "statistic.decreaseCompare", {
-            value: percent,
-            date: previousDate,
-          })}
+          {t(
+            increased
+              ? "statistic.increaseCompare"
+              : "statistic.decreaseCompare",
+            {
+              value: percent,
+              date: previousDate,
+            },
+          )}
         </Text>
       </Space>
     </Tooltip>
@@ -91,7 +112,10 @@ const SummaryCard = ({
           title={title}
           value={String(value)}
           suffix={suffix}
-          valueStyle={{ fontSize: token.fontSizeHeading3, fontWeight: token.fontWeightStrong }}
+          valueStyle={{
+            fontSize: token.fontSizeHeading3,
+            fontWeight: token.fontWeightStrong,
+          }}
         />
         <Text style={{ fontSize: token.fontSizeXL }}>{icon}</Text>
       </Flex>
@@ -157,7 +181,13 @@ const StatisticsSection = ({
   );
 };
 
-const StatisticDetail = ({ type, tenantCode }: { type: StatisticType; tenantCode?: string }) => {
+const StatisticDetail = ({
+  type,
+  tenantCode,
+}: {
+  type: StatisticType;
+  tenantCode?: string;
+}) => {
   const detail = useStatisticDetailPage(type, tenantCode);
 
   return (
@@ -192,7 +222,13 @@ export const StatisticsStyleDefault = () => {
         ) : (
           <Empty
             image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description={<Alert type="info" message={t("statistic.no_enabled_tabs")} showIcon />}
+            description={
+              <Alert
+                type="info"
+                message={t("statistic.no_enabled_tabs")}
+                showIcon
+              />
+            }
           />
         )}
       </Card>
