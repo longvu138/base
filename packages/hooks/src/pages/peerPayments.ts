@@ -543,12 +543,17 @@ export const useMobilePeerPaymentsPage = () => {
     usePeerPaymentExchangeRatesBatchQuery(exchangeRateBatchBody);
   const { data: userBalance = {}, refetch: refetchUserBalance } = useCustomerBalance();
   const chargeMutation = useChargePeerPaymentMutation();
+  const exchangeRateMutation = usePeerPaymentExchangeRateMutation();
   const exportMutation = useExportPeerPaymentsMutation();
   const createRequestForPayMutation = useCreateRequestForPayMutation();
   const askForPayMutation = useAskForPayMutation();
   const createPayAnInvoiceMutation = useCreatePayAnInvoiceMutation();
   const askToPayAnInvoiceMutation = useAskToPayAnInvoiceMutation();
   const createTransferMutation = useCreatePeerPaymentTransferMutation();
+  const paymentQuotationMutation = usePeerPaymentQuotationMutation();
+  const betterOfferMutation = useBetterOfferMutation();
+  const placeOrderBetterOfferMutation = usePlaceOrderBetterOfferMutation();
+  const uploadQrCodeMutation = useUploadPeerPaymentQrCodeMutation();
   const [chargingCode, setChargingCode] = useState<string>();
   const { notification } = App.useApp();
 
@@ -813,6 +818,11 @@ export const useMobilePeerPaymentsPage = () => {
     handleCreateTransferRequest,
     handleExport,
     chargeMutation,
+    exchangeRateMutation,
+    paymentQuotationMutation,
+    betterOfferMutation,
+    placeOrderBetterOfferMutation,
+    uploadQrCodeMutation,
     exportMutation,
     createRequestForPayMutation,
     askForPayMutation,
