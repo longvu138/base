@@ -76,7 +76,7 @@ const formatCnyAmount = (value: unknown) => {
     suffix: "",
   };
   return `${numberValue < 0 ? "-" : ""}${currency.prefix || ""}${Math.abs(
-    numberValue
+    numberValue,
   ).toLocaleString("en-US", {
     maximumFractionDigits: 4,
   })}${currency.suffix || ""}`;
@@ -123,11 +123,7 @@ const parseViewTemplate = (value?: string) => {
   }
 };
 
-const getMarkupRateValue = (
-  item: any,
-  tier: any,
-  exchangeRate: any
-) => {
+const getMarkupRateValue = (item: any, tier: any, exchangeRate: any) => {
   const sourceRate = Number(exchangeRate?.rate || 0);
   const price = Number(tier?.price || 0);
 
@@ -158,11 +154,18 @@ const renderAccount = (record: any, peerPaymentType?: string) => {
     return lines.length ? (
       <Space direction="vertical" size={0}>
         {record.beneficiaryAccount && (
-          <Paragraph copyable={{ text: record.beneficiaryAccount }} style={{ marginBottom: 0 }}>
+          <Paragraph
+            copyable={{ text: record.beneficiaryAccount }}
+            style={{ marginBottom: 0 }}
+          >
             {record.beneficiaryAccount}
           </Paragraph>
         )}
-        {[record.beneficiaryBank, record.beneficiaryName, record.beneficiaryBankBranch]
+        {[
+          record.beneficiaryBank,
+          record.beneficiaryName,
+          record.beneficiaryBankBranch,
+        ]
           .filter(Boolean)
           .map((line) => (
             <Text key={line}>{line}</Text>
@@ -257,7 +260,7 @@ export const PeerPaymentsStyleDefault = () => {
   const watchedCreateAmount = Form.useWatch("amount", createForm);
   const watchedCreatePaymentMethodCode = Form.useWatch(
     "paymentMethodCode",
-    createForm
+    createForm,
   );
   const { notification } = App.useApp();
   const page = usePeerPaymentsPage();
@@ -313,7 +316,7 @@ export const PeerPaymentsStyleDefault = () => {
   const suspensionSchedule = tenantConfigPayment?.suspensionSchedule;
   const isInSuspensionSchedule = isInSuspensionTime(
     suspensionSchedule?.startTime,
-    suspensionSchedule?.endTime
+    suspensionSchedule?.endTime,
   );
   const isShowBtnPayment =
     (tenantConfigPayment?.config?.paymentAlipay === true ||
@@ -329,14 +332,14 @@ export const PeerPaymentsStyleDefault = () => {
     Boolean(currentLoggedUser?.customerAuthorities?.shopkeeper) &&
     Boolean(
       currentProjectInfo?.tenantConfig?.externalIntegrationConfig?.shopkeeper
-        ?.enabled
+        ?.enabled,
     ) &&
     Boolean(
       currentProjectInfo?.tenantConfig?.externalIntegrationConfig?.shopkeeper
-        ?.enabledPeerpayment
+        ?.enabledPeerpayment,
     );
   const selectedRows = payments.filter((item: any) =>
-    selectedRowKeys.includes(item.code)
+    selectedRowKeys.includes(item.code),
   );
   const loadExchangeRateMutation = exchangeRateMutation.mutateAsync;
   const currentCreatePaymentMethodCode =
@@ -353,7 +356,7 @@ export const PeerPaymentsStyleDefault = () => {
   ];
   const getBulkExchangeRate = (row: any) =>
     bulkExchangeRates.find(
-      (item: any) => item.refId === `${row.amount}|${row.paymentMethodCode}`
+      (item: any) => item.refId === `${row.amount}|${row.paymentMethodCode}`,
     );
   const getBulkNewRate = (row: any) =>
     getBulkExchangeRate(row)?.exchangeRate?.rate;
@@ -373,11 +376,11 @@ export const PeerPaymentsStyleDefault = () => {
     selectedRows.length > Number(maxCombine1688Bills);
   const bulkTotalAmount = selectedRows.reduce(
     (sum: number, item: any) => sum + Number(item.amount || 0),
-    0
+    0,
   );
   const bulkExchangeAmount = selectedRows.reduce(
     (sum: number, row: any) => sum + getBulkNewAmount(row),
-    0
+    0,
   );
   const getTopUpMoney = (balanceData = userBalance) =>
     bulkExchangeAmount -
@@ -388,7 +391,7 @@ export const PeerPaymentsStyleDefault = () => {
   const dailyTransfer =
     Array.isArray(dailySummary) &&
     dailySummary.find(
-      (item: any) => item.paymentMethodCode === "bank_transfer"
+      (item: any) => item.paymentMethodCode === "bank_transfer",
     );
   const dailyMessage = t("peer_payment.daily_message", {
     date: dayjs().format("DD/MM/YYYY"),
@@ -402,7 +405,7 @@ export const PeerPaymentsStyleDefault = () => {
     () =>
       exchangeRatesBatch.find((item: any) => item.refId === "payment")
         ?.exchangeRate || {},
-    [exchangeRatesBatch]
+    [exchangeRatesBatch],
   );
   const filteredMarkupRateGroups = useMemo(() => {
     const listMarkupRates = Array.isArray(markupRateGroups?.listMarkupRates)
@@ -413,7 +416,7 @@ export const PeerPaymentsStyleDefault = () => {
       listMarkupRates: m24Enabled
         ? listMarkupRates
         : listMarkupRates.filter(
-            (item: any) => item?.exchangeRateSource !== "market"
+            (item: any) => item?.exchangeRateSource !== "market",
           ),
     };
   }, [m24Enabled, markupRateGroups]);
@@ -439,13 +442,13 @@ export const PeerPaymentsStyleDefault = () => {
     firstExchangeRate && lastExchangeRate
       ? `${t("peer_payment.exchange_range")} : ${moneyFormat(1, firstExchangeRate.base)} = ${moneyFormat(
           firstExchangeRate.value,
-          firstExchangeRate.currency
+          firstExchangeRate.currency,
         )}${
           firstExchangeRate.value !== lastExchangeRate.value &&
           listExchangeRate.length > 1
             ? ` - ${moneyFormat(
                 lastExchangeRate.value,
-                lastExchangeRate.currency
+                lastExchangeRate.currency,
               )}`
             : ""
         }`
@@ -590,7 +593,7 @@ export const PeerPaymentsStyleDefault = () => {
       key: "total",
       render: (_, record) =>
         moneyFormat(
-          Number(record.totalFee || 0) + Number(record.exchangedAmount || 0)
+          Number(record.totalFee || 0) + Number(record.exchangedAmount || 0),
         ),
     },
     {
@@ -728,42 +731,46 @@ export const PeerPaymentsStyleDefault = () => {
     setCreateModalType(type);
   };
 
-  const loadCreateExchangeRate = useCallback(async (values?: { amount?: number; paymentMethodCode?: string }) => {
-    const amount = values?.amount ?? createForm.getFieldValue("amount");
-    if (!amount) {
-      createExchangeRateKeyRef.current = "";
-      createExchangeRateResultRef.current = {};
-      setCreateExchangeRate({});
-      return {};
-    }
-    const paymentMethodCode =
-      createModalType === "transfer"
-        ? values?.paymentMethodCode ?? createForm.getFieldValue("paymentMethodCode")
-        : "alipay";
-    const requestKey = `${createModalType || ""}|${amount}|${paymentMethodCode || ""}`;
-    if (createExchangeRateKeyRef.current === requestKey) {
-      return createExchangeRateResultRef.current;
-    }
-    const requestId = createExchangeRateRequestRef.current + 1;
-    createExchangeRateRequestRef.current = requestId;
-    createExchangeRateKeyRef.current = requestKey;
-    try {
-      const response = await loadExchangeRateMutation({
-        amount,
-        paymentMethodCode,
-      });
-      if (requestId === createExchangeRateRequestRef.current) {
-        createExchangeRateResultRef.current = response || {};
-        setCreateExchangeRate(response || {});
-      }
-      return response || {};
-    } catch (error) {
-      if (requestId === createExchangeRateRequestRef.current) {
+  const loadCreateExchangeRate = useCallback(
+    async (values?: { amount?: number; paymentMethodCode?: string }) => {
+      const amount = values?.amount ?? createForm.getFieldValue("amount");
+      if (!amount) {
         createExchangeRateKeyRef.current = "";
+        createExchangeRateResultRef.current = {};
+        setCreateExchangeRate({});
+        return {};
       }
-      throw error;
-    }
-  }, [createForm, createModalType, loadExchangeRateMutation]);
+      const paymentMethodCode =
+        createModalType === "transfer"
+          ? (values?.paymentMethodCode ??
+            createForm.getFieldValue("paymentMethodCode"))
+          : "alipay";
+      const requestKey = `${createModalType || ""}|${amount}|${paymentMethodCode || ""}`;
+      if (createExchangeRateKeyRef.current === requestKey) {
+        return createExchangeRateResultRef.current;
+      }
+      const requestId = createExchangeRateRequestRef.current + 1;
+      createExchangeRateRequestRef.current = requestId;
+      createExchangeRateKeyRef.current = requestKey;
+      try {
+        const response = await loadExchangeRateMutation({
+          amount,
+          paymentMethodCode,
+        });
+        if (requestId === createExchangeRateRequestRef.current) {
+          createExchangeRateResultRef.current = response || {};
+          setCreateExchangeRate(response || {});
+        }
+        return response || {};
+      } catch (error) {
+        if (requestId === createExchangeRateRequestRef.current) {
+          createExchangeRateKeyRef.current = "";
+        }
+        throw error;
+      }
+    },
+    [createForm, createModalType, loadExchangeRateMutation],
+  );
 
   useEffect(() => {
     if (!createModalType || createStep !== 1) return;
@@ -792,7 +799,7 @@ export const PeerPaymentsStyleDefault = () => {
 
   const buildCreatePaymentPayload = (
     values: Record<string, any>,
-    exchangeRate?: any
+    exchangeRate?: any,
   ) => {
     const { requestForPayType: _requestForPayType, ...payloadValues } = values;
     return {
@@ -822,6 +829,7 @@ export const PeerPaymentsStyleDefault = () => {
     setCreatePaymentDraftValues({
       ...values,
       paymentMethodCode: values.paymentMethodCode || "alipay",
+      requestForPayType: createPaymentType,
     });
     setCreateDraftFees(draftFees);
     setCreateStep(2);
@@ -835,10 +843,10 @@ export const PeerPaymentsStyleDefault = () => {
         })
         .then(async (betterOfferResponse) => {
           const yoursTotalAmount = Number(
-            betterOfferResponse?.yours?.totalAmount || 0
+            betterOfferResponse?.yours?.totalAmount || 0,
           );
           const oursTotalAmount = Number(
-            betterOfferResponse?.ours?.totalAmount || 0
+            betterOfferResponse?.ours?.totalAmount || 0,
           );
           if (yoursTotalAmount <= oursTotalAmount) {
             setCreateBetterOffer(0);
@@ -934,10 +942,13 @@ export const PeerPaymentsStyleDefault = () => {
           await submitCreatePaymentStepOne();
           return;
         }
-        await handleCreatePaymentRequest({
-          ...createPaymentDraftValues,
-          ...values,
-        });
+        await handleCreatePaymentRequest(
+          {
+            ...createPaymentDraftValues,
+            ...values,
+          },
+          { needPayOnRequest: tenantConfigPayment?.peerPaymentConfig?.needPayOnRequest },
+        );
       } else {
         if (createStep === 1) {
           await submitCreateTransferStepOne();
@@ -963,7 +974,7 @@ export const PeerPaymentsStyleDefault = () => {
   const getBulkChargeErrorMessage = (
     error: any,
     row: any,
-    balanceData: any
+    balanceData: any,
   ) => {
     const title = error?.response?.data?.title || error?.title;
     const isTimeoutError =
@@ -988,7 +999,7 @@ export const PeerPaymentsStyleDefault = () => {
           Number(balanceData?.creditLimit || 0));
       return t("cartCheckout.notEnoughMoney").replace(
         "${money}",
-        moneyFormat(enoughMoney)
+        moneyFormat(enoughMoney),
       );
     }
     const status = error?.response?.status;
@@ -1103,7 +1114,7 @@ export const PeerPaymentsStyleDefault = () => {
 
   const createAmount = Number(
     (createStep > 1 ? createPaymentDraftValues.amount : watchedCreateAmount) ||
-      0
+      0,
   );
   const createExchangedAmount =
     createAmount && createExchangeRate?.rate
@@ -1114,10 +1125,10 @@ export const PeerPaymentsStyleDefault = () => {
     : [];
   const createTotalMoney = createFeeItems.reduce(
     (sum: number, item: any) => sum + Number(item.provisionalAmount || 0),
-    createExchangedAmount
+    createExchangedAmount,
   );
   const createBetterOfferFeeItems = Array.isArray(
-    createBetterOfferFees?.listFees
+    createBetterOfferFees?.listFees,
   )
     ? createBetterOfferFees.listFees
     : [];
@@ -1125,11 +1136,11 @@ export const PeerPaymentsStyleDefault = () => {
     createBetterOffer * Number(createExchangeRate?.rate || 0);
   const createBetterOfferTotalMoney = createBetterOfferFeeItems.reduce(
     (sum: number, item: any) => sum + Number(item.provisionalAmount || 0),
-    createBetterOfferExchangedAmount
+    createBetterOfferExchangedAmount,
   );
   const hasCreateFeeWarning = createFeeItems.some(
     (item: any) =>
-      item.provisionalAmount === null || item.provisionalAmount === undefined
+      item.provisionalAmount === null || item.provisionalAmount === undefined,
   );
 
   const canOpenExportModal = () => {
@@ -1279,7 +1290,7 @@ export const PeerPaymentsStyleDefault = () => {
                     <Select
                       allowClear
                       placeholder={t(
-                        "peer_payment.filterByMilestoneStatusTime"
+                        "peer_payment.filterByMilestoneStatusTime",
                       )}
                       style={{ flex: "1 1 220px", minWidth: 220 }}
                       options={statuses.map((status: any) => ({
@@ -1458,7 +1469,12 @@ export const PeerPaymentsStyleDefault = () => {
               {
                 value: "payment",
                 label: (
-                  <Flex align="center" justify="center" gap={token.marginXS} style={{ paddingBlock: token.paddingXS }}>
+                  <Flex
+                    align="center"
+                    justify="center"
+                    gap={token.marginXS}
+                    style={{ paddingBlock: token.paddingXS }}
+                  >
                     <PayCircleOutlined />
                     {t("peer_payment.request_payment")}
                   </Flex>
@@ -1467,7 +1483,12 @@ export const PeerPaymentsStyleDefault = () => {
               {
                 value: "transfer",
                 label: (
-                  <Flex align="center" justify="center" gap={token.marginXS} style={{ paddingBlock: token.paddingXS }}>
+                  <Flex
+                    align="center"
+                    justify="center"
+                    gap={token.marginXS}
+                    style={{ paddingBlock: token.paddingXS }}
+                  >
                     <SwapOutlined />
                     {t("peer_payment.request_transfer")}
                   </Flex>
@@ -1488,7 +1509,7 @@ export const PeerPaymentsStyleDefault = () => {
             onChange: setSelectedRowKeys,
             getCheckboxProps: (record: any) => ({
               disabled: !["WAIT_FOR_PAYMENT", "REQUEST_FOR_PAY"].includes(
-                record.status
+                record.status,
               ),
             }),
           }}
@@ -1539,7 +1560,7 @@ export const PeerPaymentsStyleDefault = () => {
                 : [];
               const paymentMethod =
                 paymentMethods.find(
-                  (method: any) => method.code === item.paymentMethodCode
+                  (method: any) => method.code === item.paymentMethodCode,
                 ) || {};
               return (
                 <Card key={`${item.paymentMethodCode}-${index}`} size="small">
@@ -1550,11 +1571,14 @@ export const PeerPaymentsStyleDefault = () => {
                   >
                     <Text strong style={{ color: token.colorPrimary }}>
                       {paymentMethod.name || "---"}{" "}
-                      {item.paymentMethodCode === "alipay" &&
-                      "(YCTTH 1688)"}
+                      {item.paymentMethodCode === "alipay" && "(YCTTH 1688)"}
                     </Text>
                     {template.map((tier: any, tierIndex: number) => {
-                      const value = getMarkupRateValue(item, tier, exchangeRate);
+                      const value = getMarkupRateValue(
+                        item,
+                        tier,
+                        exchangeRate,
+                      );
                       return (
                         <div
                           key={`${tier.fromAmount}-${tier.toAmount}-${tierIndex}`}
@@ -1589,7 +1613,7 @@ export const PeerPaymentsStyleDefault = () => {
                   </Space>
                 </Card>
               );
-            }
+            },
           )}
         </Space>
       </Modal>
@@ -1853,12 +1877,12 @@ export const PeerPaymentsStyleDefault = () => {
                           formatter={(value) =>
                             `${value ?? ""}`.replace(
                               /\B(?=(\d{3})+(?!\d))/g,
-                              ","
+                              ",",
                             )
                           }
                           parser={(value) =>
                             Number(
-                              String(value || "").replace(/\$\s?|(,*)/g, "")
+                              String(value || "").replace(/\$\s?|(,*)/g, ""),
                             )
                           }
                         />
@@ -1877,7 +1901,7 @@ export const PeerPaymentsStyleDefault = () => {
                             {moneyFormat(1, createExchangeRate.base)} ={" "}
                             {moneyFormat(
                               createExchangeRate.rate,
-                              createExchangeRate.exchange
+                              createExchangeRate.exchange,
                             )}
                           </Text>
                         </div>
@@ -2068,7 +2092,7 @@ export const PeerPaymentsStyleDefault = () => {
                               showSearch
                               optionFilterProp="label"
                               placeholder={t(
-                                "peer_payment.select_paymentAccount"
+                                "peer_payment.select_paymentAccount",
                               )}
                               options={paymentAccounts.map((item: any) => ({
                                 value: item.account || item.code || item.id,
@@ -2091,7 +2115,7 @@ export const PeerPaymentsStyleDefault = () => {
                                   !value || isValidUrl(value)
                                     ? Promise.resolve()
                                     : Promise.reject(
-                                        new Error(t("shipment.link_error"))
+                                        new Error(t("shipment.link_error")),
                                       ),
                               },
                             ]}
@@ -2161,7 +2185,7 @@ export const PeerPaymentsStyleDefault = () => {
                         </Flex>
                         {createFeeItems.map((item: any, index: number) => {
                           const fee = peerPaymentFees.find(
-                            (feeItem: any) => feeItem.code === item.feeCode
+                            (feeItem: any) => feeItem.code === item.feeCode,
                           );
                           const feeLabel =
                             fee?.name ||
@@ -2205,7 +2229,7 @@ export const PeerPaymentsStyleDefault = () => {
                           {createBetterOfferFeeItems.map(
                             (item: any, index: number) => {
                               const fee = peerPaymentFees.find(
-                                (feeItem: any) => feeItem.code === item.feeCode
+                                (feeItem: any) => feeItem.code === item.feeCode,
                               );
                               const feeLabel =
                                 fee?.name ||
@@ -2222,7 +2246,7 @@ export const PeerPaymentsStyleDefault = () => {
                                   </Text>
                                 </Flex>
                               );
-                            }
+                            },
                           )}
                           <Divider dashed style={{ margin: "12px 0" }} />
                           <Flex justify="space-between">
@@ -2309,12 +2333,12 @@ export const PeerPaymentsStyleDefault = () => {
                           formatter={(value) =>
                             `${value ?? ""}`.replace(
                               /\B(?=(\d{3})+(?!\d))/g,
-                              ","
+                              ",",
                             )
                           }
                           parser={(value) =>
                             Number(
-                              String(value || "").replace(/\$\s?|(,*)/g, "")
+                              String(value || "").replace(/\$\s?|(,*)/g, ""),
                             )
                           }
                         />
@@ -2333,7 +2357,7 @@ export const PeerPaymentsStyleDefault = () => {
                             {moneyFormat(1, createExchangeRate.base)} ={" "}
                             {moneyFormat(
                               createExchangeRate.rate,
-                              createExchangeRate.exchange
+                              createExchangeRate.exchange,
                             )}
                           </Text>
                         </div>
@@ -2406,7 +2430,7 @@ export const PeerPaymentsStyleDefault = () => {
                           >
                             <Input
                               placeholder={t(
-                                "peer_payment.bank_name_placeholder"
+                                "peer_payment.bank_name_placeholder",
                               )}
                             />
                           </Form.Item>
@@ -2424,7 +2448,7 @@ export const PeerPaymentsStyleDefault = () => {
                           >
                             <Input
                               placeholder={t(
-                                "peer_payment.beneficiaryAccount_placeholder"
+                                "peer_payment.beneficiaryAccount_placeholder",
                               )}
                             />
                           </Form.Item>
@@ -2454,7 +2478,7 @@ export const PeerPaymentsStyleDefault = () => {
                     >
                       <Input
                         placeholder={t(
-                          "peer_payment.beneficiaryAccount_placeholder"
+                          "peer_payment.beneficiaryAccount_placeholder",
                         )}
                       />
                     </Form.Item>
@@ -2468,7 +2492,7 @@ export const PeerPaymentsStyleDefault = () => {
                   >
                     <Input
                       placeholder={t(
-                        "peer_payment.beneficiaryName_placeholder"
+                        "peer_payment.beneficiaryName_placeholder",
                       )}
                     />
                   </Form.Item>
@@ -2512,7 +2536,7 @@ export const PeerPaymentsStyleDefault = () => {
                         <Text strong>{t("fee_tab.service_fee")}:</Text>
                         {createFeeItems.map((item: any, index: number) => {
                           const fee = peerPaymentFees.find(
-                            (feeItem: any) => feeItem.code === item.feeCode
+                            (feeItem: any) => feeItem.code === item.feeCode,
                           );
                           const feeLabel =
                             fee?.name ||

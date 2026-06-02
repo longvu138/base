@@ -740,6 +740,7 @@ export const PeerPaymentsStyleGobiz = () => {
     setCreatePaymentDraftValues({
       ...values,
       paymentMethodCode: values.paymentMethodCode || "alipay",
+      requestForPayType: createPaymentType,
     });
     setCreateDraftFees(draftFees);
     setCreateStep(2);
@@ -835,7 +836,10 @@ export const PeerPaymentsStyleGobiz = () => {
           await submitCreatePaymentStepOne();
           return;
         }
-        await handleCreatePaymentRequest({ ...createPaymentDraftValues, ...values });
+        await handleCreatePaymentRequest(
+          { ...createPaymentDraftValues, ...values },
+          { needPayOnRequest: tenantConfigPayment?.peerPaymentConfig?.needPayOnRequest },
+        );
       } else {
         if (createStep === 1) {
           await submitCreateTransferStepOne();
