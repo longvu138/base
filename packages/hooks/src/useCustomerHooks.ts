@@ -348,6 +348,27 @@ export const useApplyDraftOrderCouponMutation = (id?: string) => {
     });
 };
 
+export const useBiffinConnectionQuery = (enabled = true) => {
+    return useQuery({
+        queryKey: ['customer.third_parties.shopkeeper'],
+        queryFn: async () => {
+            const res = await CustomerApi.getConnectedToBiffin();
+            return res.data;
+        },
+        enabled: !!localStorage.getItem('access_token') && enabled,
+        retry: false,
+    });
+};
+
+export const useCheckShoppingCartLoanableMutation = () => {
+    return useMutation({
+        mutationFn: async (payload: any) => {
+            const res = await CustomerApi.checkShoppingCartLoanable(payload);
+            return res.data;
+        },
+    });
+};
+
 export const useCreateCustomerOrderMutation = () => {
     return useMutation({
         mutationFn: (payload: any) => CustomerApi.createCustomerOrder(payload),

@@ -1,6 +1,4 @@
 import {
-  Alert,
-  App,
   Avatar,
   Button,
   Card,
@@ -17,7 +15,6 @@ import {
   Space,
   Spin,
   Table,
-  Tag,
   Tooltip,
   Typography,
   theme,
@@ -30,22 +27,8 @@ import {
   ShoppingCartOutlined,
   UpOutlined,
 } from "@ant-design/icons";
-import {
-  useAddressesQuery,
-  useApplyDraftOrderCouponMutation,
-  useCheckVoucherMutation,
-  useCreateCustomerOrderMutation,
-  useCustomerBalance,
-  useCustomerProfile,
-  useDraftOrderQuery,
-  useUpdateDraftOrderMutation,
-} from "@repo/hooks";
 import { useTranslation } from "@repo/i18n";
-import { useTheme as useTenantTheme } from "@repo/theme-provider";
-import { LocalStoreUtil, formatCurrency, moneyCeil } from "@repo/util";
-import dayjs from "dayjs";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { formatCurrency, moneyCeil } from "@repo/util";
 import DepositModal from "../../components/DepositModal";
 import {
   getForeignCurrency,
@@ -55,576 +38,87 @@ import {
   getProperties,
 } from "../Carts/cartViewModel";
 import { DeliveryAddressPanel } from "./components/DeliveryAddressPanel";
+import { DraftOrderVoucherModal } from "./components/DraftOrderVoucherModal";
+import {
+  BIFFIN_METHOD_SELECTED,
+  DEFAULT_METHOD_SELECTED,
+  getSkus,
+  percentToMoney,
+  useCartCheckoutPage,
+} from "./hooks/useCartCheckoutPage";
 
 const MONEY_TEXT_STYLE = { whiteSpace: "nowrap" };
-const DEFAULT_METHOD_SELECTED = "default";
-
-const getErrorTitle = (error: any) =>
-  error?.response?.data?.title ||
-  error?.response?.data?.message ||
-  error?.title ||
-  error?.message;
-
-const getSkus = (merchant: any) =>
-  Array.isArray(merchant?.products)
-    ? merchant.products.flatMap((product: any) =>
-        Array.isArray(product?.skus)
-          ? product.skus.map((sku: any) => ({ ...sku, product }))
-          : []
-      )
-    : Array.isArray(merchant?.skus)
-      ? merchant.skus
-      : [];
-
-const percentToMoney = (percent: number | string, amount: number) =>
-  moneyCeil((Number(percent || 0) * Number(amount || 0)) / 100);
-
-const sumDraftOrderCouponDiscount = (data: any) =>
-  (Array.isArray(data?.merchantCoupons) ? data.merchantCoupons : []).reduce(
-    (total: number, merchantCoupon: any) =>
-      total +
-      (Array.isArray(merchantCoupon?.coupons)
-        ? merchantCoupon.coupons.reduce(
-            (sum: number, coupon: any) =>
-              sum + Number(coupon?.totalDiscountFee || 0),
-            0
-          )
-        : 0),
-    0
-  );
-
-const readJsonStorage = (key: string) => {
-  try {
-    return LocalStoreUtil.getJson(key) || {};
-  } catch {
-    return {};
-  }
-};
-
-const DraftOrderVoucherModal = ({
-  open,
-  draftOrderId,
-  appliedVouchers,
-  onApply,
-  onClose,
-}: {
-  open: boolean;
-  draftOrderId?: string;
-  appliedVouchers: any[];
-  onApply: (vouchers: any[]) => void;
-  onClose: () => void;
-}) => {
-  const { t } = useTranslation();
-  const { notification } = App.useApp();
-  const { token } = theme.useToken();
-  const [code, setCode] = useState("");
-  const [voucher, setVoucher] = useState<any>(null);
-  const [message, setMessage] = useState("");
-  const checkVoucher = useCheckVoucherMutation();
-  const applyCoupon = useApplyDraftOrderCouponMutation(draftOrderId);
-
-  const reset = () => {
-    setCode("");
-    setVoucher(null);
-    setMessage("");
-  };
-
-  const close = () => {
-    reset();
-    onClose();
-  };
-
-  const checkCouponCode = async () => {
-    const nextCode = code.trim();
-    if (!nextCode) return;
-
-    setVoucher(null);
-    setMessage("");
-    try {
-      const result = await checkVoucher.mutateAsync({ code: nextCode });
-      if (result?.code) {
-        setVoucher(result);
-      } else {
-        setMessage(t("message.coupon_invalid_for_you"));
-      }
-    } catch (error: any) {
-      setMessage(
-        t(`message.${getErrorTitle(error) || "coupon_invalid_for_you"}`)
-      );
-    }
-  };
-
-  const submitCouponCode = async () => {
-    if (!voucher?.code || !draftOrderId) return;
-
-    try {
-      const result = await applyCoupon.mutateAsync({
-        couponCode: voucher.code,
-      });
-      const couponApply = {
-        ...voucher,
-        totalDiscountFee: sumDraftOrderCouponDiscount(result),
-      };
-      onApply(
-        [...appliedVouchers, couponApply].filter(
-          (item, index, list) =>
-            list.findIndex((candidate) => candidate.code === item.code) ===
-            index
-        )
-      );
-      notification.success({ message: t("message.coupon_apply_success") });
-      close();
-    } catch (error: any) {
-      notification.error({
-        message: t(
-          `message.${getErrorTitle(error) || "coupon_invalid_for_you"}`
-        ),
-      });
-    }
-  };
-
-  return (
-    <Modal
-      title={t("coupon.modalTitle")}
-      open={open}
-      width={660}
-      centered
-      okText={t("coupon.apply")}
-      cancelText={t("button.cancel")}
-      okButtonProps={{ disabled: !voucher }}
-      confirmLoading={applyCoupon.isPending}
-      onOk={submitCouponCode}
-      onCancel={close}
-    >
-      <Space
-        direction="vertical"
-        size={token.marginMD}
-        style={{ width: "100%" }}
-      >
-        <Card styles={{ body: { padding: token.paddingMD } }}>
-          <Space direction="vertical" style={{ width: "100%" }}>
-            <Typography.Text>{t("coupon.inputVoucher")}</Typography.Text>
-            <Flex gap={token.marginSM}>
-              <Input
-                value={code}
-                allowClear
-                placeholder={t("coupon.voucherCode")}
-                onChange={(event) => {
-                  setCode(event.target.value);
-                  setVoucher(null);
-                  setMessage("");
-                }}
-                onPressEnter={checkCouponCode}
-              />
-              <Button
-                loading={checkVoucher.isPending}
-                onClick={checkCouponCode}
-              >
-                {t("modal.confirm")}
-              </Button>
-            </Flex>
-          </Space>
-        </Card>
-
-        {message && <Alert type="error" showIcon message={message} />}
-
-        {voucher && (
-          <Card>
-            <Space direction="vertical" style={{ width: "100%" }}>
-              <Flex justify="space-between" gap={token.marginSM}>
-                <Space>
-                  {voucher.image && <Avatar src={voucher.image} />}
-                  <Space direction="vertical" size={0}>
-                    <Typography.Text strong>{voucher.title}</Typography.Text>
-                    <Typography.Text type="secondary">
-                      {voucher.code}
-                    </Typography.Text>
-                  </Space>
-                </Space>
-                <Tag color="red">
-                  {t("coupon.voucherRemaining", {
-                    value: voucher.remaining,
-                  })}
-                </Tag>
-              </Flex>
-              {voucher.description && (
-                <Typography.Paragraph style={{ marginBottom: 0 }}>
-                  {voucher.description}
-                </Typography.Paragraph>
-              )}
-              {voucher.customerLimit !== undefined && (
-                <Typography.Text type="secondary">
-                  {t("coupon.voucherCustomerLimit", {
-                    value: voucher.customerLimit,
-                  })}
-                </Typography.Text>
-              )}
-              {voucher.validTo && (
-                <Typography.Text type="secondary">
-                  {t("coupon.voucherValidTo", {
-                    value: dayjs(voucher.validTo).format("DD/MM/YYYY"),
-                  })}
-                </Typography.Text>
-              )}
-              {voucher.termsAndConditions && (
-                <Typography.Paragraph
-                  type="secondary"
-                  style={{ maxHeight: 240, overflow: "auto", marginBottom: 0 }}
-                >
-                  <span
-                    dangerouslySetInnerHTML={{
-                      __html: voucher.termsAndConditions,
-                    }}
-                  />
-                </Typography.Paragraph>
-              )}
-            </Space>
-          </Card>
-        )}
-      </Space>
-    </Modal>
-  );
-};
 
 export const CartCheckoutStyleDefault = () => {
   const { t } = useTranslation();
-  const { notification } = App.useApp();
   const { token } = theme.useToken();
-  const { tenantConfig } = useTenantTheme();
-  const { draftOrderId } = useParams();
-  const { data: draftOrder, isLoading } = useDraftOrderQuery(draftOrderId);
-  const { data: profile } = useCustomerProfile();
-  const { data: balanceData } = useCustomerBalance();
-  const { data: addresses, isFetching: isFetchingAddresses } =
-    useAddressesQuery({
-      page: 0,
-      receivingAddress: false,
-      size: 9999,
-      sort: "defaultAddress:desc,createdAt:desc",
-    });
-  const { data: receivingAddresses, isFetching: isFetchingReceivingAddresses } =
-    useAddressesQuery({
-      page: 0,
-      receivingAddress: true,
-      size: 9999,
-      sort: "defaultAddress:desc,createdAt:desc",
-    });
+  const page = useCartCheckoutPage();
   const {
-    mutateAsync: updateDraftOrderAsync,
-    isPending: isUpdatingDraftOrder,
-  } = useUpdateDraftOrderMutation(draftOrderId);
-  const createOrder = useCreateCustomerOrderMutation();
-  const [voucherOpen, setVoucherOpen] = useState(false);
-  const [appliedVouchers, setAppliedVouchers] = useState<any[]>([]);
-  const [pinOpen, setPinOpen] = useState(false);
-  const [pin, setPin] = useState("");
-  const [pinError, setPinError] = useState("");
-  const [savePassword, setSavePassword] = useState(false);
-  const [depositModalOpen, setDepositModalOpen] = useState(false);
-  const currentProjectInfo = useMemo(
-    () => tenantConfig || readJsonStorage("currentProjectInfo"),
-    [tenantConfig]
-  );
-  const projectConfig = useMemo(
-    () => currentProjectInfo?.tenantConfig || {},
-    [currentProjectInfo]
-  );
-  const orderConfig = projectConfig?.orderConfig || {};
-  const generalConfig = projectConfig?.generalConfig || {};
-  const currentLoggedUser = useMemo(
-    () => profile || readJsonStorage("currentLoggedUser"),
-    [profile]
-  );
-  const tenantPercent = useMemo(() => {
-    const customerLevel = currentLoggedUser?.customerEmdLevel;
-    const customerGroup = currentLoggedUser?.customerGroup;
-    let percent = Number(projectConfig?.emdPercent || 0);
-
-    if (customerGroup?.emdPercent) percent = Number(customerGroup.emdPercent);
-    if (customerGroup?.code === "default" && customerLevel?.emdPercent) {
-      percent = Number(customerLevel.emdPercent);
-    }
-
-    return percent;
-  }, [currentLoggedUser, projectConfig]);
-  const [depositOnDemand, setDepositOnDemand] = useState<
-    number | string | undefined
-  >();
-  const [depositExpanded, setDepositExpanded] = useState(true);
-  const merchants = useMemo(
-    () => (Array.isArray(draftOrder?.merchants) ? draftOrder.merchants : []),
-    [draftOrder]
-  );
-  const sortedMerchants = useMemo(
-    () =>
-      merchants
-        .slice()
-        .sort(
-          (left: any, right: any) =>
-            Number(Boolean(right?.crossedThreshold)) -
-            Number(Boolean(left?.crossedThreshold))
-        ),
-    [merchants]
-  );
-  const crossedThresholdMerchants = merchants.filter(
-    (merchant: any) => merchant?.crossedThreshold === false
-  );
-  const draftAddressIsReceiving = !!draftOrder?.address?.receivingAddress;
-  const isUsingReceiveAddress =
-    draftAddressIsReceiving || !!draftOrder?.receiptAddress;
-  const selectedAddressData = isUsingReceiveAddress
-    ? draftOrder?.receiptAddress &&
-      typeof draftOrder.receiptAddress === "object"
-      ? draftOrder.receiptAddress
-      : undefined
-    : draftOrder?.address && typeof draftOrder.address === "object"
-      ? draftOrder.address
-      : undefined;
-  const selectedAddressId =
-    selectedAddressData?.id ||
-    (isUsingReceiveAddress
-      ? draftOrder?.receiptAddress?.id || draftOrder?.receiptAddress
-      : draftOrder?.address?.id || draftOrder?.address);
-  const selectedReceiveAddressData =
-    isUsingReceiveAddress &&
-    draftOrder?.address &&
-    typeof draftOrder.address === "object"
-      ? draftOrder.address
-      : undefined;
-  const selectedReceiveAddressId = isUsingReceiveAddress
-    ? draftOrder?.address?.id || draftOrder?.address
-    : undefined;
-  const totalLink = crossedThresholdMerchants.reduce(
-    (sum: number, merchant: any) => sum + getSkus(merchant).length,
-    0
-  );
-  const totalQuantity = crossedThresholdMerchants.reduce(
-    (sum: number, merchant: any) =>
-      sum +
-      getSkus(merchant).reduce(
-        (merchantSum: number, sku: any) =>
-          merchantSum + Number(sku.quantity || 0),
-        0
-      ),
-    0
-  );
-  const balance = Number(balanceData?.balance || profile?.balance || 0);
-  const creditLimit = Number(balanceData?.creditLimit || 0);
-  const lackOfMoney =
-    Number(draftOrder?.emdAmount || 0) > balance + creditLimit;
-  const totalLackOfMoney = moneyCeil(
-    Number(draftOrder?.emdAmount || 0) - balance
-  );
-  const totalCoupon = appliedVouchers.reduce(
-    (sum, item) => sum + Number(item?.totalDiscountFee || 0),
-    0
-  );
-  const suspensionSchedule = currentProjectInfo?.suspensionSchedule;
-  const isOrderSuspended =
-    suspensionSchedule &&
-    Array.isArray(suspensionSchedule.appliedFor) &&
-    suspensionSchedule.appliedFor.some(
-      (item: string) => item === "ALL" || item === "ORDER"
-    );
-  const isOrderButtonDisabled = Boolean(isOrderSuspended || createOrder.isPending);
-  const depositPercentages = Array.isArray(orderConfig.depositPercentage)
-    ? orderConfig.depositPercentage
-    : [];
-  const pierced = projectConfig?.externalIntegrationConfig?.shopkeeper?.pierced;
-  const trueStrike = currentLoggedUser?.customerGroup?.trueStrike;
-  const checkForceTrueStrike = trueStrike === null ? pierced : trueStrike;
-  const [depositMethodValue, setDepositMethodValue] = useState<{
-    method: string;
-    percent: number | string;
-  }>({
-    method: DEFAULT_METHOD_SELECTED,
-    percent: tenantPercent,
-  });
-  const showDefaultDepositOption = !checkForceTrueStrike && tenantPercent === 0;
-  const demandDepositPercentages =
-    !checkForceTrueStrike && orderConfig.depositOnDemand
-      ? depositPercentages.filter(
-          (percent: number | string) => percent !== tenantPercent
-        )
-      : [];
-  const hasDepositOptions =
-    showDefaultDepositOption || demandDepositPercentages.length > 0;
-  const notifyDraftOrderError = useCallback(
-    (error: any) => {
-      const title = getErrorTitle(error);
-      if (title === "Network fail") return;
-
-      const messageByTitle: Record<string, string> = {
-        order_service_domestic_invalid:
-          "message.address_order_service_domestic_invalid",
-        order_service_international_invalid:
-          "message.address_order_service_international_invalid",
-      };
-
-      notification.error({
-        message: t(
-          messageByTitle[title] || title || "message.unconnected_error"
-        ),
-      });
-    },
-    [notification, t]
-  );
-  const handleChangeDepositPercent = useCallback(
-    async (percent: number | string) => {
-      setDepositMethodValue({
-        method: DEFAULT_METHOD_SELECTED,
-        percent,
-      });
-      setDepositOnDemand(percent);
-
-      try {
-        await updateDraftOrderAsync({
-          tags: [],
-          depositOnDemand: percent,
-        });
-      } catch (error) {
-        notifyDraftOrderError(error);
-      }
-    },
-    [notifyDraftOrderError, updateDraftOrderAsync]
-  );
-  const selectAddress = useCallback(
-    async (address: string | number) => {
-      try {
-        const depositOnDemand =
-          draftOrder?.tags?.length > 0 ? undefined : draftOrder?.emdPercent;
-
-        return await updateDraftOrderAsync({
-          receiptAddress: null,
-          address,
-          depositOnDemand,
-        });
-      } catch (error) {
-        notifyDraftOrderError(error);
-        throw error;
-      }
-    },
-    [draftOrder, notifyDraftOrderError, updateDraftOrderAsync]
-  );
-  const selectReceiveAddress = useCallback(
-    async (address: string | number) => {
-      try {
-        return await updateDraftOrderAsync({
-          receiptAddress: selectedAddressId,
-          address,
-          depositOnDemand:
-            draftOrder?.tags?.length > 0 ? undefined : draftOrder?.emdPercent,
-        });
-      } catch (error) {
-        notifyDraftOrderError(error);
-        throw error;
-      }
-    },
-    [
-      draftOrder,
-      notifyDraftOrderError,
-      selectedAddressId,
-      updateDraftOrderAsync,
-    ]
-  );
-  const removeReceiveAddress = useCallback(async () => {
-    try {
-      return await updateDraftOrderAsync({
-        receiptAddress: null,
-        address: selectedAddressId,
-        depositOnDemand:
-          draftOrder?.tags?.length > 0 ? undefined : draftOrder?.emdPercent,
-      });
-    } catch (error) {
-      notifyDraftOrderError(error);
-      throw error;
-    }
-  }, [
+    addresses,
+    appliedVouchers,
+    balance,
+    biffinOptions,
+    canRechargeForDeposit,
+    createOrder,
+    crossedThresholdMerchants,
+    currentProjectInfo,
+    demandDepositPercentages,
+    depositExpanded,
+    depositMethodValue,
+    depositModalOpen,
+    depositOnDemand,
     draftOrder,
-    notifyDraftOrderError,
+    draftOrderId,
+    generalConfig,
+    handleChangeBiffinOption,
+    handleChangeDepositPercent,
+    hasDepositOptions,
+    isBiffinLoading,
+    isConnectedBiffin,
+    isDraftOrderLoanable,
+    isEnabledBiffin,
+    isFetchingAddresses,
+    isFetchingReceivingAddresses,
+    isLoading,
+    isOrderButtonDisabled,
+    isUpdatingDraftOrder,
+    isUsingReceiveAddress,
+    lackOfMoney,
+    merchants,
+    openConnectBiffin,
+    pin,
+    pinError,
+    pinOpen,
+    receivingAddresses,
+    removeReceiveAddress,
+    savePassword,
+    selectAddress,
+    selectReceiveAddress,
+    selectedAddressData,
     selectedAddressId,
-    updateDraftOrderAsync,
-  ]);
-
-  useEffect(() => {
-    if (depositOnDemand === undefined && tenantPercent !== undefined) {
-      setDepositOnDemand(tenantPercent);
-      setDepositMethodValue({
-        method: DEFAULT_METHOD_SELECTED,
-        percent: tenantPercent,
-      });
-    }
-  }, [depositOnDemand, tenantPercent]);
-
-  const submitOrder = async (secret?: string) => {
-    if (!draftOrder) return;
-    if (!selectedAddressId) {
-      notification.error({ message: t("cartCheckout.choose_address_error") });
-      return;
-    }
-    if (pinOpen && !secret) {
-      setPinError(t("cartCheckout.input_pin_error"));
-      return;
-    }
-
-    const payload: Record<string, any> = {
-      draftOrder: draftOrder.id,
-      loanAmount: 0,
-      couponCodes:
-        appliedVouchers.length > 0
-          ? appliedVouchers.map((item) => item.code)
-          : undefined,
-      depositOnDemand,
-    };
-    if (secret) {
-      payload.password = secret;
-      if (savePassword) payload.savePassword = true;
-    }
-
-    try {
-      await createOrder.mutateAsync(payload);
-      setPin("");
-      setPinError("");
-      setPinOpen(false);
-      notification.success({ message: t("message.success") });
-    } catch (error: any) {
-      const title = getErrorTitle(error);
-      if (title === "empty_password") {
-        setPin("");
-        setPinError("");
-        setPinOpen(true);
-        return;
-      }
-      if (
-        title === "password_not_match" ||
-        title === "invalid_password" ||
-        title === "invalid_pin"
-      ) {
-        if (pinOpen) {
-          setPinError(t("cartCheckout.incorrect_pin"));
-        } else {
-          setPin("");
-          setPinError("");
-          setPinOpen(true);
-        }
-        return;
-      }
-      const messageByTitle: Record<string, string> = {
-        insufficient_balance: "cartCheckout.not_enough_money",
-        config_group_changed: "cartCheckout.considering_before_deposit",
-        system_currently_suspended: "cartCheckout.order_sespension",
-        warehouse_location_not_mapped: "message.warehouse_location_not_mapped",
-        other_marketplace_disabled: "message.other_marketplace_disabled",
-        order_service_requires: "error.service_change",
-        order_service_require_groups: "error.service_change",
-        order_service_excludes: "error.service_change",
-        order_service_exclude_groups: "error.service_change",
-      };
-      notification.error({
-        message: t(messageByTitle[title] || `message.${title || "error"}`),
-      });
-    }
-  };
+    selectedBiffinMoney,
+    selectedBiffinPercent,
+    selectedCustomerPercent,
+    selectedReceiveAddressData,
+    selectedReceiveAddressId,
+    setAppliedVouchers,
+    setDepositExpanded,
+    setDepositModalOpen,
+    setPin,
+    setPinError,
+    setPinOpen,
+    setSavePassword,
+    setVoucherOpen,
+    showDefaultDepositOption,
+    sortedMerchants,
+    submitOrder,
+    tenantPercent,
+    totalCoupon,
+    totalLackOfMoney,
+    totalLink,
+    totalQuantity,
+    voucherOpen,
+  } = page;
 
   if (isLoading) return <Spin />;
   if (!draftOrder) return <Empty description={t("message.empty")} />;
@@ -766,7 +260,7 @@ export const CartCheckoutStyleDefault = () => {
               const skus = getSkus(merchant);
               const merchantQuantity = skus.reduce(
                 (sum: number, sku: any) => sum + Number(sku.quantity || 0),
-                0
+                0,
               );
               return (
                 <Card
@@ -845,7 +339,7 @@ export const CartCheckoutStyleDefault = () => {
                           .sort(
                             (left: any, right: any) =>
                               Number(left.position || 0) -
-                              Number(right.position || 0)
+                              Number(right.position || 0),
                           )
                           .map((service: any) => (
                             <Typography.Text key={service.id || service.code}>
@@ -958,115 +452,224 @@ export const CartCheckoutStyleDefault = () => {
                   </Flex>
                   {hasDepositOptions && (
                     <>
-                      <div
-                        style={{
-                          maxHeight: 360,
-                          overflow: "auto",
-                          width: "100%",
-                        }}
-                      >
-                        <Space
-                          direction="vertical"
-                          size={0}
-                          style={{ width: "100%" }}
+                      <Spin spinning={isBiffinLoading}>
+                        <div
+                          style={{
+                            maxHeight: 360,
+                            overflow: "auto",
+                            width: "100%",
+                          }}
                         >
-                          {showDefaultDepositOption &&
-                            (depositExpanded ||
-                              (depositMethodValue.method ===
-                                DEFAULT_METHOD_SELECTED &&
-                                tenantPercent ===
-                                  depositMethodValue.percent)) && (
-                              <Radio
-                                checked={
-                                  depositMethodValue.method ===
-                                    DEFAULT_METHOD_SELECTED &&
-                                  tenantPercent === depositMethodValue.percent
-                                }
-                                onChange={() =>
-                                  handleChangeDepositPercent(tenantPercent)
-                                }
-                              >
-                                <Space direction="vertical" size={0}>
-                                  <Typography.Text>
-                                    {t("cart.deposit_with_tenant", {
-                                      tenant_name:
-                                        currentProjectInfo?.name || "",
-                                      percent: tenantPercent,
-                                    })}
-                                  </Typography.Text>
-                                  <Typography.Text
-                                    strong
-                                    style={{ color: token.colorPrimary }}
-                                  >
-                                    {formatCurrency(
-                                      moneyCeil(
-                                        percentToMoney(
-                                          tenantPercent,
-                                          draftOrder.exchangedTotalValue
-                                        )
-                                      )
-                                    )}
-                                  </Typography.Text>
-                                </Space>
-                              </Radio>
+                          <Space
+                            direction="vertical"
+                            size={0}
+                            style={{ width: "100%" }}
+                          >
+                            {showDefaultDepositOption &&
+                              (depositExpanded ||
+                                (depositMethodValue.method ===
+                                  DEFAULT_METHOD_SELECTED &&
+                                  tenantPercent ===
+                                    depositMethodValue.percent)) && (
+                                <Radio
+                                  checked={
+                                    depositMethodValue.method ===
+                                      DEFAULT_METHOD_SELECTED &&
+                                    tenantPercent === depositMethodValue.percent
+                                  }
+                                  onChange={() =>
+                                    handleChangeDepositPercent(tenantPercent)
+                                  }
+                                >
+                                  <Space direction="vertical" size={0}>
+                                    <Typography.Text>
+                                      {t("cart.deposit_with_tenant", {
+                                        tenant_name:
+                                          currentProjectInfo?.name || "",
+                                        percent: tenantPercent,
+                                      })}
+                                    </Typography.Text>
+                                    <Typography.Text
+                                      strong
+                                      style={{ color: token.colorPrimary }}
+                                    >
+                                      {formatCurrency(
+                                        moneyCeil(
+                                          percentToMoney(
+                                            tenantPercent,
+                                            draftOrder.exchangedTotalValue,
+                                          ),
+                                        ),
+                                      )}
+                                    </Typography.Text>
+                                  </Space>
+                                </Radio>
+                              )}
+
+                            {demandDepositPercentages.map(
+                              (percent: number | string, index: number) => {
+                                const hidden =
+                                  !depositExpanded &&
+                                  depositMethodValue.percent !== percent;
+
+                                return (
+                                  <div key={index} hidden={hidden}>
+                                    <Divider
+                                      style={{
+                                        display:
+                                          !depositExpanded || !tenantPercent
+                                            ? "none"
+                                            : undefined,
+                                        marginBlock: token.marginXS,
+                                      }}
+                                    />
+                                    <Radio
+                                      checked={
+                                        depositMethodValue.method ===
+                                          DEFAULT_METHOD_SELECTED &&
+                                        percent === depositMethodValue.percent
+                                      }
+                                      onChange={() =>
+                                        handleChangeDepositPercent(percent)
+                                      }
+                                    >
+                                      <Space direction="vertical" size={0}>
+                                        <Typography.Text>
+                                          {t("cart.deposit_with_tenant", {
+                                            tenant_name:
+                                              currentProjectInfo?.name || "",
+                                            percent,
+                                          })}
+                                        </Typography.Text>
+                                        <Typography.Text
+                                          strong
+                                          style={{ color: token.colorPrimary }}
+                                        >
+                                          {formatCurrency(
+                                            moneyCeil(
+                                              percentToMoney(
+                                                percent,
+                                                draftOrder.exchangedTotalValue,
+                                              ),
+                                            ),
+                                          )}
+                                        </Typography.Text>
+                                      </Space>
+                                    </Radio>
+                                  </div>
+                                );
+                              },
                             )}
 
-                          {demandDepositPercentages.map(
-                            (percent: number | string, index: number) => {
-                              const hidden =
-                                !depositExpanded &&
-                                depositMethodValue.percent !== percent;
-
-                              return (
-                                <div key={index} hidden={hidden}>
+                            {isEnabledBiffin &&
+                              (!isConnectedBiffin ? (
+                                <>
                                   <Divider
                                     style={{
                                       display:
-                                        !depositExpanded || !tenantPercent
+                                        !depositExpanded ||
+                                        (!tenantPercent && !depositOnDemand)
                                           ? "none"
                                           : undefined,
                                       marginBlock: token.marginXS,
                                     }}
                                   />
-                                  <Radio
-                                    checked={
-                                      depositMethodValue.method ===
-                                        DEFAULT_METHOD_SELECTED &&
-                                      percent === depositMethodValue.percent
-                                    }
-                                    onChange={() =>
-                                      handleChangeDepositPercent(percent)
-                                    }
-                                  >
-                                    <Space direction="vertical" size={0}>
-                                      <Typography.Text>
-                                        {t("cart.deposit_with_tenant", {
-                                          tenant_name:
-                                            currentProjectInfo?.name || "",
-                                          percent,
-                                        })}
-                                      </Typography.Text>
-                                      <Typography.Text
-                                        strong
-                                        style={{ color: token.colorPrimary }}
+                                  {(depositExpanded ||
+                                    depositMethodValue.method ===
+                                      BIFFIN_METHOD_SELECTED) && (
+                                    <Radio
+                                      checked={
+                                        depositMethodValue.method ===
+                                        BIFFIN_METHOD_SELECTED
+                                      }
+                                    >
+                                      <Space direction="vertical" size={0}>
+                                        <Typography.Text>
+                                          {t("cart.deposit_with_biffin")}
+                                        </Typography.Text>
+                                        <Typography.Link
+                                          type="danger"
+                                          onClick={openConnectBiffin}
+                                        >
+                                          {t("cart.connect_now")}
+                                        </Typography.Link>
+                                      </Space>
+                                    </Radio>
+                                  )}
+                                </>
+                              ) : (
+                                biffinOptions.map(
+                                  (item: any, index: number) => {
+                                    const hidden =
+                                      !depositExpanded &&
+                                      depositMethodValue.percent !==
+                                        item?.percent;
+
+                                    return (
+                                      <div
+                                        key={item?.key ?? index}
+                                        hidden={hidden}
                                       >
-                                        {formatCurrency(
-                                          moneyCeil(
-                                            percentToMoney(
-                                              percent,
-                                              draftOrder.exchangedTotalValue
-                                            )
-                                          )
-                                        )}
-                                      </Typography.Text>
-                                    </Space>
-                                  </Radio>
-                                </div>
-                              );
-                            }
-                          )}
-                        </Space>
-                      </div>
+                                        <Divider
+                                          style={{
+                                            display: !depositExpanded
+                                              ? "none"
+                                              : undefined,
+                                            marginBlock: token.marginXS,
+                                          }}
+                                        />
+                                        <Radio
+                                          checked={
+                                            item?.percent ===
+                                              depositMethodValue.percent &&
+                                            depositMethodValue.method ===
+                                              BIFFIN_METHOD_SELECTED
+                                          }
+                                          onChange={() =>
+                                            handleChangeBiffinOption(item)
+                                          }
+                                        >
+                                          <Space direction="vertical" size={0}>
+                                            <Typography.Text>
+                                              {item?.label}{" "}
+                                              {index ===
+                                                biffinOptions.length - 1 && (
+                                                <Tooltip
+                                                  title={t(
+                                                    "cartCheckout.textPercentRounding",
+                                                  )}
+                                                >
+                                                  <QuestionCircleOutlined
+                                                    style={{
+                                                      color:
+                                                        token.colorTextSecondary,
+                                                      marginLeft:
+                                                        token.marginXXS,
+                                                    }}
+                                                  />
+                                                </Tooltip>
+                                              )}
+                                            </Typography.Text>
+                                            <Typography.Text
+                                              strong
+                                              style={{
+                                                color: token.colorPrimary,
+                                              }}
+                                            >
+                                              {formatCurrency(
+                                                moneyCeil(item?.money || 0),
+                                              )}
+                                            </Typography.Text>
+                                          </Space>
+                                        </Radio>
+                                      </div>
+                                    );
+                                  },
+                                )
+                              ))}
+                          </Space>
+                        </div>
+                      </Spin>
                       <Divider style={{ marginBlock: token.marginXS }} />
                     </>
                   )}
@@ -1110,7 +713,9 @@ export const CartCheckoutStyleDefault = () => {
                           icon={<CloseOutlined />}
                           onClick={() =>
                             setAppliedVouchers((items) =>
-                              items.filter((item) => item.code !== voucher.code)
+                              items.filter(
+                                (item) => item.code !== voucher.code,
+                              ),
                             )
                           }
                         />
@@ -1118,7 +723,7 @@ export const CartCheckoutStyleDefault = () => {
                       </Space>
                       <Typography.Text type="danger">
                         {formatCurrency(
-                          moneyCeil(-Number(voucher.totalDiscountFee || 0))
+                          moneyCeil(-Number(voucher.totalDiscountFee || 0)),
                         )}
                       </Typography.Text>
                     </Flex>
@@ -1153,7 +758,7 @@ export const CartCheckoutStyleDefault = () => {
                     </Typography.Text>
                     <Typography.Text strong>
                       {formatCurrency(
-                        moneyCeil(draftOrder.exchangedTotalValue || 0)
+                        moneyCeil(draftOrder.exchangedTotalValue || 0),
                       )}
                     </Typography.Text>
                   </Flex>
@@ -1171,6 +776,40 @@ export const CartCheckoutStyleDefault = () => {
                       {formatCurrency(moneyCeil(draftOrder.emdAmount || 0))}
                     </Typography.Text>
                   </Flex>
+                  {isEnabledBiffin &&
+                    isConnectedBiffin &&
+                    depositMethodValue.method === BIFFIN_METHOD_SELECTED && (
+                      <>
+                        <Divider style={{ marginBlock: token.marginXS }} />
+                        <Flex justify="space-between">
+                          <Typography.Text type="secondary">
+                            {t("cart.bifinAdvancecapital", {
+                              value: selectedBiffinPercent,
+                            })}
+                            :
+                          </Typography.Text>
+                          <Typography.Text>
+                            {formatCurrency(moneyCeil(selectedBiffinMoney))}
+                          </Typography.Text>
+                        </Flex>
+                        <Flex justify="space-between">
+                          <Typography.Text type="secondary">
+                            {t("cart.customerAdvancecapital", {
+                              value: selectedCustomerPercent,
+                            })}
+                            :
+                          </Typography.Text>
+                          <Typography.Text>
+                            {formatCurrency(
+                              moneyCeil(
+                                Number(draftOrder.exchangedTotalValue || 0) -
+                                  selectedBiffinMoney,
+                              ),
+                            )}
+                          </Typography.Text>
+                        </Flex>
+                      </>
+                    )}
                   {lackOfMoney && (
                     <>
                       <Flex justify="space-between">
@@ -1195,53 +834,72 @@ export const CartCheckoutStyleDefault = () => {
                   {crossedThresholdMerchants.length > 0 &&
                     (lackOfMoney ? (
                       <>
-                        {generalConfig.depositWizard ? (
-                          <>
+                        {canRechargeForDeposit ? (
+                          generalConfig.depositWizard ? (
+                            <>
+                              <Button
+                                size="large"
+                                block
+                                onClick={() => setDepositModalOpen(true)}
+                              >
+                                {t("cartCheckout.recharge")}
+                              </Button>
+                              <DepositModal
+                                open={depositModalOpen}
+                                onClose={() => setDepositModalOpen(false)}
+                                maskClosable
+                                data={{
+                                  step: 1,
+                                  hideStep: true,
+                                  type: "order",
+                                  money: totalLackOfMoney,
+                                }}
+                              />
+                            </>
+                          ) : (
                             <Button
                               size="large"
                               block
-                              onClick={() => setDepositModalOpen(true)}
+                              href="/profile/faqs?recharge"
+                              target="_blank"
                             >
                               {t("cartCheckout.recharge")}
                             </Button>
-                            <DepositModal
-                              open={depositModalOpen}
-                              onClose={() => setDepositModalOpen(false)}
-                              maskClosable
-                              data={{
-                                step: 1,
-                                hideStep: true,
-                                type: "order",
-                                money: totalLackOfMoney,
-                              }}
-                            />
-                          </>
+                          )
                         ) : (
                           <Button
+                            type="primary"
                             size="large"
                             block
-                            href="/profile/faqs?recharge"
-                            target="_blank"
+                            loading={createOrder.isPending}
+                            disabled={isOrderButtonDisabled}
+                            onClick={() => submitOrder()}
                           >
-                            {t("cartCheckout.recharge")}
+                            {t("cartCheckout.deposit_now")}
                           </Button>
                         )}
-                        <Typography.Link
-                          href="/profile/faqs?recharge"
-                          target="_blank"
-                        >
-                          {t("cartCheckout.recharge_guide")}
-                        </Typography.Link>
-                        <Tooltip
-                          title={t("cartCheckout.guide_recharge_into_account")}
-                        >
-                          <QuestionCircleOutlined
-                            style={{
-                              color: token.colorPrimary,
-                              marginLeft: token.marginXS,
-                            }}
-                          />
-                        </Tooltip>
+                        {canRechargeForDeposit && (
+                          <>
+                            <Typography.Link
+                              href="/profile/faqs?recharge"
+                              target="_blank"
+                            >
+                              {t("cartCheckout.recharge_guide")}
+                            </Typography.Link>
+                            <Tooltip
+                              title={t(
+                                "cartCheckout.guide_recharge_into_account",
+                              )}
+                            >
+                              <QuestionCircleOutlined
+                                style={{
+                                  color: token.colorPrimary,
+                                  marginLeft: token.marginXS,
+                                }}
+                              />
+                            </Tooltip>
+                          </>
+                        )}
                       </>
                     ) : (
                       <Button
@@ -1255,6 +913,52 @@ export const CartCheckoutStyleDefault = () => {
                         {t("cartCheckout.deposit_now")}
                       </Button>
                     ))}
+                  {isEnabledBiffin &&
+                    depositMethodValue.method === BIFFIN_METHOD_SELECTED && (
+                      <Space
+                        direction="vertical"
+                        size={token.marginXS}
+                        style={{ width: "100%" }}
+                      >
+                        {!isConnectedBiffin && (
+                          <Typography.Text type="danger">
+                            {t("cartCheckout.connectBifinToContinue", {
+                              name: currentProjectInfo?.name,
+                            })}
+                          </Typography.Text>
+                        )}
+                        {isConnectedBiffin && !isDraftOrderLoanable && (
+                          <Typography.Text type="danger">
+                            {t("cartCheckout.notEnoughCondition", {
+                              name: currentProjectInfo?.name,
+                            })}
+                          </Typography.Text>
+                        )}
+                        {isConnectedBiffin ? (
+                          <Typography.Paragraph
+                            style={{ marginBottom: 0 }}
+                            dangerouslySetInnerHTML={{
+                              __html: t("cartCheckout.confirmBifin"),
+                            }}
+                          />
+                        ) : (
+                          <>
+                            <Typography.Paragraph style={{ marginBottom: 0 }}>
+                              {t("cartCheckout.introduceBifin", {
+                                name: currentProjectInfo?.name,
+                              })}
+                            </Typography.Paragraph>
+                            <Typography.Link
+                              href="https://www.bifin.vn/"
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              {t("cartCheckout.biffin_note_more")}
+                            </Typography.Link>
+                          </>
+                        )}
+                      </Space>
+                    )}
                 </Space>
               </Card>
             </Space>

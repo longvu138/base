@@ -211,6 +211,13 @@
     "recharge_guide": "Hướng dẫn",
     "guide_recharge_into_account": "Hướng dẫn nạp tiền vào tài khoản",
     "deposit_now": "ĐẶT CỌC NGAY",
+    "advanceCapitalPercent": "Đặt cọc {{value}}%, Bifin ứng vốn {{bifinValue}}%",
+    "textPercentRounding": "Tỷ lệ ứng vốn mang tính tham khảo do đã được làm tròn",
+    "connectBifinToContinue": "Vui lòng liên kết tài khoản BiFin với {{name}} để tiếp tục",
+    "notEnoughCondition": "Bạn không đủ điều kiện ứng vốn từ BiFin, vui lòng tiếp tục cọc với {{name}}",
+    "introduceBifin": "BiFin là đối tác uy tín hàng đầu của {{name}} cung cấp giải pháp tài chính lên đến 70% giá trị đơn hàng",
+    "confirmBifin": "Bằng việc xác nhận đặt cọc, bạn đã đồng ý với <a href=\"https://bifin.vn/tai-lieu-huong-dan-su-dung/\">chính sách ứng vốn</a> của BiFin",
+    "biffin_note_more": "Tìm hiểu thêm về BiFin",
     "amount_sum": "Tổng tiền",
     "service": "Dịch vụ",
     "product_note": "Ghi chú sản phẩm",
@@ -224,7 +231,7 @@
     "confirm_pin": "Xác nhận mã PIN",
     "confirm": "Xác nhận",
     "cancel": "Hủy",
-    "save_password_60m": "Lưu mã PIN trong 60 phút"
+    "save_password_60m": "Không hỏi lại trong 60 phút"
   },
   "config_group": {
     "applied": "Áp dụng cố định",
@@ -1295,6 +1302,10 @@
   "cart": {
     "deposit_information": "Thông tin đặt cọc",
     "deposit_with_tenant": "Đặt cọc {{percent}}% với {{tenant_name}}",
+    "deposit_with_biffin": "Ứng vốn với BiFin",
+    "connect_now": "Liên kết ngay",
+    "customerAdvancecapital": "Số tiền khách ứng vốn ({{value}}%)",
+    "bifinAdvancecapital": "Số tiền BiFin ứng vốn ({{value}}%)",
     "quantity_min": "Số lượng sản phẩm tối thiểu là {{value}}",
     "quantity_max": "Số lượng tối đa là {{value}}",
     "quantity_multiple": "Số lượng phải là bội số của {{value}}",

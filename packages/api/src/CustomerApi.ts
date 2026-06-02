@@ -116,6 +116,12 @@ export const CustomerApi = {
     applyDraftOrderCoupon: (id: string, payload: { couponCode?: string }) => {
         return ApiClient.auth.post(`customer/draft_orders/${id}/apply_coupon`, payload);
     },
+    checkShoppingCartLoanable: (payload: any) => {
+        return ApiClient.auth.post("customer/third-parties/shopkeeper/create", payload);
+    },
+    getConnectedToBiffin: () => {
+        return ApiClient.auth.get("customer/third-parties/shopkeeper");
+    },
     createCustomerOrder: (payload: any) => {
         return ApiClient.auth.post("customer/orders", payload);
     },

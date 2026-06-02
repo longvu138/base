@@ -211,6 +211,13 @@
     "recharge_guide": "Guide",
     "guide_recharge_into_account": "guide recharge into account",
     "deposit_now": "deposit now",
+    "advanceCapitalPercent": "Deposit {{value}}%, BiFin advances {{bifinValue}}%",
+    "textPercentRounding": "The advance rate is for reference because it has been rounded",
+    "connectBifinToContinue": "Please connect your BiFin account with {{name}} to continue",
+    "notEnoughCondition": "You are not eligible for BiFin advance capital, please continue depositing with {{name}}",
+    "introduceBifin": "BiFin is a trusted partner of {{name}}, providing financial solutions up to 70% of order value",
+    "confirmBifin": "By confirming the deposit, you agree to BiFin's <a href=\"https://bifin.vn/tai-lieu-huong-dan-su-dung/\">advance capital policy</a>",
+    "biffin_note_more": "More information about BiFin",
     "amount_sum": "Total amount",
     "service": "Service",
     "product_note": "Product note",
@@ -224,7 +231,7 @@
     "confirm_pin": "Confirm PIN",
     "confirm": "Confirm",
     "cancel": "Cancel",
-    "save_password_60m": "Save PIN for 60 minutes"
+    "save_password_60m": "Don't ask again in 60 mins"
   },
   "config_group": {
     "applied": "Fixed application",
@@ -1293,7 +1300,11 @@
   },
   "cart": {
     "deposit_information": "Deposit information",
-    "deposit_with_tenant": "Deposit with {{tenant_name}}",
+    "deposit_with_tenant": "Deposit {{percent}}% with {{tenant_name}}",
+    "deposit_with_biffin": "Deposit with BiFin",
+    "connect_now": "Connect Now",
+    "customerAdvancecapital": "Customer advance amount ({{value}}%)",
+    "bifinAdvancecapital": "BiFin advance amount ({{value}}%)",
     "quantity_min": "Minimum product quantity is {{value}}",
     "quantity_max": "Maximum quantity is {{value}}",
     "quantity_multiple": "Quantity must be a multiple of {{value}}",
