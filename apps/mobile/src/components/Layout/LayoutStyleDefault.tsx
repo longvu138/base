@@ -20,6 +20,7 @@ import {
   DollarOutlined,
   BellOutlined,
   BarChartOutlined,
+  PayCircleOutlined,
 } from "@ant-design/icons";
 import { useMemo, useState, useEffect } from "react";
 import { ThemeSwitcher } from "@repo/theme-provider";
@@ -148,6 +149,15 @@ function Layout() {
       label: (
         <Link to="/cash-request" onClick={() => setDrawerVisible(false)}>
           {t("navigation.cash_request")}
+        </Link>
+      ),
+    },
+    {
+      key: "/peer-payments",
+      icon: <PayCircleOutlined />,
+      label: (
+        <Link to="/peer-payments" onClick={() => setDrawerVisible(false)}>
+          {t("navigation.peer_payments")}
         </Link>
       ),
     },

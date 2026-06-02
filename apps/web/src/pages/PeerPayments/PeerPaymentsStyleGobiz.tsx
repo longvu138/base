@@ -54,7 +54,7 @@ import {
 } from "@ant-design/icons";
 import { LocalStoreUtil, moneyFormat, quantityFormat } from "@repo/util";
 import { PinModal } from "@repo/ui";
-import { usePeerPaymentsPage } from "./hooks/usePeerPaymentsPage";
+import { usePeerPaymentsPage } from "@repo/hooks";
 
 const { Text, Title, Paragraph } = Typography;
 

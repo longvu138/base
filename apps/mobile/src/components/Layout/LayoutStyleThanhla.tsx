@@ -11,6 +11,7 @@ import {
   BellOutlined,
   FileTextOutlined,
   BarChartOutlined,
+  PayCircleOutlined,
 } from "@ant-design/icons";
 import { useMemo, useState } from "react";
 import { ThemeSwitcher } from "@repo/theme-provider";
@@ -206,6 +207,11 @@ export const LayoutStyleThanhla = () => {
                 path: "/cash-request",
                 icon: <UserOutlined />,
                 labelKey: "navigation.cash_request",
+              },
+              {
+                path: "/peer-payments",
+                icon: <PayCircleOutlined />,
+                labelKey: "navigation.peer_payments",
               },
               {
                 path: "/delivery-notes",
