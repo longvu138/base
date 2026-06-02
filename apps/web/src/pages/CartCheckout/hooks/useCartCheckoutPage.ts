@@ -141,6 +141,7 @@ export const useCartCheckoutPage = () => {
       size: 9999,
       sort: "defaultAddress:desc,createdAt:desc",
     });
+  const isAddressesFetching = isFetchingAddresses;
   const { data: receivingAddresses, isFetching: isFetchingReceivingAddresses } =
     useAddressesQuery({
       page: 0,

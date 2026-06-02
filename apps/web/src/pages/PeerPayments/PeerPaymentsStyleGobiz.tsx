@@ -137,9 +137,16 @@ const renderAccount = (record: any, peerPaymentType?: string) => {
     ].filter(Boolean);
     return lines.length ? (
       <Space direction="vertical" size={0}>
-        {lines.map((line) => (
-          <Text key={line}>{line}</Text>
-        ))}
+        {record.beneficiaryAccount && (
+          <Paragraph copyable={{ text: record.beneficiaryAccount }} style={{ marginBottom: 0 }}>
+            {record.beneficiaryAccount}
+          </Paragraph>
+        )}
+        {[record.beneficiaryBank, record.beneficiaryName, record.beneficiaryBankBranch]
+          .filter(Boolean)
+          .map((line) => (
+            <Text key={line}>{line}</Text>
+          ))}
       </Space>
     ) : (
       "---"
