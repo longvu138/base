@@ -41,6 +41,7 @@
   "button": {
     "add_address": "Add address",
     "add_products": "Add products",
+    "add_products_excel": "Add products from Excel",
     "save": "Save",
     "csv": "Export CSV",
     "cancel": "Cancel",
@@ -146,6 +147,7 @@
   },
   "order": {
     "products": "Products",
+    "product": "product",
     "quantity": "Quantity",
     "quantity_required": "Please enter required information",
     "sale_price": "Sale price",
@@ -1377,6 +1379,9 @@
     "select_sku_quantity": "Select at least one SKU and quantity",
     "min_order_quantity": "Minimum purchase {{value}} products",
     "link_add_success": "Product added to cart",
+    "add_product_tab_manual": "Input",
+    "add_product_tab_excel": "Excel",
+    "add_product_tab_link": "Link",
     "manual_input": "Enter information",
     "add_product_from_link": "From product link",
     "product_link": "Product link",

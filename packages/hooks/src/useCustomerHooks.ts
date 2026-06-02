@@ -173,6 +173,43 @@ export const useCartItemsQuery = (
     });
 };
 
+export const useCartItemsInfiniteQuery = (
+    params: { size?: number } = {},
+    enabled = true,
+) => {
+    const pageSize = params.size || 5;
+    return useInfiniteQuery({
+        queryKey: ['customer.cart.items.infinite', pageSize],
+        initialPageParam: 0,
+        queryFn: async ({ pageParam = 0 }) => {
+            const res = await CustomerApi.getCartItems({
+                page: Number(pageParam),
+                size: pageSize,
+            });
+            const rows = Array.isArray(res.data) ? res.data : [];
+            const total = parseInt(res.headers['x-total-count'] || '0', 10);
+            const totalPage = parseInt(res.headers['x-page-count'] || '0', 10);
+            return {
+                data: rows,
+                total,
+                current: Number(pageParam),
+                pageSize,
+                hasMore: totalPage ? Number(pageParam) + 1 < totalPage : rows.length >= pageSize,
+            };
+        },
+        getNextPageParam: (lastPage) =>
+            lastPage.hasMore ? lastPage.current + 1 : undefined,
+        enabled: !!localStorage.getItem('access_token') && enabled,
+        retry: false,
+    });
+};
+
+const invalidateCartQueries = (queryClient: ReturnType<typeof useQueryClient>) => {
+    queryClient.invalidateQueries({ queryKey: ['customer.cart.items'] });
+    queryClient.invalidateQueries({ queryKey: ['customer.cart.items.infinite'] });
+    queryClient.invalidateQueries({ queryKey: ['customer.cart.statistics'] });
+};
+
 export const useUpdateCartSkuMutation = () => {
     const queryClient = useQueryClient();
 
@@ -180,8 +217,7 @@ export const useUpdateCartSkuMutation = () => {
         mutationFn: ({ id, payload }: { id: string; payload: any }) =>
             CustomerApi.updateCartSku(id, payload),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['customer.cart.items'] });
-            queryClient.invalidateQueries({ queryKey: ['customer.cart.statistics'] });
+            invalidateCartQueries(queryClient);
         },
     });
 };
@@ -192,8 +228,7 @@ export const useDeleteCartSkuMutation = () => {
     return useMutation({
         mutationFn: (id: string) => CustomerApi.deleteCartSku(id),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['customer.cart.items'] });
-            queryClient.invalidateQueries({ queryKey: ['customer.cart.statistics'] });
+            invalidateCartQueries(queryClient);
         },
     });
 };
@@ -204,8 +239,7 @@ export const useDeleteCartSkusMutation = () => {
     return useMutation({
         mutationFn: (ids: string[]) => CustomerApi.deleteCartSkus(ids),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['customer.cart.items'] });
-            queryClient.invalidateQueries({ queryKey: ['customer.cart.statistics'] });
+            invalidateCartQueries(queryClient);
         },
     });
 };
@@ -216,8 +250,7 @@ export const useDeleteCartGroupMutation = () => {
     return useMutation({
         mutationFn: (id: string) => CustomerApi.deleteCartGroup(id),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['customer.cart.items'] });
-            queryClient.invalidateQueries({ queryKey: ['customer.cart.statistics'] });
+            invalidateCartQueries(queryClient);
         },
     });
 };
@@ -229,7 +262,7 @@ export const useUpdateCartGroupMutation = () => {
         mutationFn: ({ id, payload }: { id: string; payload: any }) =>
             CustomerApi.updateCartGroup(id, payload),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['customer.cart.items'] });
+            invalidateCartQueries(queryClient);
         },
     });
 };
@@ -240,8 +273,7 @@ export const useDeleteAllCartMutation = () => {
     return useMutation({
         mutationFn: () => CustomerApi.deleteAllCart(),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['customer.cart.items'] });
-            queryClient.invalidateQueries({ queryKey: ['customer.cart.statistics'] });
+            invalidateCartQueries(queryClient);
         },
     });
 };
@@ -253,8 +285,7 @@ export const useUpdateCartServicesMutation = () => {
         mutationFn: ({ id, serviceCodes }: { id: string; serviceCodes: string[] }) =>
             CustomerApi.updateCartServices(id, serviceCodes),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['customer.cart.items'] });
-            queryClient.invalidateQueries({ queryKey: ['customer.cart.statistics'] });
+            invalidateCartQueries(queryClient);
         },
     });
 };
@@ -277,8 +308,7 @@ export const useImportCartProductsMutation = () => {
     return useMutation({
         mutationFn: (file: File) => CustomerApi.importCartProducts(file),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['customer.cart.items'] });
-            queryClient.invalidateQueries({ queryKey: ['customer.cart.statistics'] });
+            invalidateCartQueries(queryClient);
         },
     });
 };
@@ -290,8 +320,7 @@ export const useCreateCartProductMutation = () => {
         mutationFn: ({ payload, images }: { payload: any; images: File[] }) =>
             CustomerApi.createCartProduct(payload, images),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['customer.cart.items'] });
-            queryClient.invalidateQueries({ queryKey: ['customer.cart.statistics'] });
+            invalidateCartQueries(queryClient);
         },
     });
 };
@@ -302,9 +331,38 @@ export const useAddCartSkusMutation = () => {
     return useMutation({
         mutationFn: (payload: any) => CustomerApi.addCartSkus(payload),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['customer.cart.items'] });
-            queryClient.invalidateQueries({ queryKey: ['customer.cart.statistics'] });
+            invalidateCartQueries(queryClient);
         },
+    });
+};
+
+export const useFetchTaobaoProductMutation = () => {
+    return useMutation({
+        mutationFn: (itemId: string) => CustomerApi.fetchTaobaoProduct(itemId),
+    });
+};
+
+export const useFetchAlibabaProductMutation = () => {
+    return useMutation({
+        mutationFn: (itemId: string) => CustomerApi.fetchAlibabaProduct(itemId),
+    });
+};
+
+export const useResolveMarketplaceShortLinkMutation = () => {
+    return useMutation({
+        mutationFn: ({
+            marketplace,
+            shortLink,
+        }: {
+            marketplace: "taobao" | "alibaba";
+            shortLink: string;
+        }) => CustomerApi.resolveMarketplaceShortLink(marketplace, shortLink),
+    });
+};
+
+export const useTrackAddToCartMutation = () => {
+    return useMutation({
+        mutationFn: () => CustomerApi.trackAddToCart(),
     });
 };
 
