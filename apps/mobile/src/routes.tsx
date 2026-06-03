@@ -4,6 +4,7 @@ import RegisterPage from './pages/Register/RegisterPage';
 import OrdersPage from './pages/Orders';
 import OrderDetailPage from './pages/OrderDetail';
 import CartsPage from './pages/Carts';
+import CartCheckoutPage from './pages/CartCheckout';
 import ShipmentsPage from './pages/Shipments';
 import ShipmentDetailPage from './pages/ShipmentDetail';
 import CreateShipmentPage from './pages/CreateShipment';
@@ -44,6 +45,7 @@ function AppRoutes() {
                     <Route path="orders" element={<OrdersPage />} />
                     <Route path="orders/:code" element={<OrderDetailPage />} />
                     <Route path="carts" element={<CartsPage />} />
+                    <Route path="carts/checkout/:draftOrderId" element={<CartCheckoutPage />} />
                     <Route path="shipments" element={<ShipmentsPage />} />
                     <Route path="shipments/:code" element={<ShipmentDetailPage />} />
                     <Route path="shipments/create" element={<CreateShipmentPage />} />

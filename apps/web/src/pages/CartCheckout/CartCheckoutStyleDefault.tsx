@@ -123,6 +123,9 @@ export const CartCheckoutStyleDefault = () => {
   if (isLoading) return <Spin />;
   if (!draftOrder) return <Empty description={t("message.empty")} />;
 
+  const orderButtonLoading =
+    createOrder.isPending || isUpdatingDraftOrder || isBiffinLoading;
+
   const columns = [
     {
       title: t("cartCheckout.product_info"),
@@ -869,7 +872,7 @@ export const CartCheckoutStyleDefault = () => {
                             type="primary"
                             size="large"
                             block
-                            loading={createOrder.isPending}
+                            loading={orderButtonLoading}
                             disabled={isOrderButtonDisabled}
                             onClick={() => submitOrder()}
                           >
@@ -904,7 +907,7 @@ export const CartCheckoutStyleDefault = () => {
                         type="primary"
                         size="large"
                         block
-                        loading={createOrder.isPending}
+                        loading={orderButtonLoading}
                         disabled={isOrderButtonDisabled}
                         onClick={() => submitOrder()}
                       >
