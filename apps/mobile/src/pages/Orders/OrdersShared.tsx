@@ -213,6 +213,26 @@ const OrderCard = ({ page, record, sentinelRef }: { page: OrdersMobilePageState;
   const quantityText = `${quantityFormat(record?.orderedQuantity)}/${quantityFormat(record?.purchasedQuantity)}${hasInspection ? `/${quantityFormat(record?.receivedQuantity)}` : ''
     }`;
   const merchantName = record?.merchantName || record?.merchantCode || '---';
+  const isApprovalService = (service: any) =>
+    service?.needApprove === true || service?.approved === null;
+  const normalServices = Array.isArray(record?.services)
+    ? record.services.filter((service: any) => !isApprovalService(service))
+    : [];
+  const approvalServices = Array.isArray(record?.services)
+    ? record.services.filter(isApprovalService)
+    : [];
+  const renderServiceTag = (service: any, warning = false) => (
+    <Tag
+      key={service.code || service.name}
+      color={warning ? 'warning' : undefined}
+      style={{
+        marginInlineEnd: 0,
+        textDecoration: service.approved === false ? 'line-through' : undefined,
+      }}
+    >
+      {service.name || service.code}
+    </Tag>
+  );
 
   return (
     <div ref={sentinelRef}>
@@ -272,14 +292,11 @@ const OrderCard = ({ page, record, sentinelRef }: { page: OrdersMobilePageState;
             </Space>
           </Flex>
 
-          {Array.isArray(record?.services) && record.services.length > 0 ? (
-            <Flex wrap gap={token.marginXS}>
-              <span>Dịch vụ:</span>
-              {record.services.map((service: any) => (
-                <Tag key={service.code || service.name} style={{ marginInlineEnd: 0 }}>
-                  {service.name || service.code}
-                </Tag>
-              ))}
+          {normalServices.length || approvalServices.length ? (
+            <Flex wrap gap={token.marginXS} align="center">
+              <Text type="secondary">{page.t('orders.filters.services')}:</Text>
+              {normalServices.map((service: any) => renderServiceTag(service))}
+              {approvalServices.map((service: any) => renderServiceTag(service, true))}
             </Flex>
           ) : null}
 
