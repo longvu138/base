@@ -269,6 +269,7 @@ export const ProfileTransactionsContent = ({
           <Button
             icon={<DownloadOutlined />}
             onClick={() => {
+              if (!logic.validateExportFilters()) return;
               setExportSecret("");
               setExportError("");
               setExportOpen(true);

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { App, Form } from "antd";
+import dayjs from "dayjs";
 import { useTranslation } from "@repo/i18n";
 import { TransactionApi } from "@repo/api";
 import {
@@ -66,6 +67,20 @@ const getExportFileName = (response: any) => {
   return match?.[1]
     ? decodeURIComponent(match[1])
     : `transactions_${Date.now()}.xlsx`;
+};
+
+const hasValidExportDateRange = (filters: Record<string, any>) => {
+  const start = filters.nominalTimestampFrom
+    ? dayjs(filters.nominalTimestampFrom)
+    : null;
+  const end = filters.nominalTimestampTo
+    ? dayjs(filters.nominalTimestampTo)
+    : null;
+
+  if (!start || !end || !start.isValid() || !end.isValid()) return false;
+  if (end.isBefore(start.startOf("day"))) return false;
+
+  return !start.add(3, "month").isBefore(end.startOf("day"));
 };
 
 /**
@@ -190,20 +205,44 @@ export const useTransactionsMobilePage = () => {
     form.setFieldValue("externalTypes", externalTypes);
   };
 
+  const getCurrentExportFilters = () =>
+    cleanTransactionFilters(form.getFieldsValue(true));
+
+  const validateExportFilters = () => {
+    if (hasValidExportDateRange(getCurrentExportFilters())) return true;
+
+    notification.error({ message: t("transaction.export_csv_btn_error") });
+    return false;
+  };
+
   const handleExport = async (
     secret?: string,
     onSuccess?: () => void,
     setError?: (message: string) => void,
   ) => {
+    if (!validateExportFilters()) {
+      return;
+    }
+
     if (!secret) {
       setError?.(t("cartCheckout.incorrect_pin"));
+      return;
+    }
+    if (!activeAccountId) {
+      notification.error({ message: t("common.error") });
       return;
     }
 
     try {
       setExporting(true);
+      const exportParams = {
+        ...apiParams,
+        ...normalizeTransactionFilters(getCurrentExportFilters()),
+        sort: "createdAt:desc",
+      };
       const response = await TransactionApi.exportTransactions(
-        { ...apiParams },
+        activeAccountId,
+        exportParams,
         { secret },
       );
       const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -252,6 +291,7 @@ export const useTransactionsMobilePage = () => {
     handleSearch,
     handleReset,
     handleExport,
+    validateExportFilters,
     toggleTransactionType,
   };
 };

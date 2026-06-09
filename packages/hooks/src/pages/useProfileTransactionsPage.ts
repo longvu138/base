@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { App, Form } from "antd";
-import type { Dayjs } from "dayjs";
+import dayjs, { type Dayjs } from "dayjs";
 import {
   useListTransactionQuery,
   useTransactionTypesQuery,
@@ -43,6 +43,20 @@ const getExportFileName = (response: any) => {
   return match?.[1]
     ? decodeURIComponent(match[1])
     : `transactions_${Date.now()}.xlsx`;
+};
+
+const hasValidExportDateRange = (filters: TransactionFilters) => {
+  const start = filters.nominalTimestampFrom
+    ? dayjs(filters.nominalTimestampFrom)
+    : null;
+  const end = filters.nominalTimestampTo
+    ? dayjs(filters.nominalTimestampTo)
+    : null;
+
+  if (!start || !end || !start.isValid() || !end.isValid()) return false;
+  if (end.isBefore(start.startOf("day"))) return false;
+
+  return !start.add(3, "month").isBefore(end.startOf("day"));
 };
 
 export const useProfileTransactionsPage = (t: (key: string) => string) => {
@@ -126,20 +140,65 @@ export const useProfileTransactionsPage = (t: (key: string) => string) => {
     }
   };
 
+  const getCurrentExportFilters = () => cleanFilters(form.getFieldsValue());
+
+  const validateExportFilters = () => {
+    if (hasValidExportDateRange(getCurrentExportFilters())) return true;
+
+    notification.error({ message: t("transaction.export_csv_btn_error") });
+    return false;
+  };
+
   const handleExport = async (
     secret?: string,
     onSuccess?: () => void,
     setError?: (message: string) => void,
   ) => {
+    if (!validateExportFilters()) {
+      return;
+    }
+
     if (!secret) {
       setError?.(t("cartCheckout.incorrect_pin"));
+      return;
+    }
+    if (!activeAccountId) {
+      notification.error({ message: t("common.error") });
       return;
     }
 
     try {
       setExporting(true);
+      const exportFilters = getCurrentExportFilters();
+      const exportParams: Record<string, any> = { ...apiParams };
+
+      if (exportFilters.externalTypes?.length) {
+        exportParams.externalTypes = exportFilters.externalTypes.join(",");
+      } else {
+        delete exportParams.externalTypes;
+      }
+
+      if (exportFilters.nominalTimestampFrom) {
+        exportParams.nominalTimestampFrom = exportFilters.nominalTimestampFrom
+          .startOf("day")
+          .toISOString();
+      }
+
+      if (exportFilters.nominalTimestampTo) {
+        exportParams.nominalTimestampTo = exportFilters.nominalTimestampTo
+          .endOf("day")
+          .toISOString();
+      }
+
+      if (exportFilters.query) {
+        exportParams.query = exportFilters.query;
+      } else {
+        delete exportParams.query;
+      }
+
       const response = await TransactionApi.exportTransactions(
-        { ...apiParams, sort: "createdAt:desc" },
+        activeAccountId,
+        { ...exportParams, sort: "createdAt:desc" },
         { secret },
       );
       const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -180,6 +239,7 @@ export const useProfileTransactionsPage = (t: (key: string) => string) => {
     handleSearch,
     handleReset,
     handleExport,
+    validateExportFilters,
     refetch,
     toggleTransactionType,
   };
