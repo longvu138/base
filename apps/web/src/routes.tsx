@@ -14,7 +14,7 @@ import { PeerPayments } from "./pages/PeerPayments";
 import { PeerPaymentDetail } from "./pages/PeerPaymentDetail";
 import { DeliveryNotes } from "./pages/DeliveryNotes";
 import { Waybills } from "./pages/Waybills";
-import { Lieferscheine } from "./pages/Lieferscheine";
+// import { Lieferscheine } from "./pages/Lieferscheine";
 import Claims from "./pages/Claims";
 import CreateClaim from "./pages/CreateClaim";
 import WithdrawalSlips from "./pages/WithdrawalSlips";
@@ -57,7 +57,7 @@ function AppRoutes() {
           <Route path="delivery/create" element={<CreateDelivery />} />
           <Route path="delivery-notes" element={<DeliveryNotes />} />
           <Route path="waybills" element={<Waybills />} />
-          <Route path="lieferscheine" element={<Lieferscheine />} />
+          {/* <Route path="lieferscheine" element={<Lieferscheine />} /> */}
 
           <Route path="claims" element={<Claims />} />
           <Route path="tickets/create" element={<CreateClaim />} />

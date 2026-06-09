@@ -11,7 +11,7 @@ import CreateShipmentPage from './pages/CreateShipment';
 import ClaimsPage from './pages/Claims';
 import CreateClaimPage from './pages/CreateClaim';
 import DeliveryNotesPage from './pages/DeliveryNotes';
-import LieferscheinePage from './pages/Lieferscheine';
+// import LieferscheinePage from './pages/Lieferscheine';
 import Dashboard from './pages/Dashboard';
 import Layout from './components/Layout/index';
 import { WishlistPage } from './pages/Wishlist/WishlistPage';
@@ -52,7 +52,7 @@ function AppRoutes() {
                     <Route path="claims" element={<ClaimsPage />} />
                     <Route path="tickets/create" element={<CreateClaimPage />} />
                     <Route path="delivery-notes" element={<DeliveryNotesPage />} />
-                    <Route path="lieferscheine" element={<LieferscheinePage />} />
+                    {/* <Route path="lieferscheine" element={<LieferscheinePage />} /> */}
                     <Route path="packages" element={<PackagesPage />} />
                     <Route path="transactions" element={<TransactionsPage />} />
                     <Route path="profile" element={<ProfilePage />} />

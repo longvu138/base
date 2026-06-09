@@ -218,11 +218,11 @@ export const LayoutStyleThanhla = () => {
                 icon: <CarOutlined />,
                 labelKey: "navigation.delivery_notes",
               },
-              {
-                path: "/lieferscheine",
-                icon: <CarOutlined />,
-                labelKey: "navigation.lieferscheine",
-              },
+              // {
+              //   path: "/lieferscheine",
+              //   icon: <CarOutlined />,
+              //   labelKey: "navigation.lieferscheine",
+              // },
               {
                 path: "/delivery-requests",
                 icon: <ShoppingCartOutlined />,

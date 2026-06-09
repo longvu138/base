@@ -88,13 +88,13 @@ const BASE_MENU_ITEMS: MenuItem[] = [
     labelKey: "navigation.delivery_notes",
     path: "/delivery-notes",
   },
-  {
-    key: "/lieferscheine",
-    icon: React.createElement(FileDoneOutlined),
-    label: "Phiếu giao",
-    labelKey: "navigation.lieferscheine",
-    path: "/lieferscheine",
-  },
+  // {
+  //   key: "/lieferscheine",
+  //   icon: React.createElement(FileDoneOutlined),
+  //   label: "Phiếu giao",
+  //   labelKey: "navigation.lieferscheine",
+  //   path: "/lieferscheine",
+  // },
   {
     key: "/waybills",
     icon: React.createElement(TagsOutlined),
