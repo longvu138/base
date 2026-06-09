@@ -38,7 +38,9 @@ export function FilterPanel({
     showCollapseAll = false,
     searchText = "Tìm kiếm",
     resetText = "Làm mới bộ lọc",
-    loading = false
+    loading = false,
+    actionExtra,
+    actionClassName
 }: FilterPanelProps): any {
     const [collapsed, setCollapsed] = useState(true);
 
@@ -78,7 +80,8 @@ export function FilterPanel({
                         </span>
                     )}
                     {!showCollapseAll && <div />}
-                    <div className="flex gap-3">
+                    <div className={`flex flex-wrap justify-end gap-3 ${actionClassName || ''}`}>
+                        {actionExtra}
                         <Button
                             onClick={onReset}
                             disabled={loading}

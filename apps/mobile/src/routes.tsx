@@ -9,9 +9,8 @@ import ShipmentsPage from './pages/Shipments';
 import ShipmentDetailPage from './pages/ShipmentDetail';
 import CreateShipmentPage from './pages/CreateShipment';
 import ClaimsPage from './pages/Claims';
+import ClaimDetailPage from './pages/ClaimDetail';
 import CreateClaimPage from './pages/CreateClaim';
-import DeliveryNotesPage from './pages/DeliveryNotes';
-import LieferscheinePage from './pages/Lieferscheine';
 import Dashboard from './pages/Dashboard';
 import Layout from './components/Layout/index';
 import { WishlistPage } from './pages/Wishlist/WishlistPage';
@@ -50,9 +49,8 @@ function AppRoutes() {
                     <Route path="shipments/:code" element={<ShipmentDetailPage />} />
                     <Route path="shipments/create" element={<CreateShipmentPage />} />
                     <Route path="claims" element={<ClaimsPage />} />
+                    <Route path="tickets/:code" element={<ClaimDetailPage />} />
                     <Route path="tickets/create" element={<CreateClaimPage />} />
-                    <Route path="delivery-notes" element={<DeliveryNotesPage />} />
-                    <Route path="lieferscheine" element={<LieferscheinePage />} />
                     <Route path="packages" element={<PackagesPage />} />
                     <Route path="transactions" element={<TransactionsPage />} />
                     <Route path="profile" element={<ProfilePage />} />

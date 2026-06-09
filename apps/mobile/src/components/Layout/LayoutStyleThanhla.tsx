@@ -1,4 +1,4 @@
-import { Layout as AntLayout, Drawer, Button, Select, Avatar } from "antd";
+﻿import { Layout as AntLayout, Drawer, Button, Select, Avatar } from "antd";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import {
   HomeOutlined,
@@ -31,7 +31,7 @@ const getCurrentLoggedUser = () => {
 
 /**
  * LayoutStyleThanhla (Mobile Thanhla)
- * Thiết kế hiện đại với Tab Bar bo tròn và Header trong suốt (Glassmorphism).
+ * Thiáº¿t káº¿ hiá»‡n Ä‘áº¡i vá»›i Tab Bar bo trÃ²n vÃ  Header trong suá»‘t (Glassmorphism).
  */
 export const LayoutStyleThanhla = () => {
   const location = useLocation();
@@ -179,7 +179,7 @@ export const LayoutStyleThanhla = () => {
               <div className="text-xs text-gray-400 font-bold uppercase">
                 {t("navigation.balance")}
               </div>
-              <div className="font-black text-primary text-lg">5.400.000đ</div>
+              <div className="font-black text-primary text-lg">5.400.000Ä‘</div>
             </div>
           </div>
 
@@ -212,16 +212,6 @@ export const LayoutStyleThanhla = () => {
                 path: "/peer-payments",
                 icon: <PayCircleOutlined />,
                 labelKey: "navigation.peer_payments",
-              },
-              {
-                path: "/delivery-notes",
-                icon: <CarOutlined />,
-                labelKey: "navigation.delivery_notes",
-              },
-              {
-                path: "/lieferscheine",
-                icon: <CarOutlined />,
-                labelKey: "navigation.lieferscheine",
               },
               {
                 path: "/delivery-requests",

@@ -45,6 +45,7 @@ export const CreateClaimStyleGobiz = () => {
     requiresSuggest,
     fileList,
     setFileList,
+    normalizeUploadFileList,
     beforeUpload,
     handleRemoveFile,
     handleSubmit,
@@ -60,11 +61,14 @@ export const CreateClaimStyleGobiz = () => {
 
   const uploadProps: UploadProps = {
     accept: "image/*",
+    className: "create-claim-image-upload",
+    listType: "picture-card",
     multiple: true,
     fileList,
     beforeUpload,
     onRemove: handleRemoveFile,
-    onChange: ({ fileList: nextFileList }) => setFileList(nextFileList.slice(0, 10)),
+    onChange: ({ fileList: nextFileList }) =>
+      setFileList(normalizeUploadFileList(nextFileList)),
   };
 
   const orderPane = (

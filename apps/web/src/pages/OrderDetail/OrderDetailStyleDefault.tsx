@@ -351,7 +351,7 @@ export const OrderDetailStyleDefault = () => {
 
             <Card style={{ borderTop: `3px solid ${token.colorSuccess}` }}>
               <Row gutter={[token.marginMD, token.marginMD]} align="middle">
-                <Col xs={24} lg={18}>
+                <Col xs={24} lg={16}>
                   <Flex gap={token.marginLG} align="center" wrap="wrap">
                     <Space size={token.marginSM}>
                       <Image
@@ -417,10 +417,15 @@ export const OrderDetailStyleDefault = () => {
                     </Space>
                   </Flex>
                 </Col>
-                <Col xs={24} lg={6}>
+                <Col xs={24} lg={8}>
                   <Flex justify="flex-end" gap={token.marginSM} wrap="wrap">
-                    <Link to={`/tickets/create?orderCode=${order.code}`}>
-                      <Button>{t("orderDetail.complaint_order")}</Button>
+                    <Link
+                      to={`/tickets/create?orderCode=${order.code}`}
+                      style={{ flex: "0 0 auto" }}
+                    >
+                      <Button style={{ whiteSpace: "nowrap" }}>
+                        {t("orderDetail.complaint_order")}
+                      </Button>
                     </Link>
                     {canCancelOrder && (
                       <Popconfirm
@@ -429,7 +434,12 @@ export const OrderDetailStyleDefault = () => {
                         cancelText={t("button.no")}
                         onConfirm={handleConfirmCancelOrder}
                       >
-                        <Button danger ghost loading={isCancellingOrder}>
+                        <Button
+                          danger
+                          ghost
+                          loading={isCancellingOrder}
+                          style={{ whiteSpace: "nowrap", flex: "0 0 auto" }}
+                        >
                           {t("orderDetail.cancel_order")}
                         </Button>
                       </Popconfirm>

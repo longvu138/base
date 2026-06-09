@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import dayjs from "dayjs";
 import { Link } from "react-router-dom";
 import {
@@ -12,7 +12,6 @@ import {
   Image,
   Input,
   List,
-  Radio,
   Row,
   Skeleton,
   Space,
@@ -26,10 +25,10 @@ import {
   SearchOutlined,
 } from "@ant-design/icons";
 import { FilterPanel } from "@repo/ui";
-import { moneyFormat, quantityFormat } from "@repo/util";
+import { moneyCeil, moneyFormat } from "@repo/util";
 import { useClaimsMobilePage } from "@repo/hooks";
 
-const { Text, Title, Paragraph } = Typography;
+const { Text, Paragraph } = Typography;
 const CLAIMS_PREFETCH_ITEM_COUNT = 5;
 
 type ClaimsPageState = ReturnType<typeof useClaimsMobilePage>;
@@ -51,6 +50,70 @@ const getSolutionName = (record: any, solutions: any[] = []) => {
 
 const formatDate = (value?: string) =>
   value ? dayjs(value).format("HH:mm DD/MM/YYYY") : "---";
+
+const getClaimTicketType = (value: any) =>
+  Array.isArray(value) ? value[0] || "" : value || "";
+
+const getArrayFieldValue = (value: any) => {
+  if (Array.isArray(value)) return value;
+  if (typeof value === "string" && value) return value.split(",").filter(Boolean);
+  return [];
+};
+
+const getSolutionsByTicketType = (solutions: any[] = [], ticketType = "") => {
+  const rows = ticketType
+    ? solutions.filter((item: any) => item.subject === ticketType)
+    : Array.from(
+        new Map(
+          solutions.map((item: any) => [
+            item.name || item.code,
+            item,
+          ]),
+        ).values(),
+      );
+
+  return [...rows].sort((a: any, b: any) =>
+    String(a.code || "").localeCompare(String(b.code || "")),
+  );
+};
+
+const CheckableFilterTags = ({
+  value,
+  options,
+  onChange,
+}: {
+  value?: any;
+  options: any[];
+  onChange?: (value: string[]) => void;
+}) => {
+  const selectedValues = getArrayFieldValue(value);
+
+  return (
+    <Space wrap>
+      {options.map((item: any, index: number) => {
+        const itemValue = item.code;
+        const checked = selectedValues.includes(itemValue);
+
+        return (
+          <Tag.CheckableTag
+            key={`${item.subject || "all"}-${itemValue}-${index}`}
+            checked={checked}
+            onChange={() => {
+              const next = checked
+                ? selectedValues.filter((selected) => selected !== itemValue)
+                : [...selectedValues, itemValue];
+              onChange?.(next);
+            }}
+          >
+            <Typography.Link style={checked ? { color: "#ffffff" } : undefined}>
+              {item.name}
+            </Typography.Link>
+          </Tag.CheckableTag>
+        );
+      })}
+    </Space>
+  );
+};
 
 const ClaimItemSkeleton = () => {
   const { token } = theme.useToken();
@@ -88,28 +151,48 @@ const ClaimsListSkeleton = ({ count = 5 }: { count?: number }) => (
 
 export const ClaimsFilter = ({ page }: { page: ClaimsPageState }) => {
   const { token } = theme.useToken();
-  const activeTicketType =
-    Form.useWatch("ticketType", page.form) || page.filters.ticketType || "";
+  const selectedTicketType = getClaimTicketType(
+    Form.useWatch("ticketType", page.form) ?? page.filters.ticketType,
+  );
 
-  const solutionsByTicketType = activeTicketType
-    ? page.solutionData.filter((item: any) => item.subject === activeTicketType)
-    : Array.from(
-        new Map(
-          page.solutionData.map((item: any) => [
-            item.name || item.code,
-            item,
-          ]),
-        ).values(),
-      );
+  const changeTicketType = (type: "order" | "shipment", checked: boolean) => {
+    const nextTicketType = checked ? type : "";
+    page.form.setFieldsValue({ ticketType: nextTicketType });
+  };
+
+  const solutionsByTicketType = useMemo(
+    () => getSolutionsByTicketType(page.solutionData, selectedTicketType),
+    [page.solutionData, selectedTicketType],
+  );
 
   return (
-    <Card className="mb-4 shadow-sm">
+    <Card className="mb-4 shadow-sm" styles={{ body: { padding: token.paddingMD } }}>
+      <style>
+        {`
+          .claims-filter-actions {
+            flex-wrap: nowrap !important;
+            gap: 6px !important;
+          }
+
+          .claims-filter-actions .ant-btn {
+            padding-inline: 8px;
+          }
+        `}
+      </style>
       <FilterPanel
         form={page.form}
         onSearch={page.handleSearch}
         onReset={page.handleReset}
         searchText={page.t("order.search")}
         resetText={page.t("order.filter_refresh")}
+        actionClassName="claims-filter-actions"
+        actionExtra={
+          <Link to="/tickets/create">
+            <Button type="primary" icon={<PlusOutlined />}>
+              {page.t("tickets.create")}
+            </Button>
+          </Link>
+        }
         primaryContent={
           <Space direction="vertical" size={token.margin} style={{ width: "100%" }}>
             <Form.Item
@@ -117,15 +200,7 @@ export const ClaimsFilter = ({ page }: { page: ClaimsPageState }) => {
               label={page.t("tickets.status")}
               style={{ marginBottom: 0 }}
             >
-              <Checkbox.Group>
-                <Space wrap>
-                  {page.statusData.map((item: any) => (
-                    <Checkbox key={item.code} value={item.code}>
-                      {item.name}
-                    </Checkbox>
-                  ))}
-                </Space>
-              </Checkbox.Group>
+              <CheckableFilterTags options={page.statusData} />
             </Form.Item>
 
             <Form.Item
@@ -133,36 +208,36 @@ export const ClaimsFilter = ({ page }: { page: ClaimsPageState }) => {
               label={page.t("tickets.solution")}
               style={{ marginBottom: 0 }}
             >
-              <Checkbox.Group>
-                <Space wrap>
-                  {solutionsByTicketType.map((item: any) => (
-                    <Checkbox
-                      key={`${item.subject || "all"}-${item.code}`}
-                      value={item.code}
-                    >
-                      {item.name}
-                    </Checkbox>
-                  ))}
-                </Space>
-              </Checkbox.Group>
+              <CheckableFilterTags options={solutionsByTicketType} />
             </Form.Item>
 
-            <Form.Item
-              name="ticketType"
-              label="Loại khiếu nại"
-              style={{ marginBottom: 0 }}
-            >
-              <Radio.Group onChange={page.handleSearch}>
-                <Space wrap>
-                  <Radio value="">Tất cả</Radio>
-                  <Radio value="order">{page.t("menu.orders")}</Radio>
-                  <Radio value="shipment">{page.t("menu.shipments")}</Radio>
-                </Space>
-              </Radio.Group>
+            <Form.Item name="ticketType" hidden>
+              <Input />
             </Form.Item>
 
-            <Row gutter={[token.margin, token.marginSM]}>
-              <Col xs={24}>
+            <Form.Item label="Loại khiếu nại" style={{ marginBottom: 0 }}>
+              <Space wrap>
+                <Checkbox
+                  checked={selectedTicketType === "order"}
+                  onChange={(event) =>
+                    changeTicketType("order", event.target.checked)
+                  }
+                >
+                  {page.t("menu.orders")}
+                </Checkbox>
+                <Checkbox
+                  checked={selectedTicketType === "shipment"}
+                  onChange={(event) =>
+                    changeTicketType("shipment", event.target.checked)
+                  }
+                >
+                  {page.t("menu.shipments")}
+                </Checkbox>
+              </Space>
+            </Form.Item>
+
+            <Row gutter={[token.marginSM, token.marginSM]} style={{ marginInline: 0 }}>
+              <Col xs={24} style={{ paddingInline: 0 }}>
                 <Form.Item
                   name="code"
                   label={`${page.t("tickets.enter_code")}:`}
@@ -176,7 +251,7 @@ export const ClaimsFilter = ({ page }: { page: ClaimsPageState }) => {
                   />
                 </Form.Item>
               </Col>
-              <Col xs={24}>
+              <Col xs={24} style={{ paddingInline: 0 }}>
                 <Form.Item
                   name="relatedOrder"
                   label={`${page.t("tickets.enter_order_code")}:`}
@@ -189,7 +264,7 @@ export const ClaimsFilter = ({ page }: { page: ClaimsPageState }) => {
                   />
                 </Form.Item>
               </Col>
-              <Col xs={24}>
+              <Col xs={24} style={{ paddingInline: 0 }}>
                 <Form.Item
                   name="relatedProduct"
                   label={`${page.t("tickets.enter_product_code")}:`}
@@ -216,10 +291,10 @@ const ClaimCard = ({ record, page }: { record: any; page: ClaimsPageState }) => 
   const solutionName = getSolutionName(record, page.solutionData);
 
   return (
-    <Card styles={{ body: { padding: token.paddingMD } }}>
+    <Card style={{ width: "100%", overflow: "hidden" }} styles={{ body: { padding: token.paddingMD } }}>
       <Flex vertical gap={token.marginMD}>
         <Flex justify="space-between" align="flex-start" gap={token.marginSM}>
-          <Space align="start" style={{ minWidth: 0, flex: 1 }}>
+          <Space align="start" style={{ minWidth: 0, flex: 1, overflow: "hidden" }}>
             {record.thumbnail ? (
               <Image
                 preview={false}
@@ -233,14 +308,14 @@ const ClaimCard = ({ record, page }: { record: any; page: ClaimsPageState }) => 
             ) : (
               <AvatarPlaceholder />
             )}
-            <Space direction="vertical" size={token.marginXXS} style={{ minWidth: 0 }}>
-              <Link to={`/tickets/${record.code}`}>
-                <Text strong style={{ color: token.colorPrimary, textTransform: "uppercase" }} ellipsis>
+            <Space direction="vertical" size={token.marginXXS} style={{ minWidth: 0, flex: 1, overflow: "hidden" }}>
+              <Link to={`/tickets/${record.code}`} style={{ minWidth: 0, maxWidth: "100%" }}>
+                <Text strong style={{ color: token.colorPrimary, textTransform: "uppercase", maxWidth: "100%" }} ellipsis>
                   #{record.code || "---"}
                 </Text>
               </Link>
-              <Link to={`/tickets/${record.code}`}>
-                <Text style={{ color: token.colorPrimary, textTransform: "uppercase" }} ellipsis>
+              <Link to={`/tickets/${record.code}`} style={{ minWidth: 0, maxWidth: "100%" }}>
+                <Text style={{ color: token.colorPrimary, textTransform: "uppercase", maxWidth: "100%" }} ellipsis>
                   {record.name || "---"}
                 </Text>
               </Link>
@@ -255,9 +330,10 @@ const ClaimCard = ({ record, page }: { record: any; page: ClaimsPageState }) => 
                 borderColor: "transparent",
                 color: token.colorWhite,
                 marginInlineEnd: 0,
-                maxWidth: 128,
+                maxWidth: 112,
                 whiteSpace: "normal",
                 textAlign: "center",
+                flex: "0 0 auto",
               }}
             >
               {status.name || status.code}
@@ -270,19 +346,19 @@ const ClaimCard = ({ record, page }: { record: any; page: ClaimsPageState }) => 
           {record.content || record.description || record.name || "---"}
         </Paragraph>
 
-        <Row gutter={[token.marginSM, token.marginXS]}>
-          <Col xs={12}>
+        <Row gutter={[token.marginSM, token.marginXS]} style={{ marginInline: 0 }}>
+          <Col xs={12} style={{ paddingInline: 0, paddingInlineEnd: token.paddingXS }}>
             <Space direction="vertical" size={0}>
               <Text type="secondary">{page.t("tickets.total_refund")}</Text>
               <Text strong style={{ color: token.colorSuccess }}>
-                {moneyFormat(record.totalRefund || 0)}
+                {moneyFormat(moneyCeil(record.totalRefund || 0))}
               </Text>
             </Space>
           </Col>
-          <Col xs={12}>
-            <Space direction="vertical" size={0}>
+          <Col xs={12} style={{ paddingInline: 0, paddingInlineStart: token.paddingXS }}>
+            <Space direction="vertical" size={0} style={{ minWidth: 0, width: "100%" }}>
               <Text type="secondary">{page.t("tickets.solution")}</Text>
-              <Text ellipsis>{solutionName || "---"}</Text>
+              <Text ellipsis style={{ maxWidth: "100%" }}>{solutionName || "---"}</Text>
             </Space>
           </Col>
         </Row>
@@ -321,7 +397,6 @@ export const ClaimsList = ({ page }: { page: ClaimsPageState }) => {
   const { token } = theme.useToken();
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const rows = page.listData?.data || [];
-  const total = page.listData?.total || 0;
   const prefetchIndex = Math.max(rows.length - CLAIMS_PREFETCH_ITEM_COUNT, 0);
 
   useEffect(() => {
@@ -347,22 +422,6 @@ export const ClaimsList = ({ page }: { page: ClaimsPageState }) => {
 
   return (
     <Space direction="vertical" size={token.marginMD} style={{ width: "100%" }}>
-      <Card
-        styles={{ body: { padding: token.paddingMD } }}
-      >
-        <Flex justify="space-between" align="center" gap={token.marginSM} wrap>
-          <Title level={5} style={{ margin: 0 }}>
-            {page.t("tickets.title")}{" "}
-            <Text type="secondary">({quantityFormat(Number(total || 0))})</Text>
-          </Title>
-          <Link to="/tickets/create">
-            <Button type="primary" ghost icon={<PlusOutlined />}>
-              {page.t("tickets.create")}
-            </Button>
-          </Link>
-        </Flex>
-      </Card>
-
       <List
         dataSource={rows}
         locale={{
@@ -370,13 +429,19 @@ export const ClaimsList = ({ page }: { page: ClaimsPageState }) => {
         }}
         renderItem={(record, index) => (
           <List.Item
-            style={{ padding: 0, borderBlockEnd: 0 }}
+            style={{
+              padding: 0,
+              borderBlockEnd: 0,
+              marginBottom: token.marginMD,
+              width: "100%",
+              minWidth: 0,
+            }}
             ref={index === prefetchIndex ? loadMoreRef : undefined}
           >
             <ClaimCard record={record} page={page} />
           </List.Item>
         )}
-        style={{ display: "flex", flexDirection: "column", gap: token.marginSM }}
+        style={{ width: "100%", minWidth: 0, overflowX: "hidden" }}
       />
 
       {page.isFetchingNextPage && <ClaimItemSkeleton />}
@@ -395,7 +460,7 @@ export const ClaimsMobileView = () => {
   const page = useClaimsMobilePage();
 
   return (
-    <Space direction="vertical" size={token.marginMD} style={{ width: "100%" }}>
+    <Space direction="vertical" size={token.marginMD} style={{ width: "100%", minWidth: 0, overflowX: "hidden" }}>
       <ClaimsFilter page={page} />
       <ClaimsList page={page} />
     </Space>

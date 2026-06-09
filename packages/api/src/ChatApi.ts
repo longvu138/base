@@ -5,6 +5,7 @@ export type ChatMode = "legacy" | "posedon";
 const moduleMap: Record<string, string> = {
   orders: "CUSTOMER_ORDER_MODULE",
   shipments: "CUSTOMER_SHIPMENT_MODULE",
+  claims: "CUSTOMER_CLAIM",
   peer_payments: "CUSTOMER_PEER_PAYMENT_MODULE",
   peerpayments: "CUSTOMER_PEER_PAYMENT_MODULE",
 };
@@ -14,12 +15,16 @@ const posedonEntityMap: Record<string, string> = {
   shipments: "shipments",
   peer_payments: "peer_payments",
   peerpayments: "peer_payments",
+  claims: "claims",
 };
 
 const entityPath = (entityType: string, entityCode: string, mode: ChatMode) => {
   if (mode === "posedon") {
     const posedonEntity = posedonEntityMap[entityType] || entityType;
     return `customer/comments/${posedonEntity}/${entityCode}`;
+  }
+  if (entityType === "claims") {
+    return `customer/canines/claims/${entityCode}/comments`;
   }
   return `customer/${entityType}/${entityCode}/comments`;
 };

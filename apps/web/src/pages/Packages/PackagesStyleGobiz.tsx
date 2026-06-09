@@ -1,28 +1,16 @@
 import React from 'react';
+import { BarcodeOutlined, InboxOutlined } from '@ant-design/icons';
 import { Card, Space, Tabs, Typography, theme } from 'antd';
-import { BarcodeOutlined, InboxOutlined, FileTextOutlined } from '@ant-design/icons';
-import { PackageStyleGobiz } from './PackageStyleGobiz';
-import { DeliveryRequestsStyleGobiz } from '../DeliveryRequests/DeliveryRequestsStyleGobiz';
-import { DeliveryNoteStyleGobiz } from '../DeliveryNotes/DeliveryNotesStyleGobiz';
 import { useSearchParams } from 'react-router-dom';
+import { DeliveryRequestsStyleGobiz } from '../DeliveryRequests/DeliveryRequestsStyleGobiz';
+import { PackageStyleGobiz } from './PackageStyleGobiz';
 
-/**
- * PackagesStyleGobiz — Trang "Quản lý giao hàng" dành cho Gobiz (gobiz)
- *
- * Gom Danh sách kiện hàng + Yêu cầu giao hàng + Phiếu xuất vào một trang với Tabs,
- * giống cách OrdersStyleGobizCombined.tsx gom Orders + Shipments.
- *
- * Tên export = PackagesStyleGobiz để DynamicVariant resolve đúng:
-     *   useVariant('packages', 'PackageStyleDefault') + variantCode 'gobiz' → 'PackagesStyleGobiz'
- */
 export const PackagesStyleGobiz: React.FC = () => {
     const { token } = theme.useToken();
     const [searchParams, setSearchParams] = useSearchParams();
-
     const activeTab = searchParams.get('tab') || 'packages';
 
     const handleTabChange = (key: string) => {
-        // Xoá sạch filter cũ khi chuyển tab
         setSearchParams({ tab: key }, { replace: true });
     };
 
@@ -32,7 +20,7 @@ export const PackagesStyleGobiz: React.FC = () => {
             label: (
                 <Space>
                     <BarcodeOutlined />
-                    <span>Kiện hàng</span>
+                    <span>Kien hang</span>
                 </Space>
             ),
             children: <PackageStyleGobiz isTabView={true} />,
@@ -42,20 +30,10 @@ export const PackagesStyleGobiz: React.FC = () => {
             label: (
                 <Space>
                     <InboxOutlined />
-                    <span>Yêu cầu giao hàng</span>
+                    <span>Yeu cau giao hang</span>
                 </Space>
             ),
             children: <DeliveryRequestsStyleGobiz isTabView={true} />,
-        },
-        {
-            key: 'delivery-notes',
-            label: (
-                <Space>
-                    <FileTextOutlined />
-                    <span>Phiếu xuất</span>
-                </Space>
-            ),
-            children: <DeliveryNoteStyleGobiz isTabView={true} />,
         },
     ];
 
@@ -63,7 +41,7 @@ export const PackagesStyleGobiz: React.FC = () => {
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
             <Card>
                 <Typography.Title level={3} style={{ margin: 0 }}>
-                    Quản lý Giao hàng
+                    Quan ly Giao hang
                 </Typography.Title>
             </Card>
 

@@ -1,4 +1,4 @@
-# Huong dan lam theme UI moi ma khong mat logic tinh nang
+﻿# Huong dan lam theme UI moi ma khong mat logic tinh nang
 
 Du an nay duoc thiet ke de moi tenant/theme co the thay doi giao dien gan nhu hoan toan, nhung van dung chung API, hooks, filter, mutation, cache invalidation va route behavior hien co. Khi lam mot theme moi, hay xem cac file `Style*.tsx` la lop hien thi. Logic lay du lieu va xu ly thao tac phai nam trong hooks dung chung.
 
@@ -186,9 +186,7 @@ Dung cac hook nay truoc khi dung low-level hook:
 | Shipment Detail | `shipmentDetail` | `pages/ShipmentDetail/ShipmentDetailStyle*.tsx` | `useShipmentDetailPage`, `useShipmentDetailContent` |
 | Packages | `packages` | `pages/Packages/PackagesStyle*.tsx` | `usePackagesPage`, `PackageShared` |
 | Delivery Requests | `deliveryRequests` | `pages/DeliveryRequests/DeliveryRequestsStyle*.tsx` | `useDeliveryRequestsPage` |
-| Delivery Notes | `deliveryNotes` | `pages/DeliveryNotes/DeliveryNotesStyle*.tsx` | `useDeliveryNotesPage`, `DeliveryNotesShared` |
 | Waybills | `waybills` | `pages/Waybills/WaybillsStyle*.tsx` | `useWaybillsPage`, `WaybillsShared` |
-| Lieferscheine | `lieferscheine` | `pages/Lieferscheine/LieferscheineStyle*.tsx` | `useLieferscheinePage`, `LieferscheineShared` |
 | Claims | `claims` | `pages/Claims/ClaimsStyle*.tsx` | `useClaimsPage`, `GobizClaimsList` |
 | Create Claim | `createClaim` | `pages/CreateClaim/CreateClaimStyle*.tsx` | `useCreateClaimPage` |
 | Create Shipment | `createShipment` | `pages/CreateShipment/CreateShipmentStyle*.tsx` | `useCreateShipmentPage`, `useCreateShipmentFinancialFields` |
@@ -209,7 +207,6 @@ packages/hooks/src/useOrderHooks.ts
 packages/hooks/src/useShipmentHooks.ts
 packages/hooks/src/usePackageHooks.ts
 packages/hooks/src/useDeliveryRequestHooks.ts
-packages/hooks/src/useDeliveryNoteHooks.ts
 packages/hooks/src/useWaybillHooks.ts
 packages/hooks/src/useCustomerHooks.ts
 packages/hooks/src/useClaimHooks.ts
@@ -332,9 +329,7 @@ Khong hard-code menu list trong layout tru khi hook hien tai khong the bieu dien
 Tao shared page component khi nhieu theme chi khac wrapper/visual:
 
 ```txt
-DeliveryNotesShared.tsx
 WaybillsShared.tsx
-LieferscheineShared.tsx
 PackageShared.tsx
 Profile/components/*.tsx
 ```

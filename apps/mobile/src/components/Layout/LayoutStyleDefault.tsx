@@ -1,4 +1,4 @@
-import { Layout as AntLayout, Menu, Drawer, Button, Select } from "antd";
+﻿import { Layout as AntLayout, Menu, Drawer, Button, Select } from "antd";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import {
   HomeOutlined,
@@ -163,24 +163,6 @@ function Layout() {
     },
     {
       type: "divider",
-    },
-    {
-      key: "/delivery-notes",
-      icon: <FileTextOutlined />,
-      label: (
-        <Link to="/delivery-notes" onClick={() => setDrawerVisible(false)}>
-          {t("navigation.delivery_notes")}
-        </Link>
-      ),
-    },
-    {
-      key: "/lieferscheine",
-      icon: <CarOutlined />,
-      label: (
-        <Link to="/lieferscheine" onClick={() => setDrawerVisible(false)}>
-          {t("navigation.lieferscheine")}
-        </Link>
-      ),
     },
     {
       key: "/delivery-requests",

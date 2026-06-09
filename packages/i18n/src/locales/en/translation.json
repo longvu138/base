@@ -258,7 +258,7 @@
     "days": "days"
   },
   "message": {
-    "delete_confirm": "Are you sure you want to delete?",
+    "delete_confirm": "Are you sure delete?",
     "delete_failed": "Delete failed",
     "delete_success": "Deleted successfully",
     "no_change": "No changes",
@@ -269,7 +269,7 @@
     "update_success": "Updated successfully",
     "shipment_status_not_allow": "The consignment order status does not allow this action",
     "empty": "No data",
-    "deleted_comment": "Deleted comment",
+    "deleted_comment": "deleted comment",
     "freePackagesAlert": "Please separate your order into packages with a value of less than {{taxFreeThreshHold}} (Suggest: this order can be split into {{freePackages}} packages)",
     "coupon_not_valid": "Coupon code does not exist, or has been used",
     "coupon_apply_success": "Coupon Code has added successfully",
@@ -286,7 +286,7 @@
     "coupon_not_apply_for_shipment": "Coupon does not apply to consignment orders, please try again!",
     "enter_coupon": "Please enter Coupon",
     "required": "Required",
-    "success": "Success",
+    "success": "succeed",
     "place_order_with_better_offer_success": "Order with better offer created successfully",
     "save_product_success": "Product saved successfully",
     "successfully_saved_product": "Product saved successfully.",
@@ -308,7 +308,9 @@
     "product_not_found": "Product not found",
     "user_not_found": "User not found",
     "shipment_state_negative_end": "The order status is not valid for creating a claim",
-    "invalid_not_received_quantity": "Invalid missing quantity"
+    "invalid_not_received_quantity": "Invalid missing quantity",
+    "not_found": "No data",
+    "fail": "Fail"
   },
   "login": {
     "go_back": "Go back",
@@ -426,12 +428,16 @@
   },
   "comment": {
     "place_holder": "Ctrl + Enter to send...",
-    "send": "Send"
+    "send": "Send",
+    "all": "All",
+    "chat": "Chat",
+    "backComment": "",
+    "viewOldComment": ""
   },
   "chat": {
-    "title": "Notes / Discussion",
+    "title": "Chat",
     "attach_file": "Attach file",
-    "empty": "No messages yet",
+    "empty": "No data",
     "system": "System",
     "file": "File"
   },
@@ -1076,8 +1082,6 @@
     "peer_payments": "Payment requests",
     "cash_request": "Cash collection requests",
     "packages": "Packages",
-    "delivery_notes": "Delivery notes",
-    "lieferscheine": "Lieferscheine",
     "waybills": "Waybills",
     "waybill_short": "Waybills",
     "transactions": "Transactions",
@@ -1435,5 +1439,25 @@
     "addToCart": "Add to cart",
     "findProduct": "Find product",
     "money": "Total amount"
+  },
+  "ticket_detail": {
+    "title": "Ticket detail",
+    "close": "Close ticket",
+    "reason": "Reason",
+    "solution": "Solution",
+    "demain": "Request",
+    "quantity_missing": "Quantity missing",
+    "all": "All",
+    "refund": "Refund",
+    "suggestion": "Suggestion",
+    "description": "Description",
+    "image": "Image",
+    "review": "Review",
+    "content": "Content",
+    "rating_action": "Rating",
+    "edit_rating": "Edit",
+    "rating_title": "YOUR REVIEW",
+    "rating_help": "Your review helps us improve.",
+    "close_confirm": "The complaint cannot be edited after it is closed. Are you sure you want to close it?"
   }
 }

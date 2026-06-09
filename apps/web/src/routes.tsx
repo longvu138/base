@@ -12,10 +12,9 @@ import { CreateDelivery } from "./pages/CreateDelivery";
 import { DeliveryRequests } from "./pages/DeliveryRequests";
 import { PeerPayments } from "./pages/PeerPayments";
 import { PeerPaymentDetail } from "./pages/PeerPaymentDetail";
-import { DeliveryNotes } from "./pages/DeliveryNotes";
 import { Waybills } from "./pages/Waybills";
-import { Lieferscheine } from "./pages/Lieferscheine";
 import Claims from "./pages/Claims";
+import ClaimDetail from "./pages/ClaimDetail";
 import CreateClaim from "./pages/CreateClaim";
 import WithdrawalSlips from "./pages/WithdrawalSlips";
 import { Packages } from "./pages/Packages";
@@ -55,11 +54,10 @@ function AppRoutes() {
           <Route path="peer-payments" element={<PeerPayments />} />
           <Route path="peer-payments/:id" element={<PeerPaymentDetail />} />
           <Route path="delivery/create" element={<CreateDelivery />} />
-          <Route path="delivery-notes" element={<DeliveryNotes />} />
           <Route path="waybills" element={<Waybills />} />
-          <Route path="lieferscheine" element={<Lieferscheine />} />
 
           <Route path="claims" element={<Claims />} />
+          <Route path="tickets/:code" element={<ClaimDetail />} />
           <Route path="tickets/create" element={<CreateClaim />} />
           <Route path="withdrawal-slips" element={<WithdrawalSlips />} />
           <Route path="cash-request" element={<CashRequest />} />

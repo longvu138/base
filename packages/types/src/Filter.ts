@@ -22,6 +22,8 @@ export interface FilterPanelProps {
     searchText?: string;
     resetText?: string;
     loading?: boolean;
+    actionExtra?: React.ReactNode;
+    actionClassName?: string;
 }
 
 export interface StatusTagGroupProps {

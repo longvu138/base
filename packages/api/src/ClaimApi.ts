@@ -33,6 +33,18 @@ export const ClaimApi = {
     getClaimsByOrder: (orderCode: string) => {
         return ApiClient.auth.get(`customer/canines/claims/orderCode/${orderCode}?page=0&size=10000&sort=createdAt:desc`);
     },
+    getClaimDetail: (code: string) => {
+        return ApiClient.auth.get(`customer/canines/claims/${code}`);
+    },
+    getClaimHistories: (code: string) => {
+        return ApiClient.auth.get(`customer/canines/claims/${code}/histories`);
+    },
+    archiveClaim: (code: string) => {
+        return ApiClient.auth.patch(`customer/canines/claims/${code}/archive`);
+    },
+    updateRating: (code: string, payload: { rating: number; comment?: string }) => {
+        return ApiClient.auth.patch(`customer/canines/claims/${code}/rating`, payload);
+    },
     createClaim: ({ payload, files = [] }: { payload: CreateClaimPayload; files?: File[] }) => {
         const formData = new FormData();
         files.forEach((file) => {

@@ -12,7 +12,7 @@ export interface UseFilterWithURLOptions {
  * URL keys that are NOT filter params — managed by pagination and tab components.
  * These are always preserved when applying or clearing filters.
  */
-const NON_FILTER_KEYS = new Set(['page', 'pageSize', 'tab']);
+const NON_FILTER_KEYS = new Set(['page', 'pageSize', 'size', 'tab']);
 
 /**
  * List of known array fields that should be deserialized from comma-separated strings.
@@ -139,8 +139,10 @@ function buildNextParams(
     // Preserve tab and pageSize, always reset page to 1 on filter change
     const tab = prev.get('tab');
     const pageSize = prev.get('pageSize');
+    const size = prev.get('size');
     if (tab) next.set('tab', tab);
     if (pageSize) next.set('pageSize', pageSize);
+    if (size) next.set('size', size);
     next.set('page', '1');
 
     filterParams.forEach((val, key) => next.set(key, val));

@@ -1,5 +1,9 @@
+import { useMemo } from "react";
 import dayjs from "dayjs";
 import { Link } from "react-router-dom";
+import {
+  SearchOutlined,
+} from "@ant-design/icons";
 import {
   Button,
   Card,
@@ -11,7 +15,6 @@ import {
   Image,
   Input,
   Pagination,
-  Radio,
   Row,
   Space,
   Table,
@@ -20,11 +23,22 @@ import {
   theme,
 } from "antd";
 import { useTranslation } from "@repo/i18n";
-import { moneyFormat, quantityFormat } from "@repo/util";
+import { moneyCeil, moneyFormat, quantityFormat } from "@repo/util";
 import { FilterPanel } from "@repo/ui";
 import { useClaimsPage } from "@repo/hooks";
 
 const { Text, Title } = Typography;
+
+type ClaimsPageState = Pick<
+  ReturnType<typeof useClaimsPage>,
+  | "t"
+  | "form"
+  | "filters"
+  | "statusData"
+  | "solutionData"
+  | "handleSearch"
+  | "handleReset"
+>;
 
 const getStatusView = (record: any, statuses: any[] = []) => {
   if (record.publicStateNewView) return record.publicStateNewView;
@@ -35,6 +49,163 @@ const getStatusView = (record: any, statuses: any[] = []) => {
 const getSolutionName = (record: any, solutions: any[] = []) => {
   if (record.solutionView?.name) return record.solutionView.name;
   return solutions.find((item: any) => item.code === record.solutionCode)?.name || record.solutionCode || "";
+};
+
+const getClaimTicketType = (value: any) =>
+  Array.isArray(value) ? value[0] || "" : value || "";
+
+const getArrayFieldValue = (value: any) => {
+  if (Array.isArray(value)) return value;
+  if (typeof value === "string" && value) return value.split(",").filter(Boolean);
+  return [];
+};
+
+const getSolutionsByTicketType = (solutions: any[] = [], ticketType = "") => {
+  const rows = ticketType
+    ? solutions.filter((item: any) => item.subject === ticketType)
+    : Array.from(
+        new Map(
+          solutions.map((item: any) => [item.name || item.code, item]),
+        ).values(),
+      );
+
+  return [...rows].sort((a: any, b: any) =>
+    String(a.code || "").localeCompare(String(b.code || "")),
+  );
+};
+
+const CheckableFilterTags = ({
+  value,
+  options,
+  onChange,
+}: {
+  value?: any;
+  options: any[];
+  onChange?: (value: string[]) => void;
+}) => {
+  const selectedValues = getArrayFieldValue(value);
+
+  return (
+    <Space wrap>
+      {options.map((item: any, index: number) => {
+        const itemValue = item.code;
+        const checked = selectedValues.includes(itemValue);
+
+        return (
+          <Tag.CheckableTag
+            key={`${item.subject || "all"}-${itemValue}-${index}`}
+            checked={checked}
+            onChange={() => {
+              const next = checked
+                ? selectedValues.filter((selected) => selected !== itemValue)
+                : [...selectedValues, itemValue];
+              onChange?.(next);
+            }}
+          >
+            <Typography.Link style={checked ? { color: "#ffffff" } : undefined}>
+              {item.name}
+            </Typography.Link>
+          </Tag.CheckableTag>
+        );
+      })}
+    </Space>
+  );
+};
+
+const ClaimsFilter = ({ page }: { page: ClaimsPageState }) => {
+  const { token } = theme.useToken();
+  const selectedTicketType = getClaimTicketType(
+    Form.useWatch("ticketType", page.form) ?? page.filters.ticketType,
+  );
+
+  const changeTicketType = (type: "order" | "shipment", checked: boolean) => {
+    const nextTicketType = checked ? type : "";
+    page.form.setFieldsValue({ ticketType: nextTicketType });
+  };
+
+  const solutionsByTicketType = useMemo(
+    () => getSolutionsByTicketType(page.solutionData, selectedTicketType),
+    [page.solutionData, selectedTicketType],
+  );
+
+  return (
+    <Card className="mb-4 shadow-sm">
+      <FilterPanel
+        form={page.form}
+        onSearch={page.handleSearch}
+        onReset={page.handleReset}
+        searchText={page.t("order.search")}
+        resetText={page.t("order.filter_refresh")}
+        primaryContent={
+          <Space direction="vertical" size={token.margin} style={{ width: "100%" }}>
+            <Form.Item name="publicStates" label={page.t("tickets.status")} style={{ marginBottom: 0 }}>
+              <CheckableFilterTags options={page.statusData || []} />
+            </Form.Item>
+
+            <Form.Item name="solutionCode" label={page.t("tickets.solution")} style={{ marginBottom: 0 }}>
+              <CheckableFilterTags options={solutionsByTicketType} />
+            </Form.Item>
+
+            <Form.Item name="ticketType" hidden>
+              <Input />
+            </Form.Item>
+
+            <Form.Item label="Loại khiếu nại" style={{ marginBottom: 0 }}>
+              <Space wrap>
+                <Checkbox
+                  checked={selectedTicketType === "order"}
+                  onChange={(event) =>
+                    changeTicketType("order", event.target.checked)
+                  }
+                >
+                  {page.t("menu.orders")}
+                </Checkbox>
+                <Checkbox
+                  checked={selectedTicketType === "shipment"}
+                  onChange={(event) =>
+                    changeTicketType("shipment", event.target.checked)
+                  }
+                >
+                  {page.t("menu.shipments")}
+                </Checkbox>
+              </Space>
+            </Form.Item>
+
+            <Row gutter={[token.margin, token.marginSM]}>
+              <Col xs={24} md={8}>
+                <Form.Item name="code" label={`${page.t("tickets.enter_code")}:`} style={{ marginBottom: 0 }}>
+                  <Input
+                    allowClear
+                    prefix={<SearchOutlined />}
+                    placeholder={page.t("tickets.code")}
+                    onPressEnter={page.handleSearch}
+                  />
+                </Form.Item>
+              </Col>
+              <Col xs={24} md={8}>
+                <Form.Item name="relatedOrder" label={`${page.t("tickets.enter_order_code")}:`} style={{ marginBottom: 0 }}>
+                  <Input
+                    allowClear
+                    placeholder={page.t("tickets.order_code")}
+                    onPressEnter={page.handleSearch}
+                  />
+                </Form.Item>
+              </Col>
+              <Col xs={24} md={8}>
+                <Form.Item name="relatedProduct" label={`${page.t("tickets.enter_product_code")}:`} style={{ marginBottom: 0 }}>
+                  <Input
+                    allowClear
+                    placeholder={page.t("tickets.product_code")}
+                    onPressEnter={page.handleSearch}
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
+          </Space>
+        }
+      />
+    </Card>
+  );
 };
 
 export const GobizClaimsList = () => {
@@ -54,14 +225,6 @@ export const GobizClaimsList = () => {
     handleSearch,
     handleReset,
   } = useClaimsPage();
-
-  const activeTicketType = Form.useWatch("ticketType", form) || filters.ticketType || "";
-
-  const solutionsByTicketType = activeTicketType
-    ? solutionData.filter((item: any) => item.subject === activeTicketType)
-    : Array.from(
-        new Map(solutionData.map((item: any) => [item.name || item.code, item])).values(),
-      );
 
   const columns = [
     {
@@ -149,7 +312,7 @@ export const GobizClaimsList = () => {
       key: "totalRefund",
       render: (value: number) => (
         <Text strong style={{ color: token.colorSuccess }}>
-          {moneyFormat(value || 0)}
+          {moneyFormat(moneyCeil(value || 0))}
         </Text>
       ),
     },
@@ -173,79 +336,17 @@ export const GobizClaimsList = () => {
 
   return (
     <Space direction="vertical" size={token.margin} style={{ width: "100%" }}>
-      <Card className="mb-4 shadow-sm">
-        <FilterPanel
-          form={form}
-          onSearch={handleSearch}
-          onReset={handleReset}
-          searchText={t("order.search")}
-          resetText={t("order.filter_refresh")}
-          primaryContent={
-            <Space direction="vertical" size={token.margin} style={{ width: "100%" }}>
-              <Form.Item name="publicStates" label={t("tickets.status")} style={{ marginBottom: 0 }}>
-                <Checkbox.Group>
-                  <Space wrap>
-                    {statusData.map((item: any) => (
-                      <Checkbox key={item.code} value={item.code}>
-                        {item.name}
-                      </Checkbox>
-                    ))}
-                  </Space>
-                </Checkbox.Group>
-              </Form.Item>
-
-              <Form.Item name="solutionCode" label={t("tickets.solution")} style={{ marginBottom: 0 }}>
-                <Checkbox.Group>
-                  <Space wrap>
-                    {solutionsByTicketType.map((item: any) => (
-                      <Checkbox key={`${item.subject || "all"}-${item.code}`} value={item.code}>
-                        {item.name}
-                      </Checkbox>
-                    ))}
-                  </Space>
-                </Checkbox.Group>
-              </Form.Item>
-
-              <Form.Item name="ticketType" label="Loại khiếu nại" style={{ marginBottom: 0 }}>
-                <Radio.Group onChange={() => handleSearch()}>
-                  <Space wrap>
-                    <Radio value="">Tất cả</Radio>
-                    <Radio value="order">{t("menu.orders")}</Radio>
-                    <Radio value="shipment">{t("menu.shipments")}</Radio>
-                  </Space>
-                </Radio.Group>
-              </Form.Item>
-
-              <Row gutter={[token.margin, token.marginSM]}>
-                <Col xs={24} md={8}>
-                  <Form.Item name="code" label={`${t("tickets.enter_code")}:`} style={{ marginBottom: 0 }}>
-                    <Input
-                      placeholder={t("tickets.code")}
-                      onPressEnter={handleSearch}
-                    />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={8}>
-                  <Form.Item name="relatedOrder" label={`${t("tickets.enter_order_code")}:`} style={{ marginBottom: 0 }}>
-                    <Input
-                      placeholder={t("tickets.order_code")}
-                      onPressEnter={handleSearch}
-                    />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={8}>
-                  <Form.Item name="relatedProduct" label={`${t("tickets.enter_product_code")}:`} style={{ marginBottom: 0 }}>
-                    <Input
-                      placeholder={t("tickets.product_code")}
-                      onPressEnter={handleSearch}
-                    />
-                  </Form.Item>
-                </Col>
-              </Row>
-            </Space>
-          }
-        />
-      </Card>
+      <ClaimsFilter
+        page={{
+          t,
+          form,
+          filters,
+          statusData,
+          solutionData,
+          handleSearch,
+          handleReset,
+        }}
+      />
 
       <Card
         title={

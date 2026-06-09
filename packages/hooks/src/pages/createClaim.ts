@@ -19,6 +19,28 @@ const normalizeBooleanParam = (value: string | null) =>
 
 const onlyDigits = (value?: string | number) => String(value || "").replace(/\D/g, "");
 
+const normalizeUploadFileList = (files: UploadFile[]) =>
+  files.slice(0, 10).map((file) => {
+    if (file.url || file.thumbUrl) return file;
+
+    const originFile = file.originFileObj;
+    if (
+      originFile &&
+      originFile.type?.startsWith("image/") &&
+      typeof URL !== "undefined" &&
+      URL.createObjectURL
+    ) {
+      const previewUrl = URL.createObjectURL(originFile);
+      return {
+        ...file,
+        url: previewUrl,
+        thumbUrl: previewUrl,
+      };
+    }
+
+    return file;
+  });
+
 const resolveCreateClaimError = (error: any, t: (key: string) => string) => {
   const title = error?.response?.data?.title;
   const detail = error?.response?.data?.detail;
@@ -200,6 +222,7 @@ export const useCreateClaimPage = () => {
     requiresSuggest,
     fileList,
     setFileList,
+    normalizeUploadFileList,
     beforeUpload,
     handleRemoveFile,
     handleSubmit,

@@ -112,6 +112,54 @@ export const useClaimReasonsQuery = (ticketType: string) => {
     });
 };
 
+export const useClaimDetailQuery = (code?: string) => {
+    return useQuery({
+        queryKey: ['claims.detail', code],
+        queryFn: async () => {
+            const res = await ClaimApi.getClaimDetail(String(code));
+            return res.data;
+        },
+        enabled: !!code,
+        retry: false,
+    });
+};
+
+export const useClaimHistoriesQuery = (code?: string) => {
+    return useQuery({
+        queryKey: ['claims.histories', code],
+        queryFn: async () => {
+            const res = await ClaimApi.getClaimHistories(String(code));
+            return res.data;
+        },
+        enabled: !!code,
+    });
+};
+
+export const useArchiveClaimMutation = (code?: string) => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: () => ClaimApi.archiveClaim(String(code)),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['claims.detail', code] });
+            queryClient.invalidateQueries({ queryKey: ['claims.list'] });
+            queryClient.invalidateQueries({ queryKey: ['claims.list.infinite'] });
+        },
+    });
+};
+
+export const useUpdateClaimRatingMutation = (code?: string) => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (payload: { rating: number; comment?: string }) =>
+            ClaimApi.updateRating(String(code), payload),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['claims.detail', code] });
+        },
+    });
+};
+
 export const useOrderClaimsQuery = (orderCode: string) => {
     return useQuery({
         queryKey: ['claims.order', orderCode],

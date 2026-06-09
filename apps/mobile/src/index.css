@@ -29,3 +29,15 @@ body {
   color: var(--tenant-text-color);
   transition: background-color 0.2s ease, color 0.2s ease;
 }
+
+.create-claim-image-upload .ant-upload-list {
+  margin-top: 12px;
+  column-gap: 12px;
+  row-gap: 12px;
+}
+
+.create-claim-image-upload .ant-upload-list .ant-upload-list-item-container,
+.create-claim-image-upload .ant-upload-list .ant-upload-select {
+  margin-inline-end: 0;
+  margin-bottom: 0;
+}

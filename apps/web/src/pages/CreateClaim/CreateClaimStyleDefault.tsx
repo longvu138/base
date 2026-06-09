@@ -42,6 +42,7 @@ export const CreateClaimStyleDefault = () => {
     requiresSuggest,
     fileList,
     setFileList,
+    normalizeUploadFileList,
     beforeUpload,
     handleRemoveFile,
     handleSubmit,
@@ -53,11 +54,13 @@ export const CreateClaimStyleDefault = () => {
   const uploadProps: UploadProps = {
     multiple: true,
     accept: "image/*",
+    className: "create-claim-image-upload",
+    listType: "picture-card",
     fileList,
     beforeUpload,
     onRemove: handleRemoveFile,
     onChange: ({ fileList: nextFileList }) => {
-      setFileList(nextFileList.slice(0, 10));
+      setFileList(normalizeUploadFileList(nextFileList));
     },
   };
 

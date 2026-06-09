@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { Form } from 'antd';
+import { useSearchParams } from 'react-router-dom';
 import {
     useClaimsInfiniteQuery,
     useListClaimQuery,
@@ -7,7 +8,6 @@ import {
     useSolutionsQuery,
 } from '../useClaimHooks';
 import { useFilterWithURL } from '../useFilterWithURL';
-import { usePaginationWithURL } from '../usePaginationWithURL';
 import { useTranslation } from '@repo/i18n';
 
 export interface UseClaimsLogicProps {
@@ -70,10 +70,69 @@ export const useClaimsLogic = ({ page, pageSize, filters }: UseClaimsLogicProps)
 
 const MOBILE_PAGE_SIZE = 25;
 
+const DEFAULT_PAGE_SIZE = 25;
+
+const sanitizeClaimText = (value: unknown) => {
+    if (typeof value !== 'string') return value;
+    return value.trim().replace(/[^a-zA-Z0-9 ]/g, '');
+};
+
+const useClaimsPaginationWithURL = () => {
+    const [searchParams, setSearchParams] = useSearchParams();
+    const pageParam = searchParams.get('page');
+    const sizeParam = searchParams.get('size');
+    const legacyPageSizeParam = searchParams.get('pageSize');
+
+    const page = pageParam ? parseInt(pageParam, 10) : 1;
+    const pageSize = sizeParam
+        ? parseInt(sizeParam, 10)
+        : legacyPageSizeParam
+            ? parseInt(legacyPageSizeParam, 10)
+            : DEFAULT_PAGE_SIZE;
+
+    const setPage = (newPage: number) => {
+        setSearchParams(prev => {
+            const next = new URLSearchParams(prev);
+            next.set('page', String(newPage));
+            return next;
+        });
+    };
+
+    const setPageSize = (newPageSize: number) => {
+        setSearchParams(prev => {
+            const next = new URLSearchParams(prev);
+            next.set('size', String(newPageSize));
+            next.delete('pageSize');
+            next.set('page', '1');
+            return next;
+        });
+    };
+
+    return { page, pageSize, setPage, setPageSize };
+};
+
 const normalizeClaimFilters = (values: Record<string, any>) => {
     const next = { ...values };
     if (Array.isArray(next.ticketType)) {
         next.ticketType = next.ticketType[0];
+    }
+    ['code', 'relatedOrder', 'relatedProduct'].forEach(key => {
+        if (next[key]) {
+            next[key] = sanitizeClaimText(next[key]);
+        }
+    });
+    return next;
+};
+
+const normalizeClaimFormValues = (values: Record<string, any>) => {
+    const next = { ...values };
+    ['publicStates', 'solutionCode'].forEach(key => {
+        if (typeof next[key] === 'string' && next[key]) {
+            next[key] = next[key].split(',').filter(Boolean);
+        }
+    });
+    if (Array.isArray(next.ticketType)) {
+        next.ticketType = next.ticketType[0] || '';
     }
     return next;
 };
@@ -82,10 +141,7 @@ export const useClaimsPage = () => {
     const { t } = useTranslation();
     const [form] = Form.useForm();
 
-    const { page, pageSize, setPage, setPageSize } = usePaginationWithURL({
-        defaultPage: 1,
-        defaultPageSize: 25,
-    });
+    const { page, pageSize, setPage, setPageSize } = useClaimsPaginationWithURL();
 
     const { applyFilters, clearFilters, filters } = useFilterWithURL({ form });
     const logic = useClaimsLogic({ page, pageSize, filters });
@@ -93,7 +149,7 @@ export const useClaimsPage = () => {
 
     useEffect(() => {
         form.resetFields();
-        form.setFieldsValue(filters);
+        form.setFieldsValue(normalizeClaimFormValues(filters));
     }, [filterSignature, form, filters]);
 
     const handleSearch = () => {
@@ -128,7 +184,7 @@ export const useClaimsMobilePage = () => {
 
     useEffect(() => {
         form.resetFields();
-        form.setFieldsValue(filters);
+        form.setFieldsValue(normalizeClaimFormValues(filters));
     }, [filterSignature, form, filters]);
 
     const apiParams = useMemo(() => {

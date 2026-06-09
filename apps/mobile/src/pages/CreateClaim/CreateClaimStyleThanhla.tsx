@@ -45,6 +45,7 @@ export const CreateClaimStyleThanhla = () => {
     requiresSuggest,
     fileList,
     setFileList,
+    normalizeUploadFileList,
     beforeUpload,
     handleRemoveFile,
     handleSubmit,
@@ -55,11 +56,13 @@ export const CreateClaimStyleThanhla = () => {
 
   const uploadProps: UploadProps = {
     accept: "image/*",
+    className: "create-claim-image-upload",
     multiple: true,
     fileList,
     beforeUpload,
     onRemove: handleRemoveFile,
-    onChange: ({ fileList: nextFileList }) => setFileList(nextFileList.slice(0, 10)),
+    onChange: ({ fileList: nextFileList }) =>
+      setFileList(normalizeUploadFileList(nextFileList)),
   };
   const watchedOrderCode = Form.useWatch("orderCode", form);
   const watchedProductCode = Form.useWatch("productCode", form);
