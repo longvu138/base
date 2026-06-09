@@ -30,21 +30,19 @@ import { useLanguage, useTranslation } from "@repo/i18n";
 
 const { Header, Content } = AntLayout;
 
-const getCurrentLoggedUser = () => {
-  try {
-    return JSON.parse(localStorage.getItem("currentLoggedUser") || "{}");
-  } catch {
-    return {};
-  }
-};
-
 function Layout() {
   const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const [drawerVisible, setDrawerVisible] = useState(false);
   const { currentLanguage, availableLanguages, changeLanguage } = useLanguage();
-  const storedUser = useMemo(getCurrentLoggedUser, []);
+  const storedUser = useMemo(() => {
+    try {
+      return JSON.parse(localStorage.getItem("currentLoggedUser") || "{}");
+    } catch {
+      return {};
+    }
+  }, []);
   const { data: profile } = useCustomerProfile();
   const currentUser = profile || storedUser;
   const displayName =

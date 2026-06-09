@@ -19,7 +19,7 @@ import {
     theme,
 } from 'antd';
 import {
-    DownloadOutlined,
+    // DownloadOutlined,
     FileDoneOutlined,
     ReloadOutlined,
     SearchOutlined,
@@ -116,16 +116,16 @@ const TransactionsListSkeleton = ({ count = 2 }: { count?: number }) => {
 
 const TransactionsFilter = ({ page }: { page: TransactionsPageState }) => {
     const { token } = theme.useToken();
-    const [exportOpen, setExportOpen] = useState(false);
-    const [exportSecret, setExportSecret] = useState('');
-    const [exportError, setExportError] = useState('');
+    // const [exportOpen, setExportOpen] = useState(false);
+    // const [exportSecret, setExportSecret] = useState('');
+    // const [exportError, setExportError] = useState('');
     const selectedTypes = Form.useWatch('externalTypes', page.form) || [];
 
-    const closeExport = () => {
-        setExportOpen(false);
-        setExportSecret('');
-        setExportError('');
-    };
+    // const closeExport = () => {
+    //     setExportOpen(false);
+    //     setExportSecret('');
+    //     setExportError('');
+    // };
 
     return (
         <>
@@ -207,17 +207,7 @@ const TransactionsFilter = ({ page }: { page: TransactionsPageState }) => {
                             <Button icon={<ReloadOutlined />} onClick={page.handleReset}>
                                 {page.t('order.filter_refresh')}
                             </Button>
-                            <Button
-                                icon={<DownloadOutlined />}
-                                loading={page.isExporting}
-                                onClick={() => {
-                                    setExportSecret('');
-                                    setExportError('');
-                                    setExportOpen(true);
-                                }}
-                            >
-                                Xuất Excel
-                            </Button>
+
                             <Button type="primary" htmlType="submit" icon={<SearchOutlined />}>
                                 {page.t('customer_info.search')}
                             </Button>
@@ -225,33 +215,6 @@ const TransactionsFilter = ({ page }: { page: TransactionsPageState }) => {
                     </Space>
                 </Form>
             </Card>
-
-            <Modal
-                title={page.t('modal.confirm_pin')}
-                open={exportOpen}
-                confirmLoading={page.isExporting}
-                okText={page.t('cartCheckout.confirm')}
-                cancelText={page.t('cartCheckout.cancel')}
-                onCancel={closeExport}
-                onOk={() => page.handleExport(exportSecret, closeExport, setExportError)}
-            >
-                <Space direction="vertical" size={token.marginXS} style={{ width: '100%' }}>
-                    <Text>{page.t('cartCheckout.please_input_pin')}</Text>
-                    <Input.Password
-                        autoFocus
-                        value={exportSecret}
-                        status={exportError ? 'error' : undefined}
-                        placeholder="PIN"
-                        onChange={(event) => {
-                            setExportSecret(event.target.value);
-                            setExportError('');
-                        }}
-                        onPressEnter={() => page.handleExport(exportSecret, closeExport, setExportError)}
-                    />
-                    {exportError && <Text type="danger">{exportError}</Text>}
-                    <Text type="secondary">{page.t('cartCheckout.default_pin')}</Text>
-                </Space>
-            </Modal>
         </>
     );
 };
@@ -260,6 +223,17 @@ const TransactionsList = ({ page }: { page: TransactionsPageState }) => {
     const { token } = theme.useToken();
     const total = page.listData?.total || 0;
     const rows = page.listData?.data || [];
+    const [exportOpen, setExportOpen] = useState(false);
+    const [exportSecret, setExportSecret] = useState('');
+    const [exportError, setExportError] = useState('');
+
+    const closeExport = () => {
+        setExportOpen(false);
+        setExportSecret('');
+        setExportError('');
+    };
+
+
 
     const handleLoadMore = () => {
         if (page.hasNextPage && !page.isFetchingNextPage && !page.isLoading) {
@@ -296,12 +270,25 @@ const TransactionsList = ({ page }: { page: TransactionsPageState }) => {
                 gap={token.marginMD}
                 style={{ marginBottom: token.marginMD }}
             >
-                <Space size="small" align="center">
-                    <Title level={4} style={{ margin: 0 }}>
+                <div className='flex items-center gap-1 text-xs'>
+                    <Title level={5} style={{ margin: 0 }}>
                         {page.t('customer_info.transaction_history_list')}
                     </Title>
                     <Tag color="blue">{quantityFormat(total)}</Tag>
-                </Space>
+                </div>
+                <Button
+                    // icon={<DownloadOutlined />}
+                    size='small'
+                    loading={page.isExporting}
+                    onClick={() => {
+                        if (!page.validateExportFilters()) return;
+                        setExportSecret('');
+                        setExportError('');
+                        setExportOpen(true);
+                    }}
+                >
+                    Xuất Excel
+                </Button>
             </Flex>
 
             {page.isLoading ? (
@@ -370,7 +357,7 @@ const TransactionsList = ({ page }: { page: TransactionsPageState }) => {
                                                 ellipsis={{ rows: 2, expandable: true, symbol: page.t('customer_info.detail') }}
                                                 style={{ marginBottom: 0 }}
                                             >
-                                                {memo}
+                                                Nội dung: {memo}
                                             </Paragraph>
 
                                             <Row gutter={[16, 12]}>
@@ -418,6 +405,32 @@ const TransactionsList = ({ page }: { page: TransactionsPageState }) => {
                     <Empty description={page.t('customer_info.empty_transaction')} />
                 </Card>
             )}
+            <Modal
+                title={page.t('modal.confirm_pin')}
+                open={exportOpen}
+                confirmLoading={page.isExporting}
+                okText={page.t('cartCheckout.confirm')}
+                cancelText={page.t('cartCheckout.cancel')}
+                onCancel={closeExport}
+                onOk={() => page.handleExport(exportSecret, closeExport, setExportError)}
+            >
+                <Space direction="vertical" size={token.marginXS} style={{ width: '100%' }}>
+                    <Text>{page.t('cartCheckout.please_input_pin')}</Text>
+                    <Input.Password
+                        autoFocus
+                        value={exportSecret}
+                        status={exportError ? 'error' : undefined}
+                        placeholder="PIN"
+                        onChange={(event) => {
+                            setExportSecret(event.target.value);
+                            setExportError('');
+                        }}
+                        onPressEnter={() => page.handleExport(exportSecret, closeExport, setExportError)}
+                    />
+                    {exportError && <Text type="danger">{exportError}</Text>}
+                    <Text type="secondary">{page.t('cartCheckout.default_pin')}</Text>
+                </Space>
+            </Modal>
         </Space>
     );
 };

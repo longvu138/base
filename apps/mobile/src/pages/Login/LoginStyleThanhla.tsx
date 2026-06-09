@@ -10,7 +10,7 @@ export const LoginStyleThanhla = () => {
     const { t } = useTranslation();
     const login = useLogin({
         clientId: appConfig.clientId,
-        onSuccess: () => navigate('/orders'),
+        onSuccess: () => navigate('/'),
         showMessage: (type, msg) => {
             if (type === 'success') message.success(msg);
             else message.error(msg);
@@ -91,7 +91,7 @@ export const LoginStyleThanhla = () => {
                     disabled={login.isLoading}
                     className="mt-8 w-full bg-black text-white rounded-full py-4 text-base font-bold active:bg-gray-800 transition-all disabled:bg-gray-300"
                 >
-                    {login.isLoading ? t('auth.login.logging_in') : t('auth.login.submit')}
+                    {login.isLoading ? t('Đang đăng nhập') : t('Đăng nhập')}
                 </button>
 
                 <div className="text-center mt-6">

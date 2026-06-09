@@ -11,7 +11,7 @@ export const LoginStyleDefault = () => {
     const { t } = useTranslation();
     const login = useLogin({
         clientId: appConfig.clientId,
-        onSuccess: () => navigate('/orders'),
+        onSuccess: () => navigate('/'),
         showMessage: (type, msg) => {
             if (type === 'success') message.success(msg);
             else message.error(msg);
@@ -76,7 +76,7 @@ export const LoginStyleDefault = () => {
                     disabled={login.isLoading}
                     className="mt-2 w-full bg-blue-600 text-white rounded-xl py-4 text-base font-bold active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:bg-gray-400 shadow-lg shadow-blue-100"
                 >
-                    {login.isLoading ? t('auth.login.logging_in') : t('auth.login.submit')}
+                    {login.isLoading ? t('Đang đăng nhập') : t('Đăng nhập')}
                     {!login.isLoading && <ArrowRight size={20} />}
                 </button>
 

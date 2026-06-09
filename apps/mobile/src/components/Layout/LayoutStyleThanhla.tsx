@@ -21,25 +21,19 @@ import { useLanguage, useTranslation } from "@repo/i18n";
 
 const { Header, Content } = AntLayout;
 
-const getCurrentLoggedUser = () => {
-  try {
-    return JSON.parse(localStorage.getItem("currentLoggedUser") || "{}");
-  } catch {
-    return {};
-  }
-};
-
-/**
- * LayoutStyleThanhla (Mobile Thanhla)
- * Thiáº¿t káº¿ hiá»‡n Ä‘áº¡i vá»›i Tab Bar bo trÃ²n vÃ  Header trong suá»‘t (Glassmorphism).
- */
 export const LayoutStyleThanhla = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [drawerVisible, setDrawerVisible] = useState(false);
   const { t } = useTranslation();
   const { currentLanguage, availableLanguages, changeLanguage } = useLanguage();
-  const storedUser = useMemo(getCurrentLoggedUser, []);
+  const storedUser = useMemo(() => {
+    try {
+      return JSON.parse(localStorage.getItem("currentLoggedUser") || "{}");
+    } catch {
+      return {};
+    }
+  }, []);
   const { data: profile } = useCustomerProfile();
   const currentUser = profile || storedUser;
   const displayName =
@@ -186,13 +180,21 @@ export const LayoutStyleThanhla = () => {
           {/* Menu Grid - COMPLETE ITEMS */}
           <div className="grid grid-cols-3 gap-4">
             {[
-              { path: "/shipments", icon: <CarOutlined />, labelKey: "navigation.shipments" },
+              {
+                path: "/shipments",
+                icon: <CarOutlined />,
+                labelKey: "navigation.shipments",
+              },
               {
                 path: "/packages",
                 icon: <ShoppingCartOutlined />,
                 labelKey: "navigation.packages",
               },
-              { path: "/claims", icon: <HomeOutlined />, labelKey: "navigation.claims" },
+              {
+                path: "/claims",
+                icon: <HomeOutlined />,
+                labelKey: "navigation.claims",
+              },
               {
                 path: "/transactions",
                 icon: <ShoppingCartOutlined />,
@@ -228,14 +230,26 @@ export const LayoutStyleThanhla = () => {
                 icon: <BellOutlined />,
                 labelKey: "navigation.notifications",
               },
-              { path: "/waybills", icon: <HomeOutlined />, labelKey: "navigation.waybill_short" },
-              { path: "/address", icon: <UserOutlined />, labelKey: "navigation.address_short" },
+              {
+                path: "/waybills",
+                icon: <HomeOutlined />,
+                labelKey: "navigation.waybill_short",
+              },
+              {
+                path: "/address",
+                icon: <UserOutlined />,
+                labelKey: "navigation.address_short",
+              },
               {
                 path: "/vouchers",
                 icon: <HeartFilled />,
                 labelKey: "navigation.vouchers",
               },
-              { path: "/faqs", icon: <HomeOutlined />, labelKey: "navigation.faqs_short" },
+              {
+                path: "/faqs",
+                icon: <HomeOutlined />,
+                labelKey: "navigation.faqs_short",
+              },
             ].map((item, idx) => (
               <Link
                 key={idx}

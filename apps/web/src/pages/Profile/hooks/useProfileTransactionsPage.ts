@@ -135,10 +135,15 @@ export const useProfileTransactionsPage = (t: (key: string) => string) => {
       setError?.(t("cartCheckout.incorrect_pin"));
       return;
     }
+    if (!activeAccountId) {
+      notification.error({ message: t("common.error") });
+      return;
+    }
 
     try {
       setExporting(true);
       const response = await TransactionApi.exportTransactions(
+        activeAccountId,
         { ...apiParams, sort: "createdAt:desc" },
         { secret },
       );

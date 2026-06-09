@@ -40,7 +40,10 @@ function AppRoutes() {
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="orders" element={<Orders />} />
           <Route path="carts" element={<Carts />} />
-          <Route path="carts/checkout/:draftOrderId" element={<CartCheckout />} />
+          <Route
+            path="carts/checkout/:draftOrderId"
+            element={<CartCheckout />}
+          />
           <Route path="orders/:code" element={<OrderDetail />} />
           <Route path="shipments" element={<Shipments />} />
           <Route path="shipments/create" element={<CreateShipment />} />

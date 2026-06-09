@@ -15,8 +15,8 @@ export const TransactionApi = {
         });
     },
 
-    exportTransactions: (params?: any, data?: { secret?: string }) => {
-        return apiClientAuth.post('/customer/profile/transactions/export_excel', data, {
+    exportTransactions: (accountId: string, params?: any, data?: { secret?: string }) => {
+        return apiClientAuth.post(`/customer/wallet/accounts/${accountId}/export_excel`, data, {
             params,
             responseType: 'blob'
         });

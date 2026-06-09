@@ -16,6 +16,7 @@
     "create": "Tạo",
     "no_data": "Không có dữ liệu",
     "no_more_data": "Đã tải hết dữ liệu",
+    "more": "Xem thêm",
     "all": "Tất cả",
     "copied": "Đã sao chép",
     "or": "hoặc"
@@ -363,6 +364,7 @@
     "transaction_history": "Giao dịch",
     "transaction_history_list": "Danh sách lịch sử giao dịch",
     "transaction_type": "Loại giao dịch",
+    "empty_transaction": "Không có giao dịch nào",
     "input_code": "Nhập mã đơn, mã giao dịch",
     "time": "Thời gian",
     "search": "Tìm kiếm",

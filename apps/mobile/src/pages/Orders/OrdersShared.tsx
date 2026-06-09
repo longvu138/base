@@ -15,6 +15,7 @@ import {
   Input,
   List,
   Row,
+  Select,
   Skeleton,
   Space,
   Tag,
@@ -25,7 +26,7 @@ import { DownloadOutlined, SearchOutlined } from '@ant-design/icons';
 import { FilterPanel, PinModal } from '@repo/ui';
 import { moneyFormat, quantityFormat } from '@repo/util';
 import { useOrdersMobilePage } from '@repo/hooks';
-import { OrderNoteEditor } from '@repo/features/orders';
+import { CutOffStatusFilter, OrderNoteEditor } from '@repo/features/orders';
 
 const { Text, Paragraph, Link } = Typography;
 
@@ -65,6 +66,7 @@ const OrderCardSkeleton = () => {
 
 const OrdersFilter = ({ page }: { page: OrdersMobilePageState }) => {
   const { token } = theme.useToken();
+  const typeSearch = Form.useWatch('typeSearch', page.form);
 
   return (
     <Card className="shadow-sm">
@@ -154,6 +156,36 @@ const OrdersFilter = ({ page }: { page: OrdersMobilePageState }) => {
                 </Flex>
               </Checkbox.Group>
             </Form.Item>
+            <CutOffStatusFilter
+              form={page.form}
+              statusData={page.statusData}
+              t={page.t}
+              typeSearch={typeSearch}
+            />
+            <Form.Item name="milestoneStatus" label={page.t('orders.filters.time_range')} style={{ marginBottom: 0 }}>
+              <Select
+                allowClear
+                showSearch
+                placeholder={page.t('orders.filters.status')}
+                optionFilterProp="label"
+                options={page.statusData?.map((item: any) => ({
+                  label: item.name,
+                  value: item.code,
+                }))}
+              />
+            </Form.Item>
+            <Row gutter={[12, 12]}>
+              <Col xs={12}>
+                <Form.Item name="milestoneStatusFrom" label={page.t('orders.filters.start_date')} style={{ marginBottom: 0 }}>
+                  <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" placeholder={page.t('orders.filters.start_date')} />
+                </Form.Item>
+              </Col>
+              <Col xs={12}>
+                <Form.Item name="milestoneStatusTo" label={page.t('orders.filters.end_date')} style={{ marginBottom: 0 }}>
+                  <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" placeholder={page.t('orders.filters.end_date')} />
+                </Form.Item>
+              </Col>
+            </Row>
           </Space>
         }
       />
@@ -178,10 +210,29 @@ const OrderCard = ({ page, record, sentinelRef }: { page: OrdersMobilePageState;
   const { token } = theme.useToken();
   const status = getStatusMeta(record?.status, page.statusData || []);
   const hasInspection = record?.services?.some((item: any) => item.code === 'inspection');
-  const quantityText = `${quantityFormat(record?.orderedQuantity)}/${quantityFormat(record?.purchasedQuantity)}${
-    hasInspection ? `/${quantityFormat(record?.receivedQuantity)}` : ''
-  }`;
+  const quantityText = `${quantityFormat(record?.orderedQuantity)}/${quantityFormat(record?.purchasedQuantity)}${hasInspection ? `/${quantityFormat(record?.receivedQuantity)}` : ''
+    }`;
   const merchantName = record?.merchantName || record?.merchantCode || '---';
+  const isApprovalService = (service: any) =>
+    service?.needApprove === true || service?.approved === null;
+  const normalServices = Array.isArray(record?.services)
+    ? record.services.filter((service: any) => !isApprovalService(service))
+    : [];
+  const approvalServices = Array.isArray(record?.services)
+    ? record.services.filter(isApprovalService)
+    : [];
+  const renderServiceTag = (service: any, warning = false) => (
+    <Tag
+      key={service.code || service.name}
+      color={warning ? 'warning' : undefined}
+      style={{
+        marginInlineEnd: 0,
+        textDecoration: service.approved === false ? 'line-through' : undefined,
+      }}
+    >
+      {service.name || service.code}
+    </Tag>
+  );
 
   return (
     <div ref={sentinelRef}>
@@ -241,13 +292,11 @@ const OrderCard = ({ page, record, sentinelRef }: { page: OrdersMobilePageState;
             </Space>
           </Flex>
 
-          {Array.isArray(record?.services) && record.services.length > 0 ? (
-            <Flex wrap gap={token.marginXS}>
-              {record.services.map((service: any) => (
-                <Tag key={service.code || service.name} style={{ marginInlineEnd: 0 }}>
-                  {service.name || service.code}
-                </Tag>
-              ))}
+          {normalServices.length || approvalServices.length ? (
+            <Flex wrap gap={token.marginXS} align="center">
+              <Text type="secondary">{page.t('orders.filters.services')}:</Text>
+              {normalServices.map((service: any) => renderServiceTag(service))}
+              {approvalServices.map((service: any) => renderServiceTag(service, true))}
             </Flex>
           ) : null}
 

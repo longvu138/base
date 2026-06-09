@@ -1,81 +1,81 @@
-import { Navigate, Route, Routes } from 'react-router-dom';
-import Login from './pages/Login';
-import RegisterPage from './pages/Register/RegisterPage';
-import OrdersPage from './pages/Orders';
-import OrderDetailPage from './pages/OrderDetail';
-import CartsPage from './pages/Carts';
-import CartCheckoutPage from './pages/CartCheckout';
-import ShipmentsPage from './pages/Shipments';
-import ShipmentDetailPage from './pages/ShipmentDetail';
-import CreateShipmentPage from './pages/CreateShipment';
-import ClaimsPage from './pages/Claims';
-import ClaimDetailPage from './pages/ClaimDetail';
-import CreateClaimPage from './pages/CreateClaim';
-import Dashboard from './pages/Dashboard';
-import Layout from './components/Layout/index';
-import { WishlistPage } from './pages/Wishlist/WishlistPage';
-import PackagesPage from './pages/Packages';
-import TransactionsPage from './pages/Transactions';
-import ProfilePage from './pages/Profile';
-import AddressPage from './pages/Address';
-import DeliveryRequestsPage from './pages/DeliveryRequests';
-import CreateDeliveryPage from './pages/CreateDelivery';
-import WaybillsPage from './pages/Waybills';
-import FaqsPage from './pages/Faqs';
-import VouchersPage from './pages/Vouchers';
-import WithdrawalSlipsPage from './pages/WithdrawalSlips';
-import CashRequestPage from './pages/CashRequest';
-import NotificationsPage from './pages/Notifications';
-import StatisticsPage from './pages/Statistics';
-import PeerPaymentsPage from './pages/PeerPayments';
-import PeerPaymentDetailPage from './pages/PeerPaymentDetail';
-import PrivateRoute from './components/PrivateRoute';
+import { Navigate, Route, Routes } from "react-router-dom";
+import Login from "./pages/Login";
+import RegisterPage from "./pages/Register/RegisterPage";
+import OrdersPage from "./pages/Orders";
+import OrderDetailPage from "./pages/OrderDetail";
+import CartsPage from "./pages/Carts";
+import CartCheckoutPage from "./pages/CartCheckout";
+import ShipmentsPage from "./pages/Shipments";
+import ShipmentDetailPage from "./pages/ShipmentDetail";
+import CreateShipmentPage from "./pages/CreateShipment";
+import ClaimsPage from "./pages/Claims";
+import ClaimDetailPage from "./pages/ClaimDetail";
+import CreateClaimPage from "./pages/CreateClaim";
+import Dashboard from "./pages/Dashboard";
+import Layout from "./components/Layout/index";
+import { WishlistPage } from "./pages/Wishlist/WishlistPage";
+import PackagesPage from "./pages/Packages";
+import TransactionsPage from "./pages/Transactions";
+import ProfilePage from "./pages/Profile";
+import AddressPage from "./pages/Address";
+import DeliveryRequestsPage from "./pages/DeliveryRequests";
+import CreateDeliveryPage from "./pages/CreateDelivery";
+import WaybillsPage from "./pages/Waybills";
+import FaqsPage from "./pages/Faqs";
+import VouchersPage from "./pages/Vouchers";
+import WithdrawalSlipsPage from "./pages/WithdrawalSlips";
+import CashRequestPage from "./pages/CashRequest";
+import NotificationsPage from "./pages/Notifications";
+import StatisticsPage from "./pages/Statistics";
+import PeerPaymentsPage from "./pages/PeerPayments";
+import PeerPaymentDetailPage from "./pages/PeerPaymentDetail";
+import PrivateRoute from "./components/PrivateRoute";
 
 function AppRoutes() {
-    return (
-        <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<RegisterPage />} />
+  return (
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<RegisterPage />} />
 
-            <Route element={<PrivateRoute />}>
-                <Route path="/" element={<Layout />}>
-                    <Route index element={<Navigate to="/dashboard" replace />} />
-                    <Route path="dashboard" element={<Dashboard />} />
-                    <Route path="orders" element={<OrdersPage />} />
-                    <Route path="orders/:code" element={<OrderDetailPage />} />
-                    <Route path="carts" element={<CartsPage />} />
-                    <Route path="carts/checkout/:draftOrderId" element={<CartCheckoutPage />} />
-                    <Route path="shipments" element={<ShipmentsPage />} />
-                    <Route path="shipments/:code" element={<ShipmentDetailPage />} />
-                    <Route path="shipments/create" element={<CreateShipmentPage />} />
-                    <Route path="claims" element={<ClaimsPage />} />
-                    <Route path="tickets/:code" element={<ClaimDetailPage />} />
-                    <Route path="tickets/create" element={<CreateClaimPage />} />
-                    <Route path="packages" element={<PackagesPage />} />
-                    <Route path="transactions" element={<TransactionsPage />} />
-                    <Route path="profile" element={<ProfilePage />} />
-                    <Route path="address" element={<AddressPage />} />
-                    <Route path="delivery-requests" element={<DeliveryRequestsPage />} />
-                    <Route path="delivery/create" element={<CreateDeliveryPage />} />
-                    <Route path="waybills" element={<WaybillsPage />} />
-                    <Route path="vouchers" element={<VouchersPage />} />
-                    <Route path="withdrawal-slips" element={<WithdrawalSlipsPage />} />
-                    <Route path="cash-request" element={<CashRequestPage />} />
-                    <Route path="peer-payments" element={<PeerPaymentsPage />} />
-                    <Route path="peer-payments/:id" element={<PeerPaymentDetailPage />} />
-                    <Route path="notifications" element={<NotificationsPage />} />
-                    <Route path="statistics" element={<StatisticsPage />} />
-                    <Route path="faqs" element={<FaqsPage />} />
-                    <Route path="wishlist" element={<WishlistPage />} />
-                </Route>
-            </Route>
+      <Route element={<PrivateRoute />}>
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Navigate to="/dashboard" replace />} />
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="orders" element={<OrdersPage />} />
+          <Route path="orders/:code" element={<OrderDetailPage />} />
+          <Route path="carts" element={<CartsPage />} />
+          <Route
+            path="carts/checkout/:draftOrderId"
+            element={<CartCheckoutPage />}
+          />
+          <Route path="shipments" element={<ShipmentsPage />} />
+          <Route path="shipments/:code" element={<ShipmentDetailPage />} />
+          <Route path="shipments/create" element={<CreateShipmentPage />} />
+          <Route path="claims" element={<ClaimsPage />} />
+          <Route path="tickets/:code" element={<ClaimDetailPage />} />
+          <Route path="tickets/create" element={<CreateClaimPage />} />
+          <Route path="packages" element={<PackagesPage />} />
+          <Route path="transactions" element={<TransactionsPage />} />
+          <Route path="profile" element={<ProfilePage />} />
+          <Route path="address" element={<AddressPage />} />
+          <Route path="delivery-requests" element={<DeliveryRequestsPage />} />
+          <Route path="delivery/create" element={<CreateDeliveryPage />} />
+          <Route path="waybills" element={<WaybillsPage />} />
+          <Route path="vouchers" element={<VouchersPage />} />
+          <Route path="withdrawal-slips" element={<WithdrawalSlipsPage />} />
+          <Route path="cash-request" element={<CashRequestPage />} />
+          <Route path="peer-payments" element={<PeerPaymentsPage />} />
+          <Route path="peer-payments/:id" element={<PeerPaymentDetailPage />} />
+          <Route path="notifications" element={<NotificationsPage />} />
+          <Route path="statistics" element={<StatisticsPage />} />
+          <Route path="faqs" element={<FaqsPage />} />
+          <Route path="wishlist" element={<WishlistPage />} />
+        </Route>
+      </Route>
 
-
-
-
-            <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-    );
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
 }
 
 export default AppRoutes;
