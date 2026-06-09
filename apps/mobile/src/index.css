@@ -29,3 +29,17 @@ body {
   color: var(--tenant-text-color);
   transition: background-color 0.2s ease, color 0.2s ease;
 }
+
+@media (max-width: 768px) {
+  input,
+  textarea,
+  select,
+  .ant-input,
+  .ant-input-affix-wrapper,
+  .ant-picker,
+  .ant-select-selector,
+  .ant-input-number,
+  .ant-input-number-input {
+    font-size: 16px !important;
+  }
+}

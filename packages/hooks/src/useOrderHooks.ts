@@ -143,30 +143,51 @@ export const useCreateOrderCommentMutation = (code: string) => {
 
 export const useUpdateOrderNoteMutation = () => {
   const queryClient = useQueryClient();
+  const ordersListQueryFilter = {
+    predicate: (query: any) =>
+      String(query.queryKey?.[0] || "").startsWith("orders.list"),
+  };
+  const updateOrderNoteInCache = (old: any, newOrder: { code: string; note: string }) => {
+    if (!old) return old;
+
+    const updateItem = (item: any) =>
+      item?.code === newOrder.code ? { ...item, note: newOrder.note } : item;
+
+    if (Array.isArray(old.data)) {
+      return {
+        ...old,
+        data: old.data.map(updateItem),
+      };
+    }
+
+    if (Array.isArray(old.pages)) {
+      return {
+        ...old,
+        pages: old.pages.map((page: any) =>
+          page && Array.isArray(page.data)
+            ? { ...page, data: page.data.map(updateItem) }
+            : page,
+        ),
+      };
+    }
+
+    return old;
+  };
+
   return useMutation({
     mutationFn: ({ code, note }: { code: string; note: string }) =>
       OrderApi.patchOrder(code, { note }),
     onMutate: async (newOrder) => {
       // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
-      await queryClient.cancelQueries({ queryKey: ["orders.list"] });
+      await queryClient.cancelQueries(ordersListQueryFilter);
 
       // Snapshot the previous value
-      const previousQueries = queryClient.getQueriesData({
-        queryKey: ["orders.list"],
-      });
+      const previousQueries = queryClient.getQueriesData(ordersListQueryFilter);
 
       // Optimistically update to the new value in all matching queries
-      queryClient.setQueriesData({ queryKey: ["orders.list"] }, (old: any) => {
-        if (!old) return old;
-        return {
-          ...old,
-          data: old.data.map((item: any) =>
-            item.code === newOrder.code
-              ? { ...item, note: newOrder.note }
-              : item,
-          ),
-        };
-      });
+      queryClient.setQueriesData(ordersListQueryFilter, (old: any) =>
+        updateOrderNoteInCache(old, newOrder),
+      );
 
       // Return a context object with the snapshotted value
       return { previousQueries };
@@ -188,7 +209,7 @@ export const useUpdateOrderNoteMutation = () => {
     },
     onSettled: () => {
       // Always refetch after error or success to keep server sync
-      queryClient.invalidateQueries({ queryKey: ["orders.list"] });
+      queryClient.invalidateQueries(ordersListQueryFilter);
     },
   });
 };
