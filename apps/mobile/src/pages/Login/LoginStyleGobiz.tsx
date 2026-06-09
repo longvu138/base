@@ -15,7 +15,7 @@ export const LoginStyleGobiz: React.FC = () => {
 
     const login = useLogin({
         clientId: appConfig.clientId,
-        onSuccess: () => navigate('/orders'),
+        onSuccess: () => navigate('/'),
         showMessage: (type, msg) => {
             if (type === 'success') message.success(msg);
             else message.error(msg);
@@ -105,7 +105,7 @@ export const LoginStyleGobiz: React.FC = () => {
                         className="w-full h-14 rounded-2xl text-base font-black shadow-xl shadow-primary/30 bg-primary border-0"
                         loading={login.isLoading}
                     >
-                        {login.isLoading ? t('auth.login.logging_in') : t('auth.login.submit')}
+                        {login.isLoading ? t('Đang đăng nhập') : t('Đăng nhập')}
                     </AntButton>
                 </Form.Item>
             </Form>
