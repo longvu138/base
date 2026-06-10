@@ -1,5 +1,5 @@
 import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { CategoryApi, CustomerApi, NotificationApi } from '@repo/api';
+import { AddressApi, CategoryApi, CustomerApi, NotificationApi } from '@repo/api';
 
 const NOTIFICATION_PAGE_SIZE = 25;
 
@@ -369,6 +369,34 @@ export const useTrackAddToCartMutation = () => {
 export const useCreateDraftOrderMutation = () => {
     return useMutation({
         mutationFn: (payload: { skus: string[] }) => CustomerApi.createDraftOrder(payload),
+    });
+};
+
+const getDefaultDeliveryAddress = async () => {
+    const res = await AddressApi.getAddresses({
+        page: 0,
+        receivingAddress: false,
+        size: 9999,
+        sort: 'defaultAddress:desc,createdAt:desc',
+    });
+    const addresses = Array.isArray(res.data) ? res.data : [];
+    return addresses.find((item: any) => item.defaultAddress || item.isDefault) || addresses[0];
+};
+
+export const useCreateDraftOrderWithDefaultAddressMutation = () => {
+    return useMutation({
+        mutationFn: async (payload: { skus: string[] }) => {
+            const createRes = await CustomerApi.createDraftOrder(payload);
+            const draftOrder = createRes.data;
+            const address = await getDefaultDeliveryAddress();
+
+            if (!address?.id || !draftOrder?.id) return createRes;
+
+            return CustomerApi.updateDraftOrder(String(draftOrder.id), {
+                address: address.id,
+                depositOnDemand: draftOrder?.tags?.length > 0 ? undefined : draftOrder?.emdPercent,
+            });
+        },
     });
 };
 

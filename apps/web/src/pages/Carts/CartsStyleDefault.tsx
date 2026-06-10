@@ -110,6 +110,9 @@ export const CartsStyleDefault = () => {
   const logic = useCartsPage();
   const pageRef = useRef<HTMLDivElement>(null);
   const [bottomBarStyle, setBottomBarStyle] = useState<React.CSSProperties>();
+  const [editingSkuNoteField, setEditingSkuNoteField] = useState<string | null>(
+    null,
+  );
 
   useEffect(() => {
     const content = pageRef.current?.closest(
@@ -189,6 +192,7 @@ export const CartsStyleDefault = () => {
         ) => {
           const draft = logic.skuNoteDrafts[skuId] || {};
           const value = draft[field] ?? sku[field] ?? "";
+          const editingKey = `${skuId}-${field}`;
 
           return (
             <div
@@ -197,19 +201,31 @@ export const CartsStyleDefault = () => {
                 marginTop: token.marginXXS,
               }}
             >
-              <Typography.Text type="secondary">{label}: </Typography.Text>
+              {editingSkuNoteField !== editingKey && (
+                <Typography.Text type="secondary">{label}: </Typography.Text>
+              )}
               <Typography.Paragraph
                 editable={{
+                  text: value,
                   tooltip: t("common.edit"),
-                  onChange: (nextValue) =>
-                    logic.changeSkuNoteDraft(sku, field, nextValue),
-                  onEnd: () => logic.saveSkuNoteField(sku, field),
+                  onStart: () => setEditingSkuNoteField(editingKey),
+                  onChange: (nextValue) => {
+                    setEditingSkuNoteField(null);
+                    logic.changeSkuNoteDraft(sku, field, nextValue);
+                  },
+                  onEnd: () => {
+                    setEditingSkuNoteField(null);
+                    logic.saveSkuNoteField(sku, field);
+                  },
+                  onCancel: () => setEditingSkuNoteField(null),
                 }}
                 ellipsis={!value ? false : { tooltip: value }}
                 style={{
                   display: "inline-block",
                   maxWidth: "100%",
                   marginBottom: 0,
+                  minWidth: 32,
+                  paddingInline: 4,
                 }}
               >
                 {value || "---"}
@@ -426,45 +442,72 @@ export const CartsStyleDefault = () => {
       align: "right" as const,
       onCell: (sku: any) =>
         sku.__rowType === "quantityWarning" ? { colSpan: 0 } : {},
-      render: (_: unknown, sku: any) => (
-        <Space direction="vertical" size={0} align="end">
-          <Typography.Text strong style={MONEY_TEXT_STYLE}>
-            {formatCurrency(
-              getEffectiveUnitPrice(sku) * Number(sku.quantity || 0),
-            )}
-          </Typography.Text>
-          <Typography.Text type="secondary" style={MONEY_TEXT_STYLE}>
-            {sku.bargainPrice !== null && sku.bargainPrice !== undefined ? (
-              <>
-                <Typography.Text
-                  delete
-                  type="secondary"
-                  style={MONEY_TEXT_STYLE}
-                >
-                  {formatCurrency(
-                    getForeignSalePrice(sku) * Number(sku.quantity || 0),
-                    getForeignCurrency(sku),
-                  )}
-                </Typography.Text>{" "}
-                /{" "}
+      render: (_: unknown, sku: any) => {
+        const skuId = String(sku.id);
+        const displayQuantity = logic.getDisplayQuantity(sku);
+        const isCalculatingAmount =
+          logic.calculatingAmountSkuIds.includes(skuId);
+
+        return isCalculatingAmount ? (
+          <Flex
+            vertical
+            align="flex-end"
+            gap={4}
+            style={{ width: "100%", minHeight: 42 }}
+          >
+            <Skeleton.Input
+              active
+              size="small"
+              style={{ width: 72, height: 18 }}
+            />
+            <Skeleton.Input
+              active
+              size="small"
+              style={{ width: 56, height: 16 }}
+            />
+          </Flex>
+        ) : (
+          <Space direction="vertical" size={0} align="end">
+            <Typography.Text strong style={MONEY_TEXT_STYLE}>
+              {formatCurrency(
+                getEffectiveUnitPrice(sku) * Number(displayQuantity || 0),
+              )}
+            </Typography.Text>
+            <Typography.Text type="secondary" style={MONEY_TEXT_STYLE}>
+              {sku.bargainPrice !== null && sku.bargainPrice !== undefined ? (
+                <>
+                  <Typography.Text
+                    delete
+                    type="secondary"
+                    style={MONEY_TEXT_STYLE}
+                  >
+                    {formatCurrency(
+                      getForeignSalePrice(sku) *
+                        Number(displayQuantity || 0),
+                      getForeignCurrency(sku),
+                    )}
+                  </Typography.Text>{" "}
+                  /{" "}
+                  <Typography.Text strong style={MONEY_TEXT_STYLE}>
+                    {formatCurrency(
+                      getForeignBargainPrice(sku) *
+                        Number(displayQuantity || 0),
+                      getForeignCurrency(sku),
+                    )}
+                  </Typography.Text>
+                </>
+              ) : (
                 <Typography.Text strong style={MONEY_TEXT_STYLE}>
                   {formatCurrency(
-                    getForeignBargainPrice(sku) * Number(sku.quantity || 0),
+                    getForeignSalePrice(sku) * Number(displayQuantity || 0),
                     getForeignCurrency(sku),
                   )}
                 </Typography.Text>
-              </>
-            ) : (
-              <Typography.Text strong style={MONEY_TEXT_STYLE}>
-                {formatCurrency(
-                  getForeignSalePrice(sku) * Number(sku.quantity || 0),
-                  getForeignCurrency(sku),
-                )}
-              </Typography.Text>
-            )}
-          </Typography.Text>
-        </Space>
-      ),
+              )}
+            </Typography.Text>
+          </Space>
+        );
+      },
     },
     {
       title: "",
@@ -785,7 +828,7 @@ export const CartsStyleDefault = () => {
               >
                 {formatCurrency(logic.totals.selectedAmount)}
               </Typography.Text>{" "}
-              ({logic.totals.selectedGroups} {t("cart.shop")} / {logic.totals.selectedSkus}{" "}
+              ({logic.totals.selectedGroups} {t("cart.shop")} / {logic.totals.selectedQuantity}{" "}
               {t("cartCheckout.product")})
             </Typography.Text>
             <Button

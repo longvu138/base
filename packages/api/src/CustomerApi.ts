@@ -1,4 +1,4 @@
-import { ApiClient } from "@repo/util"
+import { ApiClient, LocalStoreUtil } from "@repo/util"
 
 export const CustomerApi = {
     getProfile: () => {
@@ -123,7 +123,19 @@ export const CustomerApi = {
         return ApiClient.auth.get("customer/third-parties/shopkeeper");
     },
     createCustomerOrder: (payload: any) => {
-        return ApiClient.auth.post("customer/orders", payload);
+        const pinToken = LocalStoreUtil.getItem("pinToken") || "";
+        const headers: Record<string, any> = {};
+
+        if (pinToken) {
+            headers["X-PIN-TOKEN"] = pinToken;
+        } else if (payload?.password) {
+            headers["X-PIN"] = payload.password;
+            if (payload?.savePassword) {
+                headers["X-REMEMBER-PIN"] = true;
+            }
+        }
+
+        return ApiClient.auth.post("customer/orders", payload, { headers });
     },
     trackAddToCart: () => {
         return ApiClient.auth.post("tenants/current/tracking-add-to-cart");

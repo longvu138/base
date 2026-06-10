@@ -3,6 +3,10 @@ import { App } from "antd";
 import { useTranslation } from "@repo/i18n";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
+  applyCartServiceSelection,
+  getCartServiceWarnings,
+} from "@repo/features/cart-services";
+import {
   useCartItemsQuery,
   useOrderServicesQuery,
   useCurrentExchangeRate,
@@ -16,7 +20,7 @@ import {
   useUpdateCartServicesMutation,
   useUpdatePreferredServicesMutation,
   useAddWishlistItemMutation,
-  useCreateDraftOrderMutation,
+  useCreateDraftOrderWithDefaultAddressMutation,
   useShipmentServiceGroupsQuery,
 } from "@repo/hooks";
 import { sameCodes } from "../cartViewModel";
@@ -52,6 +56,7 @@ const getSkuAmount = (sku: any) =>
 
 const QUANTITY_UPDATE_DEBOUNCE_MS = 500;
 const SKU_NOTE_UPDATE_DEBOUNCE_MS = 500;
+const AMOUNT_LOADING_MIN_DURATION_MS = 350;
 
 export const useCartsPage = () => {
   const { t } = useTranslation();
@@ -78,7 +83,7 @@ export const useCartsPage = () => {
   const updateCartGroupMutation = useUpdateCartGroupMutation();
   const updateCartServicesMutation = useUpdateCartServicesMutation();
   const updatePreferredServicesMutation = useUpdatePreferredServicesMutation();
-  const createDraftOrderMutation = useCreateDraftOrderMutation();
+  const createDraftOrderMutation = useCreateDraftOrderWithDefaultAddressMutation();
   const deleteSkuMutation = useDeleteCartSkuMutation();
   const deleteSkusMutation = useDeleteCartSkusMutation();
   const deleteGroupMutation = useDeleteCartGroupMutation();
@@ -89,6 +94,9 @@ export const useCartsPage = () => {
   const [draftQuantities, setDraftQuantities] = useState<
     Record<string, number>
   >({});
+  const [calculatingAmountSkuIds, setCalculatingAmountSkuIds] = useState<
+    string[]
+  >([]);
   const [serviceDrafts, setServiceDrafts] = useState<Record<string, string[]>>(
     {},
   );
@@ -113,6 +121,7 @@ export const useCartsPage = () => {
   const [addProductsOpen, setAddProductsOpen] = useState(false);
   const [editingPriceSku, setEditingPriceSku] = useState<any>(null);
   const [draftOrder, setDraftOrder] = useState<any>(null);
+  const [orderingGroupId, setOrderingGroupId] = useState<string | null>(null);
 
   const currentLoggedUser = useMemo(() => {
     try {
@@ -269,31 +278,47 @@ export const useCartsPage = () => {
       ),
       selectedSkus: selectedSkus.length,
       selectedQuantity: selectedSkus.reduce(
-        (sum: number, sku: any) => sum + Number(sku.quantity || 0),
-        0,
-      ),
-      selectedAmount: selectedSkus.reduce(
-        (sum: number, sku: any) => sum + getSkuAmount(sku),
-        0,
-      ),
-      selectedForeignAmount: selectedSkus.reduce(
         (sum: number, sku: any) =>
           sum +
           Number(
+            draftQuantities[String(sku.id)] ?? Number(sku.quantity || 0),
+          ),
+        0,
+      ),
+      selectedAmount: selectedSkus.reduce(
+        (sum: number, sku: any) => {
+          const quantity =
+            draftQuantities[String(sku.id)] ?? Number(sku.quantity || 0);
+          const currentQuantity = Number(sku.quantity || 0);
+          const unitAmount =
+            currentQuantity > 0 ? getSkuAmount(sku) / currentQuantity : 0;
+          return sum + unitAmount * quantity;
+        },
+        0,
+      ),
+      selectedForeignAmount: selectedSkus.reduce(
+        (sum: number, sku: any) => {
+          const quantity =
+            draftQuantities[String(sku.id)] ?? Number(sku.quantity || 0);
+          return (
+            sum +
+            Number(
             (sku?.bargainPrice !== null && sku?.bargainPrice !== undefined
               ? sku.bargainPrice
               : undefined) ??
               sku?.salePrice ??
               sku?.product?.salePrice ??
               0,
-          ) *
-            Number(sku.quantity || 0),
+            ) *
+              quantity
+          );
+        },
         0,
       ),
       selectedGroups: new Set(selectedSkus.map((sku: any) => sku.cartGroupId))
         .size,
     }),
-    [allSkus, normalizedGroups.length, selectedSkus],
+    [allSkus, draftQuantities, normalizedGroups.length, selectedSkus],
   );
 
   const visibleGroups = normalizedGroups;
@@ -323,6 +348,28 @@ export const useCartsPage = () => {
     return draftQuantities[skuId] ?? Number(sku.quantity || 0);
   };
 
+  const updateSkuAndRecalculateAmount = async (
+    skuId: string,
+    payload: Record<string, unknown>,
+  ) => {
+    setCalculatingAmountSkuIds((current) =>
+      current.includes(skuId) ? current : [...current, skuId],
+    );
+
+    try {
+      await Promise.all([
+        updateSkuMutation.mutateAsync({ id: skuId, payload }),
+        new Promise((resolve) =>
+          setTimeout(resolve, AMOUNT_LOADING_MIN_DURATION_MS),
+        ),
+      ]);
+    } finally {
+      setCalculatingAmountSkuIds((current) =>
+        current.filter((id) => id !== skuId),
+      );
+    }
+  };
+
   const updateQuantity = (sku: any, quantity: number | null) => {
     const skuId = String(sku.id);
 
@@ -349,10 +396,7 @@ export const useCartsPage = () => {
 
     quantityUpdateTimers.current[skuId] = setTimeout(async () => {
       try {
-        await updateSkuMutation.mutateAsync({
-          id: skuId,
-          payload: { quantity },
-        });
+        await updateSkuAndRecalculateAmount(skuId, { quantity });
       } catch {
         setDraftQuantities((current) => {
           const next = { ...current };
@@ -366,10 +410,7 @@ export const useCartsPage = () => {
   };
 
   const updateBargainPrice = async (sku: any, bargainPrice: number) => {
-    await updateSkuMutation.mutateAsync({
-      id: String(sku.id),
-      payload: { bargainPrice },
-    });
+    await updateSkuAndRecalculateAmount(String(sku.id), { bargainPrice });
     setEditingPriceSku(null);
   };
 
@@ -397,23 +438,12 @@ export const useCartsPage = () => {
         (Array.isArray(group.services)
           ? group.services.map((item: any) => item.code).filter(Boolean)
           : []);
-      let nextCodes = [...selectedCodes];
-
-      if (service?.serviceGroup?.single && checked) {
-        const sameGroupCodes = orderServices
-          .filter(
-            (item: any) =>
-              item?.serviceGroup?.code === service.serviceGroup.code,
-          )
-          .map((item: any) => item.code);
-        nextCodes = nextCodes.filter((code) => !sameGroupCodes.includes(code));
-      }
-
-      if (checked) {
-        nextCodes = Array.from(new Set([...nextCodes, service.code]));
-      } else {
-        nextCodes = nextCodes.filter((code) => code !== service.code);
-      }
+      const nextCodes = applyCartServiceSelection(
+        selectedCodes,
+        service,
+        checked,
+        orderServices,
+      );
 
       return { ...current, [groupId]: nextCodes };
     });
@@ -421,9 +451,17 @@ export const useCartsPage = () => {
 
   const saveCartServices = async (group: any) => {
     const groupId = String(group.id);
+    const selectedCodes = serviceDrafts[groupId] || [];
+    const blockingWarnings = getCartServiceWarnings(
+      selectedCodes,
+      orderServices,
+      orderServiceGroups,
+    ).filter((warning) => warning.type !== "needApprove");
+    if (blockingWarnings.length > 0) return;
+
     await updateCartServicesMutation.mutateAsync({
       id: groupId,
-      serviceCodes: serviceDrafts[groupId] || [],
+      serviceCodes: selectedCodes,
     });
     notification.success({ message: t("message.save_success") });
   };
@@ -573,6 +611,22 @@ export const useCartsPage = () => {
       notification.error({ message: t("cart.choose_service_first") });
       return;
     }
+    const groupWithInvalidServices = selectedGroups.find((group: any) => {
+      const originalCodes = Array.isArray(group.services)
+        ? group.services.map((service: any) => service.code).filter(Boolean)
+        : [];
+      const selectedCodes =
+        serviceDrafts[String(group.id)] || originalCodes;
+      return getCartServiceWarnings(
+        selectedCodes,
+        orderServices,
+        orderServiceGroups,
+      ).some((warning) => warning.type !== "needApprove");
+    });
+    if (groupWithInvalidServices) {
+      notification.error({ message: t("cart.service_dependency_error") });
+      return;
+    }
 
     const groupWithUnsavedServices = selectedGroups.find((group: any) => {
       const originalCodes = Array.isArray(group.services)
@@ -593,6 +647,51 @@ export const useCartsPage = () => {
     });
     setDraftOrder(result.data);
     navigate(`/carts/checkout/${result.data.id}`);
+  };
+
+  const placeOrderForGroup = async (group: any) => {
+    const groupId = String(group.id);
+    const selectedGroupSkuIds = group.cartSkus
+      .map((sku: any) => String(sku.id))
+      .filter((skuId: string) => selectedSkuIds.includes(skuId));
+    const skuIds =
+      selectedGroupSkuIds.length > 0
+        ? selectedGroupSkuIds
+        : group.cartSkus.map((sku: any) => String(sku.id));
+    if (skuIds.length === 0) return;
+
+    const originalCodes = Array.isArray(group.services)
+      ? group.services.map((service: any) => service.code).filter(Boolean)
+      : [];
+    const selectedCodes = serviceDrafts[groupId] || originalCodes;
+    if (selectedCodes.length === 0) {
+      notification.error({ message: t("cart.choose_service_first") });
+      return;
+    }
+    if (
+      getCartServiceWarnings(
+        selectedCodes,
+        orderServices,
+        orderServiceGroups,
+      ).some((warning) => warning.type !== "needApprove")
+    ) {
+      notification.error({ message: t("cart.service_dependency_error") });
+      return;
+    }
+    if (!sameCodes(originalCodes, selectedCodes)) {
+      notification.warning({ message: t("cart.unsaved_service_warning") });
+      return;
+    }
+
+    setOrderingGroupId(groupId);
+    try {
+      const result = await createDraftOrderMutation.mutateAsync({
+        skus: skuIds,
+      });
+      navigate(`/carts/checkout/${result.data.id}`);
+    } finally {
+      setOrderingGroupId(null);
+    }
   };
 
   const changeShopsPerPage = (value: number) => {
@@ -654,6 +753,7 @@ export const useCartsPage = () => {
     clearSelection,
     selectAll,
     getDisplayQuantity,
+    calculatingAmountSkuIds,
     updateQuantity,
     updateBargainPrice,
     saveSkuToWishlist,
@@ -677,6 +777,7 @@ export const useCartsPage = () => {
     deleteAll,
     deleteSelected,
     placeOrder,
+    placeOrderForGroup,
     shopPage,
     shopsPerPage,
     productsPerSeller,
@@ -706,6 +807,7 @@ export const useCartsPage = () => {
     deletingGroupId: deleteGroupMutation.variables,
     isDeletingAll: deleteAllMutation.isPending,
     isPlacingOrder: createDraftOrderMutation.isPending,
+    orderingGroupId,
     draftOrder,
   };
 };

@@ -6,7 +6,6 @@ import {
   Button,
   Card,
   Checkbox,
-  Divider,
   Empty,
   Flex,
   Image,
@@ -29,6 +28,7 @@ import {
   DeleteOutlined,
   DownOutlined,
   EditOutlined,
+  ExclamationCircleOutlined,
   HeartOutlined,
   InfoCircleOutlined,
   PlusOutlined,
@@ -38,12 +38,19 @@ import {
   ShopOutlined,
   ShoppingCartOutlined,
   UpOutlined,
+  WarningOutlined,
 } from "@ant-design/icons";
+import {
+  applyCartServiceSelection,
+  getCartServiceWarnings,
+  isCartServiceDisabled,
+} from "@repo/features/cart-services";
 import {
   useAddWishlistItemMutation,
   useCartFeesQuery,
   useCartItemsInfiniteQuery,
-  useCreateDraftOrderMutation,
+  useCreateDraftOrderWithDefaultAddressMutation,
+  useCustomerProfile,
   useDeleteAllCartMutation,
   useDeleteCartGroupMutation,
   useDeleteCartSkusMutation,
@@ -59,6 +66,9 @@ import { formatCurrency } from "@repo/util";
 import { AddProductsModal } from "./components/AddProductsModal";
 
 const { Text, Title } = Typography;
+const QUANTITY_UPDATE_DEBOUNCE_MS = 500;
+const SKU_NOTE_UPDATE_DEBOUNCE_MS = 500;
+const AMOUNT_LOADING_MIN_DURATION_MS = 350;
 
 const getSkuItems = (group: any) => {
   if (Array.isArray(group?.skus)) return group.skus;
@@ -131,8 +141,7 @@ const getForeignPrice = (sku: any) =>
   Number(
     (sku?.bargainPrice !== null && sku?.bargainPrice !== undefined
       ? sku?.bargainPrice
-      : undefined) ??
-      getForeignSalePrice(sku),
+      : undefined) ?? getForeignSalePrice(sku),
   );
 
 const getCurrency = (sku: any) =>
@@ -144,6 +153,129 @@ const getCurrency = (sku: any) =>
 
 const sameCodes = (left: string[] = [], right: string[] = []) =>
   left.slice().sort().join(",") === right.slice().sort().join(",");
+
+const CartSellerCostPanel = ({
+  group,
+  onOrder,
+  ordering,
+  orderDisabled,
+}: {
+  group: any;
+  onOrder: () => void;
+  ordering: boolean;
+  orderDisabled: boolean;
+}) => {
+  const { t } = useTranslation();
+  const { token } = theme.useToken();
+  const [feesOpen, setFeesOpen] = useState(false);
+  const { data: fees = [], isFetching: isFeesFetching } = useCartFeesQuery(
+    String(group.id),
+    feesOpen,
+  );
+
+  return (
+    <div
+      style={{
+        paddingTop: token.paddingSM,
+        borderTop: `1px solid ${token.colorSplit}`,
+      }}
+    >
+      <Space
+        direction="vertical"
+        size={token.marginSM}
+        style={{ width: "100%" }}
+      >
+        <Flex justify="space-between" gap={token.marginSM}>
+          <Text type="secondary">{t("order.total_price")}</Text>
+          <Text strong style={{ whiteSpace: "nowrap" }}>
+            {formatCurrency(group.exchangedTotalValue || 0)}
+          </Text>
+        </Flex>
+        <Flex justify="space-between" align="center" gap={token.marginSM}>
+          <Button
+            type="link"
+            size="small"
+            style={{ padding: 0 }}
+            icon={feesOpen ? <UpOutlined /> : <DownOutlined />}
+            onClick={() => setFeesOpen((current) => !current)}
+          >
+            {t("cart.provisional_fee")}
+          </Button>
+          <Text strong style={{ whiteSpace: "nowrap" }}>
+            {formatCurrency(group.totalFee || 0)}
+          </Text>
+        </Flex>
+        {feesOpen ? (
+          <Space
+            direction="vertical"
+            size={token.marginXS}
+            style={{ width: "100%" }}
+          >
+            {isFeesFetching ? (
+              <Text type="secondary">{t("cart.loading_fee")}</Text>
+            ) : fees.length > 0 ? (
+              fees.map((fee: any) => (
+                <Flex
+                  key={fee.id || fee.code || fee.type?.code}
+                  justify="space-between"
+                  gap={token.marginSM}
+                >
+                  <Text type="secondary">
+                    - {fee.type?.name || fee.name || "---"}
+                    {fee.type?.minFee || fee.type?.maxFee ? (
+                      <Tooltip
+                        title={
+                          <Space direction="vertical" size={0}>
+                            <span>
+                              {t("cart.min_fee")}:{" "}
+                              {formatCurrency(fee.type?.minFee || 0)}
+                            </span>
+                            <span>
+                              {t("cart.max_fee")}:{" "}
+                              {formatCurrency(fee.type?.maxFee || 0)}
+                            </span>
+                          </Space>
+                        }
+                      >
+                        <InfoCircleOutlined style={{ marginLeft: 4 }} />
+                      </Tooltip>
+                    ) : null}
+                  </Text>
+                  <Text style={{ whiteSpace: "nowrap" }}>
+                    {fee.provisionalAmount !== null &&
+                    fee.provisionalAmount !== undefined
+                      ? formatCurrency(fee.provisionalAmount)
+                      : "---"}
+                  </Text>
+                </Flex>
+              ))
+            ) : (
+              <Text type="secondary">{t("cart.no_fee")}</Text>
+            )}
+          </Space>
+        ) : null}
+        <Flex justify="space-between" gap={token.marginSM}>
+          <Text strong>{t("cart.total")}</Text>
+          <Text
+            strong
+            style={{ whiteSpace: "nowrap", color: token.colorPrimary }}
+          >
+            {formatCurrency(group.grandTotal || 0)}
+          </Text>
+        </Flex>
+        <Button
+          type="primary"
+          block
+          loading={ordering}
+          disabled={orderDisabled}
+          onClick={onOrder}
+        >
+          {t("cart.order_now")}
+        </Button>
+      </Space>
+    </div>
+  );
+};
 
 const CartSellerSettingsModal = ({
   group,
@@ -158,13 +290,9 @@ const CartSellerSettingsModal = ({
 }) => {
   const { t } = useTranslation();
   const { token } = theme.useToken();
-  const [feesOpen, setFeesOpen] = useState(false);
   const [servicesCollapsed, setServicesCollapsed] = useState(true);
+  const [editingField, setEditingField] = useState<string | null>(null);
   const groupId = String(group?.id || "");
-  const { data: fees = [], isFetching: isFeesFetching } = useCartFeesQuery(
-    groupId,
-    open && feesOpen,
-  );
 
   if (!group) return null;
 
@@ -184,6 +312,14 @@ const CartSellerSettingsModal = ({
     (service: any) => !service.serviceGroup,
   );
   const servicesChanged = !sameCodes(selectedCodes, originalCodes);
+  const serviceWarnings = getCartServiceWarnings(
+    selectedCodes,
+    logic.orderServices,
+    logic.orderServiceGroups,
+  );
+  const blockingServiceWarnings = serviceWarnings.filter(
+    (warning) => warning.type !== "needApprove",
+  );
 
   const renderServiceLabel = (service: any) => (
     <Space size={4}>
@@ -196,6 +332,50 @@ const CartSellerSettingsModal = ({
     </Space>
   );
 
+  const renderServiceWarnings = (
+    groupCode: string | null | "__all" = "__all",
+  ) =>
+    serviceWarnings
+      .filter(
+        (warning) =>
+          groupCode === "__all" || (warning.groupCode || null) === groupCode,
+      )
+      .map((warning, index) => {
+        const isApprovalWarning = warning.type === "needApprove";
+        let message = "";
+
+        if (warning.type === "requires") {
+          message = t("error.requiresMessage", {
+            service: warning.serviceName,
+            services: warning.requiredNames.join(", "),
+          });
+        } else if (warning.type === "requireGroups") {
+          message = t("error.requireGroupsMessage", {
+            service: warning.serviceName,
+            serviceGroup: warning.requiredNames.join(", "),
+          });
+        } else if (warning.type === "requiredGroup") {
+          message = `${t("orderServiceGroup.choose_error")} ${warning.groupName}`;
+        } else {
+          message = `${t("orderServiceGroup.service")} ${warning.serviceName} ${t("orderServiceGroup.approved_privilege")}`;
+        }
+
+        return (
+          <Text
+            key={`${warning.type}-${index}`}
+            type={isApprovalWarning ? "warning" : "danger"}
+            style={{ display: "block", fontSize: 12 }}
+          >
+            {isApprovalWarning ? (
+              <WarningOutlined />
+            ) : (
+              <ExclamationCircleOutlined />
+            )}{" "}
+            <span dangerouslySetInnerHTML={{ __html: message }} />
+          </Text>
+        );
+      });
+
   const renderOrderTextField = (
     field: "note" | "refCustomerCode" | "refOrderCode",
     label: string,
@@ -204,18 +384,28 @@ const CartSellerSettingsModal = ({
 
     return (
       <div style={{ width: "100%" }}>
-        <Text type="secondary">{label}: </Text>
+        {editingField !== field && <Text type="secondary">{label}: </Text>}
         <Typography.Paragraph
           editable={{
+            text: value,
             tooltip: t("common.edit"),
-            onChange: (nextValue) =>
-              logic.changeCartGroupDraft(groupId, field, nextValue),
-            onEnd: () => logic.saveCartGroupField(group, field),
+            onStart: () => setEditingField(field),
+            onChange: (nextValue) => {
+              setEditingField(null);
+              logic.changeCartGroupDraft(groupId, field, nextValue);
+            },
+            onEnd: () => {
+              setEditingField(null);
+              logic.saveCartGroupField(group, field);
+            },
+            onCancel: () => setEditingField(null),
           }}
           ellipsis={!value ? false : { tooltip: value }}
           style={{
-            display: "inline",
+            display: "inline-block",
             marginBottom: 0,
+            minWidth: 32,
+            paddingInline: 4,
             whiteSpace: "pre-wrap",
           }}
         >
@@ -227,7 +417,7 @@ const CartSellerSettingsModal = ({
 
   return (
     <Modal
-      title={group.name || group.code || t("cart.shop")}
+      title={`${t("common.edit")} ${t("cartCheckout.order_info")}`}
       open={open}
       onCancel={onClose}
       footer={null}
@@ -235,16 +425,33 @@ const CartSellerSettingsModal = ({
       style={{ top: 24 }}
       styles={{ body: { maxHeight: "calc(100vh - 120px)", overflow: "auto" } }}
     >
-      <Space direction="vertical" size={token.marginMD} style={{ width: "100%" }}>
+      <Space
+        direction="vertical"
+        size={token.marginMD}
+        style={{ width: "100%" }}
+      >
         <Card
           size="small"
           title={t("cartCheckout.order_info")}
           styles={{ body: { paddingBlock: token.paddingSM } }}
         >
-          <Space direction="vertical" size={token.marginSM} style={{ width: "100%" }}>
-            {renderOrderTextField("note", t("cartCheckout.personal_note_for_order"))}
-            {renderOrderTextField("refCustomerCode", t("cartCheckout.customer_code"))}
-            {renderOrderTextField("refOrderCode", t("cartCheckout.customer_order_code"))}
+          <Space
+            direction="vertical"
+            size={token.marginSM}
+            style={{ width: "100%" }}
+          >
+            {renderOrderTextField(
+              "note",
+              t("cartCheckout.personal_note_for_order"),
+            )}
+            {renderOrderTextField(
+              "refCustomerCode",
+              t("cartCheckout.customer_code"),
+            )}
+            {renderOrderTextField(
+              "refOrderCode",
+              t("cartCheckout.customer_order_code"),
+            )}
           </Space>
         </Card>
 
@@ -254,7 +461,11 @@ const CartSellerSettingsModal = ({
           styles={{ body: { paddingBlock: token.paddingSM } }}
         >
           {servicesCollapsed ? (
-            <Space direction="vertical" size={token.marginSM} style={{ width: "100%" }}>
+            <Space
+              direction="vertical"
+              size={token.marginSM}
+              style={{ width: "100%" }}
+            >
               {selectedServices.length > 0 ? (
                 <Space direction="vertical" size={token.marginXS}>
                   {selectedServices.map((service: any) => (
@@ -273,6 +484,7 @@ const CartSellerSettingsModal = ({
                   {t("orderServiceGroup.no_service_selected")}
                 </Text>
               )}
+              {renderServiceWarnings()}
               <Button
                 type="link"
                 size="small"
@@ -284,7 +496,11 @@ const CartSellerSettingsModal = ({
               </Button>
             </Space>
           ) : (
-            <Space direction="vertical" size={token.marginSM} style={{ width: "100%" }}>
+            <Space
+              direction="vertical"
+              size={token.marginSM}
+              style={{ width: "100%" }}
+            >
               {ungroupedServices.length > 0 ? (
                 <Space direction="vertical" size={token.marginXS}>
                   <Text strong>{t("orderServiceGroup.other_service")}</Text>
@@ -293,14 +509,24 @@ const CartSellerSettingsModal = ({
                       <Checkbox
                         key={service.code}
                         checked={selectedCodes.includes(service.code)}
+                        disabled={isCartServiceDisabled(
+                          service,
+                          selectedCodes,
+                          logic.orderServices,
+                        )}
                         onChange={(event) =>
-                          logic.toggleCartService(group, service, event.target.checked)
+                          logic.toggleCartService(
+                            group,
+                            service,
+                            event.target.checked,
+                          )
                         }
                       >
                         {renderServiceLabel(service)}
                       </Checkbox>
                     ))}
                   </Space>
+                  {renderServiceWarnings(null)}
                 </Space>
               ) : null}
 
@@ -341,12 +567,21 @@ const CartSellerSettingsModal = ({
                             const service = services.find(
                               (item: any) => item.code === event.target.value,
                             );
-                            if (service) logic.toggleCartService(group, service, true);
+                            if (service)
+                              logic.toggleCartService(group, service, true);
                           }}
                         >
                           <Space wrap>
                             {services.map((service: any) => (
-                              <Radio key={service.code} value={service.code}>
+                              <Radio
+                                key={service.code}
+                                value={service.code}
+                                disabled={isCartServiceDisabled(
+                                  service,
+                                  selectedCodes,
+                                  logic.orderServices,
+                                )}
+                              >
                                 {renderServiceLabel(service)}
                               </Radio>
                             ))}
@@ -358,6 +593,11 @@ const CartSellerSettingsModal = ({
                             <Checkbox
                               key={service.code}
                               checked={selectedCodes.includes(service.code)}
+                              disabled={isCartServiceDisabled(
+                                service,
+                                selectedCodes,
+                                logic.orderServices,
+                              )}
                               onChange={(event) =>
                                 logic.toggleCartService(
                                   group,
@@ -371,6 +611,7 @@ const CartSellerSettingsModal = ({
                           ))}
                         </Space>
                       )}
+                      {renderServiceWarnings(serviceGroup.code)}
                     </Space>
                   );
                 })}
@@ -378,7 +619,9 @@ const CartSellerSettingsModal = ({
               <Button
                 type="primary"
                 icon={<SaveOutlined />}
-                disabled={!servicesChanged}
+                disabled={
+                  !servicesChanged || blockingServiceWarnings.length > 0
+                }
                 loading={
                   logic.isSavingServices &&
                   String(logic.savingServicesGroupId) === String(group.id)
@@ -406,97 +649,6 @@ const CartSellerSettingsModal = ({
             </Space>
           )}
         </Card>
-
-        <Card
-          size="small"
-          title={<Text strong style={{ color: token.colorPrimary }}>{t("cart.cost")}</Text>}
-          style={{ borderColor: token.colorPrimaryBorder, background: token.colorPrimaryBg }}
-          styles={{
-            header: {
-              borderBottomColor: token.colorPrimaryBorder,
-              background: token.colorPrimaryBgHover,
-            },
-            body: { paddingBlock: token.paddingSM },
-          }}
-        >
-          <Space direction="vertical" size={token.marginSM} style={{ width: "100%" }}>
-            <Flex justify="space-between" gap={token.marginSM}>
-              <Text type="secondary">{t("order.total_price")}</Text>
-              <Text strong style={{ whiteSpace: "nowrap" }}>
-                {formatCurrency(group.exchangedTotalValue || 0)}
-              </Text>
-            </Flex>
-            <Flex justify="space-between" align="center" gap={token.marginSM}>
-              <Button
-                type="link"
-                size="small"
-                style={{ padding: 0 }}
-                icon={feesOpen ? <UpOutlined /> : <DownOutlined />}
-                onClick={() => setFeesOpen((current) => !current)}
-              >
-                {t("cart.provisional_fee")}
-              </Button>
-              <Text strong style={{ whiteSpace: "nowrap" }}>
-                {formatCurrency(group.totalFee || 0)}
-              </Text>
-            </Flex>
-            {feesOpen ? (
-              <Space direction="vertical" size={token.marginXS} style={{ width: "100%" }}>
-                {isFeesFetching ? (
-                  <Text type="secondary">{t("cart.loading_fee")}</Text>
-                ) : fees.length > 0 ? (
-                  fees.map((fee: any) => (
-                    <Flex
-                      key={fee.id || fee.code || fee.type?.code}
-                      justify="space-between"
-                      gap={token.marginSM}
-                    >
-                      <Text type="secondary">
-                        - {fee.type?.name || fee.name || "---"}
-                        {fee.type?.minFee || fee.type?.maxFee ? (
-                          <Tooltip
-                            title={
-                              <Space direction="vertical" size={0}>
-                                <span>
-                                  {t("cart.min_fee")}:{" "}
-                                  {formatCurrency(fee.type?.minFee || 0)}
-                                </span>
-                                <span>
-                                  {t("cart.max_fee")}:{" "}
-                                  {formatCurrency(fee.type?.maxFee || 0)}
-                                </span>
-                              </Space>
-                            }
-                          >
-                            <InfoCircleOutlined style={{ marginLeft: 4 }} />
-                          </Tooltip>
-                        ) : null}
-                      </Text>
-                      <Text style={{ whiteSpace: "nowrap" }}>
-                        {fee.provisionalAmount !== null &&
-                        fee.provisionalAmount !== undefined
-                          ? formatCurrency(fee.provisionalAmount)
-                          : "---"}
-                      </Text>
-                    </Flex>
-                  ))
-                ) : (
-                  <Text type="secondary">{t("cart.no_fee")}</Text>
-                )}
-              </Space>
-            ) : null}
-            <Divider style={{ marginBlock: token.marginXS }} />
-            <Flex justify="space-between" gap={token.marginSM}>
-              <Text strong>{t("cart.total")}</Text>
-              <Text
-                strong
-                style={{ whiteSpace: "nowrap", color: token.colorPrimary }}
-              >
-                {formatCurrency(group.grandTotal || 0)}
-              </Text>
-            </Flex>
-          </Space>
-        </Card>
       </Space>
     </Modal>
   );
@@ -507,65 +659,64 @@ const CartSellerCardSkeleton = ({ index = 0 }: { index?: number }) => {
   return (
     <Card
       key={index}
-      style={{ width: "100%" }}
+      style={{ width: "100%", minWidth: 0, overflow: "hidden" }}
       styles={{ body: { padding: token.paddingMD } }}
-      title={
-        <Flex align="center" gap={8}>
-          <Skeleton.Button active size="small" style={{ width: 18 }} />
-          <Skeleton.Avatar active shape="square" size={32} />
-          <Skeleton.Input active size="small" style={{ width: 140 }} />
-        </Flex>
-      }
-      extra={
-        <Space size={0}>
-          <Skeleton.Button active size="small" style={{ width: 32 }} />
-          <Skeleton.Button active size="small" style={{ width: 32 }} />
-        </Space>
-      }
     >
-      <Card size="small" style={{ width: "100%" }}>
-        <Flex align="flex-start" gap={8}>
-          <Skeleton.Button active size="small" style={{ width: 18 }} />
-          <Skeleton.Avatar active shape="square" size={40} />
-          <Space direction="vertical" size={6} style={{ flex: 1, minWidth: 0 }}>
-            <Skeleton.Input active size="small" style={{ width: "80%" }} />
-            <Skeleton.Input active size="small" style={{ width: "55%" }} />
-          </Space>
-          <Space size={0}>
-            <Skeleton.Button active size="small" style={{ width: 32 }} />
-            <Skeleton.Button active size="small" style={{ width: 32 }} />
-          </Space>
-        </Flex>
-        <Flex
-          justify="space-between"
-          align="stretch"
-          gap={8}
-          style={{
-            marginTop: token.marginSM,
-            paddingTop: token.paddingSM,
-            borderTop: `1px solid ${token.colorSplit}`,
-          }}
+      <Flex align="center" gap={8} style={{ width: "100%", minWidth: 0 }}>
+        <Skeleton.Button
+          active
+          size="small"
+          style={{ width: 18, minWidth: 18 }}
+        />
+        <Skeleton.Avatar active shape="square" size={32} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <Skeleton.Input active size="small" block />
+        </div>
+        <Skeleton.Button
+          active
+          size="small"
+          style={{ width: 32, minWidth: 32 }}
+        />
+      </Flex>
+
+      <Flex
+        align="flex-start"
+        gap={8}
+        style={{
+          marginTop: token.marginSM,
+          paddingTop: token.paddingSM,
+          borderTop: `1px solid ${token.colorSplit}`,
+          width: "100%",
+          minWidth: 0,
+        }}
+      >
+        <Skeleton.Button
+          active
+          size="small"
+          style={{ width: 18, minWidth: 18 }}
+        />
+        <Skeleton.Avatar active shape="square" size={40} />
+        <Space
+          direction="vertical"
+          size={6}
+          style={{ flex: 1, minWidth: 0, width: 0 }}
         >
-          <Space direction="vertical" size={4} style={{ flex: 1, minWidth: 0 }}>
-            <Skeleton.Input active size="small" style={{ width: 64, height: 20 }} />
-            <Skeleton.Input active size="small" style={{ width: 72 }} />
-            <Skeleton.Input active size="small" style={{ width: 88 }} />
-          </Space>
-          <Space direction="vertical" size={4} style={{ width: 96 }}>
-            <Skeleton.Input active size="small" style={{ width: 64, height: 20 }} />
-            <Skeleton.Button active size="small" block />
-          </Space>
-          <Space
-            direction="vertical"
-            size={4}
-            style={{ flex: 1, minWidth: 0, alignItems: "flex-end" }}
-          >
-            <Skeleton.Input active size="small" style={{ width: 72, height: 20 }} />
-            <Skeleton.Input active size="small" style={{ width: 88 }} />
-            <Skeleton.Input active size="small" style={{ width: 76 }} />
-          </Space>
-        </Flex>
-      </Card>
+          <Skeleton.Input active size="small" block />
+          <Skeleton.Input
+            active
+            size="small"
+            style={{ width: "65%", maxWidth: "100%" }}
+          />
+          <Flex gap={8} style={{ width: "100%", minWidth: 0 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <Skeleton.Input active size="small" block />
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <Skeleton.Input active size="small" block />
+            </div>
+          </Flex>
+        </Space>
+      </Flex>
     </Card>
   );
 };
@@ -606,7 +757,7 @@ const CartLoadingSkeleton = () => {
           </Space>
         </Card>
 
-        {Array.from({ length: 5 }).map((_, index) => (
+        {Array.from({ length: 3 }).map((_, index) => (
           <CartSellerCardSkeleton key={index} index={index} />
         ))}
       </Space>
@@ -646,9 +797,24 @@ const CartsPage = () => {
   const pageSize = 5;
   const [selectedSkuIds, setSelectedSkuIds] = useState<string[]>([]);
   const [translated, setTranslated] = useState(true);
-  const [serviceDrafts, setServiceDrafts] = useState<Record<string, string[]>>({});
-  const [cartGroupDrafts, setCartGroupDrafts] = useState<Record<string, any>>({});
+  const [draftQuantities, setDraftQuantities] = useState<
+    Record<string, number>
+  >({});
+  const [serviceDrafts, setServiceDrafts] = useState<Record<string, string[]>>(
+    {},
+  );
+  const [cartGroupDrafts, setCartGroupDrafts] = useState<Record<string, any>>(
+    {},
+  );
+  const [skuNoteDrafts, setSkuNoteDrafts] = useState<Record<string, any>>({});
+  const [editingSkuNoteField, setEditingSkuNoteField] = useState<string | null>(
+    null,
+  );
+  const [calculatingAmountSkuIds, setCalculatingAmountSkuIds] = useState<
+    string[]
+  >([]);
   const [activeSeller, setActiveSeller] = useState<any | null>(null);
+  const [orderingGroupId, setOrderingGroupId] = useState<string | null>(null);
   const [addProductsOpen, setAddProductsOpen] = useState(false);
   const [expandedGroupIds, setExpandedGroupIds] = useState<string[]>([]);
   const [productsPerSeller, setProductsPerSellerState] = useState(() =>
@@ -656,9 +822,18 @@ const CartsPage = () => {
   );
   const [savingSkuId, setSavingSkuId] = useState<string | null>(null);
   const [editingPriceSku, setEditingPriceSku] = useState<any | null>(null);
-  const [bargainPriceValue, setBargainPriceValue] = useState<number | null>(null);
+  const [bargainPriceValue, setBargainPriceValue] = useState<number | null>(
+    null,
+  );
   const observerRef = useRef<IntersectionObserver | null>(null);
+  const quantityUpdateTimers = useRef<
+    Record<string, ReturnType<typeof setTimeout>>
+  >({});
+  const skuNoteUpdateTimers = useRef<
+    Record<string, ReturnType<typeof setTimeout>>
+  >({});
   const query = useCartItemsInfiniteQuery({ size: pageSize });
+  const { data: profile } = useCustomerProfile();
   const { data: orderServices = [] } = useOrderServicesQuery();
   const { data: orderServiceGroups = [] } = useShipmentServiceGroupsQuery();
   const updateSkuMutation = useUpdateCartSkuMutation();
@@ -668,33 +843,55 @@ const CartsPage = () => {
   const deleteSkusMutation = useDeleteCartSkusMutation();
   const deleteGroupMutation = useDeleteCartGroupMutation();
   const deleteAllMutation = useDeleteAllCartMutation();
-  const createDraftOrderMutation = useCreateDraftOrderMutation();
+  const createDraftOrderMutation =
+    useCreateDraftOrderWithDefaultAddressMutation();
   const addWishlistItemMutation = useAddWishlistItemMutation();
+  const currentLoggedUser = useMemo(() => {
+    try {
+      return JSON.parse(localStorage.getItem("currentLoggedUser") || "{}");
+    } catch {
+      return {};
+    }
+  }, []);
+  const canEditCart = !!(
+    profile?.customerAuthorities?.editCart ??
+    currentLoggedUser?.customerAuthorities?.editCart
+  );
 
   const groups = useMemo(
     () =>
-      (query.data?.pages.flatMap((item) => item.data) || []).map((group: any) => ({
-        ...group,
-        cartSkus: getSkuItems(group).map((sku: any) => ({
-          ...sku,
-          cartGroupId: group.id,
-          cartGroupCurrency: group?.marketplace?.currency,
-        })),
-      })),
+      (query.data?.pages.flatMap((item) => item.data) || []).map(
+        (group: any) => ({
+          ...group,
+          cartSkus: getSkuItems(group).map((sku: any) => ({
+            ...sku,
+            cartGroupId: group.id,
+            cartGroupCurrency: group?.marketplace?.currency,
+          })),
+        }),
+      ),
     [query.data],
   );
   const allSkus = groups.flatMap((group: any) => group.cartSkus);
   const selectedSkus = allSkus.filter((sku: any) =>
     selectedSkuIds.includes(String(sku.id)),
   );
-  const allSelected = allSkus.length > 0 && selectedSkuIds.length === allSkus.length;
+  const allSelected =
+    allSkus.length > 0 && selectedSkuIds.length === allSkus.length;
+  const getSelectedQuantity = (sku: any) =>
+    draftQuantities[String(sku.id)] ?? Number(sku.quantity || 0);
+  const selectedQuantity = selectedSkus.reduce(
+    (sum: number, sku: any) => sum + getSelectedQuantity(sku),
+    0,
+  );
   const selectedAmount = selectedSkus.reduce(
     (sum: number, sku: any) =>
-      sum + getEffectiveUnitPrice(sku) * Number(sku.quantity || 0),
+      sum + getEffectiveUnitPrice(sku) * getSelectedQuantity(sku),
     0,
   );
   const selectedForeignAmount = selectedSkus.reduce(
-    (sum: number, sku: any) => sum + getForeignPrice(sku) * Number(sku.quantity || 0),
+    (sum: number, sku: any) =>
+      sum + getForeignPrice(sku) * getSelectedQuantity(sku),
     0,
   );
   const selectedCurrency = getCurrency(selectedSkus[0] || {});
@@ -709,7 +906,13 @@ const CartsPage = () => {
   const sentinelRef = useCallback(
     (node: HTMLDivElement | null) => {
       observerRef.current?.disconnect();
-      if (!node || !query.hasNextPage || query.isFetchingNextPage || query.isLoading) return;
+      if (
+        !node ||
+        !query.hasNextPage ||
+        query.isFetchingNextPage ||
+        query.isLoading
+      )
+        return;
 
       observerRef.current = new IntersectionObserver(
         (entries) => {
@@ -725,7 +928,12 @@ const CartsPage = () => {
       );
       observerRef.current.observe(node);
     },
-    [query.fetchNextPage, query.hasNextPage, query.isFetchingNextPage, query.isLoading],
+    [
+      query.fetchNextPage,
+      query.hasNextPage,
+      query.isFetchingNextPage,
+      query.isLoading,
+    ],
   );
 
   const toggleSku = (skuId: string, checked: boolean) => {
@@ -763,15 +971,69 @@ const CartsPage = () => {
     );
   };
 
-  const updateQuantity = async (sku: any, quantity: number | null) => {
+  const updateSkuAndRecalculateAmount = async (
+    skuId: string,
+    payload: Record<string, unknown>,
+  ) => {
+    setCalculatingAmountSkuIds((current) =>
+      current.includes(skuId) ? current : [...current, skuId],
+    );
+
+    try {
+      await Promise.all([
+        updateSkuMutation.mutateAsync({ id: skuId, payload }),
+        new Promise((resolve) =>
+          setTimeout(resolve, AMOUNT_LOADING_MIN_DURATION_MS),
+        ),
+      ]);
+    } finally {
+      setCalculatingAmountSkuIds((current) =>
+        current.filter((id) => id !== skuId),
+      );
+    }
+  };
+
+  const updateQuantity = (sku: any, quantity: number | null) => {
+    const skuId = String(sku.id);
+
+    if (quantityUpdateTimers.current[skuId]) {
+      clearTimeout(quantityUpdateTimers.current[skuId]);
+      delete quantityUpdateTimers.current[skuId];
+    }
+
     if (!quantity || quantity < 1) return;
-    await updateSkuMutation.mutateAsync({
-      id: String(sku.id),
-      payload: { quantity },
-    });
+
+    setDraftQuantities((current) => ({
+      ...current,
+      [skuId]: quantity,
+    }));
+
+    if (quantity === Number(sku.quantity || 0)) {
+      setDraftQuantities((current) => {
+        const next = { ...current };
+        delete next[skuId];
+        return next;
+      });
+      return;
+    }
+
+    quantityUpdateTimers.current[skuId] = setTimeout(async () => {
+      try {
+        await updateSkuAndRecalculateAmount(skuId, { quantity });
+      } catch {
+        setDraftQuantities((current) => {
+          const next = { ...current };
+          delete next[skuId];
+          return next;
+        });
+      } finally {
+        delete quantityUpdateTimers.current[skuId];
+      }
+    }, QUANTITY_UPDATE_DEBOUNCE_MS);
   };
 
   const openEditPrice = (sku: any) => {
+    if (!canEditCart) return;
     setEditingPriceSku(sku);
     setBargainPriceValue(
       sku?.bargainPrice !== null && sku?.bargainPrice !== undefined
@@ -781,13 +1043,78 @@ const CartsPage = () => {
   };
 
   const updateBargainPrice = async () => {
-    if (!editingPriceSku || bargainPriceValue === null) return;
-    await updateSkuMutation.mutateAsync({
-      id: String(editingPriceSku.id),
-      payload: { bargainPrice: bargainPriceValue },
+    if (!canEditCart || !editingPriceSku || bargainPriceValue === null) return;
+    const skuId = String(editingPriceSku.id);
+    await updateSkuAndRecalculateAmount(skuId, {
+      bargainPrice: bargainPriceValue,
     });
     setEditingPriceSku(null);
     setBargainPriceValue(null);
+  };
+
+  const updateSkuNotes = async (
+    sku: any,
+    draft: { note?: string; remark?: string },
+  ) => {
+    await updateSkuMutation.mutateAsync({
+      id: String(sku.id),
+      payload: {
+        note: draft.note || "",
+        remark: draft.remark || "",
+      },
+    });
+  };
+
+  const changeSkuNoteDraft = (
+    sku: any,
+    field: "note" | "remark",
+    value: string,
+  ) => {
+    if (value !== "" && value.trim() === "") return;
+    const skuId = String(sku.id);
+    const timerKey = `${skuId}-${field}`;
+    const nextDraft = {
+      ...(skuNoteDrafts[skuId] || {
+        note: sku.note || "",
+        remark: sku.remark || "",
+      }),
+      [field]: value,
+    };
+
+    setSkuNoteDrafts((current) => ({
+      ...current,
+      [skuId]: {
+        ...(current[skuId] || {}),
+        [field]: value,
+      },
+    }));
+
+    if (skuNoteUpdateTimers.current[timerKey]) {
+      clearTimeout(skuNoteUpdateTimers.current[timerKey]);
+    }
+
+    skuNoteUpdateTimers.current[timerKey] = setTimeout(async () => {
+      if ((sku[field] || "") === value) return;
+      try {
+        await updateSkuNotes(sku, nextDraft);
+      } finally {
+        delete skuNoteUpdateTimers.current[timerKey];
+      }
+    }, SKU_NOTE_UPDATE_DEBOUNCE_MS);
+  };
+
+  const saveSkuNoteField = async (sku: any, field: "note" | "remark") => {
+    const skuId = String(sku.id);
+    const timerKey = `${skuId}-${field}`;
+    const value = skuNoteDrafts[skuId]?.[field] || "";
+    if ((sku[field] || "") === value) return;
+
+    if (skuNoteUpdateTimers.current[timerKey]) {
+      clearTimeout(skuNoteUpdateTimers.current[timerKey]);
+      delete skuNoteUpdateTimers.current[timerKey];
+    }
+
+    await updateSkuNotes(sku, skuNoteDrafts[skuId] || {});
   };
 
   const saveSkuToWishlist = async (skuId: string) => {
@@ -798,7 +1125,9 @@ const CartsPage = () => {
         source: "cart",
         data: skuId,
       });
-      notification.success({ message: t("message.successfully_saved_product") });
+      notification.success({
+        message: t("message.successfully_saved_product"),
+      });
     } catch {
       notification.error({ message: t("message.fail_saved_product") });
     } finally {
@@ -820,7 +1149,9 @@ const CartsPage = () => {
   const deleteGroup = async (group: any) => {
     await deleteGroupMutation.mutateAsync(String(group.id));
     const skuIds = group.cartSkus.map((sku: any) => String(sku.id));
-    setSelectedSkuIds((current) => current.filter((id) => !skuIds.includes(id)));
+    setSelectedSkuIds((current) =>
+      current.filter((id) => !skuIds.includes(id)),
+    );
   };
 
   const deleteAll = async () => {
@@ -838,9 +1169,17 @@ const CartsPage = () => {
 
   const saveServices = async (group: any) => {
     const groupId = String(group.id);
+    const selectedCodes = getDraftServices(group);
+    const blockingWarnings = getCartServiceWarnings(
+      selectedCodes,
+      visibleOrderServices,
+      orderServiceGroups,
+    ).filter((warning) => warning.type !== "needApprove");
+    if (blockingWarnings.length > 0) return;
+
     await updateServicesMutation.mutateAsync({
       id: groupId,
-      serviceCodes: getDraftServices(group),
+      serviceCodes: selectedCodes,
     });
     notification.success({ message: t("message.save_success") });
   };
@@ -853,23 +1192,12 @@ const CartsPage = () => {
         (Array.isArray(group.services)
           ? group.services.map((item: any) => item.code).filter(Boolean)
           : []);
-      let nextCodes = [...selectedCodes];
-
-      if (service?.serviceGroup?.single && checked) {
-        const sameGroupCodes = visibleOrderServices
-          .filter(
-            (item: any) =>
-              item?.serviceGroup?.code === service.serviceGroup.code,
-          )
-          .map((item: any) => item.code);
-        nextCodes = nextCodes.filter((code) => !sameGroupCodes.includes(code));
-      }
-
-      if (checked) {
-        nextCodes = Array.from(new Set([...nextCodes, service.code]));
-      } else {
-        nextCodes = nextCodes.filter((code) => code !== service.code);
-      }
+      const nextCodes = applyCartServiceSelection(
+        selectedCodes,
+        service,
+        checked,
+        visibleOrderServices,
+      );
 
       return { ...current, [groupId]: nextCodes };
     });
@@ -910,6 +1238,51 @@ const CartsPage = () => {
     notification.success({ message: t("message.update_success") });
   };
 
+  const placeOrderForGroup = async (group: any) => {
+    const groupId = String(group.id);
+    const selectedGroupSkuIds = group.cartSkus
+      .map((sku: any) => String(sku.id))
+      .filter((skuId: string) => selectedSkuIds.includes(skuId));
+    const skuIds =
+      selectedGroupSkuIds.length > 0
+        ? selectedGroupSkuIds
+        : group.cartSkus.map((sku: any) => String(sku.id));
+    if (skuIds.length === 0) return;
+
+    const originalCodes = Array.isArray(group.services)
+      ? group.services.map((service: any) => service.code).filter(Boolean)
+      : [];
+    const selectedCodes = getDraftServices(group);
+    if (selectedCodes.length === 0) {
+      notification.error({ message: t("cart.choose_service_first") });
+      return;
+    }
+    if (
+      getCartServiceWarnings(
+        selectedCodes,
+        visibleOrderServices,
+        orderServiceGroups,
+      ).some((warning) => warning.type !== "needApprove")
+    ) {
+      notification.error({ message: t("cart.service_dependency_error") });
+      return;
+    }
+    if (!sameCodes(originalCodes, selectedCodes)) {
+      notification.warning({ message: t("cart.unsaved_service_warning") });
+      return;
+    }
+
+    setOrderingGroupId(groupId);
+    try {
+      const result = await createDraftOrderMutation.mutateAsync({
+        skus: skuIds,
+      });
+      navigate(`/carts/checkout/${result.data.id}`);
+    } finally {
+      setOrderingGroupId(null);
+    }
+  };
+
   const sellerSettingsLogic = {
     orderServices: visibleOrderServices,
     orderServiceGroups,
@@ -920,6 +1293,9 @@ const CartsPage = () => {
     savePreferredServices,
     changeCartGroupDraft,
     saveCartGroupField,
+    placeOrderForGroup,
+    orderingGroupId,
+    isPlacingOrder: createDraftOrderMutation.isPending,
     isSavingServices: updateServicesMutation.isPending,
     savingServicesGroupId: updateServicesMutation.variables?.id,
     isSavingPreferredServices: updatePreferredServicesMutation.isPending,
@@ -940,6 +1316,17 @@ const CartsPage = () => {
       notification.error({ message: t("cart.choose_service_first") });
       return;
     }
+    const groupWithInvalidServices = selectedGroups.find((group: any) =>
+      getCartServiceWarnings(
+        getDraftServices(group),
+        visibleOrderServices,
+        orderServiceGroups,
+      ).some((warning) => warning.type !== "needApprove"),
+    );
+    if (groupWithInvalidServices) {
+      notification.error({ message: t("cart.service_dependency_error") });
+      return;
+    }
     const unsavedGroup = selectedGroups.find((group: any) => {
       const originalCodes = Array.isArray(group.services)
         ? group.services.map((service: any) => service.code).filter(Boolean)
@@ -950,7 +1337,9 @@ const CartsPage = () => {
       notification.warning({ message: t("cart.unsaved_service_warning") });
       return;
     }
-    const result = await createDraftOrderMutation.mutateAsync({ skus: selectedSkuIds });
+    const result = await createDraftOrderMutation.mutateAsync({
+      skus: selectedSkuIds,
+    });
     navigate(`/carts/checkout/${result.data.id}`);
   };
 
@@ -968,13 +1357,19 @@ const CartsPage = () => {
                 <Avatar
                   shape="square"
                   icon={<ShoppingCartOutlined />}
-                  style={{ background: token.colorPrimaryBg, color: token.colorPrimary }}
+                  style={{
+                    background: token.colorPrimaryBg,
+                    color: token.colorPrimary,
+                  }}
                 />
                 <div style={{ minWidth: 0 }}>
                   <Title level={4} style={{ margin: 0, lineHeight: 1.2 }}>
                     {t("mainLayout.cart")}
                   </Title>
-                  <Text type="secondary" style={{ fontSize: 12, whiteSpace: "nowrap" }}>
+                  <Text
+                    type="secondary"
+                    style={{ fontSize: 12, whiteSpace: "nowrap" }}
+                  >
                     {t("cart.product_per_seller")}: {productsPerSeller}
                   </Text>
                 </div>
@@ -996,7 +1391,10 @@ const CartsPage = () => {
               }}
             >
               <Space size={8} style={{ minWidth: 0, flex: 1 }}>
-                <Text type="secondary" style={{ fontSize: 12, whiteSpace: "nowrap" }}>
+                <Text
+                  type="secondary"
+                  style={{ fontSize: 12, whiteSpace: "nowrap" }}
+                >
                   {t("cart.product_per_seller")}
                 </Text>
                 <Select
@@ -1044,233 +1442,492 @@ const CartsPage = () => {
             dataSource={groups}
             rowKey={(group: any) => String(group.id)}
             renderItem={(group: any, index) => {
-            const selectedCount = group.cartSkus.filter((sku: any) =>
-              selectedSkuIds.includes(String(sku.id)),
-            ).length;
-            const allGroupSelected =
-              group.cartSkus.length > 0 && selectedCount === group.cartSkus.length;
-            const groupId = String(group.id);
-            const isExpanded = expandedGroupIds.includes(groupId);
-            const visibleSkus = isExpanded
-              ? group.cartSkus
-              : group.cartSkus.slice(0, productsPerSeller);
+              const selectedCount = group.cartSkus.filter((sku: any) =>
+                selectedSkuIds.includes(String(sku.id)),
+              ).length;
+              const allGroupSelected =
+                group.cartSkus.length > 0 &&
+                selectedCount === group.cartSkus.length;
+              const groupId = String(group.id);
+              const isExpanded = expandedGroupIds.includes(groupId);
+              const visibleSkus = isExpanded
+                ? group.cartSkus
+                : group.cartSkus.slice(0, productsPerSeller);
 
-            return (
-              <List.Item
-                ref={index === groups.length - 1 ? sentinelRef : undefined}
-                style={{ padding: 0, borderBlockEnd: "none", marginBottom: token.marginMD }}
-              >
-                <Card
-                  style={{ width: "100%" }}
-                  styles={{ body: { padding: token.paddingMD } }}
-                  title={
-                    <Flex align="center" gap={8} style={{ minWidth: 0 }}>
-                      <Checkbox
-                        checked={allGroupSelected}
-                        indeterminate={selectedCount > 0 && !allGroupSelected}
-                        onChange={(event) => toggleGroup(group, event.target.checked)}
-                      />
-                      {group?.marketplace?.image ? (
-                        <Avatar shape="square" src={group.marketplace.image} />
-                      ) : (
-                        <Avatar shape="square" icon={<ShopOutlined />} />
-                      )}
-                      <Text strong ellipsis style={{ minWidth: 0 }}>
-                        {group.name || group.code || t("cart.shop")}
-                      </Text>
-                    </Flex>
-                  }
-                  extra={
-                    <Space size={0}>
-                      <Button
-                        type="text"
-                        icon={<SettingOutlined />}
-                        onClick={() => setActiveSeller(group)}
-                      />
-                      <Popconfirm
-                        title={t("cart.delete_seller_confirm")}
-                        okText={t("button.delete")}
-                        cancelText={t("button.cancel")}
-                        onConfirm={() => deleteGroup(group)}
-                      >
-                      <Button
-                        danger
-                        type="text"
-                        icon={<DeleteOutlined />}
-                        loading={deleteGroupMutation.variables === String(group.id)}
-                      />
-                      </Popconfirm>
-                    </Space>
-                  }
+              return (
+                <List.Item
+                  ref={index === groups.length - 1 ? sentinelRef : undefined}
+                  style={{
+                    padding: 0,
+                    borderBlockEnd: "none",
+                    marginBottom: token.marginMD,
+                  }}
                 >
-                  <Space direction="vertical" size="middle" style={{ width: "100%" }}>
-                    <List
-                      split={false}
-                      dataSource={visibleSkus}
-                      renderItem={(sku: any) => {
-                        const skuId = String(sku.id);
-                        const image = getImage(sku);
-                        const quantity = Number(sku.quantity || 0);
-                        return (
-                          <List.Item style={{ padding: 0, marginBottom: token.marginSM }}>
-                            <Card size="small" style={{ width: "100%" }}>
-                              <Flex align="flex-start" gap={8}>
-                                <Checkbox
-                                  checked={selectedSkuIds.includes(skuId)}
-                                  onChange={(event) => toggleSku(skuId, event.target.checked)}
-                                />
-                                {image ? (
-                                  <Image
-                                    src={image}
-                                    width={40}
-                                    height={40}
-                                    preview={false}
-                                    referrerPolicy="no-referrer"
-                                    style={{ objectFit: "cover", borderRadius: token.borderRadiusSM }}
-                                  />
-                                ) : (
-                                  <Avatar shape="square" size={40} icon={<ShoppingCartOutlined />} />
-                                )}
-                                <Space direction="vertical" size={4} style={{ minWidth: 0, flex: 1 }}>
-                                  <Text strong ellipsis={{ tooltip: getName(sku, translated) }}>
-                                    {getName(sku, translated)}
-                                  </Text>
-                                  <Text type="secondary" ellipsis={{ tooltip: getProperties(sku, translated) || "---" }}>
-                                    {getProperties(sku, translated) || "---"}
-                                  </Text>
-                                </Space>
-                                <Space size={0}>
-                                  <Tooltip title={t("cart.save_product")}>
-                                    <Button
-                                      type="text"
-                                      icon={<HeartOutlined />}
-                                      loading={savingSkuId === skuId}
-                                      onClick={() => saveSkuToWishlist(skuId)}
-                                    />
-                                  </Tooltip>
-                                  <Popconfirm
-                                    title={t("cartGroup.delete_product_confirm")}
-                                    okText={t("button.delete")}
-                                    cancelText={t("button.cancel")}
-                                    onConfirm={() => deleteSku(skuId)}
-                                  >
-                                    <Tooltip title={t("cart.delete_product")}>
-                                      <Button
-                                        danger
-                                        type="text"
-                                        icon={<DeleteOutlined />}
-                                        loading={deleteSkusMutation.variables?.[0] === skuId}
-                                      />
-                                    </Tooltip>
-                                  </Popconfirm>
-                                </Space>
-                              </Flex>
-                              <Flex
-                                justify="space-between"
-                                align="stretch"
-                                gap={8}
+                  <Card
+                    style={{ width: "100%" }}
+                    styles={{ body: { padding: token.paddingMD } }}
+                    title={
+                      <Flex align="center" gap={8} style={{ minWidth: 0 }}>
+                        <Checkbox
+                          checked={allGroupSelected}
+                          indeterminate={selectedCount > 0 && !allGroupSelected}
+                          onChange={(event) =>
+                            toggleGroup(group, event.target.checked)
+                          }
+                        />
+                        {group?.marketplace?.image ? (
+                          <Avatar
+                            shape="square"
+                            src={group.marketplace.image}
+                          />
+                        ) : (
+                          <Avatar shape="square" icon={<ShopOutlined />} />
+                        )}
+                        <Text strong ellipsis style={{ minWidth: 0 }}>
+                          {group.name || group.code || t("cart.shop")}
+                        </Text>
+                      </Flex>
+                    }
+                    extra={
+                      <Space size={0}>
+                        <Button
+                          type="text"
+                          icon={<SettingOutlined />}
+                          onClick={() => setActiveSeller(group)}
+                        />
+                        <Popconfirm
+                          title={t("cart.delete_seller_confirm")}
+                          okText={t("button.delete")}
+                          cancelText={t("button.cancel")}
+                          onConfirm={() => deleteGroup(group)}
+                        >
+                          <Button
+                            danger
+                            type="text"
+                            icon={<DeleteOutlined />}
+                            loading={
+                              deleteGroupMutation.variables === String(group.id)
+                            }
+                          />
+                        </Popconfirm>
+                      </Space>
+                    }
+                  >
+                    <Space
+                      direction="vertical"
+                      size="middle"
+                      style={{ width: "100%" }}
+                    >
+                      <List
+                        split={false}
+                        dataSource={visibleSkus}
+                        renderItem={(sku: any) => {
+                          const skuId = String(sku.id);
+                          const image = getImage(sku);
+                          const quantity =
+                            draftQuantities[skuId] ?? Number(sku.quantity || 0);
+                          const isCalculatingAmount =
+                            calculatingAmountSkuIds.includes(skuId);
+                          const renderSkuNoteField = (
+                            field: "remark" | "note",
+                            label: string,
+                          ) => {
+                            const draft = skuNoteDrafts[skuId] || {};
+                            const value = draft[field] ?? sku[field] ?? "";
+                            const editingKey = `${skuId}-${field}`;
+
+                            return (
+                              <div
                                 style={{
-                                  marginTop: token.marginSM,
-                                  paddingTop: token.paddingSM,
-                                  borderTop: `1px solid ${token.colorSplit}`,
+                                  width: "100%",
+                                  marginTop: token.marginXXS,
                                 }}
                               >
-                                <Space direction="vertical" size={2} style={{ flex: 1, minWidth: 0 }}>
-                                  <Flex align="center" gap={2} style={{ height: 24 }}>
-                                    <Text type="secondary" style={{ fontSize: 12 }}>
-                                      {t("order.sale_price")}
+                                {editingSkuNoteField !== editingKey && (
+                                  <Text type="secondary">{label}: </Text>
+                                )}
+                                <Typography.Paragraph
+                                  editable={{
+                                    text: value,
+                                    tooltip: t("common.edit"),
+                                    onStart: () =>
+                                      setEditingSkuNoteField(editingKey),
+                                    onChange: (nextValue) => {
+                                      setEditingSkuNoteField(null);
+                                      changeSkuNoteDraft(sku, field, nextValue);
+                                    },
+                                    onEnd: () => {
+                                      setEditingSkuNoteField(null);
+                                      saveSkuNoteField(sku, field);
+                                    },
+                                    onCancel: () =>
+                                      setEditingSkuNoteField(null),
+                                  }}
+                                  ellipsis={!value ? false : { tooltip: value }}
+                                  style={{
+                                    display: "inline-block",
+                                    maxWidth: "100%",
+                                    marginBottom: 0,
+                                    minWidth: 32,
+                                    paddingInline: 4,
+                                  }}
+                                >
+                                  {value || "---"}
+                                </Typography.Paragraph>
+                              </div>
+                            );
+                          };
+
+                          return (
+                            <List.Item
+                              style={{
+                                padding: 0,
+                                marginBottom: token.marginSM,
+                              }}
+                            >
+                              <Card size="small" style={{ width: "100%" }}>
+                                <Flex align="flex-start" gap={8}>
+                                  <Checkbox
+                                    checked={selectedSkuIds.includes(skuId)}
+                                    onChange={(event) =>
+                                      toggleSku(skuId, event.target.checked)
+                                    }
+                                  />
+                                  {image ? (
+                                    <Image
+                                      src={image}
+                                      width={40}
+                                      height={40}
+                                      preview={false}
+                                      referrerPolicy="no-referrer"
+                                      style={{
+                                        objectFit: "cover",
+                                        borderRadius: token.borderRadiusSM,
+                                      }}
+                                    />
+                                  ) : (
+                                    <Avatar
+                                      shape="square"
+                                      size={40}
+                                      icon={<ShoppingCartOutlined />}
+                                    />
+                                  )}
+                                  <Space
+                                    direction="vertical"
+                                    size={4}
+                                    style={{ minWidth: 0, flex: 1 }}
+                                  >
+                                    <Text
+                                      strong
+                                      ellipsis={{
+                                        tooltip: getName(sku, translated),
+                                      }}
+                                    >
+                                      {getName(sku, translated)}
                                     </Text>
-                                    <Tooltip title={t("cart.edit_bargain_price")}>
+                                    <Text
+                                      type="secondary"
+                                      ellipsis={{
+                                        tooltip:
+                                          getProperties(sku, translated) ||
+                                          "---",
+                                      }}
+                                    >
+                                      {getProperties(sku, translated) || "---"}
+                                    </Text>
+                                    {renderSkuNoteField(
+                                      "remark",
+                                      t("cartGroup.product_note"),
+                                    )}
+                                    {renderSkuNoteField(
+                                      "note",
+                                      t("cartGroup.product_personal_note"),
+                                    )}
+                                  </Space>
+                                  <Space size={0}>
+                                    <Tooltip title={t("cart.save_product")}>
                                       <Button
-                                        type="link"
-                                        size="small"
-                                        icon={<EditOutlined />}
-                                        onClick={() => openEditPrice(sku)}
-                                        style={{ height: 20, paddingInline: 2, lineHeight: 1 }}
+                                        type="text"
+                                        icon={<HeartOutlined />}
+                                        loading={savingSkuId === skuId}
+                                        onClick={() => saveSkuToWishlist(skuId)}
                                       />
                                     </Tooltip>
-                                  </Flex>
-                                  <Text strong ellipsis>
-                                    {sku.bargainPrice !== null && sku.bargainPrice !== undefined ? (
-                                      <>
-                                        <Text delete type="secondary">
-                                          {formatCurrency(getForeignSalePrice(sku), getCurrency(sku))}
-                                        </Text>{" "}
-                                        / {formatCurrency(getForeignBargainPrice(sku), getCurrency(sku))}
-                                      </>
-                                    ) : (
-                                      formatCurrency(getForeignSalePrice(sku), getCurrency(sku))
-                                    )}
-                                  </Text>
-                                  <Text type="secondary" ellipsis style={{ fontSize: 12 }}>
-                                    {sku.bargainPrice !== null && sku.bargainPrice !== undefined ? (
-                                      <>
-                                        <Text delete type="secondary" style={{ fontSize: 12 }}>
-                                          {formatCurrency(getUnitPrice(sku))}
-                                        </Text>{" "}
-                                        / {formatCurrency(getEffectiveUnitPrice(sku))}
-                                      </>
-                                    ) : (
-                                      formatCurrency(getUnitPrice(sku))
-                                    )}
-                                  </Text>
-                                </Space>
-                                <Space direction="vertical" size={2} style={{ width: 96 }}>
-                                  <Text type="secondary" style={{ fontSize: 12, height: 24, lineHeight: "24px" }}>
-                                    {t("order.quantity")}
-                                  </Text>
-                                  <InputNumber
-                                    min={1}
-                                    value={quantity}
-                                    disabled={updateSkuMutation.isPending}
-                                    onChange={(value) => updateQuantity(sku, value)}
-                                    style={{ width: "100%" }}
-                                  />
-                                </Space>
-                                <Space
-                                  direction="vertical"
-                                  size={2}
-                                  style={{ flex: 1, minWidth: 0, textAlign: "right" }}
+                                    <Popconfirm
+                                      title={t(
+                                        "cartGroup.delete_product_confirm",
+                                      )}
+                                      okText={t("button.delete")}
+                                      cancelText={t("button.cancel")}
+                                      onConfirm={() => deleteSku(skuId)}
+                                    >
+                                      <Tooltip title={t("cart.delete_product")}>
+                                        <Button
+                                          danger
+                                          type="text"
+                                          icon={<DeleteOutlined />}
+                                          loading={
+                                            deleteSkusMutation
+                                              .variables?.[0] === skuId
+                                          }
+                                        />
+                                      </Tooltip>
+                                    </Popconfirm>
+                                  </Space>
+                                </Flex>
+                                <Flex
+                                  justify="space-between"
+                                  align="stretch"
+                                  gap={8}
+                                  style={{
+                                    marginTop: token.marginSM,
+                                    paddingTop: token.paddingSM,
+                                    borderTop: `1px solid ${token.colorSplit}`,
+                                  }}
                                 >
-                                  <Text type="secondary" style={{ fontSize: 12, height: 24, lineHeight: "24px" }}>
-                                    {t("order.total_price")}
-                                  </Text>
-                                  <Text strong ellipsis style={{ color: token.colorPrimary }}>
-                                    {formatCurrency(getForeignPrice(sku) * quantity, getCurrency(sku))}
-                                  </Text>
-                                  <Text type="secondary" ellipsis style={{ fontSize: 12 }}>
-                                    {formatCurrency(getEffectiveUnitPrice(sku) * quantity)}
-                                  </Text>
-                                </Space>
-                              </Flex>
-                            </Card>
-                          </List.Item>
-                        );
-                      }}
-                    />
-                    {group.cartSkus.length > productsPerSeller ? (
-                      <Button
-                        type="link"
-                        block
-                        icon={isExpanded ? <UpOutlined /> : <DownOutlined />}
-                        onClick={() => toggleGroupExpanded(groupId)}
-                      >
-                        {isExpanded ? t("button.collapse") : t("button.loadmore")}
-                      </Button>
-                    ) : null}
-
-                  </Space>
-                </Card>
-              </List.Item>
-            );
+                                  <Space
+                                    direction="vertical"
+                                    size={2}
+                                    style={{ flex: 1, minWidth: 0 }}
+                                  >
+                                    <Flex
+                                      align="center"
+                                      gap={2}
+                                      style={{ height: 24 }}
+                                    >
+                                      <Text
+                                        type="secondary"
+                                        style={{ fontSize: 12 }}
+                                      >
+                                        {t("order.sale_price")}
+                                      </Text>
+                                      {canEditCart ? (
+                                        <Tooltip
+                                          title={t("cart.edit_bargain_price")}
+                                        >
+                                          <Button
+                                            type="link"
+                                            size="small"
+                                            icon={<EditOutlined />}
+                                            onClick={() => openEditPrice(sku)}
+                                            style={{
+                                              height: 20,
+                                              paddingInline: 2,
+                                              lineHeight: 1,
+                                            }}
+                                          />
+                                        </Tooltip>
+                                      ) : null}
+                                    </Flex>
+                                    <Text strong ellipsis>
+                                      {sku.bargainPrice !== null &&
+                                      sku.bargainPrice !== undefined ? (
+                                        <>
+                                          <Text delete type="secondary">
+                                            {formatCurrency(
+                                              getForeignSalePrice(sku),
+                                              getCurrency(sku),
+                                            )}
+                                          </Text>{" "}
+                                          /{" "}
+                                          {formatCurrency(
+                                            getForeignBargainPrice(sku),
+                                            getCurrency(sku),
+                                          )}
+                                        </>
+                                      ) : (
+                                        formatCurrency(
+                                          getForeignSalePrice(sku),
+                                          getCurrency(sku),
+                                        )
+                                      )}
+                                    </Text>
+                                    <Text
+                                      type="secondary"
+                                      ellipsis
+                                      style={{ fontSize: 12 }}
+                                    >
+                                      {sku.bargainPrice !== null &&
+                                      sku.bargainPrice !== undefined ? (
+                                        <>
+                                          <Text
+                                            delete
+                                            type="secondary"
+                                            style={{ fontSize: 12 }}
+                                          >
+                                            {formatCurrency(getUnitPrice(sku))}
+                                          </Text>{" "}
+                                          /{" "}
+                                          {formatCurrency(
+                                            getEffectiveUnitPrice(sku),
+                                          )}
+                                        </>
+                                      ) : (
+                                        formatCurrency(getUnitPrice(sku))
+                                      )}
+                                    </Text>
+                                  </Space>
+                                  <Space
+                                    direction="vertical"
+                                    size={2}
+                                    style={{ width: 74, minWidth: 74 }}
+                                  >
+                                    <Text
+                                      type="secondary"
+                                      style={{
+                                        fontSize: 12,
+                                        height: 24,
+                                        lineHeight: "24px",
+                                      }}
+                                    >
+                                      {t("order.quantity")}
+                                    </Text>
+                                    <InputNumber
+                                      min={1}
+                                      value={quantity}
+                                      disabled={updateSkuMutation.isPending}
+                                      onChange={(value) =>
+                                        updateQuantity(sku, value)
+                                      }
+                                      style={{ width: "100%" }}
+                                    />
+                                  </Space>
+                                  <Space
+                                    direction="vertical"
+                                    size={2}
+                                    style={{
+                                      flex: 1,
+                                      minWidth: 0,
+                                      overflow: "hidden",
+                                      textAlign: "right",
+                                    }}
+                                  >
+                                    <Text
+                                      type="secondary"
+                                      style={{
+                                        fontSize: 12,
+                                        height: 24,
+                                        lineHeight: "24px",
+                                      }}
+                                    >
+                                      {t("order.total_price")}
+                                    </Text>
+                                    {isCalculatingAmount ? (
+                                      <Flex
+                                        vertical
+                                        align="flex-end"
+                                        gap={4}
+                                        style={{
+                                          width: "100%",
+                                          minWidth: 0,
+                                          minHeight: 38,
+                                          overflow: "hidden",
+                                        }}
+                                      >
+                                        <div
+                                          style={{
+                                            width: "100%",
+                                            maxWidth: 48,
+                                            minWidth: 0,
+                                          }}
+                                        >
+                                          <Skeleton.Input
+                                            active
+                                            size="small"
+                                            block
+                                            style={{
+                                              width: "100%",
+                                              minWidth: 0,
+                                              height: 18,
+                                            }}
+                                          />
+                                        </div>
+                                        <div
+                                          style={{
+                                            width: "75%",
+                                            maxWidth: 36,
+                                            minWidth: 0,
+                                          }}
+                                        >
+                                          <Skeleton.Input
+                                            active
+                                            size="small"
+                                            block
+                                            style={{
+                                              width: "100%",
+                                              minWidth: 0,
+                                              height: 16,
+                                            }}
+                                          />
+                                        </div>
+                                      </Flex>
+                                    ) : (
+                                      <>
+                                        <Text
+                                          strong
+                                          ellipsis
+                                          style={{ color: token.colorPrimary }}
+                                        >
+                                          {formatCurrency(
+                                            getForeignPrice(sku) * quantity,
+                                            getCurrency(sku),
+                                          )}
+                                        </Text>
+                                        <Text
+                                          type="secondary"
+                                          ellipsis
+                                          style={{ fontSize: 12 }}
+                                        >
+                                          {formatCurrency(
+                                            getEffectiveUnitPrice(sku) *
+                                              quantity,
+                                          )}
+                                        </Text>
+                                      </>
+                                    )}
+                                  </Space>
+                                </Flex>
+                              </Card>
+                            </List.Item>
+                          );
+                        }}
+                      />
+                      {group.cartSkus.length > productsPerSeller ? (
+                        <Button
+                          type="link"
+                          block
+                          icon={isExpanded ? <UpOutlined /> : <DownOutlined />}
+                          onClick={() => toggleGroupExpanded(groupId)}
+                        >
+                          {isExpanded
+                            ? t("button.collapse")
+                            : t("button.loadmore")}
+                        </Button>
+                      ) : null}
+                      <CartSellerCostPanel
+                        group={group}
+                        ordering={orderingGroupId === groupId}
+                        orderDisabled={
+                          createDraftOrderMutation.isPending &&
+                          orderingGroupId !== groupId
+                        }
+                        onOrder={() => placeOrderForGroup(group)}
+                      />
+                    </Space>
+                  </Card>
+                </List.Item>
+              );
             }}
           />
         )}
 
         {query.isFetchingNextPage ? (
           <>
-            {Array.from({ length: 5 }).map((_, index) => (
-              <CartSellerCardSkeleton key={`load-more-${index}`} index={index} />
+            {Array.from({ length: 2 }).map((_, index) => (
+              <CartSellerCardSkeleton
+                key={`load-more-${index}`}
+                index={index}
+              />
             ))}
           </>
         ) : null}
@@ -1280,7 +1937,10 @@ const CartsPage = () => {
           </Button>
         ) : null}
         {!query.hasNextPage && groups.length ? (
-          <Text type="secondary" style={{ display: "block", textAlign: "center" }}>
+          <Text
+            type="secondary"
+            style={{ display: "block", textAlign: "center" }}
+          >
             {t("common.no_more_data")}
           </Text>
         ) : null}
@@ -1300,7 +1960,10 @@ const CartsPage = () => {
       >
         <Space direction="vertical" size="small" style={{ width: "100%" }}>
           <Flex justify="space-between" align="center">
-            <Checkbox checked={allSelected} onChange={(event) => selectAll(event.target.checked)}>
+            <Checkbox
+              checked={allSelected}
+              onChange={(event) => selectAll(event.target.checked)}
+            >
               {t("taobaoGlobalCart.selectAll")}
             </Checkbox>
             <Popconfirm
@@ -1309,7 +1972,12 @@ const CartsPage = () => {
               cancelText={t("button.cancel")}
               onConfirm={deleteSelected}
             >
-              <Button danger type="link" disabled={!selectedSkuIds.length} loading={deleteSkusMutation.isPending}>
+              <Button
+                danger
+                type="link"
+                disabled={!selectedSkuIds.length}
+                loading={deleteSkusMutation.isPending}
+              >
                 {t("taobaoGlobalCart.deleteAll")}
               </Button>
             </Popconfirm>
@@ -1329,7 +1997,7 @@ const CartsPage = () => {
                 ({formatCurrency(selectedAmount)})
               </Text>
               <Text type="secondary" style={{ display: "block", fontSize: 12 }}>
-                {selectedGroupCount} {t("cart.shop")} / {selectedSkus.length}{" "}
+                {selectedGroupCount} {t("cart.shop")} / {selectedQuantity}{" "}
                 {t("order.product")}
               </Text>
             </div>
@@ -1361,7 +2029,7 @@ const CartsPage = () => {
 
       <Modal
         title={t("cart.edit_bargain_price")}
-        open={!!editingPriceSku}
+        open={canEditCart && !!editingPriceSku}
         onCancel={() => {
           setEditingPriceSku(null);
           setBargainPriceValue(null);
@@ -1381,7 +2049,9 @@ const CartsPage = () => {
                   getCurrency(editingPriceSku),
                 )}
               </Text>
-              <Text type="secondary">{formatCurrency(getUnitPrice(editingPriceSku))}</Text>
+              <Text type="secondary">
+                {formatCurrency(getUnitPrice(editingPriceSku))}
+              </Text>
             </Space>
           ) : null}
           <InputNumber

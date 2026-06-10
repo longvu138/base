@@ -531,8 +531,8 @@ export const DeliveryAddressPanel = ({
         open={selectOpen}
         width={1100}
         onCancel={() => setSelectOpen(false)}
-        okText={t("button.yes").toUpperCase()}
-        cancelText={t("button.cancel").toUpperCase()}
+        okText={t("button.yes")}
+        cancelText={t("button.cancel")}
         confirmLoading={isUpdating}
         okButtonProps={{ className: "_btn-list-address-yes" }}
         cancelButtonProps={{ className: "_btn-list-address-cancel" }}

@@ -28,6 +28,7 @@ import {
 import {
   BIFFIN_METHOD_SELECTED,
   DEFAULT_METHOD_SELECTED,
+  getDraftMerchantTotalValue,
   getSkus,
   percentToMoney,
   useCartCheckoutPage,
@@ -121,6 +122,7 @@ export const CartCheckoutStyleDefault = () => {
     depositMethodValue,
     depositModalOpen,
     draftOrder,
+    draftOrderTotalValue,
     draftOrderId,
     generalConfig,
     handleChangeBiffinOption,
@@ -283,7 +285,7 @@ export const CartCheckoutStyleDefault = () => {
                   <Text strong style={{ color: token.colorPrimary }}>
                     {moneyFormat(
                       moneyCeil(
-                        percentToMoney(tenantPercent, draftOrder.exchangedTotalValue),
+                        percentToMoney(tenantPercent, draftOrderTotalValue),
                       ),
                     )}
                   </Text>
@@ -319,7 +321,7 @@ export const CartCheckoutStyleDefault = () => {
                       <Text strong style={{ color: token.colorPrimary }}>
                         {moneyFormat(
                           moneyCeil(
-                            percentToMoney(percent, draftOrder.exchangedTotalValue),
+                            percentToMoney(percent, draftOrderTotalValue),
                           ),
                         )}
                       </Text>
@@ -423,14 +425,24 @@ export const CartCheckoutStyleDefault = () => {
                     <Text strong ellipsis={{ tooltip: merchant.name || merchant.code || "Shop" }}>
                       {merchant.name || merchant.code || "Shop"}
                     </Text>
-                    <Text type="secondary" style={{ fontSize: 12 }}>
-                      {t("cartCheckout.quantity")}: {merchantQuantity}{" "}
-                      {t("cartCheckout.product")} / {skus.length}{" "}
-                      {t("cartCheckout.link_total")}
-                    </Text>
+                    <Space size={4}>
+                      <Text type="secondary" style={{ fontSize: 12 }}>
+                        {merchantQuantity}{" "}
+                        {t("cartCheckout.product")} / {skus.length}{" "}
+                        link
+                      </Text>
+                      <Tooltip title={t("cartCheckout.link_total")}>
+                        <QuestionCircleOutlined
+                          style={{
+                            color: token.colorTextSecondary,
+                            fontSize: 12,
+                          }}
+                        />
+                      </Tooltip>
+                    </Space>
                   </Space>
                   <Text strong style={{ color: token.colorPrimary, whiteSpace: "nowrap" }}>
-                    {moneyFormat(merchant.exchangedTotalValue || 0)}
+                    {moneyFormat(getDraftMerchantTotalValue(merchant))}
                   </Text>
                 </Flex>
 
@@ -596,7 +608,7 @@ export const CartCheckoutStyleDefault = () => {
                     {t("cartCheckout.product")}):
                   </Text>
                   <Text strong>
-                    {moneyFormat(moneyCeil(draftOrder.exchangedTotalValue || 0))}
+                    {moneyFormat(moneyCeil(draftOrderTotalValue))}
                   </Text>
                 </Flex>
                 <Flex justify="space-between" gap={token.marginSM}>
@@ -635,7 +647,7 @@ export const CartCheckoutStyleDefault = () => {
                       <Text>
                         {moneyFormat(
                           moneyCeil(
-                            Number(draftOrder.exchangedTotalValue || 0) -
+                            draftOrderTotalValue -
                               selectedBiffinMoney,
                           ),
                         )}

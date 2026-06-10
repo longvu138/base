@@ -42,6 +42,7 @@ import { DraftOrderVoucherModal } from "./components/DraftOrderVoucherModal";
 import {
   BIFFIN_METHOD_SELECTED,
   DEFAULT_METHOD_SELECTED,
+  getDraftMerchantTotalValue,
   getSkus,
   percentToMoney,
   useCartCheckoutPage,
@@ -68,6 +69,7 @@ export const CartCheckoutStyleDefault = () => {
     depositModalOpen,
     depositOnDemand,
     draftOrder,
+    draftOrderTotalValue,
     draftOrderId,
     generalConfig,
     handleChangeBiffinOption,
@@ -263,7 +265,7 @@ export const CartCheckoutStyleDefault = () => {
               const skus = getSkus(merchant);
               const merchantQuantity = skus.reduce(
                 (sum: number, sku: any) => sum + Number(sku.quantity || 0),
-                0
+                0,
               );
               return (
                 <Card
@@ -293,9 +295,8 @@ export const CartCheckoutStyleDefault = () => {
                         {merchant.name || merchant.code || "Shop"}
                       </Typography.Text>
                       <Typography.Text type="secondary">
-                        {t("cartCheckout.quantity")}: {merchantQuantity}{" "}
-                        {t("cartCheckout.product")} / {skus.length}{" "}
-                        {t("cartCheckout.link_total")}
+                        {merchantQuantity} {t("cartCheckout.product")} /{" "}
+                        {skus.length} {t("cartCheckout.link_total")}
                       </Typography.Text>
                       <Tooltip title={t("cartCheckout.link_total")}>
                         <QuestionCircleOutlined
@@ -307,7 +308,7 @@ export const CartCheckoutStyleDefault = () => {
                         style={{ marginLeft: "auto", ...MONEY_TEXT_STYLE }}
                       >
                         {t("cartCheckout.amount_sum")}:{" "}
-                        {formatCurrency(merchant.exchangedTotalValue || 0)}
+                        {formatCurrency(getDraftMerchantTotalValue(merchant))}
                       </Typography.Text>
                     </Flex>
                   }
@@ -342,7 +343,7 @@ export const CartCheckoutStyleDefault = () => {
                           .sort(
                             (left: any, right: any) =>
                               Number(left.position || 0) -
-                              Number(right.position || 0)
+                              Number(right.position || 0),
                           )
                           .map((service: any) => (
                             <Typography.Text key={service.id || service.code}>
@@ -500,9 +501,9 @@ export const CartCheckoutStyleDefault = () => {
                                         moneyCeil(
                                           percentToMoney(
                                             tenantPercent,
-                                            draftOrder.exchangedTotalValue
-                                          )
-                                        )
+                                            draftOrderTotalValue,
+                                          ),
+                                        ),
                                       )}
                                     </Typography.Text>
                                   </Space>
@@ -552,16 +553,16 @@ export const CartCheckoutStyleDefault = () => {
                                             moneyCeil(
                                               percentToMoney(
                                                 percent,
-                                                draftOrder.exchangedTotalValue
-                                              )
-                                            )
+                                                draftOrderTotalValue,
+                                              ),
+                                            ),
                                           )}
                                         </Typography.Text>
                                       </Space>
                                     </Radio>
                                   </div>
                                 );
-                              }
+                              },
                             )}
 
                             {isEnabledBiffin &&
@@ -639,7 +640,7 @@ export const CartCheckoutStyleDefault = () => {
                                                 biffinOptions.length - 1 && (
                                                 <Tooltip
                                                   title={t(
-                                                    "cartCheckout.textPercentRounding"
+                                                    "cartCheckout.textPercentRounding",
                                                   )}
                                                 >
                                                   <QuestionCircleOutlined
@@ -660,14 +661,14 @@ export const CartCheckoutStyleDefault = () => {
                                               }}
                                             >
                                               {formatCurrency(
-                                                moneyCeil(item?.money || 0)
+                                                moneyCeil(item?.money || 0),
                                               )}
                                             </Typography.Text>
                                           </Space>
                                         </Radio>
                                       </div>
                                     );
-                                  }
+                                  },
                                 )
                               ))}
                           </Space>
@@ -716,7 +717,9 @@ export const CartCheckoutStyleDefault = () => {
                           icon={<CloseOutlined />}
                           onClick={() =>
                             setAppliedVouchers((items) =>
-                              items.filter((item) => item.code !== voucher.code)
+                              items.filter(
+                                (item) => item.code !== voucher.code,
+                              ),
                             )
                           }
                         />
@@ -724,7 +727,7 @@ export const CartCheckoutStyleDefault = () => {
                       </Space>
                       <Typography.Text type="danger">
                         {formatCurrency(
-                          moneyCeil(-Number(voucher.totalDiscountFee || 0))
+                          moneyCeil(-Number(voucher.totalDiscountFee || 0)),
                         )}
                       </Typography.Text>
                     </Flex>
@@ -758,9 +761,7 @@ export const CartCheckoutStyleDefault = () => {
                       {t("cartCheckout.product")}):
                     </Typography.Text>
                     <Typography.Text strong>
-                      {formatCurrency(
-                        moneyCeil(draftOrder.exchangedTotalValue || 0)
-                      )}
+                      {formatCurrency(moneyCeil(draftOrderTotalValue))}
                     </Typography.Text>
                   </Flex>
                   <Flex justify="space-between">
@@ -803,9 +804,8 @@ export const CartCheckoutStyleDefault = () => {
                           <Typography.Text>
                             {formatCurrency(
                               moneyCeil(
-                                Number(draftOrder.exchangedTotalValue || 0) -
-                                  selectedBiffinMoney
-                              )
+                                draftOrderTotalValue - selectedBiffinMoney,
+                              ),
                             )}
                           </Typography.Text>
                         </Flex>
@@ -889,7 +889,7 @@ export const CartCheckoutStyleDefault = () => {
                             </Typography.Link>
                             <Tooltip
                               title={t(
-                                "cartCheckout.guide_recharge_into_account"
+                                "cartCheckout.guide_recharge_into_account",
                               )}
                             >
                               <QuestionCircleOutlined

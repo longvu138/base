@@ -1,4 +1,5 @@
 import { App } from "antd";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAddressesQuery } from "../useAddressHooks";
 import {
   useBiffinConnectionQuery,
@@ -13,7 +14,7 @@ import { useTranslation } from "@repo/i18n";
 import { useTheme as useTenantTheme } from "@repo/theme-provider";
 import { LocalStoreUtil, moneyCeil } from "@repo/util";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 export const DEFAULT_METHOD_SELECTED = "default";
 export const BIFFIN_METHOD_SELECTED = "cam_do";
@@ -34,6 +35,23 @@ export const getSkus = (merchant: any) =>
     : Array.isArray(merchant?.skus)
       ? merchant.skus
       : [];
+
+export const getDraftMerchantTotalValue = (merchant: any) => {
+  const merchantTotal = Number(merchant?.exchangedTotalValue || 0);
+  if (merchantTotal > 0) return merchantTotal;
+
+  return getSkus(merchant).reduce((sum: number, sku: any) => {
+    const quantity = Number(sku?.quantity || 0);
+    const skuTotal =
+      sku?.bargainPrice !== null && sku?.bargainPrice !== undefined
+        ? Number(sku?.exchangedBargainPrice || 0) * quantity
+        : Number(
+            sku?.exchangedTotalAmount ??
+              Number(sku?.exchangedSalePrice || 0) * quantity,
+          );
+    return sum + skuTotal;
+  }, 0);
+};
 
 export const percentToMoney = (percent: number | string, amount: number) =>
   moneyCeil((Number(percent || 0) * Number(amount || 0)) / 100);
@@ -129,6 +147,8 @@ const createBiffinUrl = ({
 export const useCartCheckoutPage = () => {
   const { t } = useTranslation();
   const { notification } = App.useApp();
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const { tenantConfig } = useTenantTheme();
   const { draftOrderId } = useParams();
   const { data: draftOrder, isLoading } = useDraftOrderQuery(draftOrderId);
@@ -235,6 +255,9 @@ export const useCartCheckoutPage = () => {
     () => (Array.isArray(draftOrder?.merchants) ? draftOrder.merchants : []),
     [draftOrder],
   );
+  const draftOrderTotalValue = useMemo(() => {
+    return Number(draftOrder?.exchangedTotalValue || 0);
+  }, [draftOrder?.exchangedTotalValue]);
   const sortedMerchants = useMemo(
     () =>
       merchants
@@ -315,10 +338,7 @@ export const useCartCheckoutPage = () => {
   const trueStrike = currentLoggedUser?.customerGroup?.trueStrike;
   const checkForceTrueStrike = trueStrike === null ? pierced : trueStrike;
   const biffinOptions = useMemo(() => {
-    const percentBiffin = moneyToPercent(
-      totalLoanAmount,
-      draftOrder?.exchangedTotalValue,
-    );
+    const percentBiffin = moneyToPercent(totalLoanAmount, draftOrderTotalValue);
     const listPercent =
       loanPercentages.length > 0
         ? [
@@ -339,17 +359,14 @@ export const useCartCheckoutPage = () => {
         }),
         money: percentToMoney(
           100 - Number(item?.rate || 0),
-          draftOrder?.exchangedTotalValue,
+          draftOrderTotalValue,
         ),
         percent: item?.rate,
         moneyBifin:
-          Number(draftOrder?.exchangedTotalValue || 0) -
-          percentToMoney(
-            100 - Number(item?.rate || 0),
-            draftOrder?.exchangedTotalValue,
-          ),
+          draftOrderTotalValue -
+          percentToMoney(100 - Number(item?.rate || 0), draftOrderTotalValue),
       }));
-  }, [draftOrder?.exchangedTotalValue, loanPercentages, t, totalLoanAmount]);
+  }, [draftOrderTotalValue, loanPercentages, t, totalLoanAmount]);
   const [depositMethodValue, setDepositMethodValue] = useState<{
     method: string;
     percent: number | string;
@@ -394,11 +411,10 @@ export const useCartCheckoutPage = () => {
   );
   const isOrderButtonDisabled = Boolean(
     createOrder.isPending ||
-    (isEnabledBiffin
-      ? (depositMethodValue.method === BIFFIN_METHOD_SELECTED &&
-          (!isConnectedBiffin || !isDraftOrderLoanable)) ||
-        isOrderSuspended
-      : isOrderSuspended),
+      (isEnabledBiffin
+        ? depositMethodValue.method === BIFFIN_METHOD_SELECTED &&
+          (!isConnectedBiffin || !isDraftOrderLoanable)
+        : isOrderSuspended),
   );
   const isBiffinLoading =
     isFetchingBiffinConnection || isCheckingShoppingCartLoanable;
@@ -447,7 +463,7 @@ export const useCartCheckoutPage = () => {
       const selectedLoanAmount = Number(item?.moneyBifin || 0);
       const maxLoanPercent = moneyToPercent(
         totalLoanAmount,
-        draftOrder?.exchangedTotalValue,
+        draftOrderTotalValue,
       );
       const loanPercentage =
         item?.percent === maxLoanPercent ? null : item?.percent;
@@ -474,6 +490,7 @@ export const useCartCheckoutPage = () => {
     [
       checkShoppingCartLoanableAsync,
       draftOrder,
+      draftOrderTotalValue,
       notifyDraftOrderError,
       totalLoanAmount,
       updateDraftOrderAsync,
@@ -688,14 +705,27 @@ export const useCartCheckoutPage = () => {
     }
 
     try {
-      await createOrder.mutateAsync(payload);
+      const result = await createOrder.mutateAsync(payload);
+      LocalStoreUtil.setItem("pinToken", result?.headers?.["x-pin-token"] || "");
       setPin("");
       setPinError("");
       setPinOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["customer.cart.items"] });
+      queryClient.invalidateQueries({
+        queryKey: ["customer.cart.items.infinite"],
+      });
+      queryClient.invalidateQueries({ queryKey: ["customer.cart.statistics"] });
+      queryClient.invalidateQueries({ queryKey: ["orders.list"] });
+      queryClient.invalidateQueries({ queryKey: ["orders.statistic"] });
       notification.success({ message: t("message.success") });
+      const createdOrders = Array.isArray(result?.data) ? result.data : [];
+      const firstOrder = createdOrders[0];
+      const orderCode = firstOrder?.code || firstOrder?.orderCode;
+      navigate(orderCode ? `/orders/${orderCode}` : "/orders");
     } catch (error: any) {
       const title = getErrorTitle(error);
       if (title === "empty_password") {
+        LocalStoreUtil.setItem("pinToken", "");
         setPin("");
         setPinError("");
         setPinOpen(true);
@@ -706,6 +736,7 @@ export const useCartCheckoutPage = () => {
         title === "invalid_password" ||
         title === "invalid_pin"
       ) {
+        LocalStoreUtil.setItem("pinToken", "");
         if (pinOpen) {
           setPinError(t("cartCheckout.incorrect_pin"));
         } else {
@@ -748,6 +779,7 @@ export const useCartCheckoutPage = () => {
     depositModalOpen,
     depositOnDemand,
     draftOrder,
+    draftOrderTotalValue,
     draftOrderId,
     generalConfig,
     handleChangeBiffinOption,
