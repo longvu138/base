@@ -782,7 +782,6 @@ export const useCartCheckoutPage = () => {
       queryClient.invalidateQueries({ queryKey: ["customer.cart.statistics"] });
       queryClient.invalidateQueries({ queryKey: ["orders.list"] });
       queryClient.invalidateQueries({ queryKey: ["orders.statistic"] });
-      notification.success({ message: t("message.success") });
       const createdOrders = Array.isArray(result?.data) ? result.data : [];
       setCreatedOrders(createdOrders);
     } catch (error: any) {

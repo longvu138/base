@@ -125,17 +125,18 @@ export const CustomerApi = {
     createCustomerOrder: (payload: any) => {
         const pinToken = LocalStoreUtil.getItem("pinToken") || "";
         const headers: Record<string, any> = {};
+        const { password, savePassword, ...body } = payload || {};
 
         if (pinToken) {
             headers["X-PIN-TOKEN"] = pinToken;
-        } else if (payload?.password) {
-            headers["X-PIN"] = payload.password;
-            if (payload?.savePassword) {
+        } else if (password) {
+            headers["X-PIN"] = password;
+            if (savePassword) {
                 headers["X-REMEMBER-PIN"] = true;
             }
         }
 
-        return ApiClient.auth.post("customer/orders", payload, { headers });
+        return ApiClient.auth.post("customer/orders", body, { headers });
     },
     trackAddToCart: () => {
         return ApiClient.auth.post("tenants/current/tracking-add-to-cart");

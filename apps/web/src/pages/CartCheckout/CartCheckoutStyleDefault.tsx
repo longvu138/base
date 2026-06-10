@@ -51,6 +51,14 @@ import {
 
 const MONEY_TEXT_STYLE = { whiteSpace: "nowrap" };
 
+const CartCheckoutEmpty = ({ t }: { t: (key: string) => string }) => (
+  <Empty description={t("message.empty")}>
+    <Button type="primary" href="/carts">
+      {t("navigation.cart")}
+    </Button>
+  </Empty>
+);
+
 export const CartCheckoutStyleDefault = () => {
   const { t } = useTranslation();
   const { token } = theme.useToken();
@@ -129,7 +137,7 @@ export const CartCheckoutStyleDefault = () => {
   }
 
   if (isLoading) return <Spin />;
-  if (!draftOrder) return <Empty description={t("message.empty")} />;
+  if (!draftOrder) return <CartCheckoutEmpty t={t} />;
 
   const orderButtonLoading =
     createOrder.isPending || isUpdatingDraftOrder || isBiffinLoading;
@@ -886,10 +894,11 @@ export const CartCheckoutStyleDefault = () => {
                           </Button>
                         )}
                         {canRechargeForDeposit && (
-                          <>
+                          <Flex align="center" gap={token.marginXS} wrap="nowrap">
                             <Typography.Link
                               href="/profile/faqs?recharge"
                               target="_blank"
+                              style={{ lineHeight: 1.4 }}
                             >
                               {t("cartCheckout.recharge_guide")}
                             </Typography.Link>
@@ -901,11 +910,11 @@ export const CartCheckoutStyleDefault = () => {
                               <QuestionCircleOutlined
                                 style={{
                                   color: token.colorPrimary,
-                                  marginLeft: token.marginXS,
+                                  flex: "0 0 auto",
                                 }}
                               />
                             </Tooltip>
-                          </>
+                          </Flex>
                         )}
                       </>
                     ) : (

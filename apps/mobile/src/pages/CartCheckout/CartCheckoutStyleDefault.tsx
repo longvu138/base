@@ -42,6 +42,14 @@ import { FinishOrder } from "./components/FinishOrder";
 
 const { Text, Title, Paragraph, Link } = Typography;
 
+const CartCheckoutEmpty = ({ t }: { t: (key: string) => string }) => (
+  <Empty description={t("message.empty")}>
+    <Button type="primary" block href="/carts">
+      {t("navigation.cart")}
+    </Button>
+  </Empty>
+);
+
 const getName = (sku: any, translated: boolean) =>
   (translated
     ? sku?.product?.name || sku?.productName || sku?.name || sku?.title
@@ -182,7 +190,7 @@ export const CartCheckoutStyleDefault = () => {
   }
 
   if (isLoading) return <CartCheckoutSkeleton />;
-  if (!draftOrder) return <Empty description={t("message.empty")} />;
+  if (!draftOrder) return <CartCheckoutEmpty t={t} />;
 
   const orderButtonLoading =
     createOrder.isPending || isUpdatingDraftOrder || isBiffinLoading;
@@ -724,7 +732,7 @@ export const CartCheckoutStyleDefault = () => {
                         </Button>
                       )}
                       {canRechargeForDeposit ? (
-                        <Text>
+                        <Flex align="center" gap={token.marginXS} wrap="nowrap">
                           <Link href="/profile/faqs?recharge" target="_blank">
                             {t("cartCheckout.recharge_guide")}
                           </Link>
@@ -732,11 +740,11 @@ export const CartCheckoutStyleDefault = () => {
                             <QuestionCircleOutlined
                               style={{
                                 color: token.colorPrimary,
-                                marginLeft: token.marginXS,
+                                flex: "0 0 auto",
                               }}
                             />
                           </Tooltip>
-                        </Text>
+                        </Flex>
                       ) : null}
                     </>
                   ) : (
