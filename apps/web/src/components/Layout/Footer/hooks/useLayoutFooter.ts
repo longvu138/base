@@ -68,7 +68,6 @@ export function useLayoutFooter() {
       tenantName:
         projectInfo?.name ||
         projectInfo?.tenantConfig?.generalConfig?.tenantName ||
-        window.localStorage.getItem("selected-tenant") ||
         "Tenant",
       companyDescription: projectInfo?.description || "",
       emailContact: generalConfig.emailContact || "",

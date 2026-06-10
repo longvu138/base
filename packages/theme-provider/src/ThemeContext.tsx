@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import type { FullTenantResponse } from '@repo/tenant-config';
+import { getTenantThemeConfig, type FullTenantResponse } from '@repo/tenant-config';
 import { getVariantDefaults } from './variantDefaults';
 
 export type ThemeMode = 'light' | 'dark';
@@ -70,13 +70,13 @@ export function useTheme() {
  * Luồng ưu tiên:
  * 1. Tenant-specific override từ themeConfig.variants
  * 2. Variant/UI preset explicit trong variantDefaults
- * 3. Naming convention theo variantCode
+ * 3. Naming convention theo generalConfig.themeConfig.variantCode
  * 4. Component default của page/layout
  */
 export function useVariant(pageKey: string, defaultComponentName?: string): string {
     const { tenantConfig } = useTheme();
-    const themeConfig = tenantConfig?.tenantConfig?.themeConfig;
-    const variantCode = tenantConfig?.variantCode;
+    const themeConfig = getTenantThemeConfig(tenantConfig);
+    const variantCode = themeConfig?.variantCode;
     const variantDefaults = getVariantDefaults(variantCode);
     const normalizedPageKey = normalizePageKey(pageKey);
 

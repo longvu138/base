@@ -2,8 +2,8 @@ import { App as AntdApp, ConfigProvider } from "antd";
 import viVN from "antd/locale/vi_VN";
 import { I18nextProvider, useTranslation } from "react-i18next";
 import { BrowserRouter } from "react-router-dom";
+import { TenantApi } from "@repo/api";
 import { webAntdTheme, webDarkAntdTheme } from "@repo/antd-config";
-import { appConfig } from "@repo/config";
 import { i18n } from "@repo/i18n";
 import { AppQueryProvider } from "@repo/react-query-provider";
 import { ThemeProvider, useAppTenantTheme } from "@repo/theme-provider";
@@ -18,18 +18,9 @@ const antdLocale = {
   },
 };
 
-async function fetchTenantConfig(
-  tenantKey: string,
-): Promise<FullTenantResponse> {
-  const tenantRes = await fetch(
-    `${appConfig.be}/api/tenants/${tenantKey}/config`,
-  );
-
-  if (!tenantRes.ok) {
-    throw new Error(`Backend error: tenant=${tenantRes.status}`);
-  }
-
-  return tenantRes.json();
+async function fetchTenantConfig(): Promise<FullTenantResponse> {
+  const response = await TenantApi.getCurrentTenant();
+  return response.data;
 }
 
 function AppContent() {

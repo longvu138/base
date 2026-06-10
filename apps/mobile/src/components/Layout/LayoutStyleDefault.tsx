@@ -22,9 +22,8 @@ import {
   BarChartOutlined,
   PayCircleOutlined,
 } from "@ant-design/icons";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { ThemeSwitcher } from "@repo/theme-provider";
-import { getTenantOptions, dispatchTenantChange } from "@repo/tenant-config";
 import { useCustomerProfile, useLogout } from "@repo/hooks";
 import { useLanguage, useTranslation } from "@repo/i18n";
 
@@ -61,21 +60,6 @@ function Layout() {
   const { handleLogout } = useLogout({
     onSuccess: () => navigate("/login"),
   });
-
-  const [currentTenant, setCurrentTenant] = useState(() => {
-    return localStorage.getItem("selected-tenant") || "baogam";
-  });
-
-  useEffect(() => {
-    const handleSync = (e: any) => setCurrentTenant(e.detail);
-    window.addEventListener("app:tenant-changed", handleSync);
-    return () => window.removeEventListener("app:tenant-changed", handleSync);
-  }, []);
-
-  const handleTenantUpdate = (value: string) => {
-    setCurrentTenant(value);
-    dispatchTenantChange(value);
-  };
 
   const menuItems = [
     {
@@ -268,14 +252,6 @@ function Layout() {
             type="text"
             icon={<MenuOutlined className="text-lg" />}
             onClick={() => setDrawerVisible(true)}
-          />
-          <Select
-            value={currentTenant}
-            onChange={handleTenantUpdate}
-            options={getTenantOptions()}
-            size="small"
-            style={{ width: 100 }}
-            variant="borderless"
           />
         </div>
 

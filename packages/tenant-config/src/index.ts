@@ -18,6 +18,8 @@ export interface MenuConfig {
  * - variants: per-page component name overrides
  */
 export interface SimpleTenantConfig extends ThemeConfig {
+    /** Mã giao diện tenant chọn (default, thanhla, gobiz...). Backend trả trong tenantConfig.generalConfig.themeConfig. */
+    variantCode?: string;
     /** Per-page component overrides. E.g. { orders: 'OrdersStyleGobizCombined', login: 'LoginStyleGobiz' } */
     variants?: Record<string, string>;
     menu?: MenuConfig;
@@ -41,36 +43,20 @@ export interface SimpleTenantConfig extends ThemeConfig {
 export interface FullTenantResponse {
     id: string;
     name: string;
-    variantCode: string; // Mã giao diện tenant chọn (default, thanhla, gobiz...)
     tenantConfig?: {
-        themeConfig: SimpleTenantConfig;
+        generalConfig?: {
+            themeConfig?: SimpleTenantConfig | null;
+            [key: string]: any;
+        };
         [key: string]: any;
     };
     [key: string]: any;
 }
 
+export function getTenantThemeConfig(tenant?: FullTenantResponse | null): SimpleTenantConfig | undefined {
+    return tenant?.tenantConfig?.generalConfig?.themeConfig || undefined;
+}
 
-/**
- * Tenant mock data for selection (Dropdown only).
- * The actual values are fetched from the API.
- */
-export const tenantExamples: Record<string, { name: string }> = {
-    baogam: {
-        name: 'Báo Gấm',
-    },
-    gobiz: {
-        name: 'Gobiz Logistics',
-    },
-    thien_long: {
-        name: 'Thiên Long Express',
-    },
-    tetetete: {
-        name: 'Tetetete',
-    },
-    thanhla: {
-        name: 'Thanhla Logistics',
-    },
-};
 
 /**
  * Lấy config đã resolved dựa trên theme (Dark/Light)
@@ -120,13 +106,6 @@ const CSS_VAR_MAP: Record<string, string> = {
     borderRadius: '--tenant-radius-antd',
 };
 
-export function getTenantOptions() {
-    return Object.entries(tenantExamples).map(([key, value]) => ({
-        label: value.name,
-        value: key,
-    }));
-}
-
 export function applyTenantConfig(
     baseTheme: ThemeConfig,
     tenantConfig?: SimpleTenantConfig,
@@ -145,7 +124,13 @@ export function applyTenantConfig(
         });
     }
 
-    const token = { ...baseTheme.token, ...resolved };
+    const {
+        variants: _variants,
+        menu: _menu,
+        variantCode: _variantCode,
+        ...themeTokens
+    } = resolved;
+    const token = { ...baseTheme.token, ...themeTokens };
     if (resolved.colorPrimary) {
         token.colorIcon = resolved.colorPrimary;
         token.colorLink = resolved.colorPrimary;
@@ -260,12 +245,4 @@ function hexToHsl(hex: string): string {
     }
 
     return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
-}
-
-
-
-export function dispatchTenantChange(tenantKey: string): void {
-    if (typeof window === 'undefined') return;
-    localStorage.setItem('selected-tenant', tenantKey);
-    window.dispatchEvent(new CustomEvent('app:tenant-changed', { detail: tenantKey }));
 }

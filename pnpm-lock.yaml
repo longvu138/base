@@ -30,6 +30,9 @@ importers:
       '@repo/antd-config':
         specifier: workspace:*
         version: link:../../packages/antd-config
+      '@repo/api':
+        specifier: workspace:*
+        version: link:../../packages/api
       '@repo/config':
         specifier: workspace:*
         version: link:../../packages/config

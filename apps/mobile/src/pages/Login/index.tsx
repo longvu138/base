@@ -1,8 +1,6 @@
-import { useState } from 'react';
 import { Radio } from 'antd';
 import { useLanguage } from '@repo/i18n';
 import { useVariant, ThemeSwitcher } from '@repo/theme-provider';
-import { getTenantOptions, dispatchTenantChange } from '@repo/tenant-config';
 import { DynamicVariant } from '@repo/ui';
 
 // Stable reference
@@ -11,15 +9,6 @@ const modules = import.meta.glob('./*.tsx');
 export const Login = () => {
     const { currentLanguage, changeLanguage } = useLanguage();
     const variant = useVariant('login', 'LoginStyleDefault');
-
-    const [currentTenant, setCurrentTenant] = useState(() =>
-        localStorage.getItem('selected-tenant') || 'baogam'
-    );
-
-    const handleTenantSwitch = (value: string) => {
-        setCurrentTenant(value);
-        dispatchTenantChange(value);
-    };
 
     return (
         <div className="min-h-screen flex flex-col bg-gray-50/50 relative overflow-hidden">
@@ -48,22 +37,6 @@ export const Login = () => {
                     </span>
                 </div>
 
-                {/* Tenant Switcher for Testing */}
-                <div className="bg-white/50 dark:bg-gray-800/50 p-2 rounded-xl backdrop-blur-sm border border-white/20 overflow-x-auto no-scrollbar">
-                    <Radio.Group
-                        value={currentTenant}
-                        onChange={(e) => handleTenantSwitch(e.target.value)}
-                        size="small"
-                        buttonStyle="solid"
-                        className="flex whitespace-nowrap"
-                    >
-                        {getTenantOptions().map(opt => (
-                            <Radio.Button key={opt.value} value={opt.value} className="text-[10px]">
-                                {opt.label}
-                            </Radio.Button>
-                        ))}
-                    </Radio.Group>
-                </div>
             </div>
 
             <div className="flex-1 flex flex-col justify-center px-6 pb-12 z-10">

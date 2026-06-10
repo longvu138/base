@@ -16,6 +16,7 @@ import {
   DollarCircleOutlined,
 } from "@ant-design/icons";
 import { useTheme, getVariantDefaults } from "@repo/theme-provider";
+import { getTenantThemeConfig } from "@repo/tenant-config";
 import { useTranslation } from "@repo/i18n";
 
 export interface MenuItem {
@@ -240,8 +241,8 @@ const GOBIZ_MENU_ITEMS: MenuItem[] = [
 export const useNavigation = (): MenuItem[] => {
   const { tenantConfig } = useTheme();
   const { t } = useTranslation();
-  const themeConfig = tenantConfig?.tenantConfig?.themeConfig;
-  const variantCode = tenantConfig?.variantCode || "default";
+  const themeConfig = getTenantThemeConfig(tenantConfig);
+  const variantCode = themeConfig?.variantCode || "default";
   const variantDefaults = getVariantDefaults(variantCode);
   const menuPreset = variantDefaults.menu?.preset || "base";
   const baseItems = menuPreset === "gobiz" ? GOBIZ_MENU_ITEMS : BASE_MENU_ITEMS;

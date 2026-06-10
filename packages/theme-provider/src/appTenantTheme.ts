@@ -1,31 +1,31 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { theme as antdTheme, type ThemeConfig } from "antd";
 import {
   applyTenantConfig,
+  getTenantThemeConfig,
   updateTenantCSSVariables,
   type FullTenantResponse,
   type SimpleTenantConfig,
 } from "@repo/tenant-config";
 import { useTheme } from "./ThemeContext";
 
-const DEFAULT_TENANT_ID = "baogam";
-const SELECTED_TENANT_KEY = "selected-tenant";
 const FULL_TENANT_DATA_KEY = "full-tenant-data";
 const CURRENT_PROJECT_INFO_KEY = "currentProjectInfo";
 
 const FALLBACK_TENANT_CONFIG: FullTenantResponse = {
   id: "fallback",
   name: "Default",
-  variantCode: "default",
   tenantConfig: {
-    themeConfig: {} as SimpleTenantConfig,
+    generalConfig: {
+      themeConfig: { variantCode: "default" } as SimpleTenantConfig,
+    },
   },
 };
 
 export interface UseAppTenantThemeOptions {
   lightTheme: ThemeConfig;
   darkTheme: ThemeConfig;
-  fetchTenantConfig: (tenantKey: string) => Promise<FullTenantResponse>;
+  fetchTenantConfig: () => Promise<FullTenantResponse>;
 }
 
 export interface UseAppTenantThemeResult {
@@ -73,24 +73,11 @@ export const useAppTenantTheme = ({
   } = useTheme();
   const isDark = themeMode === "dark";
 
-  const [selectedTenantId, setSelectedTenantId] = useState<string>(
-    () =>
-      (typeof window !== "undefined" &&
-        localStorage.getItem(SELECTED_TENANT_KEY)) ||
-      DEFAULT_TENANT_ID,
-  );
+  const selectedTenantId =
+    globalTenantConfig?.id || globalTenantConfig?.code || globalTenantConfig?.tenant || "current";
 
   useEffect(() => {
-    const handleTenantChange = (event: Event) =>
-      setSelectedTenantId((event as CustomEvent).detail);
-
-    window.addEventListener("app:tenant-changed", handleTenantChange);
-    return () =>
-      window.removeEventListener("app:tenant-changed", handleTenantChange);
-  }, []);
-
-  useEffect(() => {
-    fetchTenantConfig(selectedTenantId)
+    fetchTenantConfig()
       .then((tenantConfig) => {
         setGlobalTenantConfig(tenantConfig);
         persistTenantConfig(tenantConfig);
@@ -102,8 +89,7 @@ export const useAppTenantTheme = ({
         );
 
         const cachedTenantConfig = parseLocalStorageJson(FULL_TENANT_DATA_KEY);
-        const cachedTenantId = cachedTenantConfig?.id || cachedTenantConfig?.tenant;
-        if (cachedTenantConfig && cachedTenantId === selectedTenantId) {
+        if (cachedTenantConfig) {
           setGlobalTenantConfig(cachedTenantConfig);
           persistTenantConfig(cachedTenantConfig);
           return;
@@ -111,9 +97,9 @@ export const useAppTenantTheme = ({
 
         setGlobalTenantConfig(FALLBACK_TENANT_CONFIG);
       });
-  }, [fetchTenantConfig, selectedTenantId, setGlobalTenantConfig]);
+  }, [fetchTenantConfig, setGlobalTenantConfig]);
 
-  const tenantThemeConfig = globalTenantConfig?.tenantConfig?.themeConfig;
+  const tenantThemeConfig = getTenantThemeConfig(globalTenantConfig);
 
   useEffect(() => {
     updateTenantCSSVariables(tenantThemeConfig, isDark);

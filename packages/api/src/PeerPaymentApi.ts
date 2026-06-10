@@ -29,7 +29,6 @@ const currentTenantCode = () => {
   return (
     currentProjectInfo.code ||
     currentProjectInfo.id ||
-    LocalStoreUtil.getItem("selected-tenant") ||
     appConfig.tenant
   );
 };

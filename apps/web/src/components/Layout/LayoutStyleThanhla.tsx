@@ -1,13 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Layout as AntLayout, Menu, Select, Dropdown, Avatar } from 'antd';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { ThemeSwitcher } from '@repo/theme-provider';
-import { getTenantOptions, dispatchTenantChange } from '@repo/tenant-config';
 import { useLanguage, useTranslation } from '@repo/i18n';
 import { Languages } from 'lucide-react';
 import { useLogout, useCustomerProfile, useCustomerBalance } from '@repo/hooks';
 import { useNavigation } from './Navigation';
-import { appConfig } from '@repo/config';
 import HeaderCartLink from './HeaderCartLink';
 import HeaderNotificationLink from './HeaderNotificationLink';
 import HeaderGobizActions, { profileMenuItems } from './HeaderGobizActions';
@@ -31,21 +29,6 @@ export const LayoutStyleThanhla: React.FC = () => {
     const { handleLogout } = useLogout({
         onSuccess: () => navigate('/login')
     });
-
-    const [currentTenant, setCurrentTenant] = useState(() => {
-        return localStorage.getItem('selected-tenant') || 'thanhla';
-    });
-
-    useEffect(() => {
-        const handleSync = (e: any) => setCurrentTenant(e.detail);
-        window.addEventListener('app:tenant-changed', handleSync);
-        return () => window.removeEventListener('app:tenant-changed', handleSync);
-    }, []);
-
-    const handleTenantUpdate = (value: string) => {
-        setCurrentTenant(value);
-        dispatchTenantChange(value);
-    };
 
     const menuItems = useNavigation();
     const currentPath = `${location.pathname}${location.search}`;
@@ -105,17 +88,6 @@ export const LayoutStyleThanhla: React.FC = () => {
                         bordered={false}
                         suffixIcon={<Languages size={14} />}
                     />
-
-                    {appConfig.enableTenantSelector && (
-                        <Select
-                            value={currentTenant}
-                            onChange={handleTenantUpdate}
-                            options={getTenantOptions()}
-                            style={{ width: 150 }}
-                            bordered={false}
-                            className="font-bold text-gray-800 dark:text-gray-200 bg-gray-50 dark:bg-gray-800 rounded-lg"
-                        />
-                    )}
 
                     <ThemeSwitcher />
 

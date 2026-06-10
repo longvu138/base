@@ -223,7 +223,7 @@ export default function ThemeConfigurator() {
           </div>
 
           <Alert
-            message="Paste vào themeConfig trong tenant-server/index.js"
+            message="Paste vào tenantConfig.generalConfig.themeConfig trong API tenants/current"
             type="info"
             showIcon
             style={{ marginBottom: 12, fontSize: 12 }}
@@ -247,7 +247,7 @@ export default function ThemeConfigurator() {
           <Divider style={{ borderColor: '#333' }} />
 
           <Text style={{ color: '#888', fontSize: 12 }}>
-            💡 Config này sẽ được merge vào <code style={{ color: '#9cdcfe' }}>tenantConfig.themeConfig</code> trong backend.
+            💡 Config này sẽ được merge vào <code style={{ color: '#9cdcfe' }}>tenantConfig.generalConfig.themeConfig</code> trong backend.
             Các global token nằm ở top level, component token nằm trong key <code style={{ color: '#9cdcfe' }}>components</code>.
           </Text>
         </Col>

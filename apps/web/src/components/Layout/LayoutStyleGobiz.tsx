@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Layout as AntLayout,
   Menu,
@@ -15,13 +15,11 @@ import {
   MenuUnfoldOutlined,
 } from "@ant-design/icons";
 import { ThemeSwitcher } from "@repo/theme-provider";
-import { getTenantOptions, dispatchTenantChange } from "@repo/tenant-config";
 import { useLanguage, useTranslation } from "@repo/i18n";
 import { Languages } from "lucide-react";
 import { useLogout, useCustomerProfile, useCustomerBalance } from "@repo/hooks";
 import { formatCurrency } from "@repo/util";
 import { useNavigation } from "./Navigation";
-import { appConfig } from "@repo/config";
 import HeaderCartLink from "./HeaderCartLink";
 import HeaderNotificationLink from "./HeaderNotificationLink";
 import HeaderGobizActions, { profileMenuItems } from "./HeaderGobizActions";
@@ -46,20 +44,6 @@ const LayoutStyleGobiz: React.FC = () => {
   const { data: profile } = useCustomerProfile();
   const { data: balanceData } = useCustomerBalance();
   const { handleLogout } = useLogout({ onSuccess: () => navigate("/login") });
-
-  const [currentTenant, setCurrentTenant] = useState(
-    () => localStorage.getItem("selected-tenant") || "baogam",
-  );
-  useEffect(() => {
-    const handleSync = (e: any) => setCurrentTenant(e.detail);
-    window.addEventListener("app:tenant-changed", handleSync);
-    return () => window.removeEventListener("app:tenant-changed", handleSync);
-  }, []);
-
-  const handleTenantUpdate = (value: string) => {
-    setCurrentTenant(value);
-    dispatchTenantChange(value);
-  };
 
   const menuItems = useNavigation();
   const currentPath = `${location.pathname}${location.search}`;
@@ -160,16 +144,6 @@ const LayoutStyleGobiz: React.FC = () => {
                 suffixIcon={<Languages size={14} className="text-gray-400" />}
               />
 
-              {appConfig.enableTenantSelector && (
-                <Select
-                  value={currentTenant}
-                  onChange={handleTenantUpdate}
-                  options={getTenantOptions()}
-                  style={{ width: 160 }}
-                  variant="borderless"
-                  className="font-bold text-gray-800 dark:text-gray-200"
-                />
-              )}
             </Space>
 
             <div className="h-8 w-[1px] bg-gray-100 dark:bg-gray-800 mx-2" />
