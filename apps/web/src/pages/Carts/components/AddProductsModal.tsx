@@ -383,7 +383,9 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
       return;
     }
     if (totalSelectedQuantity < Number(product?.minOrderQuantity || 1)) {
-      message.error(t("cart.min_order_quantity", { value: product.minOrderQuantity }));
+      message.error(
+        t("cart.min_order_quantity", { value: product.minOrderQuantity }),
+      );
       return;
     }
 
@@ -520,7 +522,9 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
                   <Form.Item
                     name="merchantName"
                     label={t("cartCheckout.seller")}
-                    rules={[{ required: true, message: t("cart.input_seller") }]}
+                    rules={[
+                      { required: true, message: t("cart.input_seller") },
+                    ]}
                   >
                     <Input placeholder={t("cart.input_placeholder")} />
                   </Form.Item>
@@ -529,7 +533,9 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
                   <Form.Item
                     name="originalName"
                     label={t("cart.original_name")}
-                    rules={[{ required: true, message: t("cart.input_product_name") }]}
+                    rules={[
+                      { required: true, message: t("cart.input_product_name") },
+                    ]}
                   >
                     <Input placeholder={t("cart.input_placeholder")} />
                   </Form.Item>
@@ -565,7 +571,9 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
                   <Form.Item
                     name="quantity"
                     label={t("cartGroup.quantity")}
-                    rules={[{ required: true, message: t("cart.input_quantity") }]}
+                    rules={[
+                      { required: true, message: t("cart.input_quantity") },
+                    ]}
                   >
                     <InputNumber min={1} style={{ width: "100%" }} />
                   </Form.Item>
@@ -607,9 +615,7 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
                 <p className="ant-upload-drag-icon">
                   <InboxOutlined />
                 </p>
-                <p className="ant-upload-text">
-                  {t("cart.drag_image")}
-                </p>
+                <p className="ant-upload-text">{t("cart.drag_image")}</p>
               </Upload.Dragger>
             </Card>
           </Form>
@@ -632,14 +638,14 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
               <p className="ant-upload-drag-icon">
                 <InboxOutlined />
               </p>
-              <p className="ant-upload-text">
-                {t("cart.drag_file")}
-              </p>
+              <p className="ant-upload-text">{t("cart.drag_file")}</p>
               <Space direction="vertical" size={4}>
                 <Typography.Text type="secondary">
                   {t("cart.excel_validation_hint")}
                 </Typography.Text>
-                <Typography.Text type="secondary">{t("common.or")}</Typography.Text>
+                <Typography.Text type="secondary">
+                  {t("common.or")}
+                </Typography.Text>
                 <Button
                   href="//cdn.gobiz.vn/import_product_to_cart.xlsx"
                   type="primary"
@@ -701,6 +707,7 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
                   <Image
                     width="100%"
                     preview={false}
+                    referrerPolicy="no-referrer"
                     src={
                       product?.productImage?.images?.[0] ||
                       product?.productImages?.[0]
@@ -789,6 +796,7 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
                                   width={60}
                                   height={60}
                                   preview={false}
+                                  referrerPolicy="no-referrer"
                                   src={previewImage}
                                 />
                               ) : (
@@ -824,7 +832,9 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
                                     ),
                                   )
                                 ) : (
-                                  <Typography.Text>{t("customerAddress.default")}</Typography.Text>
+                                  <Typography.Text>
+                                    {t("customerAddress.default")}
+                                  </Typography.Text>
                                 )}
                               </Space>
                             </Flex>
@@ -878,11 +888,14 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
                     <Flex justify="space-between" align="start" gap={12} wrap>
                       <Space direction="vertical" size={0}>
                         <Typography.Text>
-                          {t("cart.total_quantity")}: {totalSelectedQuantity} {t("cartCheckout.product")}
+                          {t("cart.total_quantity")}: {totalSelectedQuantity}{" "}
+                          {t("cartCheckout.product")}
                         </Typography.Text>
                         {product?.batchNumber > 1 && (
                           <Typography.Text type="warning">
-                            {t("cart.batch_required", { value: product.batchNumber })}
+                            {t("cart.batch_required", {
+                              value: product.batchNumber,
+                            })}
                           </Typography.Text>
                         )}
                       </Space>
@@ -893,7 +906,9 @@ export const AddProductsModal = ({ open, onClose }: Props) => {
                         </Typography.Text>
                         {product?.minOrderQuantity > 1 && (
                           <Typography.Text type="danger">
-                            {t("cart.min_order_quantity", { value: product.minOrderQuantity })}
+                            {t("cart.min_order_quantity", {
+                              value: product.minOrderQuantity,
+                            })}
                           </Typography.Text>
                         )}
                       </Space>
