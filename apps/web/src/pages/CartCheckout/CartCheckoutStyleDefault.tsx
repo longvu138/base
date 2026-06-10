@@ -39,6 +39,7 @@ import {
 } from "../Carts/cartViewModel";
 import { DeliveryAddressPanel } from "./components/DeliveryAddressPanel";
 import { DraftOrderVoucherModal } from "./components/DraftOrderVoucherModal";
+import { FinishOrder } from "./components/FinishOrder";
 import {
   BIFFIN_METHOD_SELECTED,
   DEFAULT_METHOD_SELECTED,
@@ -71,6 +72,7 @@ export const CartCheckoutStyleDefault = () => {
     draftOrder,
     draftOrderTotalValue,
     draftOrderId,
+    finishOrder,
     generalConfig,
     handleChangeBiffinOption,
     handleChangeDepositPercent,
@@ -121,6 +123,10 @@ export const CartCheckoutStyleDefault = () => {
     totalQuantity,
     voucherOpen,
   } = page;
+
+  if (finishOrder.hasOrders) {
+    return <FinishOrder finishOrder={finishOrder} />;
+  }
 
   if (isLoading) return <Spin />;
   if (!draftOrder) return <Empty description={t("message.empty")} />;

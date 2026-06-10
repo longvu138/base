@@ -14,7 +14,7 @@ import { useTranslation } from "@repo/i18n";
 import { useTheme as useTenantTheme } from "@repo/theme-provider";
 import { LocalStoreUtil, moneyCeil } from "@repo/util";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 export const DEFAULT_METHOD_SELECTED = "default";
 export const BIFFIN_METHOD_SELECTED = "cam_do";
@@ -69,6 +69,71 @@ export const sumDraftOrderCouponDiscount = (data: any) =>
         : 0),
     0,
   );
+
+const getFinishOrderProducts = (order: any) => {
+  if (Array.isArray(order?.products)) return order.products;
+  if (Array.isArray(order?.skus)) return order.skus;
+  return [];
+};
+
+const getFinishOrderProductQuantity = (product: any) => {
+  if (Array.isArray(product?.skus)) {
+    return product.skus.reduce(
+      (sum: number, sku: any) => sum + Number(sku?.quantity || 0),
+      0,
+    );
+  }
+  return Number(product?.quantity || 0);
+};
+
+const getFinishOrderQuantity = (order: any) =>
+  getFinishOrderProducts(order).reduce(
+    (sum: number, product: any) =>
+      sum + getFinishOrderProductQuantity(product),
+    0,
+  );
+
+const getFinishOrderAmount = (order: any) =>
+  order?.exchangedTotalValue ??
+  order?.totalValue ??
+  order?.totalAmount ??
+  order?.grandTotal ??
+  0;
+
+const buildCartCheckoutFinishOrder = ({
+  currentProjectInfo,
+  fallbackProjectName,
+  listCarts = [],
+}: {
+  currentProjectInfo?: any;
+  fallbackProjectName: string;
+  listCarts?: any[];
+}) => {
+  const projectName = currentProjectInfo?.name || fallbackProjectName;
+  const orders = listCarts.map((order: any) => {
+    const products = getFinishOrderProducts(order);
+    const code = order?.code || order?.orderCode;
+
+    return {
+      raw: order,
+      code,
+      orderPath: code ? `/orders/${code}` : "/orders",
+      merchantUrl: order?.merchantUrl,
+      marketplaceImage: order?.marketplace?.image,
+      merchantImage: order?.image || order?.merchantImage,
+      merchantName: order?.merchantName || order?.merchantCode || "---",
+      quantity: getFinishOrderQuantity(order),
+      productCount: products.length,
+      amount: getFinishOrderAmount(order),
+    };
+  });
+
+  return {
+    hasOrders: orders.length > 0,
+    orders,
+    projectName,
+  };
+};
 
 const moneyToPercent = (money: number | string, amount: number | string) => {
   const total = Number(amount || 0);
@@ -148,7 +213,6 @@ export const useCartCheckoutPage = () => {
   const { t } = useTranslation();
   const { notification } = App.useApp();
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
   const { tenantConfig } = useTenantTheme();
   const { draftOrderId } = useParams();
   const { data: draftOrder, isLoading } = useDraftOrderQuery(draftOrderId);
@@ -185,6 +249,7 @@ export const useCartCheckoutPage = () => {
   const [pinError, setPinError] = useState("");
   const [savePassword, setSavePassword] = useState(false);
   const [depositModalOpen, setDepositModalOpen] = useState(false);
+  const [createdOrders, setCreatedOrders] = useState<any[]>([]);
   const [loanAmount, setLoanAmount] = useState(0);
   const [totalLoanAmount, setTotalLoanAmount] = useState(0);
   const [isDraftOrderLoanable, setIsDraftOrderLoanable] = useState(false);
@@ -719,9 +784,7 @@ export const useCartCheckoutPage = () => {
       queryClient.invalidateQueries({ queryKey: ["orders.statistic"] });
       notification.success({ message: t("message.success") });
       const createdOrders = Array.isArray(result?.data) ? result.data : [];
-      const firstOrder = createdOrders[0];
-      const orderCode = firstOrder?.code || firstOrder?.orderCode;
-      navigate(orderCode ? `/orders/${orderCode}` : "/orders");
+      setCreatedOrders(createdOrders);
     } catch (error: any) {
       const title = getErrorTitle(error);
       if (title === "empty_password") {
@@ -763,6 +826,16 @@ export const useCartCheckoutPage = () => {
     }
   };
 
+  const finishOrder = useMemo(
+    () =>
+      buildCartCheckoutFinishOrder({
+        currentProjectInfo,
+        fallbackProjectName: t("cartFinishOrder.we"),
+        listCarts: createdOrders,
+      }),
+    [createdOrders, currentProjectInfo, t],
+  );
+
   return {
     addresses,
     appliedVouchers,
@@ -770,6 +843,8 @@ export const useCartCheckoutPage = () => {
     biffinOptions,
     canRechargeForDeposit,
     createOrder,
+    createdOrders,
+    finishOrder,
     creditLimit,
     crossedThresholdMerchants,
     currentProjectInfo,

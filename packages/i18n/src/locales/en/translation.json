@@ -149,6 +149,7 @@
   "order": {
     "products": "Products",
     "product": "product",
+    "seller": "Seller",
     "quantity": "Quantity",
     "quantity_required": "Please enter required information",
     "sale_price": "Sale price",
@@ -156,6 +157,12 @@
     "remark": "Notes for products",
     "note": "Personal notes for this product",
     "note_keydown": "Press Ctrl/Shift/Alt/Command + Enter to save note",
+    "order_deposit": "List of order you have deposit",
+    "order_management": "ORDER MANAGEMENT",
+    "order_success": "ORDER SUCCESS",
+    "view_details": "View details",
+    "products_link": "Products/link",
+    "order_code": "Order code",
     "order_buy_receive": "order/buy/receive",
     "order_status": "Status",
     "order_cut_off_time": "Order stops in status",
@@ -1434,6 +1441,14 @@
     "service": "Service",
     "quantity": "Quantity",
     "delete_product_confirm": "Want to remove products from the cart?"
+  },
+  "cartFinishOrder": {
+    "amount_total": "total amount",
+    "product_quantity": "Product number / link",
+    "we": "we",
+    "text_content": "will contact the seller and purchase for you.",
+    "updated_all_info": "All information in the process of working with the seller will be updated at",
+    "order_finish_note": "Import goods will proceed to contact the seller and purchase for you. All information in the process of working with the seller will be updated at"
   },
   "taobaoGlobalCart": {
     "unitPrice": "Unit Price",

@@ -149,6 +149,7 @@
   "order": {
     "products": "Sản phẩm",
     "product": "sản phẩm",
+    "seller": "Người bán",
     "quantity": "Số lượng",
     "quantity_required": "Không thể để trống",
     "sale_price": "Đơn giá",
@@ -156,6 +157,12 @@
     "remark": "Ghi chú cho sản phẩm",
     "note": "Ghi chú cá nhân cho sản phẩm này",
     "note_keydown": "Nhấn Ctrl/Shift/Alt/Command + Enter để lưu ghi chú",
+    "order_deposit": "Danh sách các đơn bạn đã đặt",
+    "order_management": "QUẢN LÝ ĐƠN HÀNG",
+    "order_success": "ĐẶT HÀNG THÀNH CÔNG",
+    "view_details": "Xem chi tiết",
+    "products_link": "Số lượng sản phẩm/link",
+    "order_code": "Mã đơn hàng",
     "order_buy_receive": "Đặt/Mua/Nhận",
     "order_status": "Trạng thái đơn",
     "order_cut_off_time": "Đơn dừng ở trạng thái",
@@ -1436,6 +1443,14 @@
     "service": "Dịch vụ",
     "quantity": "Số lượng",
     "delete_product_confirm": "Bạn muốn xóa sản phẩm ra khỏi giỏ hàng?"
+  },
+  "cartFinishOrder": {
+    "amount_total": "Tổng tiền hàng",
+    "product_quantity": "Số sản phẩm/link",
+    "we": "Chúng tôi",
+    "text_content": "sẽ tiến hành liên hệ người bán và mua hàng cho quý khách.",
+    "updated_all_info": "Mọi thông tin trong quá trình làm việc với người bán sẽ được nhập hàng cập nhật tại",
+    "order_finish_note": "Chúng tôi sẽ tiến hành liên hệ người bán và mua hàng cho quý khách. Mọi thông tin trong quá trình làm việc với người bán sẽ được nhập hàng cập nhật tại"
   },
   "taobaoGlobalCart": {
     "unitPrice": "Đơn giá",

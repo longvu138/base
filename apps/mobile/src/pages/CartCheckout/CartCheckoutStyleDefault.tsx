@@ -38,6 +38,7 @@ import { moneyCeil, moneyFormat } from "@repo/util";
 import DepositModal from "../../components/DepositModal";
 import { DeliveryAddressPanel } from "./components/DeliveryAddressPanel";
 import { DraftOrderVoucherModal } from "./components/DraftOrderVoucherModal";
+import { FinishOrder } from "./components/FinishOrder";
 
 const { Text, Title, Paragraph, Link } = Typography;
 
@@ -124,6 +125,7 @@ export const CartCheckoutStyleDefault = () => {
     draftOrder,
     draftOrderTotalValue,
     draftOrderId,
+    finishOrder,
     generalConfig,
     handleChangeBiffinOption,
     handleChangeDepositPercent,
@@ -174,6 +176,10 @@ export const CartCheckoutStyleDefault = () => {
     totalQuantity,
     voucherOpen,
   } = page;
+
+  if (finishOrder.hasOrders) {
+    return <FinishOrder finishOrder={finishOrder} />;
+  }
 
   if (isLoading) return <CartCheckoutSkeleton />;
   if (!draftOrder) return <Empty description={t("message.empty")} />;
