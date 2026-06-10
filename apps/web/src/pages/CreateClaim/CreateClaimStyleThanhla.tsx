@@ -24,6 +24,7 @@ import {
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { useCreateClaimPage } from "@repo/hooks";
+import { LocaleInputNumber } from "../../components/Common/LocaleInputNumber";
 
 const { Text, Title } = Typography;
 
@@ -214,10 +215,12 @@ export const CreateClaimStyleThanhla = () => {
                     label={t("ticket_add.count_money")}
                     rules={[{ required: true, message: t("message.required") }]}
                   >
-                    <InputNumber
+                    <LocaleInputNumber
                       min={0}
                       max={9999999999}
                       controls={false}
+                      maximumFractionDigits={0}
+                      precision={0}
                       style={{ width: "100%" }}
                       placeholder={t("ticket_add.count_money_type")}
                     />
