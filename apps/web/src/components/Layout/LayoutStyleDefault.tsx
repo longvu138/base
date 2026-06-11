@@ -8,7 +8,7 @@ import {
 } from "antd";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
-import { ThemeSwitcher } from "@repo/theme-provider";
+import { ThemeSwitcher, useTheme } from "@repo/theme-provider";
 import { useState } from "react";
 import { useLanguage, useTranslation } from "@repo/i18n";
 import { Languages } from "lucide-react";
@@ -29,6 +29,7 @@ export const LayoutStyleDefault = () => {
   const navigate = useNavigate();
   const { currentLanguage, availableLanguages, changeLanguage } = useLanguage();
   const { t } = useTranslation();
+  const { tenantConfig } = useTheme();
   const [collapsed, setCollapsed] = useState(false);
   const [isDepositModalOpen, setDepositModalOpen] = useState(false);
   const showFooter = useLayoutFooterVisibility();
@@ -45,6 +46,9 @@ export const LayoutStyleDefault = () => {
     icon: item.icon,
     label: <Link to={item.path}>{item.label}</Link>,
   }));
+  const tenantLogoStandard = tenantConfig?.tenantConfig?.logoStandard;
+  const tenantLogoLite = tenantConfig?.tenantConfig?.logoLite;
+  const tenantName = tenantConfig?.name || "Web App";
 
   const currentPath = `${location.pathname}${location.search}`;
   const activeMenu = menuItems.find(
@@ -62,7 +66,7 @@ export const LayoutStyleDefault = () => {
         collapsed={collapsed}
         theme="dark"
         className="!bg-white dark:!bg-[#141414] border-r border-gray-100 dark:border-gray-800"
-        width={240}
+        width={220}
         trigger={null}
         style={{
           overflow: "auto",
@@ -76,10 +80,28 @@ export const LayoutStyleDefault = () => {
         }}
       >
         <div
-          className="h-16 flex items-center justify-center font-bold text-xl text-primary cursor-pointer border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800"
+          className="h-16 flex items-center justify-center px-4 font-bold text-xl text-primary cursor-pointer border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800"
           onClick={() => navigate("/")}
         >
-          {collapsed ? "WA" : "Web App"}
+          {collapsed ? (
+            tenantLogoLite || tenantLogoStandard ? (
+              <img
+                src={tenantLogoLite || tenantLogoStandard}
+                alt={tenantName}
+                className="h-9 object-contain"
+              />
+            ) : (
+              tenantName.slice(0, 2).toUpperCase()
+            )
+          ) : tenantLogoStandard ? (
+            <img
+              src={tenantLogoStandard}
+              alt={tenantName}
+              className="max-h-10 max-w-full object-contain"
+            />
+          ) : (
+            tenantName
+          )}
         </div>
         <Menu
           mode="inline"

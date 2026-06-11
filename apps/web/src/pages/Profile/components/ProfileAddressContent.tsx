@@ -60,55 +60,54 @@ export const ProfileAddressContent = ({
     {
       title: t("customerAddress.fullname"),
       dataIndex: "fullname",
-      width: "12%",
       render: (_: any, record: any) => getAddressName(record),
     },
     {
       title: t("customerAddress.phone"),
       dataIndex: "phone",
-      width: "12%",
       render: (_: any, record: any) => getAddressPhone(record),
     },
     {
       title: t("customerAddress.zipCode"),
       dataIndex: "zipCode",
-      width: "10%",
       render: (_: any, record: any) => getAddressZipCode(record),
     },
     {
       title: t("customerAddress.addressName"),
       dataIndex: "addressName",
-      width: "16%",
       render: (_: any, record: any) => getAddressLabel(record),
     },
     {
       title: t("customerAddress.address"),
       dataIndex: "detail",
-      width: "32%",
       render: (_: any, record: any) => (
         <Space direction="vertical" size={0}>
           <Typography.Text>{getAddressDetail(record)}</Typography.Text>
           <Typography.Text type="secondary">
-            {getAddressLocation(record) || emptyText}
+            {getAddressLocation(record) || emptyText} {
+              record.defaultAddress || record.isDefault ? (
+                <Tag color={record.receivingAddress ? "blue" : "green"}>
+                  {t("customerAddress.default")}
+                </Tag>
+              ) : null
+            }
           </Typography.Text>
         </Space>
       ),
     },
+    // {
+    //   title: "",
+    //   dataIndex: "defaultAddress",
+    //   render: (_: any, record: any) =>
+    //     record.defaultAddress || record.isDefault ? (
+    //       <Tag color={record.receivingAddress ? "blue" : "green"}>
+    //         {t("customerAddress.default")}
+    //       </Tag>
+    //     ) : null,
+    // },
     {
-      title: "",
-      dataIndex: "defaultAddress",
-      width: "8%",
-      render: (_: any, record: any) =>
-        record.defaultAddress || record.isDefault ? (
-          <Tag color={record.receivingAddress ? "blue" : "green"}>
-            {t("customerAddress.default")}
-          </Tag>
-        ) : null,
-    },
-    {
-      title: "",
+      title: "Hành động",
       key: "action",
-      width: "10%",
       render: (_: any, record: any) => (
         <Space
           split={
@@ -117,7 +116,7 @@ export const ProfileAddressContent = ({
             ) : null
           }
         >
-          <Typography.Link onClick={() => logic.openEditAddress(record)}>
+          <Typography.Link className="whitespace-nowrap" onClick={() => logic.openEditAddress(record)}>
             {t("button.edit")}
           </Typography.Link>
           {!record.defaultAddress && !record.isDefault && (
@@ -129,7 +128,7 @@ export const ProfileAddressContent = ({
               cancelText={t("button.disagree")}
               onConfirm={() => logic.deleteAddress(record.id)}
             >
-              <Typography.Link type="danger">
+              <Typography.Link className="whitespace-nowrap" type="danger">
                 {t("button.delete")}
               </Typography.Link>
             </Popconfirm>
