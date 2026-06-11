@@ -529,13 +529,17 @@ export const useCreateShipmentPage = (
         });
         return;
       }
+      const messageByTitle: Record<string, string> = {
+        address_not_found: t("shipments.address_not_found"),
+        warehouse_location_not_mapped: t("message.warehouse_location_not_mapped"),
+      };
+
       notification.error({
         message:
-          title === "warehouse_location_not_mapped"
-            ? t("message.warehouse_location_not_mapped")
-            : error?.response?.data?.message ||
-              error?.message ||
-              t("shipments.create_error"),
+          (title && messageByTitle[title]) ||
+          error?.response?.data?.message ||
+          error?.message ||
+          t("shipments.create_error"),
       });
     }
   };
