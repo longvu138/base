@@ -1,6 +1,5 @@
 import dayjs from "dayjs";
 import {
-  Alert,
   Button,
   Card,
   Checkbox,
@@ -19,7 +18,7 @@ import {
   notification,
   theme,
 } from "antd";
-import { CheckCircleOutlined, TruckOutlined } from "@ant-design/icons";
+import { CheckCircleOutlined } from "@ant-design/icons";
 import { moneyFormat, quantityFormat } from "@repo/util";
 import { useCreateDeliveryPage } from "@repo/hooks";
 
@@ -28,6 +27,8 @@ const getStatusName = (statuses: any[] = [], code?: string) =>
 
 export const CreateDeliveryStyleDefault = () => {
   const { token } = theme.useToken();
+  const getUnpaidAmountColor = (amount: number) =>
+    amount > 0 ? token.colorError : token.colorSuccess;
   const {
     t,
     form,
@@ -59,14 +60,13 @@ export const CreateDeliveryStyleDefault = () => {
       title: t("delivery.package_code"),
       dataIndex: "code",
       key: "code",
-      render: (code: string, record: any) => (
+      render: (code: string) => (
         <Space>
           <Checkbox
             checked={selectedCodeSet.has(code)}
             onChange={(event) => togglePackage(code, event.target.checked)}
           />
           <Typography.Text strong>{code}</Typography.Text>
-          {record.isShipment && <Tag>{t("shipments.title")}</Tag>}
         </Space>
       ),
     },
@@ -119,6 +119,7 @@ export const CreateDeliveryStyleDefault = () => {
       title: t("delivery.order"),
       dataIndex: "code",
       key: "code",
+      width: 180,
       render: (code: string, record: any) => (
         <Space>
           <Checkbox
@@ -129,7 +130,6 @@ export const CreateDeliveryStyleDefault = () => {
           <Typography.Link href={record.isShipment ? `/shipments/${code}` : `/orders/${code}`}>
             {code}
           </Typography.Link>
-          {record.isShipment && <Tag color="blue">{t("shipments.title")}</Tag>}
         </Space>
       ),
     },
@@ -137,6 +137,7 @@ export const CreateDeliveryStyleDefault = () => {
       title: t("delivery.total_packages"),
       dataIndex: "availablePackageCount",
       key: "availablePackageCount",
+      width: 100,
       render: (_: number, record: any) =>
         quantityFormat(record.availablePackageCount || getOrderPackages(record).length),
     },
@@ -174,8 +175,18 @@ export const CreateDeliveryStyleDefault = () => {
       title: t("delivery.unpaid_amount"),
       dataIndex: "totalUnpaid",
       key: "totalUnpaid",
-      render: (value: number, record: any) =>
-        moneyFormat(record.isShipment ? record.needToPaid || 0 : value || 0),
+      render: (value: number, record: any) => {
+        const unpaidAmount = Number(
+          record.isShipment ? record.needToPaid || 0 : value || 0,
+        );
+        return (
+          <Typography.Text style={{ color: getUnpaidAmountColor(unpaidAmount) }}>
+            {Math.abs(unpaidAmount) > 0
+              ? moneyFormat(Math.abs(unpaidAmount))
+              : t("delivery.no_unpaid_amount")}
+          </Typography.Text>
+        );
+      },
     },
     {
       title: t("delivery.address"),
@@ -209,9 +220,6 @@ export const CreateDeliveryStyleDefault = () => {
             {t("delivery.available_order")} ({availableOrders.length})
           </Typography.Text>
         </Space>
-        <Tag icon={<TruckOutlined />} color="processing">
-          {t("delivery.btn_create")}
-        </Tag>
       </Flex>
 
       <Card
@@ -283,12 +291,6 @@ export const CreateDeliveryStyleDefault = () => {
                     }))}
                   />
                 </Form.Item>
-                <Alert
-                  type="info"
-                  showIcon
-                  message={t("delivery.warning_create")}
-                  description={t("delivery.btn_create")}
-                />
               </Col>
             </Row>
           </Form>
@@ -314,6 +316,7 @@ export const CreateDeliveryStyleDefault = () => {
                     : t("delivery.total_refund_amount")
                 }
                 value={Math.abs(totalAmount)}
+                valueStyle={{ color: getUnpaidAmountColor(totalAmount) }}
                 formatter={(value) => moneyFormat(Number(value || 0))}
               />
             </Space>

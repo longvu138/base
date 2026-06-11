@@ -170,7 +170,7 @@ export const DeliveryNotesList = ({
       title: "Mã phiếu xuất",
       dataIndex: "code",
       key: "code",
-      width: 180,
+      width: 200,
       render: (_, record) => {
         const note = getNote(record);
         return (
