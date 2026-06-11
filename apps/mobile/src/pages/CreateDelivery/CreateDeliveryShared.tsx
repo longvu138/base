@@ -1,6 +1,5 @@
 import dayjs from "dayjs";
 import {
-  Alert,
   Button,
   Card,
   Checkbox,
@@ -20,7 +19,7 @@ import {
   notification,
   theme,
 } from "antd";
-import { CheckCircleOutlined, TruckOutlined } from "@ant-design/icons";
+import { CheckCircleOutlined } from "@ant-design/icons";
 import { moneyFormat, quantityFormat } from "@repo/util";
 import { useCreateDeliveryPage } from "@repo/hooks";
 
@@ -138,11 +137,6 @@ const OrderCard = ({
               </Typography.Text>
             </Space>
           </Space>
-          {order.isShipment && (
-            <Tag color="blue" style={{ marginInlineEnd: 0 }}>
-              {page.t("shipments.title")}
-            </Tag>
-          )}
         </Flex>
 
         <Row gutter={[12, 8]}>
@@ -199,9 +193,6 @@ export const CreateDeliveryMobileView = () => {
             {page.t("delivery.available_order")} ({page.availableOrders.length})
           </Typography.Text>
         </Space>
-        <Tag icon={<TruckOutlined />} color="processing">
-          {page.t("delivery.btn_create")}
-        </Tag>
       </Flex>
 
       <Card>
@@ -261,12 +252,6 @@ export const CreateDeliveryMobileView = () => {
                 }))}
               />
             </Form.Item>
-            <Alert
-              type="info"
-              showIcon
-              message={page.t("delivery.warning_create")}
-              description={page.t("delivery.btn_create")}
-            />
           </Form>
 
           <Space direction="vertical" size={token.marginMD} style={{ width: "100%", marginTop: token.marginLG }}>
