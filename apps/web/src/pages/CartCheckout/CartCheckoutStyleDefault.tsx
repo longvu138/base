@@ -875,7 +875,7 @@ export const CartCheckoutStyleDefault = () => {
                             <Button
                               size="large"
                               block
-                              href="/profile/faqs?recharge"
+                              href="/profile?tab=faqs"
                               target="_blank"
                             >
                               {t("cartCheckout.recharge")}
@@ -896,7 +896,7 @@ export const CartCheckoutStyleDefault = () => {
                         {canRechargeForDeposit && (
                           <Flex align="center" gap={token.marginXS} wrap="nowrap">
                             <Typography.Link
-                              href="/profile/faqs?recharge"
+                              href="/profile?tab=faqs"
                               target="_blank"
                               style={{ lineHeight: 1.4 }}
                             >

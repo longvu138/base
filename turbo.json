@@ -16,7 +16,9 @@
         "APP_REDIRECT_URL",
         "APP_PLATFORM",
         "APP_GOODWAY_URL",
-        "APP_M2"
+        "APP_M2",
+        "APP_WEB_URL",
+        "APP_MOBILE_URL"
       ]
     },
     "lint": {
