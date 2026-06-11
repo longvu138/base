@@ -4,6 +4,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { BrowserRouter } from "react-router-dom";
 import { TenantApi } from "@repo/api";
 import { mobileAntdTheme, mobileDarkAntdTheme } from "@repo/antd-config";
+import { DevicePlatformRedirectProvider } from "@repo/hooks";
 import { AppQueryProvider } from "@repo/react-query-provider";
 import { ThemeProvider, useAppTenantTheme } from "@repo/theme-provider";
 import type { FullTenantResponse } from "@repo/tenant-config";
@@ -46,7 +47,9 @@ function AppContent() {
 function App() {
   return (
     <ThemeProvider>
-      <AppContent />
+      <DevicePlatformRedirectProvider currentPlatform="mobile">
+        <AppContent />
+      </DevicePlatformRedirectProvider>
     </ThemeProvider>
   );
 }

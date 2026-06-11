@@ -4,6 +4,7 @@ import { I18nextProvider, useTranslation } from "react-i18next";
 import { BrowserRouter } from "react-router-dom";
 import { TenantApi } from "@repo/api";
 import { webAntdTheme, webDarkAntdTheme } from "@repo/antd-config";
+import { DevicePlatformRedirectProvider } from "@repo/hooks";
 import { i18n } from "@repo/i18n";
 import { AppQueryProvider } from "@repo/react-query-provider";
 import { ThemeProvider, useAppTenantTheme } from "@repo/theme-provider";
@@ -50,7 +51,9 @@ function App() {
   return (
     <I18nextProvider i18n={i18n}>
       <ThemeProvider>
-        <AppContent />
+        <DevicePlatformRedirectProvider currentPlatform="web">
+          <AppContent />
+        </DevicePlatformRedirectProvider>
       </ThemeProvider>
     </I18nextProvider>
   );

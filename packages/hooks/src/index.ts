@@ -1,5 +1,6 @@
 export * from './useFilterWithURL';
 export * from './usePaginationWithURL';
+export * from './useDevicePlatformRedirect';
 export * from './useOrderHooks';
 export * from './useShipmentHooks';
 export * from './useTransactionHooks';
