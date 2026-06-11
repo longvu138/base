@@ -4,7 +4,7 @@ import {
   QueryClientProvider,
   type QueryClientConfig,
 } from "@tanstack/react-query";
-import { type ReactNode, useRef, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 
 export const DEFAULT_SYSTEM_ERROR_MESSAGE =
   "System error, please contact technical support";
@@ -104,6 +104,19 @@ export const AppQueryProvider = ({
         notifySystemError,
       }),
   );
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleLanguageChange = () => {
+      queryClient.invalidateQueries({ refetchType: "active" });
+    };
+
+    window.addEventListener("app-language-change", handleLanguageChange);
+    return () => {
+      window.removeEventListener("app-language-change", handleLanguageChange);
+    };
+  }, [queryClient]);
 
   return (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
