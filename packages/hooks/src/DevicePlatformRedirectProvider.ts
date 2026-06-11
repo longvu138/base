@@ -4,14 +4,14 @@ import { appConfig } from '@repo/config';
 
 type Platform = 'web' | 'mobile';
 
-export interface UseDevicePlatformRedirectOptions {
+export interface DevicePlatformRedirectOptions {
     currentPlatform: Platform;
     webUrl?: string;
     mobileUrl?: string;
     enabled?: boolean;
 }
 
-export interface DevicePlatformRedirectProviderProps extends UseDevicePlatformRedirectOptions {
+export interface DevicePlatformRedirectProviderProps extends DevicePlatformRedirectOptions {
     children: ReactNode;
 }
 
@@ -34,15 +34,16 @@ const buildTargetUrl = (targetBaseUrl: string) => {
     targetUrl.search = currentUrl.search;
     targetUrl.hash = currentUrl.hash;
 
-    return { currentUrl, targetUrl };
+    return targetUrl;
 };
 
-export const useDevicePlatformRedirect = ({
+export const DevicePlatformRedirectProvider = ({
+    children,
     currentPlatform,
     webUrl = appConfig.webUrl,
     mobileUrl = appConfig.mobileUrl,
     enabled = true,
-}: UseDevicePlatformRedirectOptions) => {
+}: DevicePlatformRedirectProviderProps) => {
     useEffect(() => {
         if (!enabled || typeof window === 'undefined') return;
 
@@ -52,17 +53,9 @@ export const useDevicePlatformRedirect = ({
         const targetBaseUrl = targetPlatform === 'mobile' ? mobileUrl : webUrl;
         if (!targetBaseUrl) return;
 
-        const { currentUrl, targetUrl } = buildTargetUrl(targetBaseUrl);
-        if (targetUrl.origin === currentUrl.origin || targetUrl.href === currentUrl.href) return;
-
+        const targetUrl = buildTargetUrl(targetBaseUrl);
         window.location.replace(targetUrl.href);
     }, [currentPlatform, enabled, mobileUrl, webUrl]);
-};
 
-export const DevicePlatformRedirectProvider = ({
-    children,
-    ...options
-}: DevicePlatformRedirectProviderProps) => {
-    useDevicePlatformRedirect(options);
     return children;
 };
