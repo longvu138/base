@@ -8,6 +8,6 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "antd": "^5.23.2"
+    "antd": "^5.29.3"
   }
 }

@@ -24,7 +24,7 @@
     "@repo/ui": "workspace:*",
     "@repo/util": "workspace:*",
     "@tanstack/react-query": "^5.62.11",
-    "antd": "^5.22.6",
+    "antd": "^5.29.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dayjs": "^1.11.10",

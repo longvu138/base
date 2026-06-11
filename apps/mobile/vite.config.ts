@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [react()],
   envPrefix: "APP_",
   resolve: {
-    dedupe: ['react', 'react-dom'],
+    dedupe: ['react', 'react-dom', 'antd'],
     alias: {
       '@repo/features': path.resolve(__dirname, '../../packages/features/src'),
     },

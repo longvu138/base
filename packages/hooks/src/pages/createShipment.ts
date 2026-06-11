@@ -90,7 +90,7 @@ const createMessageFeedback = (messageApi: any) => {
 };
 
 export const useCreateShipmentPage = (
-  options: UseCreateShipmentPageOptions = {},
+  options: UseCreateShipmentPageOptions = {}
 ) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
