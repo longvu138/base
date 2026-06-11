@@ -483,7 +483,7 @@ export const CreateShipmentView = ({ uiStyle = "style-default", logic }: CreateS
         <Link to="/shipments">
           <Space>
             <ArrowLeftOutlined />
-            <Text>{t("shipments.list_title")}</Text>
+            <Text style={{ color: "inherit" }}>{t("shipments.list_title")}</Text>
           </Space>
         </Link>
 

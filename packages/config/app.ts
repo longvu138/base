@@ -1,7 +1,13 @@
 export const appConfig = {
   appUrl: import.meta.env.APP_URL || "http://localhost:9000",
-  webUrl: import.meta.env.APP_WEB_URL || import.meta.env.APP_URL || "http://localhost:9000",
-  mobileUrl: import.meta.env.APP_MOBILE_URL || import.meta.env.APP_REDIRECT_URL || import.meta.env.APP_URL || "http://localhost:9000",
+  webUrl:
+    import.meta.env.APP_WEB_URL ||
+    import.meta.env.APP_URL ||
+    "http://localhost:9000",
+  mobileUrl:
+    import.meta.env.APP_MOBILE_URL ||
+    import.meta.env.APP_URL ||
+    "http://localhost:9000",
   apiUrl: import.meta.env.APP_API_URL + "/api/",
   apiPayment: import.meta.env.APP_API_PAYMENT + "/api/",
   baseUrl: import.meta.env.APP_API_URL,

@@ -1111,6 +1111,7 @@
     "choose_address": "Vui lòng chọn địa chỉ nhận hàng",
     "create_success": "Tạo đơn ký gửi thành công",
     "create_error": "Tạo đơn ký gửi thất bại",
+    "address_not_found": "\u0110\u1ecba ch\u1ec9 nh\u1eadn h\u00e0ng kh\u00f4ng t\u1ed3n t\u1ea1i ho\u1eb7c \u0111\u00e3 b\u1ecb x\u00f3a",
     "create_draft_error": "Tạo nháp đơn ký gửi thất bại",
     "create_confirm_text": "Cấu hình phí đã thay đổi, vui lòng kiểm tra lại trước khi tạo đơn",
     "notification": "Thông báo",

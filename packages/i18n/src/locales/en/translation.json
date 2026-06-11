@@ -1240,6 +1240,7 @@
     "choose_address": "Please choose a receiving address",
     "create_success": "Consignment order created successfully",
     "create_error": "Failed to create consignment order",
+    "address_not_found": "Receiving address does not exist or has been deleted",
     "create_draft_error": "Failed to create draft consignment order",
     "create_confirm_text": "Fee configuration changed, please check again before creating the order",
     "notification": "Notification",

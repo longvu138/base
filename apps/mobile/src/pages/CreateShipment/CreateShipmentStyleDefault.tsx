@@ -594,7 +594,7 @@ export const CreateShipmentView = ({
         <Link to="/shipments">
           <Space>
             <ArrowLeftOutlined />
-            <Text>{t("shipments.list_title")}</Text>
+            <Text style={{ color: "inherit" }}>{t("shipments.list_title")}</Text>
           </Space>
         </Link>
 
