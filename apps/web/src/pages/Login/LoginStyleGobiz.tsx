@@ -2,7 +2,6 @@ import { Form, Input as AntInput, Button as AntButton, message } from 'antd';
 import { useNavigate, Link } from 'react-router-dom';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useLogin } from '@repo/hooks';
-import { appConfig } from '@repo/config';
 import { useTranslation } from '@repo/i18n';
 
 /**
@@ -14,7 +13,6 @@ export const LoginStyleGobiz = () => {
     const { t } = useTranslation();
 
     const login = useLogin({
-        clientId: appConfig.clientId,
         onSuccess: () => navigate('/orders'),
         showMessage: (type, msg) => {
             type === 'success' ? message.success(msg) : message.error(msg);

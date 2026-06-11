@@ -1,7 +1,6 @@
 import { Form, Input, Button, message } from 'antd';
 import { useLogin } from '@repo/hooks';
 import { useNavigate, Link } from 'react-router-dom';
-import { appConfig } from '@repo/config';
 import { useTranslation } from '@repo/i18n';
 import { ArrowRight, Lock, User } from 'lucide-react';
 
@@ -14,7 +13,6 @@ export const LoginStyleThanhla = () => {
     const { t } = useTranslation();
 
     const login = useLogin({
-        clientId: appConfig.clientId,
         onSuccess: () => navigate('/orders'),
         showMessage: (type, msg) => {
             type === 'success' ? message.success(msg) : message.error(msg);
