@@ -129,7 +129,7 @@ export const DeliveryNotesFilter = ({
               </Form.Item>
             </Col>
             <Col xs={24} md={12}>
-              <Form.Item label="Thời gian tạo" style={{ marginBottom: 0 }}>
+              <Form.Item label="Thời gian xuất" style={{ marginBottom: 0 }}>
                 <Row gutter={20}>
                   <Col span={12}>
                     <Form.Item name="exportedAtFrom" noStyle>
@@ -393,7 +393,7 @@ export const DeliveryNotesList = ({
                       <Row gutter={[16, 12]}>
                         <Col xs={12} md={6}>
                           <Space direction="vertical" size={0}>
-                            <Text type="secondary">Thời gian tạo</Text>
+                            <Text type="secondary">Thời gian xuất</Text>
                             <Text>{formatDate(note.exported_at)}</Text>
                           </Space>
                         </Col>

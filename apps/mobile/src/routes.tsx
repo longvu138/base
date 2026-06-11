@@ -19,6 +19,7 @@ import TransactionsPage from "./pages/Transactions";
 import ProfilePage from "./pages/Profile";
 import AddressPage from "./pages/Address";
 import DeliveryRequestsPage from "./pages/DeliveryRequests";
+import DeliveryNotesPage from "./pages/DeliveryNotes";
 import CreateDeliveryPage from "./pages/CreateDelivery";
 import WaybillsPage from "./pages/Waybills";
 import FaqsPage from "./pages/Faqs";
@@ -59,6 +60,7 @@ function AppRoutes() {
           <Route path="profile" element={<ProfilePage />} />
           <Route path="address" element={<AddressPage />} />
           <Route path="delivery-requests" element={<DeliveryRequestsPage />} />
+          <Route path="delivery-notes" element={<DeliveryNotesPage />} />
           <Route path="delivery/create" element={<CreateDeliveryPage />} />
           <Route path="waybills" element={<WaybillsPage />} />
           <Route path="vouchers" element={<VouchersPage />} />

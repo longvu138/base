@@ -76,6 +76,12 @@ const BASE_MENU_ITEMS: NavigationItemConfig[] = [
     path: "/packages",
   },
   {
+    key: "/delivery-notes",
+    icon: React.createElement(FileProtectOutlined),
+    labelKey: "navigation.delivery_notes",
+    path: "/delivery-notes",
+  },
+  {
     key: "/waybills",
     icon: React.createElement(TagsOutlined),
     labelKey: "navigation.waybills",
@@ -166,6 +172,12 @@ const GOBIZ_MENU_ITEMS: NavigationItemConfig[] = [
     icon: React.createElement(DeliveredProcedureOutlined),
     labelKey: "navigation.delivery_management",
     path: "/packages",
+  },
+  {
+    key: "/delivery-notes",
+    icon: React.createElement(FileProtectOutlined),
+    labelKey: "navigation.delivery_notes",
+    path: "/delivery-notes",
   },
   {
     // Gom /transactions + /withdrawal-slips thanh 1 muc "Giao dich"

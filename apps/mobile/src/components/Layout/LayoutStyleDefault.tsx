@@ -156,6 +156,15 @@ function Layout() {
       ),
     },
     {
+      key: "/delivery-notes",
+      icon: <FileTextOutlined />,
+      label: (
+        <Link to="/delivery-notes" onClick={() => setDrawerVisible(false)}>
+          {t("navigation.delivery_notes")}
+        </Link>
+      ),
+    },
+    {
       key: "/waybills",
       icon: <TagOutlined />,
       label: (

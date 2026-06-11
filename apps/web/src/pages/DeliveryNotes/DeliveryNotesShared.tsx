@@ -55,7 +55,7 @@ export const DeliveryNotesFilter = ({ page }: { page: DeliveryNotesPageState }) 
               </Form.Item>
             </Col>
             <Col xs={24} md={12}>
-              <Form.Item label="Thời gian tạo" style={{ marginBottom: 0 }}>
+              <Form.Item label="Thời gian xuất" style={{ marginBottom: 0 }}>
                 <Row gutter={20}>
                   <Col span={12}>
                     <Form.Item name="exportedAtFrom" noStyle>
@@ -181,7 +181,7 @@ export const DeliveryNotesList = ({
       },
     },
     {
-      title: "Thời gian tạo",
+      title: "Thời gian xuất",
       dataIndex: "exported_at",
       key: "exported_at",
       width: 180,

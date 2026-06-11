@@ -1087,6 +1087,7 @@
     "orders": "Orders",
     "shipments": "Consignments",
     "delivery_requests": "Delivery requests",
+    "delivery_notes": "Delivery notes",
     "peer_payments": "Payment requests",
     "cash_request": "Cash collection requests",
     "packages": "Packages",

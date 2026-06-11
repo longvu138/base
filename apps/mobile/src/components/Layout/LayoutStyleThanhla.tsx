@@ -221,6 +221,11 @@ export const LayoutStyleThanhla = () => {
                 labelKey: "navigation.delivery_requests",
               },
               {
+                path: "/delivery-notes",
+                icon: <FileTextOutlined />,
+                labelKey: "navigation.delivery_notes",
+              },
+              {
                 path: "/statistics",
                 icon: <BarChartOutlined />,
                 labelKey: "navigation.statistics",

@@ -1218,6 +1218,7 @@
     "orders": "Đơn hàng",
     "shipments": "Ký gửi",
     "delivery_requests": "Yêu cầu giao",
+    "delivery_notes": "Phiếu xuất",
     "peer_payments": "Yêu cầu thanh toán",
     "cash_request": "Yêu cầu thu tiền mặt",
     "packages": "Kiện hàng",
