@@ -2,14 +2,12 @@ import { type FormEvent } from 'react';
 import { message } from 'antd';
 import { useLogin } from '@repo/hooks';
 import { useNavigate, Link } from 'react-router-dom';
-import { appConfig } from '@repo/config';
 import { useTranslation } from '@repo/i18n';
 
 export const LoginStyleThanhla = () => {
     const navigate = useNavigate();
     const { t } = useTranslation();
     const login = useLogin({
-        clientId: appConfig.clientId,
         onSuccess: () => navigate('/'),
         showMessage: (type, msg) => {
             if (type === 'success') message.success(msg);

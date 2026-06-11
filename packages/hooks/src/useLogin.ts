@@ -8,6 +8,9 @@ export interface LoginCredentials {
 }
 
 export interface UseLoginOptions {
+  /**
+   * @deprecated Client id được lấy từ API tenants/current. Chỉ giữ lại để tương thích code cũ.
+   */
   clientId?: string;
   onSuccess?: (data: any) => void;
   onError?: (error: any) => void;
@@ -41,7 +44,6 @@ export interface UseLoginReturn {
  * @example
  * ```tsx
  * const login = useLogin({
- *   clientId: appConfig.clientId,
  *   onSuccess: () => navigate('/dashboard'),
  *   showMessage: (type, msg) => toast[type](msg)
  * });
@@ -56,7 +58,7 @@ export interface UseLoginReturn {
  */
 export const useLogin = (options: UseLoginOptions = {}): UseLoginReturn => {
   const {
-    clientId = "default-client",
+    clientId,
     onSuccess,
     onError,
     showMessage,
@@ -102,6 +104,15 @@ export const useLogin = (options: UseLoginOptions = {}): UseLoginReturn => {
   const isValid =
     credentials.username.trim() !== "" && credentials.password.trim() !== "";
 
+  const resolvedClientId =
+    clientId ||
+    projectInfo?.clientId ||
+    projectInfo?.id ||
+    projectInfo?.tenantConfig?.clientId ||
+    projectInfo?.tenantConfig?.oauthClientId ||
+    projectInfo?.tenantConfig?.authConfig?.clientId ||
+    projectInfo?.tenantConfig?.loginConfig?.clientId;
+
   // Handler đăng nhập chính
   const handleLogin = (data?: LoginCredentials) => {
     const loginData = data || credentials;
@@ -113,6 +124,13 @@ export const useLogin = (options: UseLoginOptions = {}): UseLoginReturn => {
       return;
     }
 
+    if (!resolvedClientId) {
+      const errorMessage = "Không tìm thấy client id từ cấu hình tenant";
+      setLoginError(errorMessage);
+      showMessage?.("error", errorMessage);
+      return;
+    }
+
     setLoginError(null);
 
     login(
@@ -121,7 +139,7 @@ export const useLogin = (options: UseLoginOptions = {}): UseLoginReturn => {
         password: loginData.password,
         grant_type: "password",
         scope: "all",
-        client_id: clientId,
+        client_id: resolvedClientId,
       },
       {
         onSuccess: (data) => {
