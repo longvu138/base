@@ -14,9 +14,9 @@ import {
 } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 import { moneyFormat, quantityFormat } from "@repo/util";
-import { FilterPanel } from "@repo/ui";
 import { useDeliveryNotesMobilePage } from "@repo/hooks";
 import { DeliveryNotesList } from "./DeliveryNotesShared";
+import MobileFilterPanel from "../../components/MobileFilterPanel";
 
 export const DeliveryNotesStyleGobiz = ({ isTabView }: { isTabView?: boolean }) => {
   const { token } = theme.useToken();
@@ -51,16 +51,14 @@ export const DeliveryNotesStyleGobiz = ({ isTabView }: { isTabView?: boolean }) 
         </Card>
       )}
 
-      <Card className="mb-4 shadow-sm">
-        <FilterPanel
+      <MobileFilterPanel
+          className="mb-4 shadow-sm"
           form={page.form}
           onSearch={page.handleSearch}
           onReset={page.handleReset}
           searchText="Tìm kiếm"
           resetText="Làm mới"
           primaryContent={
-            <Row gutter={[16, 12]} align="bottom">
-              <Col xs={24} md={8}>
                 <Form.Item name="code" label="Mã phiếu xuất" style={{ marginBottom: 0 }}>
                   <Input
                     allowClear
@@ -69,13 +67,15 @@ export const DeliveryNotesStyleGobiz = ({ isTabView }: { isTabView?: boolean }) 
                     onPressEnter={page.handleSearch}
                   />
                 </Form.Item>
-              </Col>
-              <Col xs={24} md={8}>
+          }
+          secondaryContent={
+            <Row gutter={[16, 12]}>
+              <Col xs={24} md={12}>
                 <Form.Item name="exportedAtFrom" label="Ngày bắt đầu" style={{ marginBottom: 0 }}>
                   <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" />
                 </Form.Item>
               </Col>
-              <Col xs={24} md={8}>
+              <Col xs={24} md={12}>
                 <Form.Item name="exportedAtTo" label="Ngày kết thúc" style={{ marginBottom: 0 }}>
                   <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" />
                 </Form.Item>
@@ -83,7 +83,6 @@ export const DeliveryNotesStyleGobiz = ({ isTabView }: { isTabView?: boolean }) 
             </Row>
           }
         />
-      </Card>
 
       <DeliveryNotesList page={page} compactHeader={isTabView} />
     </Space>

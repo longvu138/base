@@ -19,9 +19,9 @@ const DeliveryRequestsPage = () => {
             <div className="p-4">
                 <div className="flex items-center justify-between mb-4">
                     <h1 className="text-xl font-bold mb-0">Yêu cầu giao hàng</h1>
-                    <span className="text-[10px] text-gray-400 italic">
+                    {/* <span className="text-[10px] text-gray-400 italic">
                         Variant: <strong className="text-primary">{variant}</strong>
-                    </span>
+                    </span> */}
                 </div>
 
                 <DynamicVariant

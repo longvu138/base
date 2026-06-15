@@ -23,13 +23,14 @@ import {
   theme,
 } from 'antd';
 import { BarcodeOutlined, DownloadOutlined, DownOutlined, UpOutlined } from '@ant-design/icons';
-import { FilterPanel, PinModal } from '@repo/ui';
+import { PinModal } from '@repo/ui';
 import { quantityFormat } from '@repo/util';
 import {
   usePackageMilestonesQuery,
   usePackagesMobilePage,
   useParcelMilestonesQuery,
 } from '@repo/hooks';
+import MobileFilterPanel from '../../components/MobileFilterPanel';
 
 const { Paragraph, Text, Link } = Typography;
 
@@ -85,16 +86,19 @@ const PackagesFilter = ({ page }: { page: PackagesPageState }) => {
   const typeSearch = Form.useWatch('typeSearch', page.form);
 
   return (
-    <Card className="shadow-sm">
-      <FilterPanel
+    <MobileFilterPanel
         form={page.form}
         onSearch={page.handleSearch}
         onReset={page.handleReset}
         searchText="Tìm kiếm"
         resetText="Làm mới"
-        showCollapseAll
         loading={page.isPackageLoading}
         primaryContent={
+          <Form.Item name="packageCode" label="Mã kiện" style={{ marginBottom: 0 }}>
+            <Input allowClear onPressEnter={page.handleSearch} />
+          </Form.Item>
+        }
+        secondaryContent={
           <Space direction="vertical" size={token.marginMD} style={{ width: '100%' }}>
             <Form.Item name="statuses" label="Trạng thái" style={{ marginBottom: 0 }}>
               <Checkbox.Group style={{ width: '100%' }}>
@@ -108,12 +112,7 @@ const PackagesFilter = ({ page }: { page: PackagesPageState }) => {
               </Checkbox.Group>
             </Form.Item>
 
-            <Divider style={{ margin: 0 }} />
-
             <Form.Item name="orderCode" label="Mã đơn" style={{ marginBottom: 0 }}>
-              <Input allowClear onPressEnter={page.handleSearch} />
-            </Form.Item>
-            <Form.Item name="packageCode" label="Mã kiện" style={{ marginBottom: 0 }}>
               <Input allowClear onPressEnter={page.handleSearch} />
             </Form.Item>
             <Form.Item name="trackingNumber" label="Mã vận đơn" style={{ marginBottom: 0 }}>
@@ -133,10 +132,7 @@ const PackagesFilter = ({ page }: { page: PackagesPageState }) => {
                 </Col>
               </Row>
             </Form.Item>
-          </Space>
-        }
-        secondaryContent={
-          <Space direction="vertical" size={token.marginMD} style={{ width: '100%', marginTop: token.marginMD }}>
+            <Divider style={{ margin: 0 }} />
             <Form.Item name="cutOffStatus" label="Kiện dừng ở trạng thái" style={{ marginBottom: 0 }}>
               <Select
                 allowClear
@@ -171,7 +167,6 @@ const PackagesFilter = ({ page }: { page: PackagesPageState }) => {
           </Space>
         }
       />
-    </Card>
   );
 };
 

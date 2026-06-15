@@ -20,9 +20,9 @@ import {
     theme,
 } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
-import { FilterPanel } from '@repo/ui';
 import { moneyFormat, quantityFormat } from '@repo/util';
 import { useWithdrawalSlipsMobilePage } from '@repo/hooks';
+import MobileFilterPanel from '../../components/MobileFilterPanel';
 import {
     WithdrawalSlipCreateButton,
     WithdrawalSlipCreateModal,
@@ -123,14 +123,28 @@ const WithdrawalSlipsFilter = ({ page }: { page: WithdrawalSlipsPageState }) => 
     const { token } = theme.useToken();
 
     return (
-        <Card className="mb-4 shadow-sm">
-            <FilterPanel
+            <MobileFilterPanel
+                className="mb-4 shadow-sm"
                 form={page.form}
                 onSearch={page.handleSearch}
                 onReset={page.handleReset}
                 searchText="Tìm kiếm"
                 resetText="Làm mới"
                 primaryContent={
+                    <Form.Item
+                        name="query"
+                        label="Mã yêu cầu"
+                        style={{ marginBottom: 0 }}
+                    >
+                        <Input
+                            allowClear
+                            prefix={<SearchOutlined />}
+                            placeholder="Nhập mã yêu cầu"
+                            onPressEnter={page.handleSearch}
+                        />
+                    </Form.Item>
+                }
+                secondaryContent={
                     <Space direction="vertical" size={token.margin} style={{ width: '100%' }}>
                         <Form.Item name="statuses" label="Trạng thái" style={{ marginBottom: 0 }}>
                             <Checkbox.Group>
@@ -147,20 +161,6 @@ const WithdrawalSlipsFilter = ({ page }: { page: WithdrawalSlipsPageState }) => 
                             </Checkbox.Group>
                         </Form.Item>
                         <Row gutter={[16, 12]} align="bottom">
-                            <Col xs={24}>
-                                <Form.Item
-                                    name="query"
-                                    label="Mã yêu cầu"
-                                    style={{ marginBottom: 0 }}
-                                >
-                                    <Input
-                                        allowClear
-                                        prefix={<SearchOutlined />}
-                                        placeholder="Nhập mã yêu cầu"
-                                        onPressEnter={page.handleSearch}
-                                    />
-                                </Form.Item>
-                            </Col>
                             <Col xs={24}>
                                 <Form.Item
                                     name="beneficiaryAccount"
@@ -202,7 +202,6 @@ const WithdrawalSlipsFilter = ({ page }: { page: WithdrawalSlipsPageState }) => 
                     </Space>
                 }
             />
-        </Card>
     );
 };
 

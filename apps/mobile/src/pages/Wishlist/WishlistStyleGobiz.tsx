@@ -4,21 +4,17 @@ import { Input as AntInput, Button as AntButton } from 'antd';
 import { Pagination } from '@repo/ui';
 import { usePaginationWithURL, useFilterWithURL, useWishlistQuery, useDeleteWishlistItemMutation } from '@repo/hooks';
 import {
-    SearchOutlined,
-    RedoOutlined,
-    FilterOutlined,
     HeartFilled,
     ShoppingCartOutlined,
     DeleteOutlined,
 } from '@ant-design/icons';
+import MobileFilterPanel from '../../components/MobileFilterPanel';
 import './WishlistStyleGobiz.css';
 
 const { RangePicker } = DatePicker;
 
 export const WishlistStyleGobiz = () => {
     const [form] = Form.useForm();
-    const [searchText, setSearchText] = useState('');
-    const [showFilters, setShowFilters] = useState(false);
 
     const { page, pageSize, setPage, setPageSize } = usePaginationWithURL({
         defaultPage: 1,
@@ -34,14 +30,13 @@ export const WishlistStyleGobiz = () => {
             sort: 'createdAt:desc',
             ...filters,
         };
-        if (searchText) params.query = searchText;
         if (params.dateRange) {
             params.createdFrom = params.dateRange[0]?.toISOString?.() ?? params.dateRange[0];
             params.createdTo = params.dateRange[1]?.toISOString?.() ?? params.dateRange[1];
             delete params.dateRange;
         }
         return params;
-    }, [page, pageSize, filters, searchText]);
+    }, [page, pageSize, filters]);
 
     const { data, isLoading } = useWishlistQuery(apiParams);
     const deleteMutation = useDeleteWishlistItemMutation(apiParams);
@@ -59,11 +54,10 @@ export const WishlistStyleGobiz = () => {
         }
     };
 
-    const handleSearch = () => {
-        applyFilters({ ...form.getFieldsValue(), query: searchText });
+    const handleSearch = (values?: Record<string, any>) => {
+        applyFilters(values ?? form.getFieldsValue());
     };
     const handleReset = () => {
-        setSearchText('');
         clearFilters();
     };
 
@@ -150,45 +144,27 @@ export const WishlistStyleGobiz = () => {
                     </p>
                 </div>
                 
-                <div className="space-y-3">
-                    <div className="flex gap-2">
-                        <AntInput
-                            placeholder="Tìm kiếm..."
-                            prefix={<SearchOutlined className="text-gray-400" />}
-                            value={searchText}
-                            onChange={(e) => setSearchText(e.target.value)}
-                            onPressEnter={handleSearch}
-                            className="flex-1 h-11 rounded-2xl bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700"
-                        />
-                        <AntButton type="primary" icon={<SearchOutlined />} onClick={handleSearch}
-                            className="h-11 px-4 rounded-2xl font-bold shadow-lg shadow-primary/20"
-                        />
-                    </div>
-                    <div className="flex gap-2">
-                        <AntButton icon={<FilterOutlined />} onClick={() => setShowFilters(!showFilters)}
-                            className={`flex-1 h-10 rounded-2xl font-bold transition-all ${showFilters ? 'bg-primary/10 text-primary border-primary/20' : 'bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700'}`}
-                        >
-                            Lọc
-                        </AntButton>
-                        <AntButton icon={<RedoOutlined />} onClick={handleReset}
-                            className="flex-1 h-10 rounded-2xl font-bold border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900"
-                        >
-                            Xóa lọc
-                        </AntButton>
-                    </div>
-                </div>
             </div>
 
-            {/* Advanced Filters */}
-            <div className={`overflow-hidden transition-all duration-300 ease-in-out ${showFilters ? 'max-h-[200px] opacity-100' : 'max-h-0 opacity-0'}`}>
-                <div className="bg-white dark:bg-gray-800 p-5 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
-                    <Form form={form} layout="vertical" onValuesChange={() => applyFilters(form.getFieldsValue())}>
-                        <Form.Item name="dateRange" label={<span className="text-xs font-bold uppercase text-gray-400">Ngày thêm</span>} className="mb-0">
-                            <RangePicker className="w-full h-11 rounded-2xl" placeholder={['Từ', 'Đến']} format="DD/MM/YY" />
-                        </Form.Item>
-                    </Form>
-                </div>
-            </div>
+            <MobileFilterPanel
+                form={form}
+                onSearch={handleSearch}
+                onReset={handleReset}
+                primaryContent={
+                    <Form.Item name="query" className="mb-0">
+                        <AntInput
+                            placeholder="Tìm kiếm..."
+                            allowClear
+                            className="h-11 rounded-2xl bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-700"
+                        />
+                    </Form.Item>
+                }
+                secondaryContent={
+                    <Form.Item name="dateRange" label={<span className="text-xs font-bold uppercase text-gray-400">Ngày thêm</span>} className="mb-0">
+                        <RangePicker className="w-full h-11 rounded-2xl" placeholder={['Từ', 'Đến']} format="DD/MM/YY" />
+                    </Form.Item>
+                }
+            />
 
             {/* Product Grid - 2 columns on mobile */}
             <div className="grid grid-cols-2 gap-3">

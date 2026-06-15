@@ -26,6 +26,7 @@ import {
 } from '@ant-design/icons';
 import { moneyFormat, quantityFormat } from '@repo/util';
 import { useTransactionsMobilePage } from '@repo/hooks';
+import MobileFilterPanel from '../../components/MobileFilterPanel';
 
 const { Paragraph, Text, Title } = Typography;
 const emptyText = '---';
@@ -129,8 +130,25 @@ const TransactionsFilter = ({ page }: { page: TransactionsPageState }) => {
 
     return (
         <>
-            <Card className="mb-4 shadow-sm">
-                <Form form={page.form} layout="vertical" onFinish={page.handleSearch}>
+            <MobileFilterPanel
+                className="mb-4 shadow-sm"
+                form={page.form}
+                onSearch={page.handleSearch}
+                primaryContent={
+                    <Form.Item
+                        name="query"
+                        label={page.t('customer_info.input_code')}
+                        style={{ marginBottom: 0 }}
+                    >
+                        <Input
+                            allowClear
+                            prefix={<SearchOutlined />}
+                            placeholder="Mã đơn, mã giao dịch"
+                            onPressEnter={page.handleSearch}
+                        />
+                    </Form.Item>
+                }
+                secondaryContent={
                     <Space direction="vertical" size={token.marginMD} style={{ width: '100%' }}>
                         <Form.Item
                             name="externalTypes"
@@ -158,63 +176,44 @@ const TransactionsFilter = ({ page }: { page: TransactionsPageState }) => {
                                 })}
                             </Flex>
                         </Form.Item>
-
-                        <Row gutter={[16, 12]} align="bottom">
-                            <Col xs={24}>
-                                <Form.Item
-                                    name="query"
-                                    label={page.t('customer_info.input_code')}
-                                    style={{ marginBottom: 0 }}
-                                >
-                                    <Input
-                                        allowClear
-                                        prefix={<SearchOutlined />}
-                                        placeholder="Mã đơn, mã giao dịch"
-                                        onPressEnter={page.handleSearch}
-                                    />
-                                </Form.Item>
-                            </Col>
-                            <Col xs={24}>
-                                <Form.Item
-                                    label={page.t('customer_info.time')}
-                                    style={{ marginBottom: 0 }}
-                                >
-                                    <Row gutter={8}>
-                                        <Col span={12}>
-                                            <Form.Item name="nominalTimestampFrom" noStyle>
-                                                <DatePicker
-                                                    format="DD/MM/YYYY"
-                                                    placeholder="Từ ngày"
-                                                    style={{ width: '100%' }}
-                                                />
-                                            </Form.Item>
-                                        </Col>
-                                        <Col span={12}>
-                                            <Form.Item name="nominalTimestampTo" noStyle>
-                                                <DatePicker
-                                                    format="DD/MM/YYYY"
-                                                    placeholder="Đến ngày"
-                                                    style={{ width: '100%' }}
-                                                />
-                                            </Form.Item>
-                                        </Col>
-                                    </Row>
-                                </Form.Item>
-                            </Col>
-                        </Row>
-
-                        <Flex justify="end" wrap gap={token.marginSM}>
-                            <Button icon={<ReloadOutlined />} onClick={page.handleReset}>
-                                {page.t('order.filter_refresh')}
-                            </Button>
-
-                            <Button type="primary" htmlType="submit" icon={<SearchOutlined />}>
-                                {page.t('customer_info.search')}
-                            </Button>
-                        </Flex>
+                        <Form.Item
+                            label={page.t('customer_info.time')}
+                            style={{ marginBottom: 0 }}
+                        >
+                            <Row gutter={8}>
+                                <Col span={12}>
+                                    <Form.Item name="nominalTimestampFrom" noStyle>
+                                        <DatePicker
+                                            format="DD/MM/YYYY"
+                                            placeholder="Từ ngày"
+                                            style={{ width: '100%' }}
+                                        />
+                                    </Form.Item>
+                                </Col>
+                                <Col span={12}>
+                                    <Form.Item name="nominalTimestampTo" noStyle>
+                                        <DatePicker
+                                            format="DD/MM/YYYY"
+                                            placeholder="Đến ngày"
+                                            style={{ width: '100%' }}
+                                        />
+                                    </Form.Item>
+                                </Col>
+                            </Row>
+                        </Form.Item>
                     </Space>
-                </Form>
-            </Card>
+                }
+                actions={
+                    <>
+                        <Button icon={<ReloadOutlined />} onClick={page.handleReset}>
+                            {page.t('order.filter_refresh')}
+                        </Button>
+                        <Button type="primary" htmlType="submit" icon={<SearchOutlined />}>
+                            {page.t('customer_info.search')}
+                        </Button>
+                    </>
+                }
+            />
         </>
     );
 };

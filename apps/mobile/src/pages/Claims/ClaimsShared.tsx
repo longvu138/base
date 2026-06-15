@@ -24,9 +24,9 @@ import {
   PlusOutlined,
   SearchOutlined,
 } from "@ant-design/icons";
-import { FilterPanel } from "@repo/ui";
 import { moneyCeil, moneyFormat } from "@repo/util";
 import { useClaimsMobilePage } from "@repo/hooks";
+import MobileFilterPanel from "../../components/MobileFilterPanel";
 
 const { Text, Paragraph } = Typography;
 const CLAIMS_PREFETCH_ITEM_COUNT = 5;
@@ -166,7 +166,7 @@ export const ClaimsFilter = ({ page }: { page: ClaimsPageState }) => {
   );
 
   return (
-    <Card className="mb-4 shadow-sm" styles={{ body: { padding: token.paddingMD } }}>
+    <>
       <style>
         {`
           .claims-filter-actions {
@@ -179,7 +179,8 @@ export const ClaimsFilter = ({ page }: { page: ClaimsPageState }) => {
           }
         `}
       </style>
-      <FilterPanel
+      <MobileFilterPanel
+        className="mb-4 shadow-sm"
         form={page.form}
         onSearch={page.handleSearch}
         onReset={page.handleReset}
@@ -194,6 +195,20 @@ export const ClaimsFilter = ({ page }: { page: ClaimsPageState }) => {
           </Link>
         }
         primaryContent={
+          <Form.Item
+            name="code"
+            label={`${page.t("tickets.enter_code")}:`}
+            style={{ marginBottom: 0 }}
+          >
+            <Input
+              allowClear
+              prefix={<SearchOutlined />}
+              placeholder={page.t("tickets.code")}
+              onPressEnter={page.handleSearch}
+            />
+          </Form.Item>
+        }
+        secondaryContent={
           <Space direction="vertical" size={token.margin} style={{ width: "100%" }}>
             <Form.Item
               name="publicStates"
@@ -239,20 +254,6 @@ export const ClaimsFilter = ({ page }: { page: ClaimsPageState }) => {
             <Row gutter={[token.marginSM, token.marginSM]} style={{ marginInline: 0 }}>
               <Col xs={24} style={{ paddingInline: 0 }}>
                 <Form.Item
-                  name="code"
-                  label={`${page.t("tickets.enter_code")}:`}
-                  style={{ marginBottom: 0 }}
-                >
-                  <Input
-                    allowClear
-                    prefix={<SearchOutlined />}
-                    placeholder={page.t("tickets.code")}
-                    onPressEnter={page.handleSearch}
-                  />
-                </Form.Item>
-              </Col>
-              <Col xs={24} style={{ paddingInline: 0 }}>
-                <Form.Item
                   name="relatedOrder"
                   label={`${page.t("tickets.enter_order_code")}:`}
                   style={{ marginBottom: 0 }}
@@ -281,7 +282,7 @@ export const ClaimsFilter = ({ page }: { page: ClaimsPageState }) => {
           </Space>
         }
       />
-    </Card>
+    </>
   );
 };
 

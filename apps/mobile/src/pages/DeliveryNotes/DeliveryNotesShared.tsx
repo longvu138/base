@@ -21,8 +21,8 @@ import {
 } from "antd";
 import { DownOutlined, SearchOutlined, UpOutlined } from "@ant-design/icons";
 import { moneyFormat, quantityFormat } from "@repo/util";
-import { FilterPanel } from "@repo/ui";
 import { useDeliveryNotesMobilePage } from "@repo/hooks";
+import MobileFilterPanel from "../../components/MobileFilterPanel";
 
 const { Text, Link, Paragraph, Title } = Typography;
 const DELIVERY_NOTES_PREFETCH_ITEM_COUNT = 5;
@@ -105,16 +105,14 @@ export const DeliveryNotesFilter = ({
   page: DeliveryNotesPageState;
 }) => {
   return (
-    <Card className="mb-4 shadow-sm">
-      <FilterPanel
+    <MobileFilterPanel
+        className="mb-4 shadow-sm"
         form={page.form}
         onSearch={page.handleSearch}
         onReset={page.handleReset}
         searchText={page.t("order.search")}
         resetText={page.t("order.filter_refresh")}
         primaryContent={
-          <Row gutter={[20, 16]} align="bottom">
-            <Col xs={24} md={12}>
               <Form.Item
                 name="code"
                 label="Mã phiếu xuất"
@@ -127,8 +125,8 @@ export const DeliveryNotesFilter = ({
                   onPressEnter={page.handleSearch}
                 />
               </Form.Item>
-            </Col>
-            <Col xs={24} md={12}>
+        }
+        secondaryContent={
               <Form.Item label="Thời gian xuất" style={{ marginBottom: 0 }}>
                 <Row gutter={20}>
                   <Col span={12}>
@@ -151,11 +149,8 @@ export const DeliveryNotesFilter = ({
                   </Col>
                 </Row>
               </Form.Item>
-            </Col>
-          </Row>
         }
       />
-    </Card>
   );
 };
 

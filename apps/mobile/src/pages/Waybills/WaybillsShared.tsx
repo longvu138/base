@@ -28,8 +28,8 @@ import {
   SearchOutlined,
 } from "@ant-design/icons";
 import { quantityFormat } from "@repo/util";
-import { FilterPanel } from "@repo/ui";
 import { useWaybillsMobilePage } from "@repo/hooks";
+import MobileFilterPanel from "../../components/MobileFilterPanel";
 
 const { Text, Link, Paragraph, Title } = Typography;
 const WAYBILL_PREFETCH_ITEM_COUNT = 5;
@@ -135,20 +135,6 @@ export const WaybillFilterFields = ({ page }: { page: WaybillsPageState }) => {
         </Form.Item>
       </Flex>
       <Row gutter={[20, 16]} align="bottom">
-        <Col xs={24} md={8}>
-          <Form.Item
-            name="query"
-            label="Mã vận đơn"
-            style={{ marginBottom: 0 }}
-          >
-            <Input
-              allowClear
-              prefix={<SearchOutlined />}
-              placeholder="Nhập mã vận đơn"
-              onPressEnter={page.handleSearch}
-            />
-          </Form.Item>
-        </Col>
         <Col xs={12} md={8}>
           <Form.Item
             name="receivedTimeFrom"
@@ -181,16 +167,29 @@ export const WaybillFilterFields = ({ page }: { page: WaybillsPageState }) => {
 };
 
 export const WaybillFilter = ({ page }: { page: WaybillsPageState }) => (
-  <Card className="mb-4 shadow-sm">
-    <FilterPanel
-      form={page.form}
-      onSearch={page.handleSearch}
-      onReset={page.handleReset}
-      searchText={page.t("order.search")}
-      resetText={page.t("order.filter_refresh")}
-      primaryContent={<WaybillFilterFields page={page} />}
-    />
-  </Card>
+  <MobileFilterPanel
+    className="mb-4 shadow-sm"
+    form={page.form}
+    onSearch={page.handleSearch}
+    onReset={page.handleReset}
+    searchText={page.t("order.search")}
+    resetText={page.t("order.filter_refresh")}
+    primaryContent={
+      <Form.Item
+        name="query"
+        label="Mã vận đơn"
+        style={{ marginBottom: 0 }}
+      >
+        <Input
+          allowClear
+          prefix={<SearchOutlined />}
+          placeholder="Nhập mã vận đơn"
+          onPressEnter={page.handleSearch}
+        />
+      </Form.Item>
+    }
+    secondaryContent={<WaybillFilterFields page={page} />}
+  />
 );
 
 const WaybillCard = ({

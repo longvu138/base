@@ -16,9 +16,9 @@ import {
 } from "antd";
 import { FilterOutlined, SearchOutlined, SyncOutlined } from "@ant-design/icons";
 import { quantityFormat } from "@repo/util";
-import { FilterPanel } from "@repo/ui";
 import { useDeliveryNotesMobilePage } from "@repo/hooks";
 import { DeliveryNotesList } from "./DeliveryNotesShared";
+import MobileFilterPanel from "../../components/MobileFilterPanel";
 
 export const DeliveryNotesStyleThanhla = ({ isTabView }: { isTabView?: boolean }) => {
   const { token } = theme.useToken();
@@ -77,7 +77,7 @@ export const DeliveryNotesStyleThanhla = ({ isTabView }: { isTabView?: boolean }
         width={720}
         onClose={() => setFilterOpen(false)}
       >
-        <FilterPanel
+        <MobileFilterPanel
           form={page.form}
           onSearch={() => {
             page.handleSearch();
@@ -87,12 +87,12 @@ export const DeliveryNotesStyleThanhla = ({ isTabView }: { isTabView?: boolean }
           searchText={page.t("order.search")}
           resetText={page.t("order.filter_refresh")}
           primaryContent={
-            <Row gutter={[20, 16]}>
-              <Col xs={24} md={12}>
                 <Form.Item name="code" label="Mã phiếu xuất" style={{ marginBottom: 0 }}>
                   <Input allowClear prefix={<SearchOutlined />} />
                 </Form.Item>
-              </Col>
+          }
+          secondaryContent={
+            <Row gutter={[20, 16]}>
               <Col xs={24} md={12}>
                 <Form.Item name="exportedAtFrom" label="Ngày bắt đầu" style={{ marginBottom: 0 }}>
                   <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" />

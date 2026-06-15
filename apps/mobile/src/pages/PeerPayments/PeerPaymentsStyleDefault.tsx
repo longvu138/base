@@ -50,6 +50,7 @@ import {
 import { useMobilePeerPaymentsPage } from "@repo/hooks";
 import { LocalStoreUtil, moneyFormat } from "@repo/util";
 import { PinModal } from "@repo/ui";
+import MobileFilterPanel from "../../components/MobileFilterPanel";
 
 const { Text, Title, Paragraph } = Typography;
 
@@ -819,13 +820,16 @@ export const PeerPaymentsStyleDefault = () => {
         </Space>
       </Card>
 
-      <Card styles={{ body: { padding: token.paddingMD } }}>
-        <Form form={page.form} layout="vertical" onFinish={page.handleSearch}>
-          <Space direction="vertical" size="small" style={{ width: "100%" }}>
+      <MobileFilterPanel
+        form={page.form}
+        onSearch={page.handleSearch}
+        primaryContent={
             <Form.Item name="query" label={page.t("peer_payment.code")}>
               <Input placeholder={page.t("peer_payment.code")} allowClear />
             </Form.Item>
-
+        }
+        secondaryContent={
+          <Space direction="vertical" size="small" style={{ width: "100%" }}>
             {page.peerPaymentType !== "transfer" ? (
               <Form.Item
                 name="paymentAccount"
@@ -923,20 +927,19 @@ export const PeerPaymentsStyleDefault = () => {
                 </Space>
               </Checkbox.Group>
             </Form.Item>
-
-            <Flex justify="flex-end">
-              <Space wrap>
-                <Button onClick={page.handleReset} icon={<ReloadOutlined />}>
-                  {page.t("orders.buttons.reset")}
-                </Button>
-                <Button type="primary" htmlType="submit" icon={<SearchOutlined />}>
-                  {page.t("orders.buttons.search")}
-                </Button>
-              </Space>
-            </Flex>
           </Space>
-        </Form>
-      </Card>
+        }
+        actions={
+          <>
+            <Button onClick={page.handleReset} icon={<ReloadOutlined />}>
+              {page.t("orders.buttons.reset")}
+            </Button>
+            <Button type="primary" htmlType="submit" icon={<SearchOutlined />}>
+              {page.t("orders.buttons.search")}
+            </Button>
+          </>
+        }
+      />
 
       {page.isLoading ? (
         <Space direction="vertical" size="middle" style={{ width: "100%" }}>

@@ -32,9 +32,9 @@ export const Login = () => {
                             <ThemeSwitcher />
                         </div>
                     </div>
-                    <span className="text-[10px] text-gray-400 italic">
+                    {/* <span className="text-[10px] text-gray-400 italic">
                         Variant: <strong className="text-primary">{variant}</strong>
-                    </span>
+                    </span> */}
                 </div>
 
             </div>

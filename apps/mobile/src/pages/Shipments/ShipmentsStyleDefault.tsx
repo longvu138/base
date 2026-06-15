@@ -9,8 +9,8 @@ import {
   useMobileShipmentsPage,
   useShipmentMilestonesQuery,
 } from "@repo/hooks";
-import { FilterPanel } from "@repo/ui";
 import { moneyFormat, quantityFormat } from "@repo/util";
+import MobileFilterPanel from "../../components/MobileFilterPanel";
 import {
   Alert,
   Avatar,
@@ -688,90 +688,74 @@ export const ShipmentsView = ({
 
   return (
     <Space direction="vertical" size={pageGap} style={{ width: "100%" }}>
-      <Card className="mb-4 shadow-sm">
-        <FilterPanel
+      <MobileFilterPanel
           form={form}
           onSearch={handleSearch}
           onReset={handleReset}
           searchText={t("orders.buttons.search")}
           resetText={t("orders.buttons.reset")}
-          showCollapseAll={true}
           primaryContent={
-            <Space
-              direction="vertical"
-              size={pageGap}
-              style={{ width: "100%" }}
+            <Form.Item
+              name="query"
+              label={t("shipments.filters.code")}
+              style={{ marginBottom: 0 }}
             >
-              <Form.Item
-                name="statuses"
-                label={t("shipments.filters.status")}
-                style={{ marginBottom: 0 }}
-              >
-                <Checkbox.Group>
-                  <Space wrap>
-                    {statusOptions.map((option: any) => (
-                      <Checkbox key={option.value} value={option.value}>
-                        {option.label}
-                        {option.hasStatistic
-                          ? ` (${quantityFormat(option.count)})`
-                          : ""}
-                      </Checkbox>
-                    ))}
-                  </Space>
-                </Checkbox.Group>
-              </Form.Item>
-
-              <Row gutter={[16, 8]}>
-                <Col xs={24} md={8}>
-                  <Form.Item
-                    name="query"
-                    label={t("shipments.filters.code")}
-                    style={{ marginBottom: 0 }}
-                  >
-                    <Input
-                      allowClear
-                      placeholder={t("shipments.search_placeholder")}
-                      onPressEnter={handleSearch}
-                    />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={16}>
-                  <Form.Item
-                    label={t("shipments.filters.created_at")}
-                    style={{ marginBottom: 0 }}
-                  >
-                    <Row gutter={[12, 8]}>
-                      <Col xs={24} md={12}>
-                        <Form.Item name="timestampFrom" noStyle>
-                          <DatePicker
-                            style={{ width: "100%" }}
-                            format="DD/MM/YYYY"
-                            placeholder={t("orders.filters.start_date")}
-                          />
-                        </Form.Item>
-                      </Col>
-                      <Col xs={24} md={12}>
-                        <Form.Item name="timestampTo" noStyle>
-                          <DatePicker
-                            style={{ width: "100%" }}
-                            format="DD/MM/YYYY"
-                            placeholder={t("orders.filters.end_date")}
-                          />
-                        </Form.Item>
-                      </Col>
-                    </Row>
-                  </Form.Item>
-                </Col>
-              </Row>
-            </Space>
+              <Input
+                allowClear
+                placeholder={t("shipments.search_placeholder")}
+                onPressEnter={handleSearch}
+              />
+            </Form.Item>
           }
           secondaryContent={
-            <div style={{ marginTop: 16 }}>
               <Space
                 direction="vertical"
                 size={pageGap}
                 style={{ width: "100%" }}
               >
+                <Form.Item
+                  name="statuses"
+                  label={t("shipments.filters.status")}
+                  style={{ marginBottom: 0 }}
+                >
+                  <Checkbox.Group>
+                    <Space wrap>
+                      {statusOptions.map((option: any) => (
+                        <Checkbox key={option.value} value={option.value}>
+                          {option.label}
+                          {option.hasStatistic
+                            ? ` (${quantityFormat(option.count)})`
+                            : ""}
+                        </Checkbox>
+                      ))}
+                    </Space>
+                  </Checkbox.Group>
+                </Form.Item>
+                <Form.Item
+                  label={t("shipments.filters.created_at")}
+                  style={{ marginBottom: 0 }}
+                >
+                  <Row gutter={[12, 8]}>
+                    <Col xs={24} md={12}>
+                      <Form.Item name="timestampFrom" noStyle>
+                        <DatePicker
+                          style={{ width: "100%" }}
+                          format="DD/MM/YYYY"
+                          placeholder={t("orders.filters.start_date")}
+                        />
+                      </Form.Item>
+                    </Col>
+                    <Col xs={24} md={12}>
+                      <Form.Item name="timestampTo" noStyle>
+                        <DatePicker
+                          style={{ width: "100%" }}
+                          format="DD/MM/YYYY"
+                          placeholder={t("orders.filters.end_date")}
+                        />
+                      </Form.Item>
+                    </Col>
+                  </Row>
+                </Form.Item>
                 <Row gutter={[16, 8]}>
                   <Col xs={24} md={8}>
                     <Form.Item
@@ -911,10 +895,8 @@ export const ShipmentsView = ({
                   </Col>
                 </Row>
               </Space>
-            </div>
           }
         />
-      </Card>
 
       <Card>
         <Flex

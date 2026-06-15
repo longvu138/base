@@ -23,10 +23,11 @@ import {
   theme,
 } from 'antd';
 import { DownloadOutlined, SearchOutlined } from '@ant-design/icons';
-import { FilterPanel, PinModal } from '@repo/ui';
+import { PinModal } from '@repo/ui';
 import { moneyFormat, quantityFormat } from '@repo/util';
 import { useOrdersMobilePage } from '@repo/hooks';
 import { CutOffStatusFilter, OrderNoteEditor } from '@repo/features/orders';
+import MobileFilterPanel from '../../components/MobileFilterPanel';
 
 const { Text, Paragraph, Link } = Typography;
 
@@ -69,127 +70,121 @@ const OrdersFilter = ({ page }: { page: OrdersMobilePageState }) => {
   const typeSearch = Form.useWatch('typeSearch', page.form);
 
   return (
-    <Card className="shadow-sm">
-      <FilterPanel
-        form={page.form}
-        onSearch={page.handleSearch}
-        onReset={page.handleReset}
-        loading={page.isOrderLoading}
-        searchText={page.t('orders.buttons.search')}
-        resetText={page.t('orders.buttons.reset')}
-        showCollapseAll
-        primaryContent={
-          <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-            <Form.Item name="statuses" label={page.t('orders.filters.status')} style={{ marginBottom: 0 }}>
-              <Checkbox.Group style={{ width: '100%' }}>
-                <Flex wrap gap={token.marginXS}>
-                  {page.statusOptions.map((item: any) => (
-                    <Checkbox key={item.value} value={item.value}>
-                      {item.label} {Number(item.count) > 0 ? `(${item.count})` : ''}
-                    </Checkbox>
-                  ))}
-                </Flex>
-              </Checkbox.Group>
-            </Form.Item>
-
-            <Form.Item name="query" label={page.t('orders.search_placeholder')} style={{ marginBottom: 0 }}>
-              <Input
-                allowClear
-                prefix={<SearchOutlined />}
-                placeholder={page.t('orders.search_placeholder')}
-                onPressEnter={page.handleSearch}
-              />
-            </Form.Item>
-            <Form.Item name="note" label={page.t('orders.filters.note')} style={{ marginBottom: 0 }}>
-              <Input allowClear placeholder={page.t('orders.filters.note')} />
-            </Form.Item>
-            <Row gutter={[12, 12]}>
-              <Col xs={12}>
-                <Form.Item name="timestampFrom" label={page.t('orders.filters.created_at')} style={{ marginBottom: 0 }}>
-                  <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" placeholder={page.t('orders.filters.start_date')} />
-                </Form.Item>
-              </Col>
-              <Col xs={12}>
-                <Form.Item name="timestampTo" label=" " style={{ marginBottom: 0 }}>
-                  <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" placeholder={page.t('orders.filters.end_date')} />
-                </Form.Item>
-              </Col>
-            </Row>
-          </Space>
-        }
-        secondaryContent={
-          <Space direction="vertical" size="middle" style={{ width: '100%', marginTop: token.marginMD }}>
-            <Row gutter={[12, 12]}>
-              <Col xs={12}>
-                <Form.Item name="refOrderCode" label={page.t('orders.filters.ref_order_code')} style={{ marginBottom: 0 }}>
-                  <Input allowClear placeholder={page.t('orders.filters.ref_order_code')} />
-                </Form.Item>
-              </Col>
-              <Col xs={12}>
-                <Form.Item name="refCustomerCode" label={page.t('orders.filters.ref_customer_code')} style={{ marginBottom: 0 }}>
-                  <Input allowClear placeholder={page.t('orders.filters.ref_customer_code')} />
-                </Form.Item>
-              </Col>
-            </Row>
-            <Form.Item name="needPaid" valuePropName="checked" style={{ marginBottom: 0 }}>
-              <Checkbox>{page.t('orders.filters.financial_payment')}</Checkbox>
-            </Form.Item>
-            <Form.Item name="marketplaces" label={page.t('orders.filters.source')} style={{ marginBottom: 0 }}>
-              <Checkbox.Group style={{ width: '100%' }}>
-                <Flex wrap gap={token.marginXS}>
-                  {page.marketplacesData?.map((item: any) => (
-                    <Checkbox key={item.code} value={item.code}>
-                      {item.name}
-                    </Checkbox>
-                  ))}
-                </Flex>
-              </Checkbox.Group>
-            </Form.Item>
-            <Form.Item name="services" label={page.t('orders.filters.services')} style={{ marginBottom: 0 }}>
-              <Checkbox.Group style={{ width: '100%' }}>
-                <Flex wrap gap={token.marginXS}>
-                  {page.servicesData?.map((item: any) => (
-                    <Checkbox key={item.code} value={item.code}>
-                      {item.name}
-                    </Checkbox>
-                  ))}
-                </Flex>
-              </Checkbox.Group>
-            </Form.Item>
-            <CutOffStatusFilter
-              form={page.form}
-              statusData={page.statusData}
-              t={page.t}
-              typeSearch={typeSearch}
+    <MobileFilterPanel
+      form={page.form}
+      onSearch={page.handleSearch}
+      onReset={page.handleReset}
+      loading={page.isOrderLoading}
+      searchText={page.t('orders.buttons.search')}
+      resetText={page.t('orders.buttons.reset')}
+      primaryContent={
+        <Form.Item name="query" label={page.t('orders.search_placeholder')} style={{ marginBottom: 0 }}>
+          <Input
+            allowClear
+            prefix={<SearchOutlined />}
+            placeholder={page.t('orders.search_placeholder')}
+            onPressEnter={page.handleSearch}
+          />
+        </Form.Item>
+      }
+      secondaryContent={
+        <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+          <Form.Item name="statuses" label={page.t('orders.filters.status')} style={{ marginBottom: 0 }}>
+            <Checkbox.Group style={{ width: '100%' }}>
+              <Flex wrap gap={token.marginXS}>
+                {page.statusOptions.map((item: any) => (
+                  <Checkbox key={item.value} value={item.value}>
+                    {item.label} {Number(item.count) > 0 ? `(${item.count})` : ''}
+                  </Checkbox>
+                ))}
+              </Flex>
+            </Checkbox.Group>
+          </Form.Item>
+          <Form.Item name="note" label={page.t('orders.filters.note')} style={{ marginBottom: 0 }}>
+            <Input allowClear placeholder={page.t('orders.filters.note')} />
+          </Form.Item>
+          <Row gutter={[12, 12]}>
+            <Col xs={12}>
+              <Form.Item name="timestampFrom" label={page.t('orders.filters.created_at')} style={{ marginBottom: 0 }}>
+                <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" placeholder={page.t('orders.filters.start_date')} />
+              </Form.Item>
+            </Col>
+            <Col xs={12}>
+              <Form.Item name="timestampTo" label=" " style={{ marginBottom: 0 }}>
+                <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" placeholder={page.t('orders.filters.end_date')} />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Row gutter={[12, 12]}>
+            <Col xs={12}>
+              <Form.Item name="refOrderCode" label={page.t('orders.filters.ref_order_code')} style={{ marginBottom: 0 }}>
+                <Input allowClear placeholder={page.t('orders.filters.ref_order_code')} />
+              </Form.Item>
+            </Col>
+            <Col xs={12}>
+              <Form.Item name="refCustomerCode" label={page.t('orders.filters.ref_customer_code')} style={{ marginBottom: 0 }}>
+                <Input allowClear placeholder={page.t('orders.filters.ref_customer_code')} />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Form.Item name="needPaid" valuePropName="checked" style={{ marginBottom: 0 }}>
+            <Checkbox>{page.t('orders.filters.financial_payment')}</Checkbox>
+          </Form.Item>
+          <Form.Item name="marketplaces" label={page.t('orders.filters.source')} style={{ marginBottom: 0 }}>
+            <Checkbox.Group style={{ width: '100%' }}>
+              <Flex wrap gap={token.marginXS}>
+                {page.marketplacesData?.map((item: any) => (
+                  <Checkbox key={item.code} value={item.code}>
+                    {item.name}
+                  </Checkbox>
+                ))}
+              </Flex>
+            </Checkbox.Group>
+          </Form.Item>
+          <Form.Item name="services" label={page.t('orders.filters.services')} style={{ marginBottom: 0 }}>
+            <Checkbox.Group style={{ width: '100%' }}>
+              <Flex wrap gap={token.marginXS}>
+                {page.servicesData?.map((item: any) => (
+                  <Checkbox key={item.code} value={item.code}>
+                    {item.name}
+                  </Checkbox>
+                ))}
+              </Flex>
+            </Checkbox.Group>
+          </Form.Item>
+          <CutOffStatusFilter
+            form={page.form}
+            statusData={page.statusData}
+            t={page.t}
+            typeSearch={typeSearch}
+          />
+          <Form.Item name="milestoneStatus" label={page.t('orders.filters.time_range')} style={{ marginBottom: 0 }}>
+            <Select
+              allowClear
+              showSearch
+              placeholder={page.t('orders.filters.status')}
+              optionFilterProp="label"
+              options={page.statusData?.map((item: any) => ({
+                label: item.name,
+                value: item.code,
+              }))}
             />
-            <Form.Item name="milestoneStatus" label={page.t('orders.filters.time_range')} style={{ marginBottom: 0 }}>
-              <Select
-                allowClear
-                showSearch
-                placeholder={page.t('orders.filters.status')}
-                optionFilterProp="label"
-                options={page.statusData?.map((item: any) => ({
-                  label: item.name,
-                  value: item.code,
-                }))}
-              />
-            </Form.Item>
-            <Row gutter={[12, 12]}>
-              <Col xs={12}>
-                <Form.Item name="milestoneStatusFrom" label={page.t('orders.filters.start_date')} style={{ marginBottom: 0 }}>
-                  <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" placeholder={page.t('orders.filters.start_date')} />
-                </Form.Item>
-              </Col>
-              <Col xs={12}>
-                <Form.Item name="milestoneStatusTo" label={page.t('orders.filters.end_date')} style={{ marginBottom: 0 }}>
-                  <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" placeholder={page.t('orders.filters.end_date')} />
-                </Form.Item>
-              </Col>
-            </Row>
-          </Space>
-        }
-      />
-    </Card>
+          </Form.Item>
+          <Row gutter={[12, 12]}>
+            <Col xs={12}>
+              <Form.Item name="milestoneStatusFrom" label={page.t('orders.filters.start_date')} style={{ marginBottom: 0 }}>
+                <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" placeholder={page.t('orders.filters.start_date')} />
+              </Form.Item>
+            </Col>
+            <Col xs={12}>
+              <Form.Item name="milestoneStatusTo" label={page.t('orders.filters.end_date')} style={{ marginBottom: 0 }}>
+                <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" placeholder={page.t('orders.filters.end_date')} />
+              </Form.Item>
+            </Col>
+          </Row>
+        </Space>
+      }
+    />
   );
 };
 

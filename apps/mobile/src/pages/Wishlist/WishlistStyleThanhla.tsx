@@ -41,10 +41,6 @@ export const WishlistStyleThanhla = () => {
                         {wishlistData?.total || 0} sản phẩm trong danh sách
                     </p>
                 </div>
-                
-                <span className="text-[10px] text-gray-400 italic">
-                    Variant: <strong className="text-primary">{variant}</strong>
-                </span>
             </div>
 
             {/* Thanh tìm kiếm Mobile */}
