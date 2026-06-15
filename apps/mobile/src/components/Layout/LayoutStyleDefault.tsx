@@ -1,31 +1,33 @@
-﻿import { Layout as AntLayout, Menu, Drawer, Button, Select } from "antd";
+﻿import { Avatar, Layout as AntLayout, Drawer, Button, Select } from "antd";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import {
   HomeOutlined,
   ShoppingCartOutlined,
   MenuOutlined,
   LogoutOutlined,
-  HeartFilled,
   CarOutlined,
   AlertOutlined,
   FileTextOutlined,
   BoxPlotOutlined,
-  TransactionOutlined,
-  UserOutlined,
-  EnvironmentOutlined,
-  SendOutlined,
-  TagOutlined,
   QuestionCircleOutlined,
   WalletOutlined,
   DollarOutlined,
   BellOutlined,
   BarChartOutlined,
   PayCircleOutlined,
+  DownOutlined,
+  GlobalOutlined,
+  BarcodeOutlined,
+  CalendarOutlined,
+  DesktopOutlined,
 } from "@ant-design/icons";
 import { useMemo, useState } from "react";
+import type { ReactNode } from "react";
 import { ThemeSwitcher } from "@repo/theme-provider";
-import { useCustomerProfile, useLogout } from "@repo/hooks";
+import { useCustomerBalance, useCustomerProfile, useLogout } from "@repo/hooks";
 import { useLanguage, useTranslation } from "@repo/i18n";
+import { moneyFormat } from "@repo/util";
+import DepositModal from "../DepositModal";
 
 const { Header, Content } = AntLayout;
 
@@ -34,6 +36,8 @@ function Layout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [drawerVisible, setDrawerVisible] = useState(false);
+  const [depositModalOpen, setDepositModalOpen] = useState(false);
+  const currentPath = `${location.pathname}${location.search}`;
   const { currentLanguage, availableLanguages, changeLanguage } = useLanguage();
   const storedUser = useMemo(() => {
     try {
@@ -43,6 +47,7 @@ function Layout() {
     }
   }, []);
   const { data: profile } = useCustomerProfile();
+  const { data: balanceData } = useCustomerBalance();
   const currentUser = profile || storedUser;
   const displayName =
     currentUser?.fullname ||
@@ -56,202 +61,164 @@ function Layout() {
     currentUser?.phone ||
     currentUser?.code ||
     "";
+  const balance = Number(balanceData?.balance ?? currentUser?.balance ?? 0);
 
   const { handleLogout } = useLogout({
     onSuccess: () => navigate("/login"),
   });
 
-  const menuItems = [
+  type DrawerItem = {
+    key: string;
+    label: string;
+    icon: ReactNode;
+    path?: string;
+    collapsible?: boolean;
+    onClick?: () => void;
+  };
+
+  const drawerItems: DrawerItem[] = [
+    {
+      key: "deposit",
+      label: t("header.deposit"),
+      icon: <DollarOutlined />,
+      onClick: () => {
+        setDrawerVisible(false);
+        setDepositModalOpen(true);
+      },
+    },
     {
       key: "/dashboard",
-      icon: <HomeOutlined />,
-      label: (
-        <Link to="/dashboard" onClick={() => setDrawerVisible(false)}>
-          {t("navigation.dashboard")}
-        </Link>
-      ),
+      label: "Bảng Chung",
+      icon: <FileTextOutlined />,
+      path: "/dashboard",
     },
     {
       key: "/orders",
-      icon: <ShoppingCartOutlined />,
-      label: (
-        <Link to="/orders" onClick={() => setDrawerVisible(false)}>
-          {t("navigation.orders")}
-        </Link>
-      ),
+      label: "Đơn Hàng",
+      icon: <BellOutlined />,
+      path: "/orders",
+      collapsible: true,
     },
     {
       key: "/shipments",
-      icon: <CarOutlined />,
-      label: (
-        <Link to="/shipments" onClick={() => setDrawerVisible(false)}>
-          {t("navigation.shipments")}
-        </Link>
-      ),
-    },
-    {
-      key: "/packages",
+      label: "Đơn Ký Gửi",
       icon: <BoxPlotOutlined />,
-      label: (
-        <Link to="/packages" onClick={() => setDrawerVisible(false)}>
-          {t("navigation.packages")}
-        </Link>
-      ),
+      path: "/shipments",
     },
     {
-      key: "/claims",
-      icon: <AlertOutlined />,
-      label: (
-        <Link to="/claims" onClick={() => setDrawerVisible(false)}>
-          {t("navigation.claims")}
-        </Link>
-      ),
-    },
-    {
-      key: "/transactions",
-      icon: <TransactionOutlined />,
-      label: (
-        <Link to="/transactions" onClick={() => setDrawerVisible(false)}>
-          {t("navigation.transactions")}
-        </Link>
-      ),
-    },
-    {
-      key: "/withdrawal-slips",
-      icon: <WalletOutlined />,
-      label: (
-        <Link to="/withdrawal-slips" onClick={() => setDrawerVisible(false)}>
-          {t("navigation.withdrawal_slips")}
-        </Link>
-      ),
-    },
-    {
-      key: "/cash-request",
-      icon: <DollarOutlined />,
-      label: (
-        <Link to="/cash-request" onClick={() => setDrawerVisible(false)}>
-          {t("navigation.cash_request")}
-        </Link>
-      ),
-    },
-    {
-      key: "/peer-payments",
-      icon: <PayCircleOutlined />,
-      label: (
-        <Link to="/peer-payments" onClick={() => setDrawerVisible(false)}>
-          {t("navigation.peer_payments")}
-        </Link>
-      ),
-    },
-    {
-      type: "divider",
+      key: "global",
+      label: "Global",
+      icon: <GlobalOutlined />,
+      path: "/carts",
+      collapsible: true,
     },
     {
       key: "/delivery-requests",
-      icon: <SendOutlined />,
-      label: (
-        <Link to="/delivery-requests" onClick={() => setDrawerVisible(false)}>
-          {t("navigation.delivery_requests")}
-        </Link>
-      ),
-    },
-    {
-      key: "/delivery-notes",
-      icon: <FileTextOutlined />,
-      label: (
-        <Link to="/delivery-notes" onClick={() => setDrawerVisible(false)}>
-          {t("navigation.delivery_notes")}
-        </Link>
-      ),
+      label: "Giao Hàng",
+      icon: <CarOutlined />,
+      path: "/delivery-requests",
+      collapsible: true,
     },
     {
       key: "/waybills",
-      icon: <TagOutlined />,
-      label: (
-        <Link to="/waybills" onClick={() => setDrawerVisible(false)}>
-          {t("navigation.waybill_short")}
-        </Link>
-      ),
+      label: t("navigation.waybill_short"),
+      icon: <BarcodeOutlined />,
+      path: "/waybills",
     },
     {
-      type: "divider",
+      key: "/transactions",
+      label: t("navigation.transactions"),
+      icon: <CalendarOutlined />,
+      path: "/transactions",
     },
     {
-      key: "/profile",
-      icon: <UserOutlined />,
-      label: (
-        <Link to="/profile" onClick={() => setDrawerVisible(false)}>
-          {t("navigation.profile")}
-        </Link>
-      ),
+      key: "/packages",
+      label: "Hàng sai lỗi",
+      icon: <FileTextOutlined />,
+      path: "/packages",
     },
     {
-      key: "/notifications",
-      icon: <BellOutlined />,
-      label: (
-        <Link to="/notifications" onClick={() => setDrawerVisible(false)}>
-          {t("navigation.notifications")}
-        </Link>
-      ),
+      key: "/peer-payments",
+      label: "Yêu cầu thanh toán",
+      icon: <PayCircleOutlined />,
+      path: "/peer-payments",
+    },
+    {
+      key: "/claims",
+      label: "Khiếu Nại",
+      icon: <AlertOutlined />,
+      path: "/claims",
+    },
+    {
+      key: "/withdrawal-slips",
+      label: "Yêu cầu rút tiền",
+      icon: <WalletOutlined />,
+      path: "/withdrawal-slips",
+    },
+    {
+      key: "/cash-request",
+      label: "Yêu cầu thu tiền mặt",
+      icon: <DollarOutlined />,
+      path: "/cash-request",
     },
     {
       key: "/statistics",
+      label: "Thống kê chi tiêu",
       icon: <BarChartOutlined />,
-      label: (
-        <Link to="/statistics" onClick={() => setDrawerVisible(false)}>
-          {t("navigation.statistics")}
-        </Link>
-      ),
+      path: "/statistics",
     },
     {
-      key: "/address",
-      icon: <EnvironmentOutlined />,
-      label: (
-        <Link to="/address" onClick={() => setDrawerVisible(false)}>
-          {t("navigation.address_short")}
-        </Link>
-      ),
-    },
-    {
-      key: "/vouchers",
-      icon: <TagOutlined />,
-      label: (
-        <Link to="/vouchers" onClick={() => setDrawerVisible(false)}>
-          {t("navigation.vouchers")}
-        </Link>
-      ),
-    },
-    {
-      key: "/wishlist",
-      icon: <HeartFilled />,
-      label: (
-        <Link to="/wishlist" onClick={() => setDrawerVisible(false)}>
-          {t("navigation.wishlist_short")}
-        </Link>
-      ),
-    },
-    {
-      key: "/faqs",
+      key: "/profile?tab=faqs",
+      label: "Hướng dẫn",
       icon: <QuestionCircleOutlined />,
-      label: (
-        <Link to="/faqs" onClick={() => setDrawerVisible(false)}>
-          {t("navigation.faqs_short")}
-        </Link>
-      ),
-    },
-    {
-      type: "divider",
-    },
-    {
-      key: "logout",
-      icon: <LogoutOutlined className="text-red-500" />,
-      label: <span className="text-red-500">{t("navigation.logout")}</span>,
-      onClick: () => {
-        setDrawerVisible(false);
-        handleLogout();
-      },
+      path: "/profile?tab=faqs",
     },
   ];
+
+  const renderDrawerItem = (item: DrawerItem) => {
+    const content = (
+      <>
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center text-[22px] text-neutral-900 dark:text-neutral-100">
+          {item.icon}
+        </span>
+        <span className="min-w-0 flex-1 text-[18px] font-medium leading-6 text-neutral-800 dark:text-neutral-100">
+          {item.label}
+        </span>
+        {item.collapsible ? (
+          <DownOutlined className="text-sm text-neutral-900 dark:text-neutral-100" />
+        ) : null}
+      </>
+    );
+    const className = `flex min-h-[62px] items-center gap-4 px-7 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-900 ${
+      item.path === currentPath || item.path === location.pathname
+        ? "bg-neutral-50 dark:bg-neutral-900"
+        : ""
+    }`;
+
+    if (item.onClick) {
+      return (
+        <button
+          key={item.key}
+          type="button"
+          onClick={item.onClick}
+          className={`${className} w-full border-0 bg-transparent text-left`}
+        >
+          {content}
+        </button>
+      );
+    }
+
+    return (
+      <Link
+        key={item.key}
+        to={item.path || "/"}
+        onClick={() => setDrawerVisible(false)}
+        className={className}
+      >
+        {content}
+      </Link>
+    );
+  };
 
   return (
     <AntLayout className="min-h-screen">
@@ -284,26 +251,73 @@ function Layout() {
       </Header>
 
       <Drawer
-        title={t("navigation.menu")}
         placement="left"
         onClose={() => setDrawerVisible(false)}
         open={drawerVisible}
-        bodyStyle={{ padding: 0 }}
-        width={260}
+        width="92vw"
+        styles={{
+          header: { display: "none" },
+          body: { padding: 0 },
+          content: { overflow: "hidden" },
+        }}
       >
-        <div className="p-4 bg-gray-50 dark:bg-gray-800 mb-2">
-          <div className="font-bold dark:text-white">{displayName}</div>
-          <div className="text-xs text-gray-500 dark:text-gray-400">
-            {userSubtitle}
+        <div className="flex h-full flex-col bg-white dark:bg-neutral-950">
+          <Link
+            to="/profile"
+            onClick={() => setDrawerVisible(false)}
+            className="flex min-h-[132px] items-center gap-5 border-b border-neutral-200 px-7 dark:border-neutral-800"
+          >
+            <Avatar
+              size={72}
+              src={`https://api.dicebear.com/7.x/pixel-art/svg?seed=${encodeURIComponent(displayName)}`}
+              className="shrink-0 bg-neutral-100"
+            />
+            <div className="min-w-0">
+              <div className="truncate text-[20px] font-bold leading-7 text-neutral-950 dark:text-white">
+                {displayName}
+              </div>
+              <div className="text-[16px] font-medium leading-6 text-green-600">
+                {balance >= 0 ? "+" : ""}
+                {moneyFormat(balance)}
+              </div>
+              {userSubtitle ? (
+                <div className="truncate text-xs text-neutral-400">
+                  {userSubtitle}
+                </div>
+              ) : null}
+            </div>
+          </Link>
+
+          <div className="min-h-0 flex-1 overflow-y-auto py-4">
+            {drawerItems.map(renderDrawerItem)}
+          </div>
+
+          <div className="border-t border-neutral-200 dark:border-neutral-800">
+            <button
+              type="button"
+              disabled
+              className="flex min-h-[58px] w-full items-center gap-4 border-0 bg-transparent px-7 text-left text-neutral-300"
+            >
+              <DesktopOutlined className="h-8 w-8 text-[22px]" />
+              <span className="text-[18px] font-medium">
+                Sử dụng phiên bản desktop
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setDrawerVisible(false);
+                handleLogout();
+              }}
+              className="flex min-h-[58px] w-full items-center gap-4 border-0 bg-transparent px-7 text-left text-neutral-300"
+            >
+              <LogoutOutlined className="h-8 w-8 text-[22px]" />
+              <span className="text-[18px] font-medium">
+                {t("navigation.logout")}
+              </span>
+            </button>
           </div>
         </div>
-
-        <Menu
-          mode="inline"
-          selectedKeys={[location.pathname]}
-          items={menuItems.map((item) => item as any)}
-          className="border-0"
-        />
       </Drawer>
 
       <Content className="bg-layout min-h-0 overflow-auto pb-20">
@@ -350,6 +364,10 @@ function Layout() {
           </span>
         </Link>
       </div>
+      <DepositModal
+        open={depositModalOpen}
+        onClose={() => setDepositModalOpen(false)}
+      />
     </AntLayout>
   );
 }
