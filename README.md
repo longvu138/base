@@ -4,7 +4,6 @@ Repo này là một monorepo React/Vite cho bài toán multi-tenant UI, gồm:
 
 - `apps/web`: web app
 - `apps/mobile`: mobile web app
-- `apps/tenant-server`: mock backend trả tenant config
 - `packages/*`: theme, hooks, API client, UI shared components
 
 Source hiện tại đã được refactor theo hướng:
@@ -22,8 +21,6 @@ Source hiện tại đã được refactor theo hướng:
   web app chạy ở `http://localhost:3000`
 - `mobile/`
   mobile app chạy ở `http://localhost:3001`
-- `tenant-server/`
-  mock API tenant config chạy ở `http://localhost:3003`
 
 ### `packages/`
 
@@ -122,7 +119,6 @@ Thông thường:
 
 - web: `http://localhost:3000`
 - mobile: `http://localhost:3001`
-- tenant-server: `http://localhost:3003`
 
 Chạy kiểm tra type:
 
@@ -142,12 +138,11 @@ pnpm build
 
 Đây là hướng nên ưu tiên.
 
-Backend:
+Tenant config:
 
-1. Thêm tenant vào `apps/tenant-server/src/index.js`
-2. Chọn `planCode`
-3. Chọn `variantCode` dùng lại như `default`, `thanhla` hoặc `gobiz`
-4. Trả `themeConfig` nếu cần đổi màu/token/menu
+1. Chọn `planCode`
+2. Chọn `variantCode` dùng lại như `default`, `thanhla` hoặc `gobiz`
+3. Trả `themeConfig` nếu cần đổi màu/token/menu
 
 Ví dụ:
 
@@ -187,13 +182,10 @@ apps/web/src/pages/Orders/OrdersStyleNewclientCombined.tsx
 
 ### Trường hợp 3: tạo variant mới hoàn toàn
 
-Backend:
+Tenant config:
 
-1. Thêm tenant vào `tenants`
-2. Dùng `variantCode: "newclient"`
-3. Thêm `newclient` vào `VARIANT_NAMES`
-
-Nếu không thêm vào `VARIANT_NAMES`, backend sẽ fallback `variantCode` về `default`.
+1. Dùng `variantCode: "newclient"`
+2. Bảo đảm API/cấu hình tenant trả đúng `variantCode`
 
 Frontend:
 
